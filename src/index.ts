@@ -78,3 +78,23 @@ export {
   type SeqRangeRecallQuery,
   type SeqRangeRecallResult,
 } from "./recall.js";
+
+export {
+  CONTEXT_COMPILER_CAPABILITIES,
+  CONTEXT_COMPILER_SERVICE_VERSION,
+  ContextCompilerMcpService,
+  ContextCompilerServiceError,
+  resolveContextCompilerDatabasePath,
+  type CompileContextMetrics,
+  type CompileContextResult,
+  type ContextCompilerErrorCode,
+  type ContextCompilerToolFailure,
+  type ContextCompilerToolName,
+  type ContextCompilerToolResponse,
+  type ContextCompilerToolSuccess,
+} from "./mcp-service.js";
+
+export {
+  createContextCompilerMcpServer,
+  runContextCompilerMcpServer,
+} from "./mcp-server.js";
