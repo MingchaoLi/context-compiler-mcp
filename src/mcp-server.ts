@@ -138,8 +138,6 @@ interface WarningFilterLeaseState {
   readonly original: typeof process.emitWarning;
   readonly filtered: typeof process.emitWarning;
   readonly activeTokens: Set<symbol>;
-  downstream: typeof process.emitWarning;
-  restoreTarget: typeof process.emitWarning;
 }
 
 let warningFilterLeaseState: WarningFilterLeaseState | undefined;
@@ -167,20 +165,16 @@ export function acquireSqliteExperimentalWarningFilter(): () => void {
         message === "SQLite is an experimental feature and might change at any time" &&
         type === "ExperimentalWarning"
       ) return;
-      Reflect.apply(created.downstream, process, [warning, ...arguments_]);
+      Reflect.apply(created.original, process, [warning, ...arguments_]);
     }) as typeof process.emitWarning;
     Object.assign(created, {
       original,
       filtered,
       activeTokens,
-      downstream: original,
-      restoreTarget: original,
     });
     state = created;
     warningFilterLeaseState = state;
     process.emitWarning = state.filtered;
-  } else {
-    ensureWarningFilterInstalled(state);
   }
 
   const token = Symbol("sqlite-warning-filter-lease");
@@ -190,25 +184,12 @@ export function acquireSqliteExperimentalWarningFilter(): () => void {
     if (released) return;
     released = true;
     state.activeTokens.delete(token);
-    if (state.activeTokens.size !== 0) {
-      ensureWarningFilterInstalled(state);
-      return;
-    }
+    if (state.activeTokens.size !== 0) return;
     if (process.emitWarning === state.filtered) {
-      process.emitWarning = state.restoreTarget;
+      process.emitWarning = state.original;
     }
     if (warningFilterLeaseState === state) warningFilterLeaseState = undefined;
   };
-}
-
-function ensureWarningFilterInstalled(state: WarningFilterLeaseState): void {
-  if (process.emitWarning === state.filtered) return;
-  // Preserve an external replacement made while a lease was active. The next
-  // manager boundary reinstalls the same filter and forwards/restores to that
-  // newer function instead of overwriting it with the initially captured one.
-  state.downstream = process.emitWarning;
-  state.restoreTarget = process.emitWarning;
-  process.emitWarning = state.filtered;
 }
 
 function response(value: unknown, isError: boolean): CallToolResult {

@@ -331,34 +331,19 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(process.emitWarning).toBe(spy);
       await Promise.all(threeRunners.map((control) => control.transport.close()));
 
-      const releaseA = acquireSqliteExperimentalWarningFilter();
-      const threeLeaseIdentity = process.emitWarning;
-      const releaseB = acquireSqliteExperimentalWarningFilter();
-      const releaseC = acquireSqliteExperimentalWarningFilter();
-      expect(process.emitWarning).toBe(threeLeaseIdentity);
-      releaseB();
-      releaseB();
-      releaseA();
-      expect(process.emitWarning).toBe(threeLeaseIdentity);
-      releaseC();
-      releaseC();
-      expect(process.emitWarning).toBe(spy);
-
-      const releaseBeforeExternal = acquireSqliteExperimentalWarningFilter();
-      const releaseAfterExternal = acquireSqliteExperimentalWarningFilter();
-      const externalFilterIdentity = process.emitWarning;
-      const externalForwarded: string[] = [];
-      const external = ((warning: string | Error) => {
-        externalForwarded.push(typeof warning === "string" ? warning : warning.message);
-      }) as typeof process.emitWarning;
-      process.emitWarning = external;
-      releaseBeforeExternal();
-      expect(process.emitWarning).toBe(externalFilterIdentity);
-      process.emitWarning("external-forwarded", "SecurityWarning");
-      expect(externalForwarded).toEqual(["external-forwarded"]);
-      releaseAfterExternal();
-      expect(process.emitWarning).toBe(external);
-      process.emitWarning = spy;
+      const eightReleases = Array.from(
+        { length: 8 },
+        () => acquireSqliteExperimentalWarningFilter()
+      );
+      const eightLeaseIdentity = process.emitWarning;
+      const releaseOrder = [3, 0, 6, 1, 7, 2, 5, 4];
+      for (const [position, index] of releaseOrder.entries()) {
+        eightReleases[index]!();
+        eightReleases[index]!();
+        expect(process.emitWarning).toBe(
+          position === releaseOrder.length - 1 ? spy : eightLeaseIdentity
+        );
+      }
 
       await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
       for (const [event, baseline] of Object.entries(listenerBaselines) as Array<
@@ -368,6 +353,60 @@ describe("Context Compiler stdio MCP protocol", () => {
         expect(listeners).toHaveLength(baseline.size);
         expect(listeners.every((listener) => baseline.has(listener))).toBe(true);
       }
+    } finally {
+      process.emitWarning = original;
+    }
+  });
+
+  it("preserves chained and plain external warning replacements without recursion", () => {
+    const original = process.emitWarning;
+    const forwarded: string[] = [];
+    const spy = ((warning: string | Error) => {
+      forwarded.push(typeof warning === "string" ? warning : warning.message);
+    }) as typeof process.emitWarning;
+    process.emitWarning = spy;
+    try {
+      const releaseA = acquireSqliteExperimentalWarningFilter();
+      const releaseB = acquireSqliteExperimentalWarningFilter();
+      const capturedFilter = process.emitWarning;
+      const chained = ((warning: string | Error, ...arguments_: unknown[]) => {
+        Reflect.apply(capturedFilter, process, [warning, ...arguments_]);
+      }) as typeof process.emitWarning;
+      process.emitWarning = chained;
+
+      const releaseC = acquireSqliteExperimentalWarningFilter();
+      expect(process.emitWarning).toBe(chained);
+      emitExternalWarningSet();
+      expect(forwarded).toEqual(["external-security", "external-deprecation"]);
+      releaseB();
+      releaseB();
+      expect(process.emitWarning).toBe(chained);
+      emitExternalWarningSet();
+      expect(forwarded).toEqual([
+        "external-security", "external-deprecation",
+        "external-security", "external-deprecation",
+      ]);
+      releaseC();
+      releaseA();
+      expect(process.emitWarning).toBe(chained);
+
+      process.emitWarning = spy;
+      const plainReleaseA = acquireSqliteExperimentalWarningFilter();
+      const plainReleaseB = acquireSqliteExperimentalWarningFilter();
+      const plainForwarded: string[] = [];
+      const plain = ((warning: string | Error) => {
+        plainForwarded.push(typeof warning === "string" ? warning : warning.message);
+      }) as typeof process.emitWarning;
+      process.emitWarning = plain;
+      const plainReleaseC = acquireSqliteExperimentalWarningFilter();
+      expect(process.emitWarning).toBe(plain);
+      process.emitWarning("plain-security", "SecurityWarning");
+      expect(plainForwarded).toEqual(["plain-security"]);
+      plainReleaseB();
+      plainReleaseC();
+      expect(process.emitWarning).toBe(plain);
+      plainReleaseA();
+      expect(process.emitWarning).toBe(plain);
     } finally {
       process.emitWarning = original;
     }
@@ -445,6 +484,15 @@ function emitWarningSentinels(): void {
     "ExperimentalWarning"
   );
   process.emitWarning("overlap-forwarded", "SecurityWarning");
+}
+
+function emitExternalWarningSet(): void {
+  process.emitWarning(
+    "SQLite is an experimental feature and might change at any time",
+    "ExperimentalWarning"
+  );
+  process.emitWarning("external-security", "SecurityWarning");
+  process.emitWarning("external-deprecation", "DeprecationWarning");
 }
 
 function delayedInMemoryTransport(): {
