@@ -19,7 +19,7 @@ ST-01 passed independent QA on 2026-08-23. Preparation captures a bounded curren
 
 ## Current candidate
 
-WO-ST-02 is implemented and awaiting independent QA. The candidate adds a strict versioned offline evaluation library and JSON CLI for D0 full raw context, D1 recent context, and D2 compiled context. It measures approximate token reduction, labeled constraint/decision/open-question retention, resolved-issue reopening, headline recall recovery, and latency, then applies explicit aggregate thresholds. It does not add an MCP tool, provider, model call, network call, or host dependency.
+WO-ST-02 is implemented and awaiting independent re-QA after the first QA return. The candidate adds a strict versioned offline evaluation library and JSON CLI for D0 full raw context, D1 recent context, and D2 compiled context. It measures approximate token reduction, labeled constraint/decision/open-question retention, resolved-issue reopening, headline recall recovery, and latency, then applies explicit aggregate thresholds. The returned npm-bin symlink and SQLite warning-stream defects have a bounded append-only fix. It does not add an MCP tool, provider, model call, network call, or host dependency.
 
 ## Current behavior
 
@@ -33,4 +33,4 @@ WO-ST-02 is implemented and awaiting independent QA. The candidate adds a strict
 - The ST-02 evaluation runner has not yet passed independent QA.
 - No formal compiler mode in any host adapter.
 
-The current work is independent QA for WO-ST-02. ST-03 must not begin until ST-02 is accepted and its evaluation contract is reviewed.
+The current work is independent re-QA for the WO-ST-02 fix. ST-03 must not begin until ST-02 is accepted and its evaluation contract is reviewed.

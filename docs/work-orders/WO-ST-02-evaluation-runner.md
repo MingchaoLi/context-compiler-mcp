@@ -1,8 +1,10 @@
 # WO-ST-02 — Deterministic evaluation runner
 
-Status: IMPLEMENTED — PENDING INDEPENDENT QA
+Status: FIXED — PENDING INDEPENDENT RE-QA
 
 Implementation handoff: `docs/handoffs/WO-ST-02-evaluation-runner.md`
+
+Independent QA return: `docs/qa/WO-ST-02-evaluation-runner.md`
 
 ## Result
 
@@ -30,6 +32,7 @@ Read only:
 - `src/assembler.ts`
 - `src/recall.ts`
 - `src/index.ts`
+- `src/mcp-server.ts` (only the existing exact SQLite warning-filter pattern required by QA)
 - `README.md`
 - existing focused tests for those modules
 

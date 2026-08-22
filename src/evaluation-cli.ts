@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-import {
-  EvaluationError,
-  EVALUATION_REPORT_VERSION,
-  runEvaluationSuite,
-  type EvaluationErrorCode,
-} from "./evaluation.js";
+import { fileURLToPath } from "node:url";
+import type { EvaluationErrorCode } from "./evaluation.js";
+import { acquireSqliteExperimentalWarningFilter } from "./sqlite-warning.js";
+
+const restoreWarnings = acquireSqliteExperimentalWarningFilter();
+const evaluation = await import("./evaluation.js").finally(restoreWarnings);
 
 export const EVALUATION_CLI_EXIT = {
   passed: 0,
@@ -48,17 +47,20 @@ export function runEvaluationCli(
   }
 
   try {
-    const report = runEvaluationSuite(input);
+    const report = evaluation.runEvaluationSuite(input);
     io.stdout(`${JSON.stringify(report)}\n`);
     return report.passed ? EVALUATION_CLI_EXIT.passed : EVALUATION_CLI_EXIT.thresholdFailed;
   } catch (error) {
-    return writeError(error instanceof EvaluationError ? error.code : "RUNTIME_FAILURE", io);
+    return writeError(
+      error instanceof evaluation.EvaluationError ? error.code : "RUNTIME_FAILURE",
+      io
+    );
   }
 }
 
 function writeError(code: EvaluationErrorCode, io: EvaluationCliIo): number {
   io.stderr(`${JSON.stringify({
-    version: EVALUATION_REPORT_VERSION,
+    version: evaluation.EVALUATION_REPORT_VERSION,
     passed: false,
     error: { code },
   })}\n`);
@@ -68,6 +70,14 @@ function writeError(code: EvaluationErrorCode, io: EvaluationCliIo): number {
 }
 
 const invokedPath = process.argv[1];
-if (invokedPath !== undefined && import.meta.url === pathToFileURL(resolve(invokedPath)).href) {
+if (invokedPath !== undefined && isMainModule(invokedPath)) {
   process.exitCode = runEvaluationCli(process.argv.slice(2));
+}
+
+function isMainModule(invokedPath: string): boolean {
+  try {
+    return realpathSync(resolve(invokedPath)) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
 }

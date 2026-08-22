@@ -136,9 +136,3 @@ export {
   type EvaluationThresholdFailure,
   type EvaluationThresholds,
 } from "./evaluation.js";
-
-export {
-  EVALUATION_CLI_EXIT,
-  runEvaluationCli,
-  type EvaluationCliIo,
-} from "./evaluation-cli.js";

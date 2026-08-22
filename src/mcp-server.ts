@@ -15,6 +15,9 @@ import type {
   ContextCompilerMcpService,
   ContextCompilerToolName,
 } from "./mcp-service.js";
+import { acquireSqliteExperimentalWarningFilter } from "./sqlite-warning.js";
+
+export { acquireSqliteExperimentalWarningFilter } from "./sqlite-warning.js";
 
 const CONTEXT_COMPILER_SERVICE_VERSION = "0.1.0";
 const CONTEXT_COMPILER_CAPABILITIES: readonly ContextCompilerToolName[] = [
@@ -224,64 +227,6 @@ export async function runContextCompilerMcpServer(
   } finally {
     restoreWarnings();
   }
-}
-
-interface WarningFilterLeaseState {
-  readonly original: typeof process.emitWarning;
-  readonly filtered: typeof process.emitWarning;
-  readonly activeTokens: Set<symbol>;
-}
-
-let warningFilterLeaseState: WarningFilterLeaseState | undefined;
-
-export function acquireSqliteExperimentalWarningFilter(): () => void {
-  let state = warningFilterLeaseState;
-  if (state === undefined) {
-    const original = process.emitWarning;
-    const activeTokens = new Set<symbol>();
-    const created = {} as WarningFilterLeaseState;
-    const filtered = (function (
-      warning: string | Error,
-      ...arguments_: unknown[]
-    ): void {
-      const message = typeof warning === "string" ? warning : warning.message;
-      const options = arguments_[0];
-      const type = warning instanceof Error
-        ? warning.name
-        : typeof options === "string"
-          ? options
-          : typeof options === "object" && options !== null && "type" in options
-            ? (options as { type?: unknown }).type
-            : undefined;
-      if (
-        message === "SQLite is an experimental feature and might change at any time" &&
-        type === "ExperimentalWarning"
-      ) return;
-      Reflect.apply(created.original, process, [warning, ...arguments_]);
-    }) as typeof process.emitWarning;
-    Object.assign(created, {
-      original,
-      filtered,
-      activeTokens,
-    });
-    state = created;
-    warningFilterLeaseState = state;
-    process.emitWarning = state.filtered;
-  }
-
-  const token = Symbol("sqlite-warning-filter-lease");
-  state.activeTokens.add(token);
-  let released = false;
-  return () => {
-    if (released) return;
-    released = true;
-    state.activeTokens.delete(token);
-    if (state.activeTokens.size !== 0) return;
-    if (process.emitWarning === state.filtered) {
-      process.emitWarning = state.original;
-    }
-    if (warningFilterLeaseState === state) warningFilterLeaseState = undefined;
-  };
 }
 
 function response(value: unknown, isError: boolean): CallToolResult {

@@ -4,6 +4,15 @@ Date: 2026-08-23
 
 Status: **IMPLEMENTED — REQUIRES INDEPENDENT QA**
 
+## QA return and bounded fix
+
+The first independent QA returned the candidate with two findings recorded in `docs/qa/WO-ST-02-evaluation-runner.md`:
+
+- The npm `.bin/context-compiler-eval` symbolic-link entry silently exited because the main-module guard compared an unresolved `argv[1]` path.
+- Node's exact SQLite `ExperimentalWarning` polluted the CLI error stream on the exercised Node.js 25 runtime.
+
+The append-only fix resolves both paths by comparing real entry paths, moving the already protocol-tested exact SQLite warning filter into a dependency-free shared module, and acquiring it before dynamically loading the SQLite-backed evaluator. Unrelated warnings remain forwarded. The real package-isolation protocol test now constructs the normal POSIX npm `.bin` link and verifies both a passing report and a standalone JSON runtime error through that link.
+
 ## Result
 
 The candidate adds an offline `runEvaluationSuite` library API and `context-compiler-eval` JSON CLI. A strict version-1 fixture is evaluated in isolated per-case SQLite databases across:
@@ -38,8 +47,10 @@ Environment: Darwin 25.5.0 arm64, Node.js 25.6.1, npm 11.9.0.
 - `npm run test:protocol`: PASS; 8 tests, including real stdio/package isolation and exact nine-tool behavior.
 - `npm run build`: PASS.
 - Representative real CLI: PASS; D2 reduced estimated tokens by `0.704388`, retained all labeled constraints/decisions/open questions, reopened zero resolved issues, recovered all labeled recall evidence, and passed thresholds.
-- Real `npm pack` and dry-run with a task-local cache: PASS; 41 entries including evaluation JS/declarations and no source/test paths.
+- Real `npm pack` and dry-run with a task-local cache: PASS; the fixed candidate contains 44 entries including evaluation/warning-filter JS and declarations, with no source/test paths.
 - Production-only extracted package after offline prune: PASS; representative evaluation ran successfully, `npm ls --omit=dev --all --offline` passed, and Vitest/TypeScript were absent.
 - `git diff --check`: PASS.
+
+Post-return verification also passed all 187 tests, the 8-test real protocol suite, build, package dry-run, production dependency tree, and the new real tarball `.bin` success/error regression. On the exercised Node.js 25.6.1 runtime, the linked CLI now emits no SQLite platform warning while the existing warning-filter tests continue to prove that unrelated warnings are forwarded and overlapping leases restore correctly.
 
 The implementer does not approve this delivery. Independent QA must verify the exact committed candidate, write `docs/qa/WO-ST-02-evaluation-runner.md`, and either accept it or return defects for append-only fixes.

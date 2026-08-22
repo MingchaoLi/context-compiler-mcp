@@ -1,6 +1,7 @@
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
-  cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync,
+  chmodSync, cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, renameSync,
+  rmSync, symlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -202,6 +203,35 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(connection.stderr.join("")).toBe("");
     } finally {
       await close(connection);
+    }
+
+    if (process.platform !== "win32") {
+      const applicationRoot = join(packagedRoot, "application");
+      const applicationModules = join(applicationRoot, "node_modules");
+      const installedPackage = join(applicationModules, "context-compiler-mcp");
+      const binDirectory = join(applicationModules, ".bin");
+      mkdirSync(binDirectory, { recursive: true });
+      renameSync(packageRoot, installedPackage);
+      const evaluationEntry = join(installedPackage, "dist", "evaluation-cli.js");
+      chmodSync(evaluationEntry, 0o755);
+      const evaluationBin = join(binDirectory, "context-compiler-eval");
+      symlinkSync("../context-compiler-mcp/dist/evaluation-cli.js", evaluationBin);
+
+      const validEvaluation = spawnSync(evaluationBin, [
+        join(root, "test", "fixtures", "evaluation-suite.json"),
+      ], { cwd: applicationRoot, encoding: "utf8" });
+      expect(validEvaluation.status).toBe(0);
+      expect(validEvaluation.stderr).toBe("");
+      expect(JSON.parse(validEvaluation.stdout)).toMatchObject({ version: 1, passed: true });
+
+      const missingEvaluation = spawnSync(evaluationBin, [
+        join(applicationRoot, "missing-evaluation-suite.json"),
+      ], { cwd: applicationRoot, encoding: "utf8" });
+      expect(missingEvaluation.status).toBe(4);
+      expect(missingEvaluation.stdout).toBe("");
+      expect(JSON.parse(missingEvaluation.stderr)).toEqual({
+        version: 1, passed: false, error: { code: "RUNTIME_FAILURE" },
+      });
     }
   }, 60_000);
 
