@@ -481,7 +481,7 @@ function validateHeadlineInput(input: HistoryHeadlineInput): HistoryHeadlineInpu
     "headline",
     "keywords",
   ], ["created_at"]);
-  const sessionId = validateIdentifier(values.session_id, "session_id");
+  const sessionId = validateSessionId(values.session_id);
   const start = validatePositiveInteger(values.event_start_seq, "event_start_seq");
   const end = validatePositiveInteger(values.event_end_seq, "event_end_seq");
   if (start > end || end - start + 1 > MAX_HEADLINE_EVENTS) {
@@ -510,7 +510,7 @@ function validateExactQuery(query: ExactRecallQuery): ExactRecallQuery {
     "headline_id",
   ]);
   const kind = base.kind;
-  const sessionId = validateIdentifier(base.session_id, "session_id");
+  const sessionId = validateSessionId(base.session_id);
   if (kind === "event_id") {
     requireExactKeys(base, ["kind", "session_id", "event_id"], "event_id query");
     return {
@@ -550,7 +550,7 @@ function validateKeywordQuery(input: KeywordRecallQuery): Required<KeywordRecall
     throw invalidInput("keyword recall limit must be an integer between 1 and 20");
   }
   return {
-    session_id: validateIdentifier(values.session_id, "session_id"),
+    session_id: validateSessionId(values.session_id),
     query: validateBoundedText(values.query, "query", 500),
     limit: limit as number,
   };
@@ -628,6 +628,15 @@ function requireExactKeys(
 
 function validateIdentifier(value: unknown, label: string): string {
   return validateBoundedText(value, label, MAX_IDENTIFIER_LENGTH);
+}
+
+function validateSessionId(value: unknown): string {
+  // Match the approved WO-CC-01 Raw Store domain exactly. In particular,
+  // whitespace-only and long IDs already identify valid persisted sessions.
+  if (typeof value !== "string" || value.length === 0) {
+    throw invalidInput("session_id must be a non-empty string");
+  }
+  return value;
 }
 
 function validateBoundedText(value: unknown, label: string, maximum: number): string {

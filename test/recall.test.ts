@@ -202,6 +202,48 @@ describe("SqliteHistoryRecallStore", () => {
     })).toEqual({ kind: "seq_range", found: true, events: [foreign] });
   });
 
+  it("supports the full approved Raw Store session-id domain without cross-session leakage", () => {
+    rawStore = new SqliteRawHistoryStore(databasePath);
+    const sessionIds = ["s".repeat(501), "   "];
+    const events = sessionIds.map((sessionId, index) => rawStore!.ingest({
+      session_id: sessionId,
+      role: "user",
+      content: `compatible session evidence ${index}`,
+    }));
+    recallStore = new SqliteHistoryRecallStore(databasePath);
+    const headlines = sessionIds.map((sessionId, index) => recallStore!.createHeadline({
+      session_id: sessionId,
+      event_start_seq: 1,
+      event_end_seq: 1,
+      headline: `Compatible raw session ${index}`,
+      keywords: ["raw-domain", `session-${index}`],
+    }));
+
+    for (let index = 0; index < sessionIds.length; index += 1) {
+      const sessionId = sessionIds[index];
+      const otherSession = sessionIds[1 - index];
+      expect(recallStore.recallExact({
+        kind: "event_id", session_id: sessionId, event_id: events[index].id,
+      })).toEqual({ kind: "event_id", found: true, event: events[index] });
+      expect(recallStore.recallExact({
+        kind: "seq_range", session_id: sessionId, event_start_seq: 1, event_end_seq: 1,
+      })).toEqual({ kind: "seq_range", found: true, events: [events[index]] });
+      expect(recallStore.recallExact({
+        kind: "headline_id", session_id: sessionId, headline_id: headlines[index].id,
+      })).toEqual({
+        kind: "headline_id", found: true, headline: headlines[index], events: [events[index]],
+      });
+      expect(recallStore.recallKeyword({ session_id: sessionId, query: `session ${index}` }))
+        .toEqual([expect.objectContaining({ headline: headlines[index], events: [events[index]] })]);
+      expect(recallStore.recallExact({
+        kind: "event_id", session_id: otherSession, event_id: events[index].id,
+      })).toEqual({ kind: "event_id", found: false });
+      expect(recallStore.recallExact({
+        kind: "headline_id", session_id: otherSession, headline_id: headlines[index].id,
+      })).toEqual({ kind: "headline_id", found: false, events: [] });
+    }
+  });
+
   it("finds headline and keyword terms immediately with complete raw evidence", () => {
     const events = openWithEvents();
     const created = recallStore!.createHeadline(headline({
@@ -386,7 +428,7 @@ describe("SqliteHistoryRecallStore", () => {
   });
 
   it.each([
-    ["blank session", { session_id: " " }],
+    ["empty session", { session_id: "" }],
     ["zero start", { event_start_seq: 0 }],
     ["reversed range", { event_start_seq: 2, event_end_seq: 1 }],
     ["blank headline", { headline: " \n " }],
