@@ -299,6 +299,122 @@ describe("session-scoped transactional StateReducer", () => {
     expect(stateStore!.getRevision("session-a")).toBe(1);
   });
 
+  it("rejects a SUPERSEDED Decision as resolved_by and rolls back the whole delta", () => {
+    const initial = reducer.apply(
+      "session-a",
+      delta({
+        new_decisions: [{ content: "Old" }, { content: "New" }],
+        new_open_questions: [{ content: "Can Old resolve this?" }],
+      })
+    );
+    const [oldDecision, newDecision, question] = initial.created;
+    reducer.apply(
+      "session-a",
+      delta({
+        supersessions: [{
+          superseded_id: oldDecision.id,
+          superseding_id: newDecision.id,
+        }],
+      })
+    );
+
+    expect(() =>
+      reducer.apply(
+        "session-a",
+        delta({
+          new_goals: [{ content: "This earlier create must roll back" }],
+          resolved_questions: [{ id: question.id, resolved_by: oldDecision.id }],
+        })
+      )
+    ).toThrow(/resolved_by Decision .* must be ACTIVE/);
+    expect(stateStore!.getItem("session-a", question.id)?.status).toBe("OPEN");
+    expect(stateStore!.getItems("session-a")).toHaveLength(3);
+    expect(stateStore!.getRelations("session-a", question.id)).toEqual([]);
+    expect(stateStore!.getRevision("session-a")).toBe(2);
+  });
+
+  it("blocks low-level status and controlled-relation bypasses", () => {
+    const initial = reducer.apply(
+      "session-a",
+      delta({
+        new_decisions: [{ content: "Only active Decision" }],
+        new_open_questions: [{ content: "Still open" }],
+      })
+    );
+    const decision = initial.created.find((item) => item.type === "DECISION")!;
+    const question = initial.created.find((item) => item.type === "OPEN_QUESTION")!;
+
+    expect(() =>
+      stateStore!.transaction("session-a", () =>
+        stateStore!.updateItem(
+          "session-a",
+          decision.id,
+          { status: "SUPERSEDED" },
+          "DECISION"
+        )
+      )
+    ).toThrow(/require supersedeDecision/);
+    expect(() =>
+      stateStore!.transaction("session-a", () =>
+        stateStore!.updateItem(
+          "session-a",
+          question.id,
+          { status: "RESOLVED" },
+          "OPEN_QUESTION"
+        )
+      )
+    ).toThrow(/require resolveQuestion/);
+    expect(() =>
+      stateStore!.transaction("session-a", () =>
+        stateStore!.addRelation(
+          "session-a",
+          decision.id,
+          "SUPERSEDES",
+          question.id
+        )
+      )
+    ).toThrow(/atomic context-state operation/);
+    expect(stateStore!.getItem("session-a", decision.id)?.status).toBe("ACTIVE");
+    expect(stateStore!.getItem("session-a", question.id)?.status).toBe("OPEN");
+    expect(stateStore!.getSessionRelations("session-a")).toEqual([]);
+    expect(stateStore!.getRevision("session-a")).toBe(1);
+  });
+
+  it("keeps failed atomic Store operations rollback-safe when their errors are caught", () => {
+    const initial = reducer.apply(
+      "session-a",
+      delta({
+        new_decisions: [{ content: "Old" }, { content: "New" }],
+        new_open_questions: [{ content: "Open" }],
+      })
+    );
+    const [oldDecision, newDecision, question] = initial.created;
+    reducer.apply(
+      "session-a",
+      delta({
+        supersessions: [{
+          superseded_id: oldDecision.id,
+          superseding_id: newDecision.id,
+        }],
+      })
+    );
+
+    const caught = stateStore!.transaction("session-a", () => {
+      expect(() =>
+        stateStore!.resolveQuestion("session-a", question.id, oldDecision.id)
+      ).toThrow(/must be ACTIVE/);
+      expect(() =>
+        stateStore!.supersedeDecision("session-a", newDecision.id, oldDecision.id)
+      ).toThrow(/must be ACTIVE to supersede/);
+      return "caught";
+    });
+
+    expect(caught).toEqual({ value: "caught", revision: 2 });
+    expect(stateStore!.getItem("session-a", question.id)?.status).toBe("OPEN");
+    expect(stateStore!.getItem("session-a", newDecision.id)?.status).toBe("ACTIVE");
+    expect(stateStore!.getRevision("session-a")).toBe(2);
+  });
+
   it("supersedes only ACTIVE Decision to ACTIVE Decision and rejects repeats", () => {
     const initial = reducer.apply(
       "session-a",

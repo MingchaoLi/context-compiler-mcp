@@ -136,26 +136,14 @@ export class StateReducer {
         result.log.push(`UPDATE CONSTRAINT ${constraint.id} -> ${updated.status}`);
       }
       for (const question of delta.resolved_questions) {
-        const existing = this.store.requireItem(sessionId, question.id, "OPEN_QUESTION");
-        if (existing.status !== "OPEN") {
-          throw new Error(`OpenQuestion ${question.id} must be OPEN before resolution`);
-        }
-        if (question.resolved_by !== undefined) {
-          this.store.requireItem(sessionId, question.resolved_by, "DECISION");
-        }
-        const updated = this.store.updateItem(
+        const resolution = this.store.resolveQuestion(
           sessionId,
           question.id,
-          { status: "RESOLVED" },
-          "OPEN_QUESTION"
+          question.resolved_by
         );
-        result.updated.push(updated);
+        result.updated.push(resolution.updated);
         result.log.push(`RESOLVE OPEN_QUESTION ${question.id}`);
-        if (question.resolved_by !== undefined) {
-          result.relations.push(
-            this.store.addRelation(sessionId, question.id, "RESOLVED_BY", question.resolved_by)
-          );
-        }
+        if (resolution.relation !== undefined) result.relations.push(resolution.relation);
       }
       for (const supersession of delta.supersessions) {
         this.supersede(
@@ -217,25 +205,13 @@ export class StateReducer {
     supersedingId: string,
     result: ReducerResult
   ): void {
-    if (supersededId === supersedingId) throw new Error("A Decision cannot supersede itself");
-    const oldDecision = this.store.requireItem(sessionId, supersededId, "DECISION");
-    const newDecision = this.store.requireItem(sessionId, supersedingId, "DECISION");
-    if (oldDecision.status !== "ACTIVE") {
-      throw new Error(`Decision ${supersededId} must be ACTIVE before supersession`);
-    }
-    if (newDecision.status !== "ACTIVE") {
-      throw new Error(`Decision ${supersedingId} must be ACTIVE to supersede another Decision`);
-    }
-    const updated = this.store.updateItem(
+    const supersession = this.store.supersedeDecision(
       sessionId,
       supersededId,
-      { status: "SUPERSEDED" },
-      "DECISION"
+      supersedingId
     );
-    result.updated.push(updated);
-    result.relations.push(
-      this.store.addRelation(sessionId, supersedingId, "SUPERSEDES", supersededId)
-    );
+    result.updated.push(supersession.updated);
+    result.relations.push(supersession.relation);
     result.log.push(`SUPERSEDE ${supersededId} <- ${supersedingId}`);
   }
 }

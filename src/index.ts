@@ -12,6 +12,8 @@ export {
 export { StateReducer, type ReducerResult } from "./reducer.js";
 export {
   SqliteContextStateStore,
+  type DecisionSupersessionResult,
+  type QuestionResolutionResult,
   type StateItemInput,
   type StateItemPatch,
   type StateTransactionResult,

@@ -32,6 +32,16 @@ export interface StateTransactionResult<T> {
   revision: number;
 }
 
+export interface DecisionSupersessionResult {
+  updated: ContextItem;
+  relation: StateRelation;
+}
+
+export interface QuestionResolutionResult {
+  updated: ContextItem;
+  relation?: StateRelation;
+}
+
 interface ItemRow extends Record<string, unknown> {
   id: string;
   session_id: string;
@@ -221,6 +231,12 @@ export class SqliteContextStateStore {
     validateContent(content);
     validateStatus(existing.type, status);
     validateTransition(existing.type, existing.status, status);
+    if (existing.type === "DECISION" && status !== existing.status) {
+      throw new Error("Decision status changes require supersedeDecision");
+    }
+    if (existing.type === "OPEN_QUESTION" && status !== existing.status) {
+      throw new Error("OpenQuestion status changes require resolveQuestion");
+    }
 
     if (
       content === existing.content &&
@@ -230,17 +246,74 @@ export class SqliteContextStateStore {
       throw new Error(`Context item ${id} update is a no-op`);
     }
 
-    const updatedAt = new Date().toISOString();
-    const result = this.database
-      .prepare(
-        `UPDATE context_items
-         SET content = ?, status = ?, metadata_json = ?, updated_at = ?
-         WHERE session_id = ? AND id = ?`
-      )
-      .run(content, status, JSON.stringify(metadata), updatedAt, sessionId, id);
-    if (result.changes !== 1) throw new Error(`Context item ${id} changed concurrently`);
-    this.transactionDirty = true;
-    return cloneItem({ ...existing, content, status, metadata, updated_at: updatedAt });
+    return this.writeItemUpdate(existing, content, status, metadata);
+  }
+
+  resolveQuestion(
+    sessionId: string,
+    questionId: string,
+    resolvedBy?: string
+  ): QuestionResolutionResult {
+    this.assertWritable(sessionId);
+    return this.withDomainSavepoint(() => {
+      const question = this.requireItem(sessionId, questionId, "OPEN_QUESTION");
+      if (question.status !== "OPEN") {
+        throw new Error(`OpenQuestion ${questionId} must be OPEN before resolution`);
+      }
+
+      let decision: ContextItem | undefined;
+      if (resolvedBy !== undefined) {
+        decision = this.requireItem(sessionId, resolvedBy, "DECISION");
+        if (decision.status !== "ACTIVE") {
+          throw new Error(`resolved_by Decision ${resolvedBy} must be ACTIVE`);
+        }
+      }
+
+      const updated = this.writeItemUpdate(
+        question,
+        question.content,
+        "RESOLVED",
+        question.metadata
+      );
+      const relation =
+        decision === undefined
+          ? undefined
+          : this.addRelationInternal(sessionId, updated.id, "RESOLVED_BY", decision.id);
+      return { updated, ...(relation === undefined ? {} : { relation }) };
+    });
+  }
+
+  supersedeDecision(
+    sessionId: string,
+    supersededId: string,
+    supersedingId: string
+  ): DecisionSupersessionResult {
+    this.assertWritable(sessionId);
+    return this.withDomainSavepoint(() => {
+      if (supersededId === supersedingId) throw new Error("A Decision cannot supersede itself");
+      const oldDecision = this.requireItem(sessionId, supersededId, "DECISION");
+      const newDecision = this.requireItem(sessionId, supersedingId, "DECISION");
+      if (oldDecision.status !== "ACTIVE") {
+        throw new Error(`Decision ${supersededId} must be ACTIVE before supersession`);
+      }
+      if (newDecision.status !== "ACTIVE") {
+        throw new Error(`Decision ${supersedingId} must be ACTIVE to supersede another Decision`);
+      }
+
+      const updated = this.writeItemUpdate(
+        oldDecision,
+        oldDecision.content,
+        "SUPERSEDED",
+        oldDecision.metadata
+      );
+      const relation = this.addRelationInternal(
+        sessionId,
+        newDecision.id,
+        "SUPERSEDES",
+        updated.id
+      );
+      return { updated, relation };
+    });
   }
 
   addRelation(
@@ -250,6 +323,20 @@ export class SqliteContextStateStore {
     targetId: string
   ): StateRelation {
     this.assertWritable(sessionId);
+    if (relationType === "SUPERSEDES" || relationType === "RESOLVED_BY") {
+      throw new Error(
+        `${relationType} must be created through its atomic context-state operation`
+      );
+    }
+    return this.addRelationInternal(sessionId, sourceId, relationType, targetId);
+  }
+
+  private addRelationInternal(
+    sessionId: string,
+    sourceId: string,
+    relationType: RelationType,
+    targetId: string
+  ): StateRelation {
     validateSessionId(sessionId);
     validateRelationType(relationType);
     const source = this.requireItem(sessionId, sourceId);
@@ -321,6 +408,52 @@ export class SqliteContextStateStore {
     if (this.transactionOpen) throw new Error("Cannot close context-state store in a transaction");
     this.database.close();
     this.closed = true;
+  }
+
+  private writeItemUpdate(
+    existing: ContextItem,
+    content: string,
+    status: ContextItemStatus,
+    metadata: JsonObject
+  ): ContextItem {
+    const updatedAt = new Date().toISOString();
+    const result = this.database
+      .prepare(
+        `UPDATE context_items
+         SET content = ?, status = ?, metadata_json = ?, updated_at = ?
+         WHERE session_id = ? AND id = ?`
+      )
+      .run(
+        content,
+        status,
+        JSON.stringify(metadata),
+        updatedAt,
+        existing.session_id,
+        existing.id
+      );
+    if (result.changes !== 1) throw new Error(`Context item ${existing.id} changed concurrently`);
+    this.transactionDirty = true;
+    return cloneItem({ ...existing, content, status, metadata, updated_at: updatedAt });
+  }
+
+  private withDomainSavepoint<T>(operation: () => T): T {
+    const dirtyBefore = this.transactionDirty;
+    this.database.exec("SAVEPOINT context_state_domain_operation;");
+    try {
+      const result = operation();
+      this.database.exec("RELEASE SAVEPOINT context_state_domain_operation;");
+      return result;
+    } catch (error) {
+      try {
+        this.database.exec("ROLLBACK TO SAVEPOINT context_state_domain_operation;");
+        this.database.exec("RELEASE SAVEPOINT context_state_domain_operation;");
+      } catch {
+        // The outer transaction will still roll back if savepoint cleanup fails.
+      } finally {
+        this.transactionDirty = dirtyBefore;
+      }
+      throw error;
+    }
   }
 
   private insertRelation(
@@ -488,6 +621,9 @@ function validateRelationEndpoint(
     if (source.status !== "RESOLVED") {
       throw new Error("RESOLVED_BY requires a RESOLVED OpenQuestion source");
     }
+    if (target.status !== "ACTIVE") {
+      throw new Error("RESOLVED_BY requires an ACTIVE Decision target");
+    }
   }
   if (relationType === "REJECTS" && source.type !== "REJECTED_ALTERNATIVE") {
     throw new Error("REJECTS requires RejectedAlternative source");
@@ -525,7 +661,6 @@ function validateTransition(
   if (from === to) return;
   const allowed = new Set<string>([
     "GOAL:ACTIVE->COMPLETED",
-    "GOAL:ACTIVE->SUPERSEDED",
     "CONSTRAINT:ACTIVE->SUPERSEDED",
     "DECISION:ACTIVE->SUPERSEDED",
     "OPEN_QUESTION:OPEN->RESOLVED",
