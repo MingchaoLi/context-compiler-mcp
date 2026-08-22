@@ -150,19 +150,33 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     )
     .sort(compareOptionalItems);
 
-  let historicalNotes: CompactHistoricalNote[] = [];
-  let rendered = renderSections(mandatory);
-  for (const item of optionalCandidates) {
-    const note = toHistoricalNote(item);
-    const candidateNotes = [...historicalNotes, note];
-    const candidateRendered = renderSections({ ...mandatory, historicalNotes: candidateNotes });
-    if (
-      validated.tokenBudget === undefined ||
-      estimateTokens(candidateRendered) <= validated.tokenBudget
-    ) {
-      historicalNotes = candidateNotes;
-      rendered = candidateRendered;
+  let historicalNotes: CompactHistoricalNote[];
+  let rendered: string;
+  if (validated.tokenBudget === undefined) {
+    historicalNotes = optionalCandidates.map(toHistoricalNote);
+    rendered = renderSections({ ...mandatory, historicalNotes });
+  } else {
+    historicalNotes = [];
+    const mandatoryRendered = renderSections(mandatory);
+    let historicalBodyLength = 0;
+    for (const item of optionalCandidates) {
+      const note = toHistoricalNote(item);
+      const lineLength = renderHistoricalNote(note).length;
+      const candidateBodyLength =
+        historicalBodyLength + (historicalNotes.length === 0 ? 0 : 1) + lineLength;
+      // renderNoteSection replaces its six-character `[none]` marker with the
+      // selected newline-delimited body. The shared estimator only depends on
+      // total character length, so this is exactly equivalent to rendering the
+      // whole context for every candidate without the resulting O(n²) copies.
+      const candidateRenderedLength = mandatoryRendered.length - "[none]".length + candidateBodyLength;
+      if (estimateTokensForLength(candidateRenderedLength) <= validated.tokenBudget) {
+        historicalNotes.push(note);
+        historicalBodyLength = candidateBodyLength;
+      }
     }
+    rendered = historicalNotes.length === 0
+      ? mandatoryRendered
+      : renderSections({ ...mandatory, historicalNotes });
   }
 
   const keptStateIds = [
@@ -278,17 +292,19 @@ function renderItemSection(title: string, items: ContextItem[]): string {
 function renderNoteSection(notes: CompactHistoricalNote[]): string {
   const body = notes.length === 0
     ? "[none]"
-    : notes.map((note) => {
-        const details = [
-          note.reason === undefined ? "" : ` reason=${note.reason}`,
-          note.reopen_if === undefined ? "" : ` reopen_if=${note.reopen_if}`,
-          note.provenance_handles.length === 0
-            ? ""
-            : ` provenance=${note.provenance_handles.join(",")}`,
-        ].join("");
-        return `- [${note.id}] (${note.status}) ${note.content}${details}`;
-      }).join("\n");
+    : notes.map(renderHistoricalNote).join("\n");
   return `## Relevant Historical Notes\n${body}`;
+}
+
+function renderHistoricalNote(note: CompactHistoricalNote): string {
+  const details = [
+    note.reason === undefined ? "" : ` reason=${note.reason}`,
+    note.reopen_if === undefined ? "" : ` reopen_if=${note.reopen_if}`,
+    note.provenance_handles.length === 0
+      ? ""
+      : ` provenance=${note.provenance_handles.join(",")}`,
+  ].join("");
+  return `- [${note.id}] (${note.status}) ${note.content}${details}`;
 }
 
 function renderConversation(events: RawEvent[]): string {
@@ -409,6 +425,11 @@ function reductionRatio(d0: number, candidate: number): number {
   return Number.isFinite(ratio) ? ratio : 0;
 }
 
+function estimateTokensForLength(characterLength: number): number {
+  if (characterLength === 0) return 0;
+  return Math.max(1, Math.ceil(characterLength / 4));
+}
+
 function validateInput(input: ContextAssemblerInput): ValidatedInput {
   if (!isPlainObject(input)) invalid("input must be a plain object");
   assertExactKeys(input, [
@@ -432,19 +453,19 @@ function validateInput(input: ContextAssemblerInput): ValidatedInput {
   if (!Array.isArray(input.context_items)) invalid("context_items must be an array");
   if (!Array.isArray(input.state_relations)) invalid("state_relations must be an array");
   if (!Array.isArray(input.raw_events)) invalid("raw_events must be an array");
-  assertArrayShape(input.context_items, "context_items");
-  assertArrayShape(input.state_relations, "state_relations");
-  assertArrayShape(input.raw_events, "raw_events");
+  const contextItemValues = strictArrayValues(input.context_items, "context_items");
+  const relationValues = strictArrayValues(input.state_relations, "state_relations");
+  const rawEventValues = strictArrayValues(input.raw_events, "raw_events");
 
-  const rawEvents = input.raw_events.map((event, index) => validateRawEvent(event, sessionId, index));
+  const rawEvents = rawEventValues.map((event, index) => validateRawEvent(event, sessionId, index));
   const rawIds = uniqueMap(rawEvents, (event) => event.id, "raw event id");
   uniqueMap(rawEvents, (event) => String(event.seq), "raw event seq");
   rawEvents.sort((left, right) => left.seq - right.seq);
-  const items = input.context_items.map((item, index) =>
+  const items = contextItemValues.map((item, index) =>
     validateContextItem(item, sessionId, rawIds, index)
   );
   const itemIds = uniqueMap(items, (item) => item.id, "state item id");
-  const relations = input.state_relations.map((relation, index) =>
+  const relations = relationValues.map((relation, index) =>
     validateRelation(relation, sessionId, itemIds, rawIds, index)
   );
   uniqueMap(
@@ -485,7 +506,8 @@ function validateContextItem(
     invalid(`${path}.confidence is invalid`);
   }
   if (!Array.isArray(value.source_refs)) invalid(`${path}.source_refs must be an array`);
-  const sourceRefs = value.source_refs.map((ref, refIndex) =>
+  const sourceRefValues = strictArrayValues(value.source_refs, `${path}.source_refs`);
+  const sourceRefs = sourceRefValues.map((ref, refIndex) =>
     nonBlankString(ref, `${path}.source_refs[${refIndex}]`)
   );
   uniqueMap(sourceRefs, (ref) => ref, `${path} source ref`);
@@ -620,11 +642,15 @@ function isoTimestamp(value: unknown, path: string): string {
   return value;
 }
 
-function assertArrayShape(value: unknown[], path: string): void {
+function strictArrayValues(value: unknown[], path: string): unknown[] {
+  if (Object.getPrototypeOf(value) !== Array.prototype) {
+    invalid(`${path} must use the standard array prototype`);
+  }
+  const values: unknown[] = [];
   for (let index = 0; index < value.length; index += 1) {
-    if (!Object.prototype.hasOwnProperty.call(value, index)) invalid(`${path} must not be sparse`);
     const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
     if (!descriptor?.enumerable || !("value" in descriptor)) invalid(`${path} must contain data entries only`);
+    values.push(descriptor.value);
   }
   for (const key of Reflect.ownKeys(value)) {
     if (key === "length") continue;
@@ -632,6 +658,7 @@ function assertArrayShape(value: unknown[], path: string): void {
       invalid(`${path} must not contain extra fields`);
     }
   }
+  return values;
 }
 
 function uniqueMap<T>(values: T[], key: (value: T) => string, label: string): Map<string, T> {
@@ -663,15 +690,10 @@ function validateJsonValue(value: unknown, ancestors: Set<object>, path: string)
   }
   ancestors.add(value);
   if (Array.isArray(value)) {
-    for (let index = 0; index < value.length; index += 1) {
-      if (!Object.prototype.hasOwnProperty.call(value, index)) invalid(`${path} contains a sparse array`);
-      validateJsonValue(value[index], ancestors, `${path}[${index}]`);
-    }
-    for (const key of Reflect.ownKeys(value)) {
-      if (key === "length") continue;
-      if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length) {
-        invalid(`${path} contains a non-index array field`);
-      }
+    if (prototype !== Array.prototype) invalid(`${path} contains a non-standard array`);
+    const entries = strictArrayValues(value, path);
+    for (let index = 0; index < entries.length; index += 1) {
+      validateJsonValue(entries[index], ancestors, `${path}[${index}]`);
     }
   } else {
     for (const key of Reflect.ownKeys(value)) {

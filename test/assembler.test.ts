@@ -11,7 +11,7 @@ import {
   type ContextAssemblerInput,
 } from "../src/assembler.js";
 import { StateReducer } from "../src/reducer.js";
-import { SqliteRawHistoryStore, type RawEvent } from "../src/raw-store.js";
+import { estimateTokens, SqliteRawHistoryStore, type RawEvent } from "../src/raw-store.js";
 import { SqliteContextStateStore } from "../src/state-store.js";
 import { EMPTY_STATE_DELTA, type ContextItem, type StateDelta, type StateRelation } from "../src/state-types.js";
 
@@ -207,6 +207,140 @@ describe("deterministic Context Assembler", () => {
     ];
     expect(assembleContext(input({ context_items: notes })).compact_historical_notes.map(({ id }) => id))
       .toEqual(["a", "b", "c"]);
+  });
+
+  it("selects 8k optional notes with exact incremental budget accounting", () => {
+    const notes = Array.from({ length: 8_000 }, (_, index) =>
+      item(`history-${String(index).padStart(5, "0")}`, "DECISION", "SUPERSEDED", {
+        content: `Historical choice ${index}`,
+      })
+    );
+    const firstFourHundred = assembleContext(input({ context_items: notes.slice(0, 400) }));
+    const compiled = assembleContext(input({
+      context_items: notes,
+      token_budget: firstFourHundred.metrics.d2_compiled_tokens,
+    }));
+    const unlimited = assembleContext(input({ context_items: notes }));
+
+    expect(compiled.compact_historical_notes).toHaveLength(400);
+    expect(compiled.rendered_context).toBe(firstFourHundred.rendered_context);
+    expect(compiled.metrics.d2_compiled_tokens).toBe(estimateTokens(compiled.rendered_context));
+    expect(unlimited.compact_historical_notes).toHaveLength(8_000);
+    expect(unlimited.metrics.d2_compiled_tokens).toBe(estimateTokens(unlimited.rendered_context));
+  });
+
+  it.each(["returning", "throwing"])(
+    "rejects a %s source_refs property accessor without invoking it",
+    (kind) => {
+      let getterCalls = 0;
+      const secret = "SECRET_SOURCE_REFS_ACCESSOR";
+      const malicious = item("goal", "GOAL", "ACTIVE");
+      Object.defineProperty(malicious, "source_refs", {
+        enumerable: true,
+        get() {
+          getterCalls += 1;
+          if (kind === "throwing") throw new Error(secret);
+          return [secret];
+        },
+      });
+
+      let caught: unknown;
+      try {
+        assembleContext(input({ context_items: [malicious] }));
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(ContextAssemblerValidationError);
+      expect((caught as Error).message).not.toContain(secret);
+      expect(getterCalls).toBe(0);
+    }
+  );
+
+  it.each(["returning", "throwing"])(
+    "rejects a %s source_refs array entry accessor without invoking it",
+    (kind) => {
+      let getterCalls = 0;
+      const secret = "SECRET_SOURCE_REFS_ENTRY";
+      const sourceRefs = ["placeholder"];
+      Object.defineProperty(sourceRefs, "0", {
+        enumerable: true,
+        get() {
+          getterCalls += 1;
+          if (kind === "throwing") throw new Error(secret);
+          return secret;
+        },
+      });
+      const malicious = item("goal", "GOAL", "ACTIVE", { source_refs: sourceRefs });
+
+      let caught: unknown;
+      try {
+        assembleContext(input({ context_items: [malicious] }));
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(ContextAssemblerValidationError);
+      expect((caught as Error).message).not.toContain(secret);
+      expect(getterCalls).toBe(0);
+    }
+  );
+
+  it("rejects source_refs extra fields and array subclasses", () => {
+    const withExtra = [] as string[] & { extra?: string };
+    withExtra.extra = "not-an-index";
+    class SourceRefArray extends Array<string> {}
+
+    expect(() => assembleContext(input({
+      context_items: [item("extra", "GOAL", "ACTIVE", { source_refs: withExtra })],
+    }))).toThrow(ContextAssemblerValidationError);
+    expect(() => assembleContext(input({
+      context_items: [item("subclass", "GOAL", "ACTIVE", { source_refs: new SourceRefArray() })],
+    }))).toThrow(ContextAssemblerValidationError);
+  });
+
+  it.each(["returning", "throwing"])(
+    "rejects a %s nested metadata array accessor without invoking it",
+    (kind) => {
+      let getterCalls = 0;
+      const secret = "SECRET_METADATA_ENTRY";
+      const nested = ["placeholder"];
+      Object.defineProperty(nested, "0", {
+        enumerable: true,
+        get() {
+          getterCalls += 1;
+          if (kind === "throwing") throw new Error(secret);
+          return secret;
+        },
+      });
+      const malicious = item("goal", "GOAL", "ACTIVE", { metadata: { nested } });
+
+      let caught: unknown;
+      try {
+        assembleContext(input({ context_items: [malicious] }));
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(ContextAssemblerValidationError);
+      expect((caught as Error).message).not.toContain(secret);
+      expect(getterCalls).toBe(0);
+    }
+  );
+
+  it("rejects nested metadata array subclasses and extra fields", () => {
+    class MetadataArray extends Array<string> {}
+    const withExtra = [] as string[] & { extra?: string };
+    withExtra.extra = "not-json";
+    expect(() => assembleContext(input({
+      context_items: [item("subclass", "GOAL", "ACTIVE", { metadata: { nested: new MetadataArray() } })],
+    }))).toThrow(ContextAssemblerValidationError);
+    expect(() => assembleContext(input({
+      context_items: [item("extra", "GOAL", "ACTIVE", { metadata: { nested: withExtra } })],
+    }))).toThrow(ContextAssemblerValidationError);
+  });
+
+  it("rejects non-standard top-level snapshot arrays", () => {
+    class ItemArray extends Array<ContextItem> {}
+    expect(() => assembleContext(input({ context_items: new ItemArray() })))
+      .toThrow(ContextAssemblerValidationError);
   });
 
   it("is deeply deterministic across input order and does not mutate frozen inputs", () => {
