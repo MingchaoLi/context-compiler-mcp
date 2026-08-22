@@ -165,4 +165,36 @@ describe("SqliteRawHistoryStore", () => {
     });
     expect(valid.seq).toBe(1);
   });
+
+  it.each([
+    ["null", null],
+    ["array", ["root"]],
+    ["string", "root"],
+    ["number", 42],
+    ["boolean", true],
+  ])("rejects %s metadata roots without creating raw history", (_label, metadata) => {
+    store = new SqliteRawHistoryStore(databasePath);
+
+    expect(() =>
+      store?.ingest({
+        session_id: "session-a",
+        role: "user",
+        content: "invalid metadata root",
+        metadata: metadata as never,
+      })
+    ).toThrow(/metadata must be a JSON object/);
+    expect(store.getSessionEvents("session-a")).toEqual([]);
+
+    const valid = store.ingest({
+      session_id: "session-a",
+      role: "user",
+      content: "valid metadata root",
+    });
+    expect(valid.seq).toBe(1);
+    expect(store.getEvent(valid.id)).toEqual(valid);
+
+    store.close();
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(store.getSessionEvents("session-a")).toEqual([valid]);
+  });
 });

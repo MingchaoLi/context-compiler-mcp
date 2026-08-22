@@ -76,7 +76,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
 
     // Validate and normalize before BEGIN so rejected metadata cannot consume a
     // sequence number. The normalized value is both persisted and returned.
-    const metadata = normalizeMetadata(input.metadata ?? {});
+    const metadata = input.metadata === undefined ? {} : normalizeMetadata(input.metadata);
     const metadataJson = JSON.stringify(metadata);
     const eventType = input.event_type ?? "message";
     const createdAt = input.created_at ?? new Date().toISOString();
@@ -242,6 +242,9 @@ function validateInput(input: RawEventInput): void {
 }
 
 function normalizeMetadata(metadata: JsonObject): JsonObject {
+  if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) {
+    throw new Error("metadata must be a JSON object");
+  }
   assertJsonValue(metadata, new Set<object>(), "metadata");
   return JSON.parse(JSON.stringify(metadata)) as JsonObject;
 }
