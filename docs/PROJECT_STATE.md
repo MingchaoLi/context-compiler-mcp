@@ -9,17 +9,18 @@ Updated: 2026-08-23
 - Durable provider-neutral `prepare_state_update` and atomic `apply_state_delta` operations with immutable snapshot fingerprints and revision guards.
 - Build-up context assembly from active state, dependency closure, recent raw evidence, and current input.
 - Immutable history headlines plus exact and keyword recall.
+- Strict versioned offline D0/D1/D2 evaluation with deterministic metrics, aggregate thresholds, and a package-safe JSON CLI.
 - A local stdio MCP service with stable sanitized errors and exactly nine tools.
 - Node.js `>=24`; official MCP SDK and Zod are runtime dependencies.
 - Standalone package identity: `context-compiler-mcp`.
 
 ## Latest accepted delivery
 
-ST-01 passed independent QA on 2026-08-23. Preparation captures a bounded current raw-event suffix and immutable fingerprint without changing state revision. Apply strictly parses an externally supplied State Delta, permits later raw appends, and atomically revalidates the fingerprint and expected revision with reducer application. The QA matrix exercised macOS arm64 with Node.js 25.6.1; Windows and exact Node.js 24 remain unverified.
+WO-ST-02 passed fresh independent re-QA on 2026-08-23 at fixed source candidate `b0ec8de081a59ab5ae6725dad730080232d93aee`. The accepted runner strictly evaluates D0 full raw context, D1 complete recent user-turn context, and D2 existing assembler plus headline recall. It reports deterministic approximate token reduction, labeled continuity/reopening/recovery, and latency under explicit aggregate thresholds. The returned npm-bin symlink and SQLite warning-stream findings were independently closed against a real production-only tarball. The re-QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1; Windows and exact Node.js 24 remain unverified.
 
 ## Current candidate
 
-WO-ST-02 is implemented and awaiting independent re-QA after the first QA return. The candidate adds a strict versioned offline evaluation library and JSON CLI for D0 full raw context, D1 recent context, and D2 compiled context. It measures approximate token reduction, labeled constraint/decision/open-question retention, resolved-issue reopening, headline recall recovery, and latency, then applies explicit aggregate thresholds. The returned npm-bin symlink and SQLite warning-stream defects have a bounded append-only fix. It does not add an MCP tool, provider, model call, network call, or host dependency.
+There is no unaccepted source candidate. WO-ST-02 is accepted; ST-03 remains a future separate work order and was not started during QA.
 
 ## Current behavior
 
@@ -30,7 +31,6 @@ WO-ST-02 is implemented and awaiting independent re-QA after the first QA return
 - No runtime State Extractor transport.
 - No automatic state evolution or runtime extractor invocation.
 - No automatic headline generation.
-- The ST-02 evaluation runner has not yet passed independent QA.
 - No formal compiler mode in any host adapter.
 
-The current work is independent re-QA for the WO-ST-02 fix. ST-03 must not begin until ST-02 is accepted and its evaluation contract is reviewed.
+WO-ST-02 is complete and independently accepted. ST-03 is the next roadmap stage but has not started.

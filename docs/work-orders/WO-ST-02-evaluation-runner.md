@@ -1,10 +1,12 @@
 # WO-ST-02 — Deterministic evaluation runner
 
-Status: FIXED — PENDING INDEPENDENT RE-QA
+Status: ACCEPTED — INDEPENDENT RE-QA PASS
 
 Implementation handoff: `docs/handoffs/WO-ST-02-evaluation-runner.md`
 
 Independent QA return: `docs/qa/WO-ST-02-evaluation-runner.md`
+
+Accepted fixed candidate: `b0ec8de081a59ab5ae6725dad730080232d93aee` on 2026-08-23. The first QA return and the fresh re-QA acceptance are both retained in the QA report.
 
 ## Result
 
