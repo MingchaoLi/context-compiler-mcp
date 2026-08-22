@@ -33,3 +33,16 @@ export {
   type StateDelta,
   type StateRelation,
 } from "./state-types.js";
+
+export {
+  ExtractorValidationError,
+  StrictStateExtractor,
+  createEmptyStateDelta,
+  parseStrictStateDelta,
+  type ExtractorErrorCode,
+  type ExtractorInput,
+  type ExtractorResult,
+  type ExtractorTransport,
+  type ExtractorTransportOptions,
+  type StrictStateExtractorOptions,
+} from "./extractor.js";
