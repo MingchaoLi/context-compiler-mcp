@@ -4,6 +4,7 @@ import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -53,7 +54,11 @@ const TOOLS: Tool[] = [
       type: "array", minItems: 1, maxItems: 32, uniqueItems: true,
       items: { ...nonBlank, maxLength: 100 },
     },
-    created_at: { type: "string" },
+    created_at: {
+      type: "string",
+      format: "date-time",
+      pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+    },
   }, ["session_id", "event_start_seq", "event_end_seq", "headline", "keywords"])),
   tool("recall_exact", "Recall raw evidence by event, range, or headline", {
     type: "object",
@@ -88,32 +93,72 @@ export function createContextCompilerMcpServer(service: ContextCompilerMcpServic
 }
 
 export async function runContextCompilerMcpServer(
-  environment: NodeJS.ProcessEnv = process.env
+  environment: NodeJS.ProcessEnv = process.env,
+  transport: Transport = new StdioServerTransport()
 ): Promise<void> {
-  // Node 24 currently labels node:sqlite experimental. A local stdio service
-  // must not let runtime warnings contaminate its private stderr channel.
-  process.emitWarning = (() => undefined) as typeof process.emitWarning;
-  const { ContextCompilerMcpService, resolveContextCompilerDatabasePath } = await import("./mcp-service.js");
-  const service = new ContextCompilerMcpService(resolveContextCompilerDatabasePath(environment));
-  const server = createContextCompilerMcpServer(service);
-  const transport = new StdioServerTransport();
+  const restoreWarnings = installSqliteExperimentalWarningFilter();
+  let service: ContextCompilerMcpService | undefined;
+  let server: Server | undefined;
   let closed = false;
+  const removeProcessListeners = (): void => {
+    process.removeListener("SIGINT", onSigint);
+    process.removeListener("SIGTERM", onSigterm);
+    process.removeListener("beforeExit", onBeforeExit);
+  };
   const shutdown = async (): Promise<void> => {
     if (closed) return;
     closed = true;
-    try { await server.close(); } catch { /* transport may already be gone */ }
-    try { service.close(); } catch { /* shutdown remains deterministic */ }
+    removeProcessListeners();
+    try { await server?.close(); } catch { /* transport may already be gone */ }
+    try { service?.close(); } catch { /* shutdown remains deterministic */ }
   };
-  transport.onclose = () => { void shutdown(); };
-  process.once("SIGINT", () => { void shutdown(); });
-  process.once("SIGTERM", () => { void shutdown(); });
-  process.once("beforeExit", () => { try { service.close(); } catch { /* no diagnostics */ } });
+  const onSigint = (): void => { void shutdown(); };
+  const onSigterm = (): void => { void shutdown(); };
+  const onBeforeExit = (): void => { void shutdown(); };
   try {
+    const serviceModule = await import("./mcp-service.js");
+    service = new serviceModule.ContextCompilerMcpService(
+      serviceModule.resolveContextCompilerDatabasePath(environment)
+    );
+    server = createContextCompilerMcpServer(service);
+    transport.onclose = () => { void shutdown(); };
+    process.once("SIGINT", onSigint);
+    process.once("SIGTERM", onSigterm);
+    process.once("beforeExit", onBeforeExit);
     await server.connect(transport);
   } catch (error) {
     await shutdown();
     throw error;
+  } finally {
+    restoreWarnings();
   }
+}
+
+function installSqliteExperimentalWarningFilter(): () => void {
+  const original = process.emitWarning;
+  const filtered = (function (
+    warning: string | Error,
+    ...arguments_: unknown[]
+  ): void {
+    const message = typeof warning === "string" ? warning : warning.message;
+    const options = arguments_[0];
+    const type = warning instanceof Error
+      ? warning.name
+      : typeof options === "string"
+        ? options
+        : typeof options === "object" && options !== null && "type" in options
+          ? (options as { type?: unknown }).type
+          : undefined;
+    if (
+      message === "SQLite is an experimental feature and might change at any time" &&
+      type === "ExperimentalWarning"
+    ) return;
+    Reflect.apply(original, process, [warning, ...arguments_]);
+  }) as typeof process.emitWarning;
+  process.emitWarning = filtered;
+  return () => {
+    process.emitWarning = original;
+  };
 }
 
 function response(value: unknown, isError: boolean): CallToolResult {

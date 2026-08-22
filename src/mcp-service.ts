@@ -210,7 +210,7 @@ export class ContextCompilerMcpService {
       if (error instanceof ContextAssemblerValidationError) throw error;
       throw new ContextCompilerServiceError("STORAGE_FAILURE");
     }
-    if (assemblerSessionId !== sessionId) restoreSessionId(context, assemblerSessionId, sessionId);
+    if (assemblerSessionId !== sessionId) restoreCompiledContextSessionId(context, sessionId);
     const activeItems = [
       ...context.active_goals,
       ...context.active_constraints,
@@ -395,13 +395,16 @@ function invalid(): never {
   throw new ContextCompilerServiceError("INVALID_INPUT");
 }
 
-function restoreSessionId(value: unknown, temporary: string, original: string): void {
-  if (Array.isArray(value)) {
-    for (const entry of value) restoreSessionId(entry, temporary, original);
-    return;
+function restoreCompiledContextSessionId(context: CompiledContext, original: string): void {
+  context.session_id = original;
+  for (const items of [
+    context.active_goals,
+    context.active_constraints,
+    context.active_decisions,
+    context.open_questions,
+    context.dependency_items,
+  ]) {
+    for (const item of items) item.session_id = original;
   }
-  if (typeof value !== "object" || value === null) return;
-  const record = value as Record<string, unknown>;
-  if (record.session_id === temporary) record.session_id = original;
-  for (const entry of Object.values(record)) restoreSessionId(entry, temporary, original);
+  for (const event of context.recent_conversation) event.session_id = original;
 }

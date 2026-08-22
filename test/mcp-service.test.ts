@@ -91,6 +91,49 @@ describe("ContextCompilerMcpService", () => {
     service.close();
   });
 
+  it("restores only documented session fields without rewriting user-controlled magic values", () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    const magic = "__context_compiler_whitespace_session__";
+    const userMetadata = {
+      session_id: magic,
+      nested: { session_id: magic, value: [{ session_id: magic }] },
+    };
+    const event = unwrap(service.call("ingest_event", {
+      session_id: "   ", role: "user", content: magic, metadata: userMetadata,
+    })) as { id: string };
+    unwrap(service.call("ingest_event", {
+      session_id: magic, role: "user", content: "real magic session",
+    }));
+    const state = new SqliteContextStateStore(database);
+    state.transaction("   ", () => state.createItem({
+      session_id: "   ", type: "GOAL", status: "ACTIVE", content: magic,
+      source_refs: [event.id], metadata: userMetadata,
+    }));
+    state.close();
+
+    const compiled = unwrap(service.call("compile_context", {
+      session_id: "   ", current_input: magic,
+    })) as any;
+    expect(compiled.context.session_id).toBe("   ");
+    expect(compiled.context.current_input).toBe(magic);
+    expect(compiled.context.active_goals[0]).toMatchObject({
+      session_id: "   ", content: magic, metadata: userMetadata,
+    });
+    expect(compiled.context.recent_conversation[0]).toMatchObject({
+      session_id: "   ", content: magic, metadata: userMetadata,
+    });
+    expect(unwrap(service.call("compile_context", {
+      session_id: magic, current_input: "isolation",
+    }))).toMatchObject({
+      context: {
+        session_id: magic,
+        recent_conversation: [{ session_id: magic, content: "real magic session" }],
+      },
+    });
+    service.close();
+  });
+
   it("rejects malformed and accessor-like shapes before access and returns only stable codes", () => {
     const service = new ContextCompilerMcpService(databasePath());
     let accessed = false;
