@@ -100,6 +100,7 @@ export class StrictStateExtractor {
   }
 
   async extract(input: ExtractorInput, signal?: AbortSignal): Promise<ExtractorResult> {
+    throwIfAborted(signal);
     validateExtractorInput(input);
     const errorCodes: ExtractorErrorCode[] = [];
 

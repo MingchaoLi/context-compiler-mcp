@@ -592,6 +592,19 @@ describe("StrictStateExtractor transport and fallback", () => {
     expect(complete).not.toHaveBeenCalled();
   });
 
+  it("propagates a pre-aborted signal before validating invalid input", async () => {
+    const complete = vi.fn<ExtractorTransport["complete"]>();
+    const extractor = new StrictStateExtractor({ complete });
+    const controller = new AbortController();
+    const reason = new DOMException("Stopped before validation", "AbortError");
+    controller.abort(reason);
+    const invalid = cloneInput();
+    invalid.session_id = " ";
+
+    await expect(extractor.extract(invalid, controller.signal)).rejects.toBe(reason);
+    expect(complete).not.toHaveBeenCalled();
+  });
+
   it("passes the exact signal to transport", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue(response());
     const extractor = new StrictStateExtractor({ complete });
