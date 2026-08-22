@@ -19,9 +19,14 @@ afterEach(() => {
 });
 
 describe("ContextCompilerMcpService", () => {
-  it("resolves the explicit and DSH_HOME database contracts without fallback", () => {
+  it("prefers the explicit standalone database contract and preserves legacy compatibility", () => {
     expect(resolveContextCompilerDatabasePath({ CONTEXT_COMPILER_DB_PATH: "/explicit.db" })).toBe("/explicit.db");
-    expect(resolveContextCompilerDatabasePath({ DSH_HOME: "/dsh" })).toBe(join("/dsh", "sessions", "context-compiler.db"));
+    expect(resolveContextCompilerDatabasePath({ DSH_HOME: "/host" })).toBe(
+      join("/host", "sessions", "context-compiler.db")
+    );
+    expect(resolveContextCompilerDatabasePath({
+      CONTEXT_COMPILER_DB_PATH: "/explicit.db", DSH_HOME: "/host",
+    })).toBe("/explicit.db");
     expect(() => resolveContextCompilerDatabasePath({})).toThrowError("INVALID_INPUT");
   });
 

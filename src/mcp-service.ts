@@ -79,9 +79,9 @@ export function resolveContextCompilerDatabasePath(
 ): string {
   const explicit = environment.CONTEXT_COMPILER_DB_PATH;
   if (typeof explicit === "string" && explicit.length > 0) return explicit;
-  const dshHome = environment.DSH_HOME;
-  if (typeof dshHome === "string" && dshHome.length > 0) {
-    return join(dshHome, "sessions", "context-compiler.db");
+  const legacyHostHome = environment.DSH_HOME;
+  if (typeof legacyHostHome === "string" && legacyHostHome.length > 0) {
+    return join(legacyHostHome, "sessions", "context-compiler.db");
   }
   throw new ContextCompilerServiceError("INVALID_INPUT");
 }

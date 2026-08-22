@@ -322,7 +322,7 @@ describe("strict StateDelta parser", () => {
   });
 
   it("produces a delta accepted by the approved Reducer and Store", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "tuantuan-extractor-"));
+    const directory = await mkdtemp(join(tmpdir(), "context-compiler-extractor-"));
     const databasePath = join(directory, "context-compiler.db");
     const rawStore = new SqliteRawHistoryStore(databasePath);
     const stateStore = new SqliteContextStateStore(databasePath);

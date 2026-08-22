@@ -422,7 +422,7 @@ describe("Assembler with real WO-CC-02 stores", () => {
   });
 
   it("compiles a persisted snapshot without changing raw payloads or state revision", async () => {
-    temporaryDirectory = await mkdtemp(join(tmpdir(), "tuantuan-assembler-"));
+    temporaryDirectory = await mkdtemp(join(tmpdir(), "context-compiler-assembler-"));
     const databasePath = join(temporaryDirectory, "context.db");
     const rawStore = new SqliteRawHistoryStore(databasePath);
     const stateStore = new SqliteContextStateStore(databasePath);

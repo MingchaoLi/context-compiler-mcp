@@ -35,7 +35,7 @@ describe("session-scoped transactional StateReducer", () => {
   let reducer: StateReducer;
 
   beforeEach(async () => {
-    temporaryDirectory = await mkdtemp(join(tmpdir(), "tuantuan-state-store-"));
+    temporaryDirectory = await mkdtemp(join(tmpdir(), "context-compiler-state-store-"));
     databasePath = join(temporaryDirectory, "context-compiler.db");
     rawStore = new SqliteRawHistoryStore(databasePath);
     stateStore = new SqliteContextStateStore(databasePath);

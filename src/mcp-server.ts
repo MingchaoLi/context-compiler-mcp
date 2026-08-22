@@ -77,7 +77,7 @@ const TOOLS: Tool[] = [
 
 export function createContextCompilerMcpServer(service: ContextCompilerMcpService): Server {
   const server = new Server(
-    { name: "tuantuan-context-compiler", version: CONTEXT_COMPILER_SERVICE_VERSION },
+    { name: "context-compiler-mcp", version: CONTEXT_COMPILER_SERVICE_VERSION },
     { capabilities: { tools: {} } }
   );
   server.setRequestHandler(ListToolsRequestSchema, () => ({ tools: TOOLS.map(cloneTool) }));

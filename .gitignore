@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.cache/
+coverage/
+*.log
+*.tgz
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.env
+.env.*
+!.env.example
+.DS_Store

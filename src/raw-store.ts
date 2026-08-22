@@ -18,7 +18,7 @@ export interface RawEventInput {
   created_at?: string;
   token_count?: number;
   metadata?: JsonObject;
-  /** Stable event id supplied by the Harness event source, when available. */
+  /** Stable event id supplied by the event source, when available. */
   source_event_id?: string;
 }
 

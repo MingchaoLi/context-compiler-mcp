@@ -22,7 +22,7 @@ describe("SqliteHistoryRecallStore", () => {
   let stateStore: SqliteContextStateStore | undefined;
 
   beforeEach(async () => {
-    temporaryDirectory = await mkdtemp(join(tmpdir(), "tuantuan-recall-"));
+    temporaryDirectory = await mkdtemp(join(tmpdir(), "context-compiler-recall-"));
     databasePath = join(temporaryDirectory, "context-compiler.db");
   });
 

@@ -13,7 +13,7 @@ describe("SqliteRawHistoryStore", () => {
   let store: SqliteRawHistoryStore | undefined;
 
   beforeEach(async () => {
-    temporaryDirectory = await mkdtemp(join(tmpdir(), "tuantuan-raw-store-"));
+    temporaryDirectory = await mkdtemp(join(tmpdir(), "context-compiler-raw-store-"));
     databasePath = join(temporaryDirectory, "context-compiler.db");
   });
 
@@ -27,7 +27,7 @@ describe("SqliteRawHistoryStore", () => {
     const createdAt = "2026-08-22T08:30:00.000Z";
     const first = store.ingest({
       session_id: "session-a",
-      source_event_id: "harness-event-1",
+      source_event_id: "source-event-1",
       role: "user",
       content: "Keep the raw evidence intact.",
       event_type: "message",
@@ -37,7 +37,7 @@ describe("SqliteRawHistoryStore", () => {
     });
     const second = store.ingest({
       session_id: "session-a",
-      source_event_id: "harness-event-2",
+      source_event_id: "source-event-2",
       role: "assistant",
       content: "Stored.",
     });

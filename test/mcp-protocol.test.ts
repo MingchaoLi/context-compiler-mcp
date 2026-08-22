@@ -1,8 +1,7 @@
 import { execFileSync, spawn } from "node:child_process";
 import {
-  cpSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync,
+  cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync,
 } from "node:fs";
-import { cp, rename, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,17 +13,16 @@ import {
   acquireSqliteExperimentalWarningFilter,
   runContextCompilerMcpServer,
 } from "../src/mcp-server.js";
-import { copyCompilerDistribution } from "../../scripts/prepare-sidecar.mjs";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const serverEntry = join(root, "context-compiler", "dist", "mcp-server.js");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const serverEntry = join(root, "dist", "mcp-server.js");
 const temporaryRoot = mkdtempSync(join(tmpdir(), "context-compiler-mcp-protocol-"));
 const databasePath = join(temporaryRoot, "protocol.db");
 
 beforeAll(() => {
   execFileSync(process.execPath, [
     join(root, "node_modules", "typescript", "bin", "tsc"),
-    "-p", join(root, "context-compiler", "tsconfig.json"),
+    "-p", join(root, "tsconfig.json"),
   ], { cwd: root, stdio: "pipe" });
 });
 
@@ -35,6 +33,10 @@ describe("Context Compiler stdio MCP protocol", () => {
     const connection = await connect(serverEntry, databasePath);
     try {
       const listed = await connection.client.listTools();
+      expect(connection.client.getServerVersion()).toEqual({
+        name: "context-compiler-mcp",
+        version: "0.1.0",
+      });
       expect(listed.tools.map((tool) => tool.name)).toEqual([
         "health", "ingest_event", "compile_context", "get_state",
         "create_headline", "recall_exact", "recall_keyword",
@@ -117,14 +119,38 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
-  it("starts from a self-contained packaged harness layout without root dependency resolution", async () => {
-    const packagedRoot = join(temporaryRoot, "packaged", "harness");
-    const packagedDist = join(packagedRoot, "context-compiler-dist");
+  it("starts from an npm package with only declared runtime dependencies", async () => {
+    const packagedRoot = join(temporaryRoot, "packaged");
+    const npmCache = join(temporaryRoot, "npm-cache");
     mkdirSync(packagedRoot, { recursive: true });
-    cpSync(join(root, "context-compiler", "dist"), packagedDist, { recursive: true });
-    cpSync(join(root, "node_modules"), join(packagedRoot, "node_modules"), { recursive: true });
+    const packed = JSON.parse(execFileSync(npmCommand(), [
+      "pack", "--json", "--ignore-scripts", "--cache", npmCache,
+      "--pack-destination", packagedRoot,
+    ], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })) as Array<{
+      filename: string;
+    }>;
+    expect(packed).toHaveLength(1);
+    const archive = join(packagedRoot, packed[0]!.filename);
+    execFileSync("tar", ["-xzf", archive, "-C", packagedRoot], { stdio: "pipe" });
+    const packageRoot = join(packagedRoot, "package");
+    cpSync(join(root, "package-lock.json"), join(packageRoot, "package-lock.json"));
+    cpSync(join(root, "node_modules"), join(packageRoot, "node_modules"), { recursive: true });
+    execFileSync(npmCommand(), [
+      "prune", "--omit=dev", "--ignore-scripts", "--offline", "--no-audit", "--no-fund",
+      "--cache", npmCache,
+    ], { cwd: packageRoot, stdio: "pipe" });
+    const packageMetadata = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")) as {
+      name?: string;
+    };
+    expect(packageMetadata.name).toBe("context-compiler-mcp");
+    expect(existsSync(join(packageRoot, "node_modules", "@modelcontextprotocol", "sdk"))).toBe(true);
+    expect(existsSync(join(packageRoot, "node_modules", "zod"))).toBe(true);
+    expect(existsSync(join(packageRoot, "node_modules", "vitest"))).toBe(false);
+    expect(existsSync(join(packageRoot, "node_modules", "typescript"))).toBe(false);
     const packagedDatabase = join(temporaryRoot, "packaged.db");
-    const connection = await connect(join(packagedDist, "mcp-server.js"), packagedDatabase, packagedRoot);
+    const connection = await connect(
+      join(packageRoot, "dist", "mcp-server.js"), packagedDatabase, packageRoot
+    );
     try {
       expect(parse(await connection.client.callTool({ name: "health", arguments: {} }))).toMatchObject({ ok: true, result: { ready: true } });
       expect(connection.stderr.join("")).toBe("");
@@ -412,70 +438,10 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
-  it("restores the prior sidecar dist and cleans staging paths after copy or rename failure", async () => {
-    const copyRoot = join(temporaryRoot, "copy-failure");
-    const source = join(copyRoot, "source");
-    const destination = join(copyRoot, "context-compiler-dist");
-    mkdirSync(source, { recursive: true });
-    mkdirSync(destination, { recursive: true });
-    writeFileSync(join(source, "marker"), "new");
-    writeFileSync(join(destination, "marker"), "old");
-
-    await expect(copyCompilerDistribution(source, destination, {
-      cp: async (from: string, to: string, options: Parameters<typeof cp>[2]) => {
-        await cp(from, to, options);
-        throw new Error("injected cp failure");
-      },
-      rename,
-      rm,
-    })).rejects.toThrow("injected cp failure");
-    expect(readFileSync(join(destination, "marker"), "utf8")).toBe("old");
-    expect(stagingEntries(copyRoot)).toEqual([]);
-
-    await expect(copyCompilerDistribution(source, destination, {
-      cp,
-      rename: async () => { throw new Error("injected backup failure"); },
-      rm,
-    })).rejects.toThrow("injected backup failure");
-    expect(readFileSync(join(destination, "marker"), "utf8")).toBe("old");
-    expect(stagingEntries(copyRoot)).toEqual([]);
-
-    let renameCalls = 0;
-    await expect(copyCompilerDistribution(source, destination, {
-      cp,
-      rename: async (from: string, to: string) => {
-        renameCalls += 1;
-        if (renameCalls === 2) throw new Error("injected promotion failure");
-        await rename(from, to);
-      },
-      rm,
-    })).rejects.toThrow("injected promotion failure");
-    expect(readFileSync(join(destination, "marker"), "utf8")).toBe("old");
-    expect(stagingEntries(copyRoot)).toEqual([]);
-
-    renameCalls = 0;
-    await expect(copyCompilerDistribution(source, destination, {
-      cp,
-      rename: async (from: string, to: string) => {
-        renameCalls += 1;
-        if (renameCalls >= 2) throw new Error("injected publish and restore failure");
-        await rename(from, to);
-      },
-      rm,
-    })).rejects.toThrow("injected publish and restore failure");
-    expect(readFileSync(join(destination, "marker"), "utf8")).toBe("old");
-    expect(stagingEntries(copyRoot)).toEqual([]);
-
-    await copyCompilerDistribution(source, destination);
-    expect(readFileSync(join(destination, "marker"), "utf8")).toBe("new");
-    expect(stagingEntries(copyRoot)).toEqual([]);
-  });
 });
 
-function stagingEntries(directory: string): string[] {
-  return readdirSync(directory).filter((entry) =>
-    entry.startsWith("context-compiler-dist.tmp-") || entry.startsWith("context-compiler-dist.old-")
-  );
+function npmCommand(): string {
+  return process.platform === "win32" ? "npm.cmd" : "npm";
 }
 
 function emitWarningSentinels(): void {
