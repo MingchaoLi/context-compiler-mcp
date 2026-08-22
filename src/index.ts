@@ -46,3 +46,16 @@ export {
   type ExtractorTransportOptions,
   type StrictStateExtractorOptions,
 } from "./extractor.js";
+
+export {
+  ContextAssemblerValidationError,
+  assembleContext,
+  renderCompiledContext,
+  type ClosureEdge,
+  type CompactHistoricalNote,
+  type CompiledContext,
+  type ContextAssemblerInput,
+  type ContextDebugManifest,
+  type ContextMetrics,
+  type DependencyPath,
+} from "./assembler.js";
