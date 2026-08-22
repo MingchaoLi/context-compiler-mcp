@@ -18,6 +18,7 @@ import {
   type RawEventInput,
 } from "./raw-store.js";
 import { SqliteContextStateStore } from "./state-store.js";
+import { StateUpdateCoordinator, StateUpdateError } from "./state-update.js";
 
 export const CONTEXT_COMPILER_SERVICE_VERSION = "0.1.0";
 export const CONTEXT_COMPILER_CAPABILITIES = [
@@ -25,6 +26,8 @@ export const CONTEXT_COMPILER_CAPABILITIES = [
   "ingest_event",
   "compile_context",
   "get_state",
+  "prepare_state_update",
+  "apply_state_delta",
   "create_headline",
   "recall_exact",
   "recall_keyword",
@@ -89,6 +92,7 @@ export function resolveContextCompilerDatabasePath(
 export class ContextCompilerMcpService {
   private readonly rawStore: SqliteRawHistoryStore;
   private readonly stateStore: SqliteContextStateStore;
+  private readonly stateUpdate: StateUpdateCoordinator;
   private readonly recallStore: SqliteHistoryRecallStore;
   private closed = false;
 
@@ -113,6 +117,7 @@ export class ContextCompilerMcpService {
     }
     this.rawStore = rawStore;
     this.stateStore = stateStore;
+    this.stateUpdate = new StateUpdateCoordinator(stateStore);
     this.recallStore = recallStore;
   }
 
@@ -134,6 +139,10 @@ export class ContextCompilerMcpService {
           return success(this.compile(input));
         case "get_state":
           return success(this.getState(input));
+        case "prepare_state_update":
+          return success(this.prepareStateUpdate(input));
+        case "apply_state_delta":
+          return success(this.applyStateDelta(input));
         case "create_headline":
           return success(this.createHeadline(input));
         case "recall_exact":
@@ -250,6 +259,22 @@ export class ContextCompilerMcpService {
     }
   }
 
+  private prepareStateUpdate(value: unknown): unknown {
+    try {
+      return this.stateUpdate.prepareStateUpdate(value);
+    } catch (error) {
+      throw mapStateUpdateError(error);
+    }
+  }
+
+  private applyStateDelta(value: unknown): unknown {
+    try {
+      return this.stateUpdate.applyStateDelta(value);
+    } catch (error) {
+      throw mapStateUpdateError(error);
+    }
+  }
+
   private createHeadline(value: unknown): unknown {
     const input = readObject(value, [
       "session_id", "event_start_seq", "event_end_seq", "headline", "keywords",
@@ -297,6 +322,13 @@ function mapRecallError(error: unknown): ContextCompilerServiceError {
     case "state":
     case "storage": return new ContextCompilerServiceError("STORAGE_FAILURE");
   }
+}
+
+function mapStateUpdateError(error: unknown): ContextCompilerServiceError {
+  if (!(error instanceof StateUpdateError)) {
+    return new ContextCompilerServiceError("INTERNAL_FAILURE");
+  }
+  return new ContextCompilerServiceError(error.code);
 }
 
 function classifyError(error: unknown): ContextCompilerErrorCode {

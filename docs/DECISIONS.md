@@ -31,3 +31,7 @@ The package is `context-compiler-mcp`, uses the official MCP SDK over stdio, and
 ## D-008 — Safe sequencing
 
 State update preparation/application precedes evaluation; evaluation precedes optional extractor selection; formal host compiler mode is considered only after those results.
+
+## D-009 — Durable preparation before mutation
+
+State updates use an immutable persisted preparation identity over a bounded raw-event suffix, visible state, relations, and required provenance. The complete untrusted delta is strictly parsed before mutation. Apply then rebuilds the snapshot fingerprint and checks the expected state revision inside the same `BEGIN IMMEDIATE` transaction as reducer execution. Appended raw events are allowed; stale or conflicting state is not.

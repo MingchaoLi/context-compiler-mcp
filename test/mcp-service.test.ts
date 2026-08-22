@@ -7,6 +7,7 @@ import {
   ContextCompilerMcpService,
   SqliteContextStateStore,
   SqliteHistoryRecallStore,
+  createEmptyStateDelta,
   resolveContextCompilerDatabasePath,
 } from "../src/index.js";
 
@@ -56,6 +57,20 @@ describe("ContextCompilerMcpService", () => {
     }));
     const revision = state.getRevision("session");
     state.close();
+
+    const prepared = unwrap(service.call("prepare_state_update", {
+      session_id: "session", newest_event_ids: [raw.id],
+    })) as {
+      preparation_token: string; fingerprint: string; expected_revision: number;
+    };
+    expect(prepared.expected_revision).toBe(revision);
+    expect(unwrap(service.call("apply_state_delta", {
+      session_id: "session",
+      preparation_token: prepared.preparation_token,
+      fingerprint: prepared.fingerprint,
+      expected_revision: prepared.expected_revision,
+      delta: createEmptyStateDelta(),
+    }))).toMatchObject({ changed: false, revision });
 
     const compiled = unwrap(service.call("compile_context", {
       session_id: "session", current_input: "What next?", token_budget: 1000,
@@ -148,6 +163,11 @@ describe("ContextCompilerMcpService", () => {
     expect(accessed).toBe(false);
     const failures = [
       service.call("health", { extra: true }),
+      service.call("prepare_state_update", { session_id: "s", newest_event_ids: [] }),
+      service.call("apply_state_delta", {
+        session_id: "s", preparation_token: "missing", fingerprint: "0".repeat(64),
+        expected_revision: 0, delta: { new_goals: [] },
+      }),
       service.call("recall_keyword", { session_id: "s", query: "q", limit: 21 }),
       service.call("recall_exact", { kind: "seq_range", session_id: "s", event_start_seq: 1, event_end_seq: 1001 }),
       service.call("create_headline", { session_id: "s", event_start_seq: 1, event_end_seq: 201, headline: "h", keywords: ["k"] }),

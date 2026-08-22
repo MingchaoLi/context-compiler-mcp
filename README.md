@@ -2,17 +2,19 @@
 
 Context Compiler MCP is a local, model-independent service for durable conversation evidence, explicit context state, deterministic context assembly, and exact history recall. It stores data in SQLite and exposes a stable stdio MCP boundary.
 
-The current server exposes exactly seven tools:
+The current server exposes exactly nine tools:
 
 - `health`
 - `ingest_event`
 - `compile_context`
 - `get_state`
+- `prepare_state_update`
+- `apply_state_delta`
 - `create_headline`
 - `recall_exact`
 - `recall_keyword`
 
-`compile_context` is currently read-only: it assembles known state and recent raw evidence but does not call a model or mutate state. State extraction and automatic headline generation are not yet runtime features.
+`compile_context` remains read-only: it assembles known state and recent raw evidence but does not call a model or mutate state. State evolution is an explicit two-step operation. `prepare_state_update` returns a bounded, fingerprinted extractor snapshot; an external caller may obtain a candidate State Delta elsewhere and pass it to `apply_state_delta`, which strictly validates and atomically applies it against the prepared state revision. The package does not select or call a model. Automatic extraction and headline generation are not runtime features.
 
 ## Requirements and setup
 

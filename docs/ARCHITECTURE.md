@@ -12,6 +12,16 @@ explicit state delta
   -> deterministic reducer
   -> context_items / state_relations (SQLite)
 
+prepare_state_update
+  -> validate current continuous raw suffix
+  -> persist immutable snapshot identity + fingerprint
+  -> return bounded provider-neutral extractor input
+
+apply_state_delta
+  -> parse complete untrusted delta before mutation
+  -> revalidate preparation fingerprint + state revision in one SQLite transaction
+  -> apply all deterministic reducer transitions or none
+
 compile_context
   -> active state + dependency closure
   -> recent raw window + current input
@@ -26,16 +36,18 @@ create_headline / recall_*
 
 - `raw-store.ts`: durable raw evidence and token estimator.
 - `state-types.ts`, `state-store.ts`, `reducer.ts`: explicit typed state and code-owned transitions.
+- `state-update.ts`: durable preparation snapshots and revision-guarded atomic State Delta application.
 - `extractor.ts`: provider-neutral transport interface and strict delta validation. No runtime provider is configured.
 - `assembler.ts`: deterministic build-up assembly and debug manifest.
 - `recall.ts`: headline storage, FTS keyword lookup, and exact evidence recovery.
-- `mcp-service.ts`: sanitized seven-tool library service.
+- `mcp-service.ts`: sanitized nine-tool library service.
 - `mcp-server.ts`: protocol schemas, stdio lifecycle, and protocol-pure process entry point.
 
 ## Boundaries and invariants
 
 - Raw evidence is append-only; suppression never deletes it.
 - A model may propose a delta, but code validates and owns the transition.
+- Preparation identities are immutable; raw events may be appended after preparation, but prepared evidence and the expected state revision must still validate at apply time.
 - Active constraints are assembled from known-active state, not guessed from pruning.
 - Compact representations retain provenance and exact evidence remains recoverable.
 - Compiler failure must be containable by an external host; this package never controls a host's fallback policy.

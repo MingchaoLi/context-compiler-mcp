@@ -168,6 +168,22 @@ export function parseStrictStateDelta(response: string, input: ExtractorInput): 
     fail("INVALID_JSON");
   }
 
+  return parseStateDeltaPayload(parsed, input, context);
+}
+
+export function parseStrictStateDeltaPayload(
+  payload: unknown,
+  input: ExtractorInput
+): StateDelta {
+  return parseStateDeltaPayload(payload, input, validateExtractorInput(input));
+}
+
+function parseStateDeltaPayload(
+  parsed: unknown,
+  input: ExtractorInput,
+  context: ValidationContext
+): StateDelta {
+
   const root = requireRecord(parsed, "INVALID_SCHEMA");
   requireExactKeys(root, TOP_LEVEL_KEYS, "INVALID_SCHEMA");
 

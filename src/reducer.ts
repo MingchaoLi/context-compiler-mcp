@@ -14,7 +14,26 @@ export class StateReducer {
   constructor(private readonly store: SqliteContextStateStore) {}
 
   apply(sessionId: string, delta: StateDelta): ReducerResult {
-    const transaction = this.store.transaction(sessionId, () => {
+    return this.applyWithTransaction(sessionId, delta);
+  }
+
+  applyAtRevision(
+    sessionId: string,
+    delta: StateDelta,
+    expectedRevision: number,
+    validateSnapshot: () => void
+  ): ReducerResult {
+    return this.applyWithTransaction(sessionId, delta, expectedRevision, validateSnapshot);
+  }
+
+  private applyWithTransaction(
+    sessionId: string,
+    delta: StateDelta,
+    expectedRevision?: number,
+    validateSnapshot?: () => void
+  ): ReducerResult {
+    const operation = (): ReducerResult => {
+      validateSnapshot?.();
       const result: ReducerResult = {
         created: [],
         updated: [],
@@ -177,7 +196,10 @@ export class StateReducer {
       }
 
       return result;
-    });
+    };
+    const transaction = expectedRevision === undefined
+      ? this.store.transaction(sessionId, operation)
+      : this.store.transactionAtRevision(sessionId, expectedRevision, operation);
     transaction.value.revision = transaction.revision;
     return transaction.value;
   }

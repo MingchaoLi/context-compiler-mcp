@@ -29,7 +29,7 @@ beforeAll(() => {
 afterAll(() => rmSync(temporaryRoot, { recursive: true, force: true }));
 
 describe("Context Compiler stdio MCP protocol", () => {
-  it("initializes, lists exactly seven tools, calls each tool, and keeps stdout protocol-pure", async () => {
+  it("initializes, lists exactly nine tools, calls each tool, and keeps stdout protocol-pure", async () => {
     const connection = await connect(serverEntry, databasePath);
     try {
       const listed = await connection.client.listTools();
@@ -39,6 +39,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       });
       expect(listed.tools.map((tool) => tool.name)).toEqual([
         "health", "ingest_event", "compile_context", "get_state",
+        "prepare_state_update", "apply_state_delta",
         "create_headline", "recall_exact", "recall_keyword",
       ]);
       const headlineSchema = listed.tools.find((tool) => tool.name === "create_headline")
@@ -48,18 +49,63 @@ describe("Context Compiler stdio MCP protocol", () => {
         format: "date-time",
         pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
       });
+      const prepareSchema = listed.tools.find((tool) => tool.name === "prepare_state_update")
+        ?.inputSchema as any;
+      expect(prepareSchema).toMatchObject({
+        additionalProperties: false,
+        required: ["session_id", "newest_event_ids"],
+        properties: {
+          newest_event_ids: { minItems: 1, maxItems: 100, uniqueItems: true },
+        },
+      });
+      const applySchema = listed.tools.find((tool) => tool.name === "apply_state_delta")
+        ?.inputSchema as any;
+      expect(applySchema).toMatchObject({
+        additionalProperties: false,
+        required: [
+          "session_id", "preparation_token", "fingerprint", "expected_revision", "delta",
+        ],
+        properties: { delta: { additionalProperties: false } },
+      });
+      expect(
+        applySchema.properties.delta.properties.new_goals.items.additionalProperties
+      ).toBe(false);
       expect(parse(await connection.client.callTool({ name: "health", arguments: {} }))).toMatchObject({ ok: true, result: { ready: true } });
       const event = parse(await connection.client.callTool({
         name: "ingest_event",
         arguments: { session_id: "proto", role: "user", content: "protocol durable", source_event_id: "p-1" },
       })) as any;
       expect(event.ok).toBe(true);
+      const prepared = parse(await connection.client.callTool({
+        name: "prepare_state_update",
+        arguments: { session_id: "proto", newest_event_ids: [event.result.id] },
+      })) as any;
+      expect(prepared).toMatchObject({
+        ok: true,
+        result: { expected_revision: 0, extractor_input: { newest_events: [{ id: event.result.id }] } },
+      });
+      expect(parse(await connection.client.callTool({
+        name: "apply_state_delta",
+        arguments: {
+          session_id: "proto",
+          preparation_token: prepared.result.preparation_token,
+          fingerprint: prepared.result.fingerprint,
+          expected_revision: prepared.result.expected_revision,
+          delta: { ...emptyDelta(), new_goals: [{ content: "Protocol state", source_refs: [event.result.id] }] },
+        },
+      }))).toMatchObject({ ok: true, result: { changed: true, revision: 1 } });
       expect(parse(await connection.client.callTool({
         name: "compile_context", arguments: { session_id: "proto", current_input: "continue" },
-      }))).toMatchObject({ ok: true, result: { metrics: { retrieved_tokens: 0, extractor_latency_ms: 0 } } });
+      }))).toMatchObject({
+        ok: true,
+        result: {
+          context: { active_goals: [{ content: "Protocol state" }] },
+          metrics: { retrieved_tokens: 0, extractor_latency_ms: 0 },
+        },
+      });
       expect(parse(await connection.client.callTool({
         name: "get_state", arguments: { session_id: "proto" },
-      }))).toMatchObject({ ok: true, result: { revision: 0 } });
+      }))).toMatchObject({ ok: true, result: { revision: 1 } });
       const headline = parse(await connection.client.callTool({
         name: "create_headline",
         arguments: { session_id: "proto", event_start_seq: 1, event_end_seq: 1, headline: "Protocol durable", keywords: ["protocol"] },
@@ -233,7 +279,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       );
       const inProcessClient = new Client({ name: "lifecycle-test", version: "1.0.0" });
       await inProcessClient.connect(clientTransport);
-      expect((await inProcessClient.listTools()).tools).toHaveLength(7);
+      expect((await inProcessClient.listTools()).tools).toHaveLength(9);
       await inProcessClient.close();
       await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
       expect(process.emitWarning).toBe(spy);
@@ -438,7 +484,69 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
+  it("allows only one conflicting non-empty apply across independent server processes", async () => {
+    const concurrentDatabase = join(temporaryRoot, "concurrent-apply.db");
+    const first = await connect(serverEntry, concurrentDatabase);
+    const second = await connect(serverEntry, concurrentDatabase);
+    try {
+      const ingested = parse(await first.client.callTool({
+        name: "ingest_event",
+        arguments: { session_id: "concurrent", role: "user", content: "race source" },
+      })) as any;
+      const eventId = ingested.result.id as string;
+      const prepared = await Promise.all([first, second].map(async (connection) => {
+        const result = parse(await connection.client.callTool({
+          name: "prepare_state_update",
+          arguments: { session_id: "concurrent", newest_event_ids: [eventId] },
+        })) as any;
+        expect(result).toMatchObject({ ok: true, result: { expected_revision: 0 } });
+        return result.result;
+      }));
+
+      const results = await Promise.all([first, second].map(async (connection, index) =>
+        parse(await connection.client.callTool({
+          name: "apply_state_delta",
+          arguments: {
+            session_id: "concurrent",
+            preparation_token: prepared[index].preparation_token,
+            fingerprint: prepared[index].fingerprint,
+            expected_revision: prepared[index].expected_revision,
+            delta: {
+              ...emptyDelta(),
+              new_goals: [{ content: `winner-${index}`, source_refs: [eventId] }],
+            },
+          },
+        })) as any
+      ));
+
+      expect(results.filter((result) => result.ok)).toHaveLength(1);
+      expect(results.filter((result) => !result.ok)).toEqual([
+        { ok: false, error: { code: "CONFLICT" } },
+      ]);
+      expect(parse(await first.client.callTool({
+        name: "get_state", arguments: { session_id: "concurrent" },
+      }))).toMatchObject({ ok: true, result: { revision: 1, items: [{ type: "GOAL" }] } });
+    } finally {
+      await Promise.all([close(first), close(second)]);
+    }
+  });
+
 });
+
+function emptyDelta() {
+  return {
+    new_goals: [],
+    updated_goals: [],
+    new_constraints: [],
+    updated_constraints: [],
+    new_decisions: [],
+    resolved_questions: [],
+    new_open_questions: [],
+    rejected_alternatives: [],
+    supersessions: [],
+    new_relations: [],
+  };
+}
 
 function npmCommand(): string {
   return process.platform === "win32" ? "npm.cmd" : "npm";

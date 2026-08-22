@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { JsonObject } from "./raw-store.js";
+import type { JsonObject, RawEvent, RawEventRole } from "./raw-store.js";
 import type {
   ContextItem,
   ContextItemStatus,
@@ -30,6 +30,23 @@ export interface StateItemPatch {
 export interface StateTransactionResult<T> {
   value: T;
   revision: number;
+}
+
+export interface StateUpdatePreparationRecord {
+  preparation_token: string;
+  session_id: string;
+  expected_revision: number;
+  newest_event_ids: string[];
+  fingerprint: string;
+  snapshot_json: string;
+  created_at: string;
+}
+
+export class StateRevisionConflictError extends Error {
+  constructor() {
+    super("Context state revision conflict");
+    this.name = "StateRevisionConflictError";
+  }
 }
 
 export interface DecisionSupersessionResult {
@@ -61,6 +78,29 @@ interface RelationRow extends Record<string, unknown> {
   relation_type: RelationType;
   target_id: string;
   created_at: string;
+}
+
+interface StateUpdatePreparationRow extends Record<string, unknown> {
+  preparation_token: string;
+  session_id: string;
+  expected_revision: number;
+  newest_event_ids_json: string;
+  fingerprint: string;
+  snapshot_json: string;
+  created_at: string;
+}
+
+interface StateRawEventRow extends Record<string, unknown> {
+  id: string;
+  session_id: string;
+  seq: number;
+  source_event_id: string | null;
+  role: RawEventRole;
+  content: string;
+  event_type: string;
+  created_at: string;
+  token_count: number;
+  metadata_json: string;
 }
 
 const ITEM_TYPES: readonly ContextItemType[] = [
@@ -101,6 +141,25 @@ export class SqliteContextStateStore {
   }
 
   transaction<T>(sessionId: string, operation: () => T): StateTransactionResult<T> {
+    return this.runTransaction(sessionId, undefined, operation);
+  }
+
+  transactionAtRevision<T>(
+    sessionId: string,
+    expectedRevision: number,
+    operation: () => T
+  ): StateTransactionResult<T> {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+      throw new Error("expected revision must be a non-negative safe integer");
+    }
+    return this.runTransaction(sessionId, expectedRevision, operation);
+  }
+
+  private runTransaction<T>(
+    sessionId: string,
+    expectedRevision: number | undefined,
+    operation: () => T
+  ): StateTransactionResult<T> {
     this.assertOpen();
     validateSessionId(sessionId);
     if (this.transactionOpen) throw new Error("Nested context-state transactions are not supported");
@@ -110,6 +169,9 @@ export class SqliteContextStateStore {
     this.transactionSessionId = sessionId;
     this.transactionDirty = false;
     try {
+      if (expectedRevision !== undefined && this.getRevision(sessionId) !== expectedRevision) {
+        throw new StateRevisionConflictError();
+      }
       const value = operation();
       const revision = this.transactionDirty
         ? this.advanceRevisionInsideTransaction(sessionId)
@@ -124,6 +186,79 @@ export class SqliteContextStateStore {
       this.transactionSessionId = undefined;
       this.transactionDirty = false;
     }
+  }
+
+  insertStateUpdatePreparation(record: StateUpdatePreparationRecord): void {
+    this.assertTransactionSession(record.session_id);
+    validateId(record.preparation_token, "preparation token");
+    if (!Number.isSafeInteger(record.expected_revision) || record.expected_revision < 0) {
+      throw new Error("expected revision must be a non-negative safe integer");
+    }
+    const newestEventIds = normalizeSourceRefs(record.newest_event_ids);
+    if (!/^[a-f0-9]{64}$/.test(record.fingerprint)) {
+      throw new Error("preparation fingerprint must be a SHA-256 hex digest");
+    }
+    parseJsonRecord(record.snapshot_json, "preparation snapshot");
+    validateId(record.created_at, "preparation created_at");
+    this.ensureSession(record.session_id, record.created_at);
+    this.database
+      .prepare(
+        `INSERT INTO state_update_preparations (
+           preparation_token, session_id, expected_revision, newest_event_ids_json,
+           fingerprint, snapshot_json, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        record.preparation_token,
+        record.session_id,
+        record.expected_revision,
+        JSON.stringify(newestEventIds),
+        record.fingerprint,
+        record.snapshot_json,
+        record.created_at
+      );
+  }
+
+  getStateUpdatePreparation(preparationToken: string): StateUpdatePreparationRecord | undefined {
+    this.assertOpen();
+    validateId(preparationToken, "preparation token");
+    const row = this.database
+      .prepare("SELECT * FROM state_update_preparations WHERE preparation_token = ?")
+      .get(preparationToken) as StateUpdatePreparationRow | undefined;
+    if (!row) return undefined;
+    return {
+      preparation_token: row.preparation_token,
+      session_id: row.session_id,
+      expected_revision: row.expected_revision,
+      newest_event_ids: parseSourceRefs(row.newest_event_ids_json),
+      fingerprint: row.fingerprint,
+      snapshot_json: row.snapshot_json,
+      created_at: row.created_at,
+    };
+  }
+
+  getRawEventsByIds(sessionId: string, eventIds: readonly string[]): RawEvent[] {
+    this.assertOpen();
+    validateSessionId(sessionId);
+    const events: RawEvent[] = [];
+    for (const eventId of eventIds) {
+      validateId(eventId, "raw event id");
+      const row = this.database
+        .prepare("SELECT * FROM raw_events WHERE session_id = ? AND id = ?")
+        .get(sessionId, eventId) as StateRawEventRow | undefined;
+      if (!row) throw new Error("Prepared raw event is unavailable");
+      events.push(stateRawRowToEvent(row));
+    }
+    return events;
+  }
+
+  getSessionMaxRawSequence(sessionId: string): number {
+    this.assertOpen();
+    validateSessionId(sessionId);
+    const row = this.database
+      .prepare("SELECT COALESCE(MAX(seq), 0) AS max_seq FROM raw_events WHERE session_id = ?")
+      .get(sessionId) as { max_seq: number };
+    return row.max_seq;
   }
 
   createItem(input: StateItemInput): ContextItem {
@@ -513,6 +648,10 @@ export class SqliteContextStateStore {
   }
 
   private assertWritable(sessionId: string): void {
+    this.assertTransactionSession(sessionId);
+  }
+
+  private assertTransactionSession(sessionId: string): void {
     this.assertOpen();
     if (!this.transactionOpen) throw new Error("Context-state writes require an active transaction");
     if (this.transactionSessionId !== sessionId) {
@@ -577,6 +716,33 @@ function migrate(database: DatabaseSync): void {
       session_id TEXT PRIMARY KEY REFERENCES sessions(id),
       revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0)
     );
+
+    CREATE TABLE IF NOT EXISTS state_update_preparations (
+      preparation_token TEXT PRIMARY KEY CHECK (length(preparation_token) > 0),
+      session_id TEXT NOT NULL REFERENCES sessions(id),
+      expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
+      newest_event_ids_json TEXT NOT NULL
+        CHECK (json_valid(newest_event_ids_json) AND json_type(newest_event_ids_json) = 'array'),
+      fingerprint TEXT NOT NULL CHECK (length(fingerprint) = 64),
+      snapshot_json TEXT NOT NULL
+        CHECK (json_valid(snapshot_json) AND json_type(snapshot_json) = 'object'),
+      created_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_state_update_preparations_session_created
+      ON state_update_preparations(session_id, created_at);
+
+    CREATE TRIGGER IF NOT EXISTS state_update_preparations_prevent_update
+    BEFORE UPDATE ON state_update_preparations
+    BEGIN
+      SELECT RAISE(ABORT, 'state_update_preparations is immutable');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS state_update_preparations_prevent_delete
+    BEFORE DELETE ON state_update_preparations
+    BEGIN
+      SELECT RAISE(ABORT, 'state_update_preparations is immutable');
+    END;
   `);
 }
 
@@ -802,6 +968,21 @@ function rowToRelation(row: RelationRow): StateRelation {
   };
 }
 
+function stateRawRowToEvent(row: StateRawEventRow): RawEvent {
+  return {
+    id: row.id,
+    session_id: row.session_id,
+    seq: row.seq,
+    role: row.role,
+    content: row.content,
+    event_type: row.event_type,
+    created_at: row.created_at,
+    token_count: row.token_count,
+    metadata: parseJsonRecord(row.metadata_json, "persisted raw-event metadata"),
+    ...(row.source_event_id === null ? {} : { source_event_id: row.source_event_id }),
+  };
+}
+
 function parseSourceRefs(value: string): string[] {
   let parsed: unknown;
   try {
@@ -820,6 +1001,19 @@ function parseMetadata(value: string): JsonObject {
     throw new Error("Persisted state metadata is not valid JSON", { cause: error });
   }
   return normalizeJsonObject(parsed as JsonObject, "persisted metadata");
+}
+
+function parseJsonRecord(value: string, label: string): JsonObject {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch (error) {
+    throw new Error(`${label} is not valid JSON`, { cause: error });
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`${label} must be a JSON object`);
+  }
+  return parsed as JsonObject;
 }
 
 function cloneItem(item: ContextItem): ContextItem {

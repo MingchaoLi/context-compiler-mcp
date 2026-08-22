@@ -17,6 +17,8 @@ export {
   type StateItemInput,
   type StateItemPatch,
   type StateTransactionResult,
+  StateRevisionConflictError,
+  type StateUpdatePreparationRecord,
 } from "./state-store.js";
 export {
   EMPTY_STATE_DELTA,
@@ -39,6 +41,7 @@ export {
   StrictStateExtractor,
   createEmptyStateDelta,
   parseStrictStateDelta,
+  parseStrictStateDeltaPayload,
   type ExtractorErrorCode,
   type ExtractorInput,
   type ExtractorResult,
@@ -46,6 +49,21 @@ export {
   type ExtractorTransportOptions,
   type StrictStateExtractorOptions,
 } from "./extractor.js";
+
+export {
+  MAX_PREPARED_NEWEST_EVENTS,
+  StateUpdateCoordinator,
+  StateUpdateError,
+  apply_state_delta,
+  applyStateDelta,
+  prepare_state_update,
+  prepareStateUpdate,
+  type ApplyStateDeltaInput,
+  type ApplyStateDeltaResult,
+  type PrepareStateUpdateInput,
+  type PrepareStateUpdateResult,
+  type StateUpdateErrorCode,
+} from "./state-update.js";
 
 export {
   ContextAssemblerValidationError,

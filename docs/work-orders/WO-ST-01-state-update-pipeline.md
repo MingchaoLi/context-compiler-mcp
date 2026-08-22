@@ -1,6 +1,8 @@
 # WO-ST-01 — Model-independent state update pipeline
 
-Status: PLANNED — NOT IMPLEMENTED
+Status: IMPLEMENTED — PENDING INDEPENDENT QA
+
+Implementation handoff: `docs/handoffs/WO-ST-01-state-update-pipeline.md`
 
 ## Result
 

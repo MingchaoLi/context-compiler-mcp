@@ -19,12 +19,90 @@ import type {
 const CONTEXT_COMPILER_SERVICE_VERSION = "0.1.0";
 const CONTEXT_COMPILER_CAPABILITIES: readonly ContextCompilerToolName[] = [
   "health", "ingest_event", "compile_context", "get_state",
+  "prepare_state_update", "apply_state_delta",
   "create_headline", "recall_exact", "recall_keyword",
 ];
 
 const sessionId = { type: "string", minLength: 1 } as const;
 const nonBlank = { type: "string", minLength: 1, pattern: "\\S" } as const;
 const positiveInteger = { type: "integer", minimum: 1 } as const;
+const identifier = { ...nonBlank, maxLength: 500 } as const;
+const identifierArray = {
+  type: "array",
+  uniqueItems: true,
+  items: identifier,
+} as const;
+
+const newItemDeltaSchema = objectSchema({
+  content: nonBlank,
+  source_refs: identifierArray,
+}, ["content"]);
+const updatedGoalSchema = {
+  ...objectSchema({
+    id: identifier,
+    content: nonBlank,
+    status: { const: "COMPLETED" },
+  }, ["id"]),
+  anyOf: [{ required: ["content"] }, { required: ["status"] }],
+};
+const updatedConstraintSchema = {
+  ...objectSchema({
+    id: identifier,
+    content: nonBlank,
+    status: { const: "SUPERSEDED" },
+  }, ["id"]),
+  anyOf: [{ required: ["content"] }, { required: ["status"] }],
+};
+const stateDeltaSchema = objectSchema({
+  new_goals: { type: "array", items: newItemDeltaSchema },
+  updated_goals: { type: "array", items: updatedGoalSchema },
+  new_constraints: { type: "array", items: newItemDeltaSchema },
+  updated_constraints: { type: "array", items: updatedConstraintSchema },
+  new_decisions: {
+    type: "array",
+    items: objectSchema({
+      content: nonBlank,
+      reason: { type: "string" },
+      supersedes: identifierArray,
+      reopen_if: { type: "string" },
+      source_refs: identifierArray,
+    }, ["content"]),
+  },
+  resolved_questions: {
+    type: "array",
+    items: objectSchema({ id: identifier, resolved_by: identifier }, ["id"]),
+  },
+  new_open_questions: { type: "array", items: newItemDeltaSchema },
+  rejected_alternatives: {
+    type: "array",
+    items: objectSchema({
+      content: nonBlank,
+      reason: { type: "string" },
+      reopen_if: { type: "string" },
+      source_refs: identifierArray,
+      rejects: identifierArray,
+    }, ["content"]),
+  },
+  supersessions: {
+    type: "array",
+    items: objectSchema({
+      superseded_id: identifier,
+      superseding_id: identifier,
+    }, ["superseded_id", "superseding_id"]),
+  },
+  new_relations: {
+    type: "array",
+    items: objectSchema({
+      source_id: identifier,
+      relation_type: { type: "string", enum: ["DEPENDS_ON", "REJECTS", "DERIVED_FROM"] },
+      target_id: identifier,
+    }, ["source_id", "relation_type", "target_id"]),
+  },
+}, [
+  "new_goals", "updated_goals", "new_constraints", "updated_constraints",
+  "new_decisions", "resolved_questions", "new_open_questions",
+  "rejected_alternatives", "supersessions", "new_relations",
+]);
 
 const TOOLS: Tool[] = [
   tool("health", "Report local Context Compiler readiness", objectSchema({}, [])),
@@ -45,6 +123,20 @@ const TOOLS: Tool[] = [
     recent_raw_window_turns: { type: "integer", minimum: 1, maximum: 100 },
   }, ["session_id", "current_input"])),
   tool("get_state", "Read session state and revision", objectSchema({ session_id: sessionId }, ["session_id"])),
+  tool("prepare_state_update", "Prepare a bounded immutable extractor snapshot", objectSchema({
+    session_id: sessionId,
+    newest_event_ids: {
+      type: "array", minItems: 1, maxItems: 100, uniqueItems: true,
+      items: identifier,
+    },
+  }, ["session_id", "newest_event_ids"])),
+  tool("apply_state_delta", "Strictly validate and atomically apply a prepared State Delta", objectSchema({
+    session_id: sessionId,
+    preparation_token: { ...nonBlank, maxLength: 200 },
+    fingerprint: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    expected_revision: { type: "integer", minimum: 0 },
+    delta: stateDeltaSchema,
+  }, ["session_id", "preparation_token", "fingerprint", "expected_revision", "delta"])),
   tool("create_headline", "Create an immutable headline over a raw event range", objectSchema({
     session_id: sessionId,
     event_start_seq: positiveInteger,
