@@ -36,6 +36,16 @@ For compatibility with the originally approved adapter, `DSH_HOME` remains a leg
 
 The package can also be used as a TypeScript/JavaScript library through `dist/index.js` after building. It has no network or model-provider dependency.
 
+## Offline evaluation
+
+The provider-neutral evaluation runner compares a versioned JSON fixture across D0 full raw context, D1 recent context, and D2 compiled context. It reports deterministic approximate token reduction, labeled continuity/reopening/recovery rates, and measured latency. Probe matching uses Unicode NFKC plus collapsed whitespace and exact containment; it is not a semantic model judgment.
+
+```sh
+npm run evaluate -- /absolute/path/evaluation-suite.json
+```
+
+The CLI writes a versioned JSON report to stdout. Exit `0` means all aggregate thresholds passed, `2` means evaluation completed but a threshold failed, `3` means invalid input, and `4` means a sanitized runtime failure. Evaluation creates isolated temporary SQLite databases only for loading fixture evidence and exercising the existing headline recall implementation; it performs no model or network call and does not alter the nine-tool MCP protocol.
+
 ## Project facts
 
 - [Current state](docs/PROJECT_STATE.md)

@@ -30,6 +30,12 @@ compile_context
 create_headline / recall_*
   -> immutable headline index
   -> exact raw evidence recovery
+
+offline evaluation fixture
+  -> D0 complete raw transcript
+  -> D1 bounded recent transcript
+  -> D2 existing assembler + labeled headline recall
+  -> aggregate quality, reduction, and latency thresholds
 ```
 
 ## Modules
@@ -40,6 +46,7 @@ create_headline / recall_*
 - `extractor.ts`: provider-neutral transport interface and strict delta validation. No runtime provider is configured.
 - `assembler.ts`: deterministic build-up assembly and debug manifest.
 - `recall.ts`: headline storage, FTS keyword lookup, and exact evidence recovery.
+- `evaluation.ts`, `evaluation-cli.ts`: strict provider-neutral D0/D1/D2 fixtures, metrics, thresholds, and JSON CLI. Evaluation uses isolated temporary databases and makes no model or network call.
 - `mcp-service.ts`: sanitized nine-tool library service.
 - `mcp-server.ts`: protocol schemas, stdio lifecycle, and protocol-pure process entry point.
 

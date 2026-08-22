@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "representative-session",
+      "session_id": "evaluation-session",
+      "raw_events": [
+        {
+          "id": "event-1",
+          "session_id": "evaluation-session",
+          "seq": 1,
+          "role": "user",
+          "content": "Should the legacy port remain open? Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt.",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "token_count": 88,
+          "metadata": {},
+          "source_event_id": "source-event-1"
+        },
+        {
+          "id": "event-2",
+          "session_id": "evaluation-session",
+          "seq": 2,
+          "role": "assistant",
+          "content": "No, the legacy port is resolved and closed. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt.",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "token_count": 90,
+          "metadata": {},
+          "source_event_id": "source-event-2"
+        },
+        {
+          "id": "event-3",
+          "session_id": "evaluation-session",
+          "seq": 3,
+          "role": "user",
+          "content": "Constraint: Never expose credentials. Decision: Use SQLite WAL. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt.",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:03.000Z",
+          "token_count": 94,
+          "metadata": {},
+          "source_event_id": "source-event-3"
+        },
+        {
+          "id": "event-4",
+          "session_id": "evaluation-session",
+          "seq": 4,
+          "role": "assistant",
+          "content": "Acknowledged the durable storage decision. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt. Historical implementation detail that is no longer required in the active prompt.",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:04.000Z",
+          "token_count": 89,
+          "metadata": {},
+          "source_event_id": "source-event-4"
+        },
+        {
+          "id": "event-5",
+          "session_id": "evaluation-session",
+          "seq": 5,
+          "role": "user",
+          "content": "How should preparation records be compacted?",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:05.000Z",
+          "token_count": 12,
+          "metadata": {},
+          "source_event_id": "source-event-5"
+        },
+        {
+          "id": "event-6",
+          "session_id": "evaluation-session",
+          "seq": 6,
+          "role": "assistant",
+          "content": "Measure retention before selecting a policy.",
+          "event_type": "message",
+          "created_at": "2026-08-23T00:00:06.000Z",
+          "token_count": 11,
+          "metadata": {},
+          "source_event_id": "source-event-6"
+        }
+      ],
+      "context_items": [
+        {
+          "id": "constraint-1",
+          "session_id": "evaluation-session",
+          "type": "CONSTRAINT",
+          "content": "Never expose credentials",
+          "status": "ACTIVE",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:00.000Z",
+          "updated_at": "2026-08-23T00:00:00.000Z",
+          "source_refs": ["event-3"],
+          "metadata": {}
+        },
+        {
+          "id": "decision-1",
+          "session_id": "evaluation-session",
+          "type": "DECISION",
+          "content": "Use SQLite WAL",
+          "status": "ACTIVE",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:00.000Z",
+          "updated_at": "2026-08-23T00:00:00.000Z",
+          "source_refs": ["event-3"],
+          "metadata": {}
+        },
+        {
+          "id": "resolved-1",
+          "session_id": "evaluation-session",
+          "type": "OPEN_QUESTION",
+          "content": "Should the legacy port remain open?",
+          "status": "RESOLVED",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:00.000Z",
+          "updated_at": "2026-08-23T00:00:00.000Z",
+          "source_refs": ["event-1"],
+          "metadata": {}
+        },
+        {
+          "id": "open-1",
+          "session_id": "evaluation-session",
+          "type": "OPEN_QUESTION",
+          "content": "How should preparation records be compacted?",
+          "status": "OPEN",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:00.000Z",
+          "updated_at": "2026-08-23T00:00:00.000Z",
+          "source_refs": ["event-5"],
+          "metadata": {}
+        }
+      ],
+      "state_relations": [],
+      "current_input": "Continue with the evaluation plan.",
+      "recent_raw_window_turns": 1,
+      "token_budget": 300,
+      "headlines": [
+        {
+          "session_id": "evaluation-session",
+          "event_start_seq": 1,
+          "event_end_seq": 2,
+          "headline": "Legacy port question resolved",
+          "keywords": ["legacy", "port", "resolved"],
+          "created_at": "2026-08-23T00:00:00.000Z"
+        }
+      ],
+      "recall_queries": [
+        {
+          "query": "legacy port",
+          "expected_event_seqs": [1, 2]
+        }
+      ],
+      "probes": {
+        "constraints": ["Never expose credentials"],
+        "decisions": ["Use SQLite WAL"],
+        "resolved_issues": ["Should the legacy port remain open?"],
+        "open_questions": ["How should preparation records be compacted?"]
+      }
+    }
+  ],
+  "thresholds": {
+    "minimum_d2_token_reduction_ratio": 0.1,
+    "minimum_d2_constraint_retention": 1,
+    "minimum_d2_decision_continuity": 1,
+    "maximum_d2_resolved_issue_reopening": 0,
+    "minimum_d2_open_question_continuity": 1,
+    "minimum_d2_recall_recovery": 1,
+    "maximum_d2_mean_latency_ms": 1000
+  }
+}

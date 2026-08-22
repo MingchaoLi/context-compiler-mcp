@@ -17,6 +17,10 @@ Updated: 2026-08-23
 
 ST-01 passed independent QA on 2026-08-23. Preparation captures a bounded current raw-event suffix and immutable fingerprint without changing state revision. Apply strictly parses an externally supplied State Delta, permits later raw appends, and atomically revalidates the fingerprint and expected revision with reducer application. The QA matrix exercised macOS arm64 with Node.js 25.6.1; Windows and exact Node.js 24 remain unverified.
 
+## Current candidate
+
+WO-ST-02 is implemented and awaiting independent QA. The candidate adds a strict versioned offline evaluation library and JSON CLI for D0 full raw context, D1 recent context, and D2 compiled context. It measures approximate token reduction, labeled constraint/decision/open-question retention, resolved-issue reopening, headline recall recovery, and latency, then applies explicit aggregate thresholds. It does not add an MCP tool, provider, model call, network call, or host dependency.
+
 ## Current behavior
 
 `compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes require an external caller to perform the explicit prepare/extract/apply sequence; this package performs no model or network call. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
@@ -26,7 +30,7 @@ ST-01 passed independent QA on 2026-08-23. Preparation captures a bounded curren
 - No runtime State Extractor transport.
 - No automatic state evolution or runtime extractor invocation.
 - No automatic headline generation.
-- No D0/D1/D2 evaluation runner or continuity/recovery evaluation suite.
+- The ST-02 evaluation runner has not yet passed independent QA.
 - No formal compiler mode in any host adapter.
 
-The next planned work is ST-02, the evaluation runner.
+The current work is independent QA for WO-ST-02. ST-03 must not begin until ST-02 is accepted and its evaluation contract is reviewed.

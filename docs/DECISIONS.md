@@ -35,3 +35,7 @@ State update preparation/application precedes evaluation; evaluation precedes op
 ## D-009 — Durable preparation before mutation
 
 State updates use an immutable persisted preparation identity over a bounded raw-event suffix, visible state, relations, and required provenance. The complete untrusted delta is strictly parsed before mutation. Apply then rebuilds the snapshot fingerprint and checks the expected state revision inside the same `BEGIN IMMEDIATE` transaction as reducer execution. Appended raw events are allowed; stale or conflicting state is not.
+
+## D-010 — Labeled offline evaluation before provider selection
+
+Evaluation uses strict versioned snapshots and explicit exact-text/recall labels rather than asking a model to grade itself. D0, D1, and D2 share the existing deterministic token estimator; D2 uses the approved assembler and recall primitives. Aggregate thresholds and distinct CLI exits make the result automation-friendly while keeping provider selection deferred to ST-03.

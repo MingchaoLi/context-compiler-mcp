@@ -116,3 +116,29 @@ export {
   createContextCompilerMcpServer,
   runContextCompilerMcpServer,
 } from "./mcp-server.js";
+
+export {
+  EVALUATION_REPORT_VERSION,
+  EvaluationError,
+  normalizeEvaluationText,
+  parseEvaluationSuite,
+  runEvaluationSuite,
+  type EvaluationAggregateDimension,
+  type EvaluationCase,
+  type EvaluationCaseResult,
+  type EvaluationDimensionResult,
+  type EvaluationErrorCode,
+  type EvaluationProbes,
+  type EvaluationRate,
+  type EvaluationRecallQuery,
+  type EvaluationReport,
+  type EvaluationSuite,
+  type EvaluationThresholdFailure,
+  type EvaluationThresholds,
+} from "./evaluation.js";
+
+export {
+  EVALUATION_CLI_EXIT,
+  runEvaluationCli,
+  type EvaluationCliIo,
+} from "./evaluation-cli.js";
