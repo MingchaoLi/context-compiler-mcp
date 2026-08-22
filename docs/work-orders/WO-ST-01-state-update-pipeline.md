@@ -1,8 +1,10 @@
 # WO-ST-01 — Model-independent state update pipeline
 
-Status: IMPLEMENTED — PENDING INDEPENDENT QA
+Status: ACCEPTED — INDEPENDENT QA PASSED
 
 Implementation handoff: `docs/handoffs/WO-ST-01-state-update-pipeline.md`
+
+Independent QA: `docs/qa/WO-ST-01-state-update-pipeline.md`
 
 ## Result
 
