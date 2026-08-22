@@ -96,7 +96,7 @@ export async function runContextCompilerMcpServer(
   environment: NodeJS.ProcessEnv = process.env,
   transport: Transport = new StdioServerTransport()
 ): Promise<void> {
-  const restoreWarnings = installSqliteExperimentalWarningFilter();
+  const restoreWarnings = acquireSqliteExperimentalWarningFilter();
   let service: ContextCompilerMcpService | undefined;
   let server: Server | undefined;
   let closed = false;
@@ -134,31 +134,81 @@ export async function runContextCompilerMcpServer(
   }
 }
 
-function installSqliteExperimentalWarningFilter(): () => void {
-  const original = process.emitWarning;
-  const filtered = (function (
-    warning: string | Error,
-    ...arguments_: unknown[]
-  ): void {
-    const message = typeof warning === "string" ? warning : warning.message;
-    const options = arguments_[0];
-    const type = warning instanceof Error
-      ? warning.name
-      : typeof options === "string"
-        ? options
-        : typeof options === "object" && options !== null && "type" in options
-          ? (options as { type?: unknown }).type
-          : undefined;
-    if (
-      message === "SQLite is an experimental feature and might change at any time" &&
-      type === "ExperimentalWarning"
-    ) return;
-    Reflect.apply(original, process, [warning, ...arguments_]);
-  }) as typeof process.emitWarning;
-  process.emitWarning = filtered;
+interface WarningFilterLeaseState {
+  readonly original: typeof process.emitWarning;
+  readonly filtered: typeof process.emitWarning;
+  readonly activeTokens: Set<symbol>;
+  downstream: typeof process.emitWarning;
+  restoreTarget: typeof process.emitWarning;
+}
+
+let warningFilterLeaseState: WarningFilterLeaseState | undefined;
+
+export function acquireSqliteExperimentalWarningFilter(): () => void {
+  let state = warningFilterLeaseState;
+  if (state === undefined) {
+    const original = process.emitWarning;
+    const activeTokens = new Set<symbol>();
+    const created = {} as WarningFilterLeaseState;
+    const filtered = (function (
+      warning: string | Error,
+      ...arguments_: unknown[]
+    ): void {
+      const message = typeof warning === "string" ? warning : warning.message;
+      const options = arguments_[0];
+      const type = warning instanceof Error
+        ? warning.name
+        : typeof options === "string"
+          ? options
+          : typeof options === "object" && options !== null && "type" in options
+            ? (options as { type?: unknown }).type
+            : undefined;
+      if (
+        message === "SQLite is an experimental feature and might change at any time" &&
+        type === "ExperimentalWarning"
+      ) return;
+      Reflect.apply(created.downstream, process, [warning, ...arguments_]);
+    }) as typeof process.emitWarning;
+    Object.assign(created, {
+      original,
+      filtered,
+      activeTokens,
+      downstream: original,
+      restoreTarget: original,
+    });
+    state = created;
+    warningFilterLeaseState = state;
+    process.emitWarning = state.filtered;
+  } else {
+    ensureWarningFilterInstalled(state);
+  }
+
+  const token = Symbol("sqlite-warning-filter-lease");
+  state.activeTokens.add(token);
+  let released = false;
   return () => {
-    process.emitWarning = original;
+    if (released) return;
+    released = true;
+    state.activeTokens.delete(token);
+    if (state.activeTokens.size !== 0) {
+      ensureWarningFilterInstalled(state);
+      return;
+    }
+    if (process.emitWarning === state.filtered) {
+      process.emitWarning = state.restoreTarget;
+    }
+    if (warningFilterLeaseState === state) warningFilterLeaseState = undefined;
   };
+}
+
+function ensureWarningFilterInstalled(state: WarningFilterLeaseState): void {
+  if (process.emitWarning === state.filtered) return;
+  // Preserve an external replacement made while a lease was active. The next
+  // manager boundary reinstalls the same filter and forwards/restores to that
+  // newer function instead of overwriting it with the initially captured one.
+  state.downstream = process.emitWarning;
+  state.restoreTarget = process.emitWarning;
+  process.emitWarning = state.filtered;
 }
 
 function response(value: unknown, isError: boolean): CallToolResult {

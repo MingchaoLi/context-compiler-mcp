@@ -10,7 +10,10 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { runContextCompilerMcpServer } from "../src/mcp-server.js";
+import {
+  acquireSqliteExperimentalWarningFilter,
+  runContextCompilerMcpServer,
+} from "../src/mcp-server.js";
 import { copyCompilerDistribution } from "../../scripts/prepare-sidecar.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -239,6 +242,137 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
+  it("coordinates overlapping warning-filter leases regardless of runner completion order", async () => {
+    const original = process.emitWarning;
+    const forwarded: string[] = [];
+    const spy = ((warning: string | Error) => {
+      forwarded.push(typeof warning === "string" ? warning : warning.message);
+    }) as typeof process.emitWarning;
+    const listenerBaselines = {
+      SIGINT: new Set(process.listeners("SIGINT")),
+      SIGTERM: new Set(process.listeners("SIGTERM")),
+      beforeExit: new Set(process.listeners("beforeExit")),
+    };
+    process.emitWarning = spy;
+    try {
+      for (const completionOrder of [[0, 1], [1, 0]] as const) {
+        const first = delayedInMemoryTransport();
+        const second = delayedInMemoryTransport();
+        const firstRun = runContextCompilerMcpServer(
+          { CONTEXT_COMPILER_DB_PATH: join(temporaryRoot, `overlap-${completionOrder.join("")}-a.db`) },
+          first.transport
+        );
+        await first.started;
+        const filterIdentity = process.emitWarning;
+        expect(filterIdentity).not.toBe(spy);
+        const secondRun = runContextCompilerMcpServer(
+          { CONTEXT_COMPILER_DB_PATH: join(temporaryRoot, `overlap-${completionOrder.join("")}-b.db`) },
+          second.transport
+        );
+        await second.started;
+        expect(process.emitWarning).toBe(filterIdentity);
+        const forwardedBefore = forwarded.filter((value) => value === "overlap-forwarded").length;
+        emitWarningSentinels();
+        expect(forwarded.filter((value) => value === "overlap-forwarded")).toHaveLength(
+          forwardedBefore + 1
+        );
+
+        const runs = [firstRun, secondRun] as const;
+        const controls = [first, second] as const;
+        controls[completionOrder[0]].release();
+        await runs[completionOrder[0]];
+        expect(process.emitWarning).toBe(filterIdentity);
+        emitWarningSentinels();
+        expect(forwarded.filter((value) => value === "overlap-forwarded")).toHaveLength(
+          forwardedBefore + 2
+        );
+        controls[completionOrder[1]].release();
+        await runs[completionOrder[1]];
+        expect(process.emitWarning).toBe(spy);
+        await Promise.all([first.transport.close(), second.transport.close()]);
+        await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+      }
+
+      const success = delayedInMemoryTransport();
+      const successRun = runContextCompilerMcpServer(
+        { CONTEXT_COMPILER_DB_PATH: join(temporaryRoot, "overlap-success.db") },
+        success.transport
+      );
+      await success.started;
+      const mixedFilterIdentity = process.emitWarning;
+      const failing = failingStartTransport("mixed connect failure");
+      await expect(runContextCompilerMcpServer(
+        { CONTEXT_COMPILER_DB_PATH: join(temporaryRoot, "overlap-failure.db") },
+        failing
+      )).rejects.toThrow("mixed connect failure");
+      expect(process.emitWarning).toBe(mixedFilterIdentity);
+      success.release();
+      await successRun;
+      expect(process.emitWarning).toBe(spy);
+      await success.transport.close();
+
+      const threeRunners = [
+        delayedInMemoryTransport(), delayedInMemoryTransport(), delayedInMemoryTransport(),
+      ] as const;
+      const threeRuns = threeRunners.map((control, index) => runContextCompilerMcpServer(
+        { CONTEXT_COMPILER_DB_PATH: join(temporaryRoot, `overlap-three-${index}.db`) },
+        control.transport
+      ));
+      await Promise.all(threeRunners.map((control) => control.started));
+      const threeRunnerIdentity = process.emitWarning;
+      expect(threeRunnerIdentity).not.toBe(spy);
+      for (const index of [1, 0]) {
+        threeRunners[index].release();
+        await threeRuns[index];
+        expect(process.emitWarning).toBe(threeRunnerIdentity);
+      }
+      threeRunners[2].release();
+      await threeRuns[2];
+      expect(process.emitWarning).toBe(spy);
+      await Promise.all(threeRunners.map((control) => control.transport.close()));
+
+      const releaseA = acquireSqliteExperimentalWarningFilter();
+      const threeLeaseIdentity = process.emitWarning;
+      const releaseB = acquireSqliteExperimentalWarningFilter();
+      const releaseC = acquireSqliteExperimentalWarningFilter();
+      expect(process.emitWarning).toBe(threeLeaseIdentity);
+      releaseB();
+      releaseB();
+      releaseA();
+      expect(process.emitWarning).toBe(threeLeaseIdentity);
+      releaseC();
+      releaseC();
+      expect(process.emitWarning).toBe(spy);
+
+      const releaseBeforeExternal = acquireSqliteExperimentalWarningFilter();
+      const releaseAfterExternal = acquireSqliteExperimentalWarningFilter();
+      const externalFilterIdentity = process.emitWarning;
+      const externalForwarded: string[] = [];
+      const external = ((warning: string | Error) => {
+        externalForwarded.push(typeof warning === "string" ? warning : warning.message);
+      }) as typeof process.emitWarning;
+      process.emitWarning = external;
+      releaseBeforeExternal();
+      expect(process.emitWarning).toBe(externalFilterIdentity);
+      process.emitWarning("external-forwarded", "SecurityWarning");
+      expect(externalForwarded).toEqual(["external-forwarded"]);
+      releaseAfterExternal();
+      expect(process.emitWarning).toBe(external);
+      process.emitWarning = spy;
+
+      await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+      for (const [event, baseline] of Object.entries(listenerBaselines) as Array<
+        [keyof typeof listenerBaselines, Set<(...arguments_: any[]) => void>]
+      >) {
+        const listeners = process.listeners(event);
+        expect(listeners).toHaveLength(baseline.size);
+        expect(listeners.every((listener) => baseline.has(listener))).toBe(true);
+      }
+    } finally {
+      process.emitWarning = original;
+    }
+  });
+
   it("restores the prior sidecar dist and cleans staging paths after copy or rename failure", async () => {
     const copyRoot = join(temporaryRoot, "copy-failure");
     const source = join(copyRoot, "source");
@@ -303,6 +437,44 @@ function stagingEntries(directory: string): string[] {
   return readdirSync(directory).filter((entry) =>
     entry.startsWith("context-compiler-dist.tmp-") || entry.startsWith("context-compiler-dist.old-")
   );
+}
+
+function emitWarningSentinels(): void {
+  process.emitWarning(
+    "SQLite is an experimental feature and might change at any time",
+    "ExperimentalWarning"
+  );
+  process.emitWarning("overlap-forwarded", "SecurityWarning");
+}
+
+function delayedInMemoryTransport(): {
+  transport: InMemoryTransport;
+  started: Promise<void>;
+  release: () => void;
+} {
+  const [transport] = InMemoryTransport.createLinkedPair();
+  const originalStart = transport.start.bind(transport);
+  let markStarted!: () => void;
+  let releaseStart!: () => void;
+  const started = new Promise<void>((resolvePromise) => { markStarted = resolvePromise; });
+  const gate = new Promise<void>((resolvePromise) => { releaseStart = resolvePromise; });
+  transport.start = async () => {
+    markStarted();
+    await gate;
+    await originalStart();
+  };
+  return { transport, started, release: releaseStart };
+}
+
+function failingStartTransport(message: string) {
+  return {
+    async start() { throw new Error(message); },
+    async send() {},
+    async close() { this.onclose?.(); },
+    onclose: undefined as (() => void) | undefined,
+    onerror: undefined as ((error: Error) => void) | undefined,
+    onmessage: undefined as ((message: any) => void) | undefined,
+  };
 }
 
 interface Connection {
