@@ -59,3 +59,22 @@ export {
   type ContextMetrics,
   type DependencyPath,
 } from "./assembler.js";
+
+export {
+  HistoryRecallError,
+  SqliteHistoryRecallStore,
+  type EventIdRecallQuery,
+  type EventIdRecallResult,
+  type ExactRecallQuery,
+  type ExactRecallResult,
+  type HeadlineIdRecallQuery,
+  type HeadlineIdRecallResult,
+  type HistoryHeadline,
+  type HistoryHeadlineInput,
+  type HistoryRecallErrorCategory,
+  type HistoryRecallErrorCode,
+  type KeywordRecallHit,
+  type KeywordRecallQuery,
+  type SeqRangeRecallQuery,
+  type SeqRangeRecallResult,
+} from "./recall.js";
