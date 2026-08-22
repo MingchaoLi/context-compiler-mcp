@@ -14,7 +14,7 @@ The current server exposes exactly nine tools:
 - `recall_exact`
 - `recall_keyword`
 
-`compile_context` remains read-only: it assembles known state and recent raw evidence but does not call a model or mutate state. State evolution is an explicit two-step operation. `prepare_state_update` returns a bounded, fingerprinted extractor snapshot; an external caller may obtain a candidate State Delta elsewhere and pass it to `apply_state_delta`, which strictly validates and atomically applies it against the prepared state revision. The package does not select or call a model. Automatic extraction and headline generation are not runtime features.
+`compile_context` remains read-only: it assembles known state and recent raw evidence but does not call a model or mutate state. State evolution is an explicit two-step operation. `prepare_state_update` returns a bounded, fingerprinted extractor snapshot; an external caller may obtain a candidate State Delta elsewhere and pass it to `apply_state_delta`, which strictly validates and atomically applies it against the prepared state revision. The package does not select a model or provider. Automatic extraction from MCP/compile and automatic headline generation are not runtime features.
 
 ## Requirements and setup
 
@@ -45,6 +45,33 @@ npm run evaluate -- /absolute/path/evaluation-suite.json
 ```
 
 The CLI writes a versioned JSON report to stdout. Exit `0` means all aggregate thresholds passed, `2` means evaluation completed but a threshold failed, `3` means invalid input, and `4` means a sanitized runtime failure. Evaluation creates isolated temporary SQLite databases only for loading fixture evidence and exercising the existing headline recall implementation; it performs no model or network call and does not alter the nine-tool MCP protocol.
+
+## Optional local extractor runtime
+
+Library callers may explicitly compose the accepted state-update pipeline with a local provider adapter process. The core starts the executable directly with `shell: false`, sends one `{ "version": 1, "prompt": string }` request, and accepts one `{ "version": 1, "delta": object }` response. The child owns any model SDK, network use, and credentials; none are selected or configured by this package.
+
+```js
+import {
+  JsonSubprocessExtractorTransport,
+  RuntimeStateUpdater,
+  SqliteContextStateStore,
+} from "context-compiler-mcp";
+
+const store = new SqliteContextStateStore("/absolute/path/context-compiler.db");
+const transport = new JsonSubprocessExtractorTransport({
+  executable: "/absolute/path/provider-adapter",
+  args: ["--stdio-once"],
+});
+const updater = new RuntimeStateUpdater(store, transport);
+const result = await updater.updateState({
+  session_id: "session-id",
+  newest_event_ids: ["ordered-current-suffix-event-id"],
+});
+await transport.close();
+store.close();
+```
+
+The runtime updater performs explicit prepare → strict extract → atomic apply. It is never invoked implicitly, and the MCP server remains exactly nine tools.
 
 ## Project facts
 

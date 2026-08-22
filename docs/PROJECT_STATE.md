@@ -20,17 +20,17 @@ WO-ST-02 passed fresh independent re-QA on 2026-08-23 at fixed source candidate 
 
 ## Current candidate
 
-There is no unaccepted source candidate. WO-ST-02 is accepted; ST-03 remains a future separate work order and was not started during QA.
+WO-ST-02 is accepted. WO-ST-03 is implemented and awaiting independent QA. The candidate provides a bounded one-shot local JSON subprocess transport plus an explicit library-only prepare/extract/apply coordinator while keeping provider SDKs, network calls, credentials, hosts, and MCP expansion outside the core.
 
 ## Current behavior
 
-`compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes require an external caller to perform the explicit prepare/extract/apply sequence; this package performs no model or network call. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
+`compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes remain explicit: callers may perform prepare/extract/apply themselves or use the pending ST-03 library coordinator with an explicitly supplied local adapter process. The core selects no model/provider and performs no network request. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
 
 ## Known gaps
 
-- No runtime State Extractor transport.
-- No automatic state evolution or runtime extractor invocation.
+- The ST-03 optional runtime transport has not yet passed independent QA.
+- No implicit state evolution or extractor invocation from compile/ingest/MCP.
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 
-WO-ST-02 is complete and independently accepted. ST-03 is the next roadmap stage but has not started.
+WO-ST-02 is complete and independently accepted. WO-ST-03 implementation is pending independent QA; formal host mode remains out of scope.

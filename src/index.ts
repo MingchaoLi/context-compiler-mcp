@@ -118,6 +118,26 @@ export {
 } from "./mcp-server.js";
 
 export {
+  DEFAULT_EXTRACTOR_MAX_OUTPUT_BYTES,
+  DEFAULT_EXTRACTOR_MAX_REQUEST_BYTES,
+  DEFAULT_EXTRACTOR_TIMEOUT_MS,
+  JsonSubprocessExtractorTransport,
+  SubprocessExtractorError,
+  type JsonSubprocessExtractorOptions,
+  type SubprocessExtractorErrorCode,
+} from "./subprocess-extractor.js";
+
+export {
+  RuntimeStateUpdateError,
+  RuntimeStateUpdater,
+  run_state_update,
+  runStateUpdate,
+  type RuntimeStateUpdateErrorCode,
+  type RuntimeStateUpdateResult,
+  type RuntimeStateUpdaterOptions,
+} from "./runtime-state-update.js";
+
+export {
   EVALUATION_REPORT_VERSION,
   EvaluationError,
   normalizeEvaluationText,

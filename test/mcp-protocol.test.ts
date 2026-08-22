@@ -5,7 +5,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -232,6 +232,37 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(JSON.parse(missingEvaluation.stderr)).toEqual({
         version: 1, passed: false, error: { code: "RUNTIME_FAILURE" },
       });
+
+      const packagedApi = await import(
+        pathToFileURL(join(installedPackage, "dist", "index.js")).href
+      ) as typeof import("../src/index.js");
+      const runtimeDatabase = join(temporaryRoot, "packaged-runtime.db");
+      const packagedRawStore = new packagedApi.SqliteRawHistoryStore(runtimeDatabase);
+      const packagedStateStore = new packagedApi.SqliteContextStateStore(runtimeDatabase);
+      const packagedTransport = new packagedApi.JsonSubprocessExtractorTransport({
+        executable: process.execPath,
+        args: [join(root, "test", "fixtures", "extractor-worker.mjs"), "goal"],
+      });
+      try {
+        const runtimeEvent = packagedRawStore.ingest({
+          session_id: "packaged-runtime",
+          role: "user",
+          content: "create packaged runtime state",
+        });
+        const runtimeResult = await packagedApi.runStateUpdate(
+          packagedStateStore,
+          packagedTransport,
+          { session_id: "packaged-runtime", newest_event_ids: [runtimeEvent.id] }
+        );
+        expect(runtimeResult).toMatchObject({
+          extraction: { fallback_used: false },
+          application: { changed: true, revision: 1 },
+        });
+      } finally {
+        await packagedTransport.close();
+        packagedStateStore.close();
+        packagedRawStore.close();
+      }
     }
   }, 60_000);
 

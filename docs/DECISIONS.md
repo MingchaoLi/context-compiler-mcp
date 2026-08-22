@@ -39,3 +39,7 @@ State updates use an immutable persisted preparation identity over a bounded raw
 ## D-010 — Labeled offline evaluation before provider selection
 
 Evaluation uses strict versioned snapshots and explicit exact-text/recall labels rather than asking a model to grade itself. D0, D1, and D2 share the existing deterministic token estimator; D2 uses the approved assembler and recall primitives. Aggregate thresholds and distinct CLI exits make the result automation-friendly while keeping provider selection deferred to ST-03.
+
+## D-011 — Provider adapters remain outside the process boundary
+
+The optional runtime transport spawns one explicitly supplied local executable with `shell: false` and exchanges strict versioned JSON over stdio. The child, not the core, owns provider SDKs, network requests, credentials, and vendor response translation. The core retains prompt construction, strict State Delta validation, retry/fallback policy, revision checks, and atomic state application. Runtime invocation is explicit library behavior and does not change the nine-tool MCP service.
