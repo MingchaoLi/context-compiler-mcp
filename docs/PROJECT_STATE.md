@@ -16,21 +16,20 @@ Updated: 2026-08-23
 
 ## Latest accepted delivery
 
-WO-ST-02 passed fresh independent re-QA on 2026-08-23 at fixed source candidate `b0ec8de081a59ab5ae6725dad730080232d93aee`. The accepted runner strictly evaluates D0 full raw context, D1 complete recent user-turn context, and D2 existing assembler plus headline recall. It reports deterministic approximate token reduction, labeled continuity/reopening/recovery, and latency under explicit aggregate thresholds. The returned npm-bin symlink and SQLite warning-stream findings were independently closed against a real production-only tarball. The re-QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1; Windows and exact Node.js 24 remain unverified.
+WO-ST-03 passed independent QA on 2026-08-23 at fixed source candidate `0b5b5dac28cbdbe78406211c9becf8646a7c114e`. The accepted delivery provides a bounded one-shot local JSON subprocess transport plus an explicit library-only prepare/extract/apply updater, with strict envelopes, sanitized failures, child lifecycle cleanup, retry/fallback containment, and atomic revision conflict handling. Independent process and two-connection SQLite tests found no residual direct child or partial state mutation. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
 
 ## Current candidate
 
-WO-ST-02 is accepted. WO-ST-03 is implemented and awaiting independent QA. The candidate provides a bounded one-shot local JSON subprocess transport plus an explicit library-only prepare/extract/apply coordinator while keeping provider SDKs, network calls, credentials, hosts, and MCP expansion outside the core.
+WO-ST-03 is accepted. There is no pending core candidate. Formal host mode remains a separate future host-repository consideration.
 
 ## Current behavior
 
-`compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes remain explicit: callers may perform prepare/extract/apply themselves or use the pending ST-03 library coordinator with an explicitly supplied local adapter process. The core selects no model/provider and performs no network request. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
+`compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes remain explicit: callers may perform prepare/extract/apply themselves or use the accepted ST-03 library coordinator with an explicitly supplied local adapter process. The core selects no model/provider and performs no network request. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
 
 ## Known gaps
 
-- The ST-03 optional runtime transport has not yet passed independent QA.
 - No implicit state evolution or extractor invocation from compile/ingest/MCP.
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 
-WO-ST-02 is complete and independently accepted. WO-ST-03 implementation is pending independent QA; formal host mode remains out of scope.
+WO-ST-01 through WO-ST-03 are complete and independently accepted. Formal host mode remains out of scope and has not started.

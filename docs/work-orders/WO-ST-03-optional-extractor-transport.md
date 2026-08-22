@@ -1,8 +1,10 @@
 # WO-ST-03 — Optional provider-neutral extractor transport
 
-Status: IMPLEMENTED — PENDING INDEPENDENT QA
+Status: ACCEPTED
 
 Implementation handoff: `docs/handoffs/WO-ST-03-optional-extractor-transport.md`
+
+Independent QA: `docs/qa/WO-ST-03-optional-extractor-transport.md` — PASS on 2026-08-23 at candidate `0b5b5dac28cbdbe78406211c9becf8646a7c114e`.
 
 ## Result
 
@@ -62,3 +64,5 @@ The archived original brief is not required for this bounded transport contract.
 - `npm test`, `npm run test:protocol`, `npm run build`, real worker execution, real npm pack, production-only packaged execution, dependency tree, credential/generated-file/host-import/network scans, and `git diff --check` pass.
 
 Implementation requires an append-only commit and independent QA; the implementer must not self-approve.
+
+Accepted by independent QA on 2026-08-23. Formal host mode remains out of scope.
