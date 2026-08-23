@@ -1,0 +1,52 @@
+{
+  "schema_version": "state_replay_st02_response_contract/v1",
+  "status": "frozen_shape_pending_independent_run_gate_qa",
+  "response_file": {
+    "directory": "capture/responses",
+    "filename": "<packet_id>.json",
+    "encoding": "utf8",
+    "format": "one_plain_json_object_per_file",
+    "exact_keys": ["schema_version", "packet_id", "raw_response"],
+    "schema_version_value": "state_replay_st02_response/v1",
+    "raw_response_semantics": "exact_transport_text_encoded_as_a_json_string_without_repair"
+  },
+  "metadata_file": {
+    "directory": "capture/metadata",
+    "filename": "<packet_id>.json",
+    "encoding": "utf8",
+    "format": "one_plain_json_object_per_file",
+    "exact_keys": [
+      "schema_version",
+      "packet_id",
+      "capture_ordinal",
+      "event_id",
+      "prompt_sha256",
+      "raw_response_sha256",
+      "model",
+      "reasoning_effort",
+      "fork_turns",
+      "fresh_session",
+      "attempt",
+      "tools_enabled",
+      "network_access",
+      "repository_access",
+      "started_at",
+      "completed_at",
+      "transport_status"
+    ],
+    "schema_version_value": "state_replay_st02_capture_metadata/v1"
+  },
+  "invalid_response_policy": {
+    "preserve_raw_response_text": true,
+    "do_not_force_response_text_to_parse_as_json": true,
+    "strict_extractor_max_attempts": 1,
+    "fallback": "empty_delta",
+    "manual_repair": false
+  },
+  "replay": {
+    "order": "run-contract.step_order",
+    "response_hash": "sha256(utf8(raw_response))",
+    "prompt_hash_must_match_packet": true,
+    "metadata_is_not_model_input": true
+  }
+}

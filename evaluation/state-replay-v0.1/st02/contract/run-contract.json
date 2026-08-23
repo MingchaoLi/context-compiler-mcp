@@ -1,0 +1,104 @@
+{
+  "schema_version": "state_replay_st02_run_contract/v1",
+  "status": "source_only_contract_pending_independent_run_gate_qa",
+  "authorization": {
+    "model_authorized": false,
+    "official_capture_authorized": false,
+    "qa_may_call_model": false,
+    "next_authority": "independent_run_gate_qa_then_controller_decision"
+  },
+  "accepted_identities": {
+    "st01_qa_commit": "daa012c4d6f09919e798edc3771cf090bd5dd188",
+    "st01_builder_commit": "826eb4760fe8df557a2aa7d07225bc1986579281",
+    "st01_data_commit": "79da83d95aeac7162c95714f4f6f5eff1f9e0608",
+    "canonical_source_commit": "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
+    "event_stream_git_blob": "9b4b18c77a5496278325429be2df6aaf767281e9",
+    "event_stream_sha256": "a35771410cd027a70e439add43a268529826def666c14421b629e79a47c0a4e1"
+  },
+  "input_boundary": {
+    "previous_predicted_typed_state": true,
+    "current_standardized_raw_event_only": true,
+    "include_lifecycle_tombstones": true,
+    "include_existing_non_provenance_state_relations": true,
+    "recent_context": [],
+    "newest_events_cardinality": 1,
+    "historical_raw_events": false,
+    "oracle_state": false,
+    "future_events": false,
+    "outcome_or_decision_reference": false
+  },
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "model_family": "gpt-5.6-non-sol",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session_per_step": true,
+    "attempts_per_step": 1,
+    "adaptive_retry": false,
+    "best_of": false,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false,
+    "maximum_concurrency": 3
+  },
+  "extractor": {
+    "implementation": "StrictStateExtractor",
+    "max_attempts": 1,
+    "invalid_json_schema_or_reference": "empty_delta_fallback",
+    "manual_repair": false
+  },
+  "reducer": {
+    "implementation": "StateReducer",
+    "expected_revision": "previous_predicted_state_revision",
+    "rejection": "record_extractor_produced_invalid_transition_and_keep_state_unchanged",
+    "manual_repair": false
+  },
+  "capture": {
+    "official_run_count": 1,
+    "packet_count": 30,
+    "raw_response_per_step": true,
+    "response_and_metadata_physically_separate": true,
+    "qa_remote_session_count": 0,
+    "builder_judge_model_call_count": 0
+  },
+  "interpretation": {
+    "aggregate_threshold": null,
+    "weighted_score": null,
+    "architecture_winner": null,
+    "context_reduction_priority": "secondary",
+    "answer_quality_evaluation": false,
+    "pace_evidence_experience_scope": false
+  },
+  "step_order": [
+    "STR-08/E1",
+    "STR-08/E2",
+    "STR-08/E3",
+    "STR-08/E4",
+    "STR-07/E1",
+    "STR-07/E2",
+    "STR-07/E3",
+    "STR-07/E4",
+    "STR-07/E5",
+    "STR-07/E6",
+    "STR-07/E7",
+    "STR-07/E8",
+    "STR-07/E9",
+    "STR-07/E10",
+    "STR-06/E1",
+    "STR-06/E2",
+    "STR-06/E3",
+    "STR-06/E4",
+    "STR-06/E5",
+    "STR-06/E6",
+    "STR-06/E7",
+    "STR-06/E8",
+    "STR-06/E9",
+    "STR-06/E10",
+    "STR-06/E11",
+    "STR-06/E12",
+    "STR-06/E13",
+    "STR-06/E14",
+    "STR-06/E15",
+    "STR-06/E16"
+  ]
+}

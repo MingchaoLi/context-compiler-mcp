@@ -1,6 +1,18 @@
 # WO-DS-14 — State Compiler v0.1 时间状态回放
 
-状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 RUN CONTRACT NOT YET FROZEN — NO MODEL AUTHORIZED
+状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 RUN CONTRACT IMPLEMENTED — PENDING RUN-GATE QA; MODEL NOT AUTHORIZED
+
+## 当前 ST-02 Run-Gate checkpoint
+
+ST-01 接受后已实现零模型 ST-02 run contract、source-only packet/replay runtime 与 focused tests。该 checkpoint 只允许独立 Run-Gate QA 审核合同、source boundary、prompt boundary、response/capture 格式和无模型 replay；它不授权任何 remote session。
+
+- 固定 ST-01 QA `daa012c4d6f09919e798edc3771cf090bd5dd188`、Builder `826eb4760fe8df557a2aa7d07225bc1986579281`、data `79da83d95aeac7162c95714f4f6f5eff1f9e0608` 与 canonical source `4b974538d76d0e0d8a5ac17c5662533b714ef00e`；
+- 完整 30-step order、`gpt-5.6-terra` non-sol / medium、`fork_turns:none`、每步 fresh session / attempt 1、无 retry / best-of / tools / network / repo，最大并发 3；
+- `StrictStateExtractor(maxAttempts:1)` 的 invalid parse fallback 固定为空 Delta；reducer rejection 单列且 state 必须不变；
+- runtime 只读取固定 Event Stream 与 ST-02 contract，不读取 Gold；每次从既有 response prefix 由空状态机械重放，并输出下一个 packet；
+- 当前 `packets/`、`capture/`、`internal/` 只有边界说明，没有模型回答、capture、Gold 映射或评分。
+
+只有该 checkpoint 经独立 Run-Gate QA PASS 后，主控才可另行授权一次 official 30-step capture。QA 不得调用模型或预填 response。
 
 ## 背景与边界
 
