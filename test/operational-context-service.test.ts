@@ -195,6 +195,112 @@ describe("operational compile MCP integration", () => {
     service.close();
   });
 
+  it("rebaselines source-less public v1 content, status, and relation updates before dormancy", () => {
+    for (const mutationKind of ["content", "status", "relation"] as const) {
+      const database = databasePath();
+      const service = new ContextCompilerMcpService(database);
+      const sessionId = `v1-late-${mutationKind}`;
+      const first = unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: "empty state baseline",
+      })) as { id: string };
+      const emptyBaseline = unwrap(service.call("compile_context", {
+        session_id: sessionId,
+        current_input: "zzzz-unrelated-current-query",
+        recent_raw_window_turns: 1,
+        operation_id: `${mutationKind}-empty-baseline`,
+      })) as any;
+      expect(emptyBaseline.context.operational_debug.dormancy_enabled).toBe(false);
+
+      const createdAt = unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: "create durable state",
+      })) as { id: string };
+      expect(first.id).not.toBe(createdAt.id);
+      applyPublicV1Delta(service, sessionId, createdAt.id, {
+        ...createEmptyStateDelta(),
+        new_goals: [
+          { content: "primary durable objective", source_refs: [createdAt.id] },
+          { content: "secondary dormant candidate", source_refs: [createdAt.id] },
+        ],
+      });
+      const createdState = unwrap(service.call("get_state", {
+        session_id: sessionId,
+      })) as { items: Array<{ id: string; status: string }> };
+      const [primaryId, secondaryId] = createdState.items.map(({ id }) => id);
+      expect(primaryId).toBeDefined();
+      expect(secondaryId).toBeDefined();
+      const createdBaseline = unwrap(service.call("compile_context", {
+        session_id: sessionId,
+        current_input: "zzzz-unrelated-current-query",
+        recent_raw_window_turns: 1,
+        operation_id: `${mutationKind}-created-baseline`,
+      })) as any;
+      expect(createdBaseline.context.dormant_state_ids).toEqual([]);
+      expect(createdBaseline.context.operational_debug.dormancy_enabled).toBe(false);
+
+      let latestEventId = createdAt.id;
+      for (let index = 3; index <= 17; index += 1) {
+        latestEventId = (unwrap(service.call("ingest_event", {
+          session_id: sessionId, role: "user", content: `timeline ${index}`,
+        })) as { id: string }).id;
+      }
+      const delta = createEmptyStateDelta();
+      if (mutationKind === "content") {
+        delta.updated_goals = [{ id: primaryId!, content: "late revised objective" }];
+      } else if (mutationKind === "status") {
+        delta.updated_goals = [{ id: primaryId!, status: "COMPLETED" }];
+      } else {
+        delta.new_relations = [{
+          source_id: primaryId!, relation_type: "DEPENDS_ON", target_id: secondaryId!,
+        }];
+      }
+      applyPublicV1Delta(service, sessionId, latestEventId, delta);
+      const activeIds = mutationKind === "status"
+        ? [secondaryId!]
+        : [primaryId!, secondaryId!];
+
+      const firstAfterMutation = unwrap(service.call("compile_context", {
+        session_id: sessionId,
+        current_input: "zzzz-unrelated-current-query",
+        recent_raw_window_turns: 1,
+        operation_id: `${mutationKind}-new-snapshot-baseline`,
+      })) as any;
+      expect(firstAfterMutation.context.operational_debug.dormancy_enabled).toBe(false);
+      expect(firstAfterMutation.context.dormant_state_ids).toEqual([]);
+      expect(new Set(firstAfterMutation.context.active_goals.map(({ id }: { id: string }) => id)))
+        .toEqual(new Set(activeIds));
+
+      for (let index = 18; index <= 31; index += 1) {
+        unwrap(service.call("ingest_event", {
+          session_id: sessionId, role: "user", content: `timeline ${index}`,
+        }));
+      }
+      const belowThreshold = unwrap(service.call("compile_context", {
+        session_id: sessionId,
+        current_input: "zzzz-unrelated-current-query",
+        recent_raw_window_turns: 1,
+        operation_id: `${mutationKind}-below-threshold`,
+      })) as any;
+      expect(belowThreshold.context.operational_debug.dormancy_enabled).toBe(true);
+      expect(belowThreshold.context.dormant_state_ids).toEqual([]);
+      expect(new Set(belowThreshold.context.active_goals.map(({ id }: { id: string }) => id)))
+        .toEqual(new Set(activeIds));
+
+      unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: "timeline 32",
+      }));
+      const atThreshold = unwrap(service.call("compile_context", {
+        session_id: sessionId,
+        current_input: "zzzz-unrelated-current-query",
+        recent_raw_window_turns: 1,
+        operation_id: `${mutationKind}-at-threshold`,
+      })) as any;
+      expect(atThreshold.context.operational_debug.dormancy_enabled).toBe(true);
+      expect(new Set(atThreshold.context.dormant_state_ids)).toEqual(new Set(activeIds));
+      expect(atThreshold.context.active_goals).toEqual([]);
+      service.close();
+    }
+  });
+
   it("does not let public ledger append forge a compile baseline", () => {
     const database = databasePath();
     const service = new ContextCompilerMcpService(database);
@@ -309,4 +415,27 @@ function databasePath(): string {
 function unwrap(response: ReturnType<ContextCompilerMcpService["call"]>): unknown {
   if (!response.ok) throw new Error(response.error.code);
   return response.result;
+}
+
+function applyPublicV1Delta(
+  service: ContextCompilerMcpService,
+  sessionId: string,
+  newestEventId: string,
+  delta: unknown
+): void {
+  const prepared = unwrap(service.call("prepare_state_update", {
+    session_id: sessionId,
+    newest_event_ids: [newestEventId],
+  })) as {
+    preparation_token: string;
+    fingerprint: string;
+    expected_revision: number;
+  };
+  expect(unwrap(service.call("apply_state_delta", {
+    session_id: sessionId,
+    preparation_token: prepared.preparation_token,
+    fingerprint: prepared.fingerprint,
+    expected_revision: prepared.expected_revision,
+    delta,
+  }))).toMatchObject({ changed: true, revision: prepared.expected_revision + 1 });
 }

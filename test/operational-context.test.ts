@@ -154,9 +154,9 @@ describe("bounded operational context policy", () => {
 
 describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
   const events = Array.from({ length: 17 }, (_, index) => raw(index + 1, `turn ${index + 1}`));
-  const baseline = compileRecord(1, 1);
   const oldGoal = item("old", "GOAL", "ACTIVE", "durable plan", ["e2"]);
   const constraint = item("constraint", "CONSTRAINT", "ACTIVE", "must retain", ["e2"]);
+  const baseline = compileRecord(1, 2, [oldGoal]);
 
   it("fails open without a prior telemetry baseline and at the threshold lower boundary", () => {
     const noBaseline = compileOperationalContext(base(events, {
@@ -189,7 +189,7 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
     };
     const missing = compileOperationalContext(base(events, {
       context_items: [noProvenance], operation_id: "missing-provenance",
-      recent_raw_window_turns: 1, ledger_records: [baseline],
+      recent_raw_window_turns: 1, ledger_records: [compileRecord(1, 2, [noProvenance])],
     }));
     expect(missing.context.dormant_state_ids).toEqual([]);
     const incomplete = compileOperationalContext(base(events, {
@@ -218,22 +218,24 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
     expect(result.context.metrics.d2_compiled_tokens).toBe(result.context.debug_manifest.token_budget_used);
   });
 
-  it("keeps constraints, updated items, prior-hit items, and dependency targets active", () => {
-    const updated = item("updated", "GOAL", "ACTIVE", "updated plan", ["e17"]);
-    const hit = item("hit", "GOAL", "ACTIVE", "hit plan", ["e2"]);
-    const dependent = item("dependent", "DECISION", "ACTIVE", "new decision", ["e17"]);
-    const hitTelemetry = compileRecordsWithStateHit(hit);
+  it("keeps constraints, prior-hit items, query matches, and dependency targets active", () => {
+    const hit = item("hit", "GOAL", "ACTIVE", "uniquehit", ["e2"]);
+    const dependent = item("dependent", "DECISION", "ACTIVE", "new decision", ["e2"]);
     const relation: StateRelation = {
       session_id: SESSION, source_id: "dependent", relation_type: "DEPENDS_ON",
-      target_id: "old", created_at: iso(17),
+      target_id: "old", created_at: iso(2),
     };
+    const contextItems = [oldGoal, constraint, hit, dependent];
+    const hitTelemetry = compileRecordsWithStateHit(hit, contextItems, [relation]);
     const result = compileOperationalContext(base(events, {
-      context_items: [oldGoal, constraint, updated, hit, dependent],
+      context_items: contextItems,
       state_relations: [relation], operation_id: "rescues", ledger_records: hitTelemetry, recent_raw_window_turns: 1,
+      current_input: "continue new decision",
     }));
     expect(result.context.dormant_state_ids).toEqual([]);
     expect(result.context.active_constraints.map(({ id }) => id)).toContain("constraint");
-    expect(result.context.active_goals.map(({ id }) => id)).toEqual(expect.arrayContaining(["updated", "hit"]));
+    expect(result.context.active_goals.map(({ id }) => id)).toContain("hit");
+    expect(result.context.active_decisions.map(({ id }) => id)).toContain("dependent");
     expect(result.context.dependency_items.map(({ id }) => id)).toContain("old");
     expect(result.context.operational_debug?.dependency_rescued_state_ids).toEqual(["old"]);
   });
@@ -290,11 +292,23 @@ function item(
   };
 }
 
-function compileRecord(seq: number, rawSeq: number): ExperienceLedgerRecord {
+function compileRecord(
+  seq: number,
+  rawSeq: number,
+  contextItems: ContextItem[] = [],
+  stateRelations: StateRelation[] = [],
+  stateRevision = 0
+): ExperienceLedgerRecord {
   const operationId = `prior-${seq}`;
   const generated = compileOperationalContext(base([
     raw(rawSeq, `baseline ${rawSeq}`),
-  ], { operation_id: operationId, recent_raw_window_turns: 1 }));
+  ], {
+    context_items: contextItems,
+    state_relations: stateRelations,
+    state_revision: stateRevision,
+    operation_id: operationId,
+    recent_raw_window_turns: 1,
+  }));
   return {
     id: `compile-${seq}`, session_id: SESSION, seq, kind: "CONTEXT_COMPILE",
     occurred_at: iso(seq), source_key: `context-compile/${encodeURIComponent(operationId)}`,
@@ -303,11 +317,16 @@ function compileRecord(seq: number, rawSeq: number): ExperienceLedgerRecord {
   };
 }
 
-function compileRecordsWithStateHit(stateItem: ContextItem): ExperienceLedgerRecord[] {
+function compileRecordsWithStateHit(
+  stateItem: ContextItem,
+  contextItems: ContextItem[],
+  stateRelations: StateRelation[]
+): ExperienceLedgerRecord[] {
   const operationId = "older";
-  const baselineItem = { ...stateItem, source_refs: ["e1"] };
-  const generated = compileOperationalContext(base([raw(1, "baseline")], {
-    context_items: [baselineItem], current_input: baselineItem.content,
+  const generated = compileOperationalContext(base([raw(2, "baseline")], {
+    context_items: contextItems,
+    state_relations: stateRelations,
+    current_input: stateItem.content,
     operation_id: operationId, recent_raw_window_turns: 1,
   }));
   const trace: ExperienceLedgerRecord = {

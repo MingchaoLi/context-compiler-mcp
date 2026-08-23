@@ -144,6 +144,11 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
   const windows = selectOperationalWindows(rawEvents, recentTurns, recentTurns * candidateMultiplier);
   const retrieval = rankCandidates(windows.candidates, input.current_input, denseQuery, policy, retrievalLimit);
   const ledgerRecords = excludeCurrentOperation(input.ledger_records ?? [], operationId);
+  const stateFingerprint = sha256(stableJson({
+    revision: input.state_revision,
+    items: input.context_items,
+    relations: input.state_relations,
+  }));
   const placement = placeDormantState({
     items: input.context_items,
     relations: input.state_relations,
@@ -154,6 +159,8 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     operationId,
     ledgerRecords,
     sessionId: input.session_id,
+    stateRevision: input.state_revision,
+    stateFingerprint,
   });
 
   const assemblerInput: ContextAssemblerInput = {
@@ -244,11 +251,6 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     token_budget: input.token_budget ?? null,
     context_policy: policyJson,
     dense_query: denseQuery === undefined ? null : denseQuery,
-  }));
-  const stateFingerprint = sha256(stableJson({
-    revision: input.state_revision,
-    items: input.context_items,
-    relations: input.state_relations,
   }));
   const rawFingerprint = sha256(stableJson(rawEvents));
   const resultFingerprint = sha256(stableJson({
@@ -476,8 +478,15 @@ function placeDormantState(input: {
   operationId: string | undefined;
   ledgerRecords: ExperienceLedgerRecord[];
   sessionId: string;
+  stateRevision: number;
+  stateFingerprint: string;
 }): PlacementResult {
-  const telemetry = parseTelemetry(input.ledgerRecords, input.sessionId);
+  const telemetry = parseTelemetry(
+    input.ledgerRecords,
+    input.sessionId,
+    input.stateRevision,
+    input.stateFingerprint
+  );
   const dormancyEnabled = input.operationId !== undefined && telemetry.complete && telemetry.baseline !== undefined;
   const queryTokens = new Set(tokenize(input.query));
   const queryMatchedIds = input.items
@@ -509,6 +518,12 @@ function placeDormantState(input: {
   const rawById = new Map(input.rawEvents.map((event) => [event.id, event]));
   const matched = new Set(queryMatchedIds);
   const threshold = input.recentTurns * input.multiplier;
+  const baselineTurn = Math.max(
+    0,
+    ...input.rawEvents
+      .filter((event) => event.seq <= telemetry.baseline!.rawSeq)
+      .map((event) => turnByRawId.get(event.id) ?? 0)
+  );
   const requestedDormantIds: string[] = [];
   const reactivatedIds: string[] = [];
   for (const item of input.items.filter(isActiveRoot)) {
@@ -517,10 +532,12 @@ function placeDormantState(input: {
     const provenanceEvents = provenanceIds.map((id) => rawById.get(id)).filter((event): event is RawEvent => event !== undefined);
     const lastProvenanceSeq = Math.max(0, ...provenanceEvents.map((event) => event.seq));
     const lastTurn = Math.max(0, ...provenanceIds.map((id) => turnByRawId.get(id) ?? 0));
-    const afterBaseline = lastProvenanceSeq > telemetry.baseline!.rawSeq;
-    const oldEnough = lastTurn > 0 && totalTurns - lastTurn >= threshold;
+    const observedInSnapshot = lastProvenanceSeq > 0 &&
+      lastProvenanceSeq <= telemetry.baseline!.rawSeq;
+    const recencyTurn = Math.max(lastTurn, baselineTurn);
+    const oldEnough = recencyTurn > 0 && totalTurns - recencyTurn >= threshold;
     const neverHit = !telemetry.hitStateIds.has(item.id);
-    if (!afterBaseline || !oldEnough || !neverHit) continue;
+    if (!observedInSnapshot || !oldEnough || !neverHit) continue;
     if (matched.has(item.id)) reactivatedIds.push(item.id);
     else requestedDormantIds.push(item.id);
   }
@@ -537,7 +554,12 @@ function placeDormantState(input: {
   };
 }
 
-function parseTelemetry(records: ExperienceLedgerRecord[], expectedSessionId?: string): {
+function parseTelemetry(
+  records: ExperienceLedgerRecord[],
+  expectedSessionId: string,
+  stateRevision: number,
+  stateFingerprint: string
+): {
   complete: boolean;
   baseline?: { seq: number; rawSeq: number };
   hitStateIds: Set<string>;
@@ -545,7 +567,22 @@ function parseTelemetry(records: ExperienceLedgerRecord[], expectedSessionId?: s
   const inspected = inspectTelemetry(records, expectedSessionId);
   if (!inspected.complete) return { complete: false, hitStateIds: new Set() };
   if (inspected.compiles.length === 0) return { complete: true, hitStateIds: new Set() };
-  const baselineRecord = inspected.compiles[0]!;
+  // State mutation is authoritative even when the v1 compatibility path has no
+  // current-event provenance. A new snapshot must first be observed by a
+  // trusted compile; later compiles keep the first observation as its age base.
+  const latest = inspected.compiles.at(-1)!;
+  if (latest.payload.state_revision !== stateRevision ||
+      latest.payload.state_sha256 !== stateFingerprint) {
+    return { complete: true, hitStateIds: new Set() };
+  }
+  let baselineIndex = inspected.compiles.length - 1;
+  while (baselineIndex > 0) {
+    const previous = inspected.compiles[baselineIndex - 1]!;
+    if (previous.payload.state_revision !== stateRevision ||
+        previous.payload.state_sha256 !== stateFingerprint) break;
+    baselineIndex -= 1;
+  }
+  const baselineRecord = inspected.compiles[baselineIndex]!;
   const hitStateIds = new Set<string>();
   for (const hit of inspected.hits) {
     if (hit.payload.subject_kind === "STATE_ITEM") {

@@ -14,15 +14,15 @@ Updated: 2026-08-24
 - Node.js `>=24`; official MCP SDK and Zod are runtime dependencies.
 - Standalone package identity: `context-compiler-mcp`.
 
-## Latest accepted delivery
+## Latest delivery status
 
-WO-V0-15 已于 2026-08-24 在固定 source candidate `76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e` 通过第三次 append-only fix 的独立 re-QA，状态为 **ACCEPTED / FROZEN**。接受范围包含 versioned current-event Extractor 合同、append-only Raw / Experience Ledger、Recent Raw N-turn、bounded BM25 + caller-Dense、dormant placement、targeted recovery、exact telemetry，以及 fresh/legacy SQLite 并发初始化和迁移。独立 QA 对 legacy Raw / Service 进行 200 组 / 400 实例同步攻击，对 stdio 进行 30 组 / 60 进程攻击，并验证旧 raw 字节/序号、Dense 列、append-only trigger 与单一 EVENT backfill。全量 468 PASS / 1 SKIP、protocol 11/11、DS-13/14 固定复现与 production-only pack 通过。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval 效果与 Experience Formation 效果都未评估；此后 Context / State 默认只允许 correctness 修复，下一阶段只是真实使用和可回放 Event–Action–Outcome / Feedback 数据积累。
+WO-V0-15 曾于 2026-08-24 在固定 source candidate `76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e` 通过第三次 append-only fix 的独立 re-QA；该接受范围与证据继续作为历史保留。随后冻结后终局对抗审查发现公开 v1 source-less late state update 可被 dormant 误判的 P1，当前状态已明确改为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。本轮只允许用可信 compile telemetry 为新的 authoritative state snapshot 重建观测基线；在独立 re-QA 前不得恢复 frozen，也不得进入 Experience 数据积累。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval 效果与 Experience Formation 效果都未评估。
 
 WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a`. The accepted evaluator v2 preserves version 1 reproduction, rejects non-plain or untraceable Probe inputs before execution, represents empty rates explicitly as `not_evaluable`, excludes `current_input` from historical matching while retaining it in cost/latency inputs, and reports raw D2-vs-D1 token cost without adding a gate. The first QA return and append-only fix are retained in the QA report. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
 
-## Current frozen foundation
+## Current foundation status
 
-WO-V0-15 保留 A/B/C 三个 append-only checkpoint 及三次 QA 返回的完整历史。最终 source candidate `76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e` 已独立接受；A 的 versioned extractor、B 的 append-only ledger/raw mirror 与 C 的 bounded policy 统一冻结，不再是 pending candidate。
+WO-V0-15 保留 A/B/C 三个 append-only checkpoint、三次 QA 返回和历史接受记录；冻结现因终局对抗审查的 dormant correctness P1 重开。A 的 versioned extractor 与 B 的 append-only ledger/raw mirror 不重开，C 也只允许修复 state-snapshot telemetry 基线，第四个 append-only fix 等待独立 re-QA。
 
 首轮 telemetry、特殊 JSON、Dense 极值、persisted-row 错误分类和 Runtime v2 错误合同，以及后续 fresh DB 初始化与 legacy raw ALTER 两项竞争，均已在独立动态反例中关闭。完整证据与返回链保留在 `docs/qa/WO-V0-15-experience-ready-foundation-freeze.md`。
 
@@ -101,6 +101,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
 - WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但已由 WO-DS-14 封存为 Oracle-State feasibility baseline；不再等待双真人评分，answer semantic gain 保持 `not_evaluated`。8 lexical Probes 只覆盖 3/12 slices；0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
 - WO-DS-14 已完成并经独立 QA 接受其 reducer conformance 与 ST-02 capture/raw-scoring 完整性；ST-02 Extractor correctness 实验结果为失败。结果仅相对 accepted standardized-event-summary Gold：Predicted State 全空，unique recall 为 general `0/35`、critical `0/29`，其余 zero-eligibility capability 不可评价。它不能证明 reducer Operational Stability、其他模型/prompt、真实 raw-body 或 State Compiler 架构的一般表现；下一阶段未授权。
-- WO-V0-15 已冻结 D-015 的 bounded BM25 + caller-Dense；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。Context / State 已冻结，下一阶段只转向真实使用和 Event–Action–Outcome / Feedback 数据积累。
+- WO-V0-15 的历史冻结已因 public v1 late update dormant P1 重开并等待独立 re-QA；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。只有 correctness fix 被重新授权，通过后才恢复 Context / State 冻结并转向真实使用和 Event–Action–Outcome / Feedback 数据积累。
 
-WO-ST-01 through WO-ST-03、WO-EV-02 与 WO-V0-15 均已完成并经独立 QA 接受。Formal Host Mode 仍不在范围内且未开始。
+WO-ST-01 through WO-ST-03 与 WO-EV-02 已完成并经独立 QA 接受；WO-V0-15 当前为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。Formal Host Mode 仍不在范围内且未开始。
