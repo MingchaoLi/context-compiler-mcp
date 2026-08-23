@@ -77,3 +77,15 @@
 ### 返回条件
 
 将 `normalize()` 扩展为移除 Unicode format/control separators（至少 U+200B、WORD JOINER、bidi/control 变体），并对 future Gold、Outcome summary/identifier 与 future Decision Reference 分别加入 zero-width/Unicode 规范化反例。更新 hash 后在新的 append-only Builder fix commit 重跑本段所有攻击与回归；在独立 re-QA 通过前保持 PENDING 和 `pilot_not_frozen`。
+
+## 第二次 Re-QA（候选 `2a65c85b1fc9554b24971e8ed20551eef3b53d39`）
+
+日期：2026-08-23
+
+结论：**PASS — 只接受 schema/pilot；不接受正式数据集 freeze、D2 效果或模型实验结论。** 候选 branch 为 `main`，父提交为 `ad2ac608825d7e284e08fd015a73e89dc168fc30`，开始时工作树 clean。
+
+- 原样重放 U+200B future Gold 绕过，并分别攻击 U+2060/WORD JOINER Outcome summary、逐字符 zero-width Outcome identifier、bidi-control future Decision Reference 和 Cc control-character future Gold；每项均在替换空格与词内插入位置被拒绝。
+- 重放 future event、future Gold provenance、Outcome 文件/summary/identifier、duplicate id、time reversal、`source_updated_at < occurred_at`、event/source kind mismatch、unknown field、cross-segment、visible/future Gold 及 future Decision Reference；均被拒绝。数据目录与 `pilot-hashes.json` 相对父提交未变，validator 仍报告 hash verified。
+- `node evaluation/starlette-v1/validate-pilot.mjs` 通过（3 cases / 4 segments / 25 events / 25 slices）；focused test 21/21，`npm test` 12 files / 263 tests，protocol 8/8，build 与 diff check 均通过。
+
+本接受只证明可审计 schema pilot 和输入隔离合同已通过独立 QA。`pilot_not_frozen` 保持不变；正式六案 freeze 仍需独立新工单和逐案 source audit，且不得运行/解释 D2 或远端模型结果。

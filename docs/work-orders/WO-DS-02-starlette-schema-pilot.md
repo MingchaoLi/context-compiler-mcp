@@ -1,6 +1,6 @@
 # WO-DS-02 — Starlette 数据 schema 与三案例 pilot
 
-状态：IMPLEMENTED — PENDING INDEPENDENT DATA QA
+状态：ACCEPTED — SCHEMA PILOT ONLY
 
 ## 结果
 
@@ -151,3 +151,7 @@ STR-02 必须先列出所有拟纳入与明确排除的事件，再回答：
 Builder 已按原范围追加修复：所有创建后更新的 Issue/PR body summary 收紧到创建时标题证据；相关 Gold/Oracle/Task 同步去除不可证明细节；validator 增加 source 时间下界、event/source 类型绑定和跨全部 Gold/Outcome/未来 Decision Reference 的 Current Task 内容边界。pilot 仍未冻结、未运行模型，等待同一独立 data QA re-QA。
 
 第二轮独立 re-QA 继续 FAIL：普通规范化未消除 U+200B，视觉等价的 future Gold 仍可进入 Current Task。Builder 追加移除 Unicode format/control 字符并比较压缩词边界，补充 Gold、Outcome summary/identifier、future Decision 的零宽/bidi 反例；仍保持 PENDING，等待再次独立 re-QA。
+
+## 独立 QA 接受
+
+第二次独立 re-QA 于 2026-08-23 在固定候选 `2a65c85b1fc9554b24971e8ed20551eef3b53d39` 通过。QA 重放了历史泄露反例及 U+200B、WORD JOINER、bidi、Cc 的词内/替代空格规范化绕过；validator、hash、focused/full/protocol/build 与 diff check 均通过。接受范围仅为 schema/pilot 和其隔离合同；`pilot_not_frozen` 保持，正式六案 freeze、D0/D1/D2、远端模型和效果结论仍未获接受。
