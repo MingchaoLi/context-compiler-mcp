@@ -1,6 +1,6 @@
 # WO-DS-09 — Starlette 六案 canonical-data promotion candidate
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
+状态：ACCEPTED — 六案 canonical-data freeze candidate accepted
 
 ## 背景与对抗审查处置
 
@@ -115,6 +115,10 @@ Builder 必须提交中文 handoff 且不能自批。新的独立 Data QA 固定
 
 2026-08-23 已完成待验收候选：Phase 0 的混合 accepted layout 先通过 6 案 / 75 slices / 588 turns 静态 preflight；随后 STR-06/07/01 共 21 个文件以 byte-identical relocation 加入 promotion，使六案合计 42 个副本。collection、42 项 diff、accepted-source 代码合同、来源接受 ledger、追加式 freeze-candidate contamination snapshot 与 promotion hash 已更新；promotion-only suite 与 Phase 0 suite 逐字段一致，并由真实 evaluator v2 parser 接受。
 
-Builder 未修改任何 accepted payload/hash、旧 contamination snapshot、`src/`、runtime、MCP、provider 或 host；没有 Probe、runner/model 调用或效果指标。当前仍等待新的独立 Data QA，Builder 不批准本工单。
+Builder 未修改任何 accepted payload/hash、旧 contamination snapshot、`src/`、runtime、MCP、provider 或 host；没有 Probe、runner/model 调用或效果指标。独立 Data QA 已于 2026-08-23 在固定 candidate `4b974538d76d0e0d8a5ac17c5662533b714ef00e` 通过；只接受六案 canonical-data freeze candidate，Builder 不自批。
 
 Builder 自检通过：promotion validator；15 项聚焦 preflight/promotion；全量 337 项单测；protocol 8 项；build、diff check；50-entry production pack 隔离且不含 evaluation/docs/test。
+
+## 独立 QA 接受边界
+
+独立 QA 已复建四个固定 Git candidate 的 42 项 source contract，重放 DS-05 协调重写及新三案攻击，并核对 6 案 / 75 slices / 588 turns、42 diff、46 promotion hashes 与追加式 contamination snapshot。工单接受后仍严格保持 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`；实际为 1 short / **0 medium** / 5 long，medium `not_represented_not_evaluable`。这不是正式 freeze、Probe/answer protocol、D0/D1/D2 或模型运行授权。

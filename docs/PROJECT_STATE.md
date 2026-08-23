@@ -40,7 +40,7 @@ WO-DS-08 已在独立 Data QA 于 2026-08-23 接受，固定 source candidate �
 
 DS-08 接受后的关键节点对抗审查记录为 `docs/adversarial-reviews/AR-2026-08-23-post-ds08-checkpoint.md`，结论为 `Agree with reservations`。主控接受其最小路径并已建立 WO-DS-09：先做六案 75 slices / 588 turns 不落盘静态 preflight，再一次性将 STR-06/07/01 以 byte-identical relocation 纳入 promotion。该工单的目标仅是 `promotion_candidate_not_frozen` 的 canonical-data freeze candidate，不是 frozen、Probe/evaluation ready 或模型运行授权。
 
-WO-DS-09 Builder candidate 已实现并等待新的独立 Data QA。六案 75 slices / 588 projected turns 先通过不落盘真实 evaluator v2 parser preflight；STR-06/07/01 的 21 个 accepted 文件随后逐字节复制，使 promotion 共 42 个固定副本。六案 accepted-source path/order/SHA 由代码合同分别锚定固定 Data-QA candidate；新的 full contamination snapshot 追加而不覆盖旧 snapshot，来源 ledger 明示没有把继承 QA 冒充本次 live re-audit。实际分布为 1 short / 0 medium / 5 long（slice 为 4/0/71）；collection 仍为 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`。
+WO-DS-09 已在独立 Data QA 于 2026-08-23 接受为六案 canonical-data freeze candidate，固定 Builder candidate 为 `4b974538d76d0e0d8a5ac17c5662533b714ef00e`。六案 75 slices / 588 projected turns 先通过不落盘真实 evaluator v2 parser preflight；STR-06/07/01 的 21 个 accepted 文件随后逐字节复制，使 promotion 共 42 个固定副本。四个固定 Data-QA candidate 的 42 项 accepted-source path/order/SHA 已独立重建，并经协调改写攻击复验；新的 full contamination snapshot 追加而不覆盖旧 snapshot，来源 ledger 明示没有把继承 QA 冒充本次 live re-audit。实际分布为 1 short / **0 medium** / 5 long（slice 为 4/0/71）；collection 仍为 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`。本接受不是正式 freeze、Probe、D0/D1/D2 或模型运行授权。
 
 ## 最新对抗审查
 
