@@ -1,6 +1,6 @@
 # WO-DS-07 — Starlette STR-07 source/Gold checkpoint
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
+状态：ACCEPTED — CHECKPOINT/SCHEMA GATE ONLY
 
 ## 背景与唯一结果
 
