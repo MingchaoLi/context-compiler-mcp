@@ -347,6 +347,7 @@ function normalize(value) {
   return value
     .normalize("NFKC")
     .toLocaleLowerCase("en-US")
+    .replace(/[\p{Cf}\p{Cc}]+/gu, "")
     .replace(/[\p{P}\p{S}]+/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -360,7 +361,11 @@ function sourceIdentifiers(value) {
 
 function rejectIncluded(taskText, candidate, path, message, minimumLength) {
   const normalized = normalize(candidate);
-  if (normalized.length >= minimumLength && taskText.includes(normalized)) fail(path, message);
+  const compactCandidate = normalized.replace(/\s+/g, "");
+  const compactTask = taskText.replace(/\s+/g, "");
+  if (normalized.length >= minimumLength && (taskText.includes(normalized) || compactTask.includes(compactCandidate))) {
+    fail(path, message);
+  }
 }
 
 function validateTaskContentBoundaries(tasksData, eventData, goldData, decisionData, outcomeData, path) {

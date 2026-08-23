@@ -61,9 +61,22 @@ describe("Starlette schema pilot", () => {
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor content/);
   });
 
+  it("rejects zero-width Outcome Anchor content copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.outcomeAnchors.anchors[0].summary.replaceAll(" ", "\u2060");
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor content/);
+  });
+
   it("rejects an Outcome Anchor identifier copied into Current Task", () => {
     const candidate = bundle("STR-08");
     candidate.tasks.tasks[0].current_task = `Use ${candidate.outcomeAnchors.anchors[0].id} as the answer.`;
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor identifier/);
+  });
+
+  it("rejects a zero-width Outcome Anchor identifier copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    const disguised = candidate.outcomeAnchors.anchors[0].id.split("").join("\u200b");
+    candidate.tasks.tasks[0].current_task = `Use ${disguised} as the answer.`;
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor identifier/);
   });
 
@@ -115,9 +128,27 @@ describe("Starlette schema pilot", () => {
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Current Task repeats Fact Gold/);
   });
 
+  it("rejects a zero-width Current Task that repeats future Fact Gold", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.factGold.facts.at(-1).statement.replaceAll(" ", "\u200b");
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Current Task repeats Fact Gold/);
+  });
+
+  it("rejects a control-character Current Task that repeats future Fact Gold", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.factGold.facts.at(-1).statement.split("").join("\u0000");
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Current Task repeats Fact Gold/);
+  });
+
   it("rejects a future Decision Reference copied into Current Task", () => {
     const candidate = bundle("STR-08");
     candidate.tasks.tasks[0].current_task = candidate.decisionReferences.references[0].description;
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/future Decision Reference/);
+  });
+
+  it("rejects a bidi-control future Decision Reference copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.decisionReferences.references[0].description.replaceAll(" ", "\u202a\u202c");
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/future Decision Reference/);
   });
 

@@ -149,3 +149,5 @@ STR-02 必须先列出所有拟纳入与明确排除的事件，再回答：
 首轮独立 data QA 结论为 FAIL：发现 `STR-02A/E4` 的创建时 slice 混入 PR #1715 后加测试，并证明 validator 接受未来 Gold、Outcome 内容及非法 source 更新时间。
 
 Builder 已按原范围追加修复：所有创建后更新的 Issue/PR body summary 收紧到创建时标题证据；相关 Gold/Oracle/Task 同步去除不可证明细节；validator 增加 source 时间下界、event/source 类型绑定和跨全部 Gold/Outcome/未来 Decision Reference 的 Current Task 内容边界。pilot 仍未冻结、未运行模型，等待同一独立 data QA re-QA。
+
+第二轮独立 re-QA 继续 FAIL：普通规范化未消除 U+200B，视觉等价的 future Gold 仍可进入 Current Task。Builder 追加移除 Unicode format/control 字符并比较压缩词边界，补充 Gold、Outcome summary/identifier、future Decision 的零宽/bidi 反例；仍保持 PENDING，等待再次独立 re-QA。

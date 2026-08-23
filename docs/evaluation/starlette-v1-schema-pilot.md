@@ -96,4 +96,6 @@ Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在�
 
 `validate-pilot.mjs` 严格检查 envelope、未知字段、重复 id、segment 前缀、event/source 类型绑定、source 更新时间下界、时间顺序、完整 evidence 前缀、Gold/Oracle provenance、supersession、Current Task 对任意时点 Gold、Outcome summary/标识与 cutoff 后 Decision Reference 的规范化包含，以及 SHA-256。
 
+第二次 data QA 进一步发现 U+200B 可替换单词空格绕过普通 whitespace 规范化。修复后的比较会先移除 Unicode format/control 字符，再同时比较标准词边界和去空白压缩形式；U+200B、U+2060 与 bidi embedding/control 的视觉等价复述均有独立反例。
+
 pilot hash 状态明确为 `pilot_not_frozen`。它只证明冻结机制可工作；独立 data QA 通过后，仍需新工单重新核查并冻结正式六案。

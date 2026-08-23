@@ -31,4 +31,4 @@
 node evaluation/starlette-v1/validate-pilot.mjs
 ```
 
-校验器严格拒绝未知字段、重复/跨 segment 引用、`event_type`/`source.kind` 错配、`source_updated_at < occurred_at`、时间逆序、非前缀 evidence、未来 Gold/Oracle provenance、Current Task 规范化包含任意时点 Gold、Outcome 内容/标识或 cutoff 后 Decision Reference，以及 hash 篡改。
+校验器严格拒绝未知字段、重复/跨 segment 引用、`event_type`/`source.kind` 错配、`source_updated_at < occurred_at`、时间逆序、非前缀 evidence、未来 Gold/Oracle provenance、Current Task 规范化包含任意时点 Gold、Outcome 内容/标识或 cutoff 后 Decision Reference，以及 hash 篡改。内容规范化会移除 Unicode format/control 字符，并同时比较保留词边界与压缩词边界的形式，防止零宽字符、WORD JOINER 和 bidi control 绕过。

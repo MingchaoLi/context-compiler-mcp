@@ -57,3 +57,11 @@
 追加修复自检：validator 通过并保持 3 cases / 4 segments / 25 events / 25 slices；聚焦测试 16/16；`npm test` 258/258；protocol 8/8；build 与 `git diff --check` 通过。
 
 该修复仍需原独立 data QA 复验；实现者不自我批准。
+
+## 第二轮 QA 退回后的追加修复
+
+re-QA 提交 `ad2ac60` 确认数据泄漏与首轮 validator 缺陷已经关闭，但发现 U+200B ZERO WIDTH SPACE 可让视觉等价的未来 Gold 绕过内容规范化。
+
+本轮只收紧比较规范化：移除 Unicode `Cf`/`Cc` 字符，并同时比较保留空白与移除空白的 canonical form。新增 5 项独立反例，覆盖 U+200B future Gold、逐字符 Cc future Gold、U+2060 Outcome summary、逐字符零宽 Outcome 标识与 bidi-control future Decision Reference；没有修改数据、hash、core 或 schema 范围。仍需独立 re-QA 后才能接受。
+
+本轮自检：validator 通过；聚焦测试 21/21；`npm test` 263/263；protocol 8/8；build 与 `git diff --check` 通过。
