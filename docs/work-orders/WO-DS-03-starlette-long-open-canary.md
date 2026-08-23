@@ -1,6 +1,6 @@
 # WO-DS-03 — Starlette long/open canary 与冻结就绪门
 
-状态：IMPLEMENTED — 等待新的独立 data QA
+状态：ACCEPTED — CANARY/SCHEMA GATE ONLY
 
 ## 背景与对抗审查处置
 
@@ -165,3 +165,9 @@ Builder 完成后仍不自行打开批量 freeze gate；必须由新的独立 da
 独立 re-QA 固定候选 `1d7b2d0` 后发现 T13 Oracle 把只有 `closed` 且 `commit_id:null` 的 Issue state event 写成原需求 `RESOLVED` 和 Mount 已交付，可能人为制造 resolved→reopen 信号。其余 18 个来源/增量、投影、hash、contamination 与全量回归通过。
 
 修复将 F14 从 `resolved_issue` 改为只表达 tracker 状态的 `outcome_status`；T13 open question 改为 `DEFERRED`，Mount 只延续 E12 可证明的评估状态，不再从 E13 推断交付。聚焦测试固定 null-commit canonical hash，并拒绝 T13 产生 `RESOLVED`/delivered Oracle。仍需再次独立 re-QA。
+
+## 独立 QA 接受（2026-08-23）
+
+第二次独立 re-QA 在固定候选 `32600eb6b7caf3fbe339e1103d3293f0b7e33103` 上通过：T13 只表示可由 E13 证明的 tracker closed/语义未证实状态，Mount 仅延续 E12 的评估，不再冒充交付；F14 为 `outcome_status`，null `commit_id` canonical hash 与反例均被复验。18 个来源/增量、18 个 Task/Gold/Oracle、字段投影、污染限定和 pilot/canary hash 均通过独立审计。
+
+本接受只证明 schema 可承载一个 long/open canary 与字段级输入边界。`canary_not_frozen`、`pilot_not_frozen` 保持；不接受批量 freeze、D0/D1/D2、远端模型、aggregate、PASS rate 或 D2 效果结论。其余样本的真实 tier、组件与污染规则仍须新工单预注册。

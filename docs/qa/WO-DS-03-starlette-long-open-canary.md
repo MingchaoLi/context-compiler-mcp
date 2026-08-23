@@ -89,3 +89,17 @@
 1. 将 T13 Oracle 限定为可由 E13 证明的 tracker state（例如“issue currently closed”，或在 typed state 中标为 `DEFERRED`），不得把原始问题设为 `RESOLVED`，也不得把 Mount 写成 current delivered direction；保留 Fact Gold `F14` 的“currently closed”即可衡量后续 reopen。
 2. 为该反例添加聚焦测试：E13 state event 的 `commit_id: null` 不能单独生成 “original need resolved” 或 “Mount delivered” Oracle；T14/E14 后才可出现 partial-capability 结论。
 3. 更新 canary hash 后，在新的 append-only Builder fix 提交上重新进行独立 QA。通过前不更新 WO/PROJECT_STATE/ROADMAP 为 accepted，不批量 freeze，也不运行模型。
+
+## 第二次 Re-QA（候选 `32600eb6b7caf3fbe339e1103d3293f0b7e33103`）
+
+日期：2026-08-23
+
+结论：**PASS — 只接受 DS-03 的 long/open canary 与 schema gate；不接受正式 freeze、D0/D1/D2、远端模型、aggregate 或效果结论。** 候选父提交为本 QA 的 `e294eb4d2a47458b21f0b5f6589a630a7ea92605`，开始时工作树 clean。
+
+- 原样复现 T13 P0：F14 已为 `outcome_status`；T13 的 open question 为 `DEFERRED`，明确 tracker closed 但语义未证实；没有 `RESOLVED`，也没有 Mount delivered direction。Mount 仅延续 E12 的“Evaluate ... narrower capability”状态，E14 之后才出现 partial-capability scope 结论。
+- `hashIssueStateEvent()` 对 E13 的固定 canonical payload（`commit_id: null`）产生保存的 SHA-256；人为填入 #1649 merge SHA 会改变 hash。新增两个聚焦测试均通过。Fact Gold/Oracle 的改动仅限这个 P0，events、tasks、manifest、Decision Reference、Outcome Anchor 和 contamination scan 相对于前一候选没有无关变化；canary hash 只更新了 Gold/Oracle 两项。
+- 复跑前轮来源/增量/Task/投影审计：18 个已直接核对的一手 event 与三条 state canonical hash 保持不变，18 个真实增量仍为 long，STR-05 的 9 个仍为 long；全部 18 个投影严格等于 evidence prefix、每 turn 只有六个允许字段，source metadata/hash 与四类非输入 artifact 不出现。tier、increment、unknown field、hash mutation 均被拒绝。
+- RAGAS 记录仍是 PR #2349 的 context-only retrieved chunk，固定 benchmark reference 是 FastAPI PR #15745；维持有限 `no_public_hit_found` 正确。语义同义 future leakage 仍会被字面 validator 放行，且继续在测试/文档中明确为必须人工审计的已知边界，并未被误称解决。
+- `node evaluation/starlette-v1/validate-pilot.mjs`：3 cases / 4 segments / 25 events / 25 slices；`node evaluation/starlette-v1/validate-pilot.mjs --canary`：1 case / 1 segment / 18 events / 18 slices / 18 increments；两者 hash verified。focused 33/33，`npm test` 12 files / 275 tests，protocol 8/8，build 和 candidate diff check 均通过。
+
+本次接受不改变 `pilot_not_frozen` 或 `canary_not_frozen`，也不授权自动替补案例、批量 freeze 或模型运行。若要继续，必须先以新的工单预注册其余样本的实际分层、组件权重和污染规则。

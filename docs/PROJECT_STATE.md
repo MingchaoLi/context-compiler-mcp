@@ -22,7 +22,7 @@ WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71
 
 WO-DS-02 的 Starlette schema 与三案例 pilot 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `2a65c85b1fc9554b24971e8ed20551eef3b53d39`。交付包含 3 个目录、4 个独立 segment、25 个时间有序 evidence event/slice；Gold、人工 Oracle-State、Decision Reference 与 Outcome Anchor 和输入物理隔离，pilot hash 明确保持 `pilot_not_frozen`。`STR-02` 已按证据拆成两个 medium segment，不再视为单一 long 根因链。
 
-WO-DS-03 首轮 Builder 曾因 PR #2349 出现在公开 RAGAS retrieved context 而关闭 canary；独立 data QA 判定该题 reference 实为 FastAPI PR #15745，否决规则扩大。主控接受退回后完成新的 STR-04 long/open canary candidate：1 segment、18 events/slices/increments、七类文件隔离、`canary_not_frozen` hash 与字段级模型投影。当前等待新的独立 data QA；该 RAGAS 命中仍以 context-only 排除理由保留。
+WO-DS-03 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `32600eb6b7caf3fbe339e1103d3293f0b7e33103`。STR-04 long/open canary 有 1 个 segment、18 events/slices/increments、七类文件隔离、`canary_not_frozen` hash 与字段级模型投影。首轮 RAGAS context-only 误判已由独立 QA 退回：该题 reference 是 FastAPI PR #15745；命中只作为限定风险保留。T13 tracker close 与 semantic resolution 已分离，不能将 Mount partial capability 冒充 #685 已解决。
 
 同一预检还证明 STR-05 的 9 个 pilot event 都是真实信息增量，必须从 medium 更正为 long。由此，先前 STR-07/08、STR-05/06、STR-01/04 的 2/2/2 声明已经失效；正式 freeze 不能沿用该配额或把 STR-04 当未污染样本。尚未运行 D0/D1/D2、远端模型、aggregate 或 PASS rate。
 
@@ -42,7 +42,7 @@ WO-DS-03 首轮 Builder 曾因 PR #2349 出现在公开 RAGAS retrieved context 
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
-- Starlette schema pilot 已独立接受，但不是正式数据集 freeze 或 D2 效果证据。DS-03 long/open canary 已实现、尚待新 QA；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。即使 canary QA PASS，剩余样本也须重新预注册实际分层，不能沿用旧 2/2/2 或直接运行模型。
+- Starlette schema pilot 与 DS-03 long/open canary 已独立接受，但均不是正式数据集 freeze 或 D2 效果证据。`pilot_not_frozen`、`canary_not_frozen` 保持；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。剩余样本必须重新预注册实际分层，不能沿用旧 2/2/2 或直接运行模型。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.
