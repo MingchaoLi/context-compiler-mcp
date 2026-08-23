@@ -7,6 +7,7 @@ import {
   assertRawEventMirrorInsideTransaction,
   migrateExperienceLedger,
 } from "./experience-ledger.js";
+import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject;
 export interface JsonObject {
@@ -75,13 +76,17 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
     if (databasePath.length === 0) throw new Error("databasePath must not be empty");
     if (databasePath !== ":memory:") mkdirSync(dirname(databasePath), { recursive: true });
 
-    this.database = new DatabaseSync(databasePath);
-    this.database.exec("PRAGMA foreign_keys = ON;");
-    this.database.exec("PRAGMA busy_timeout = 5000;");
-    this.database.exec("PRAGMA synchronous = FULL;");
-    if (databasePath !== ":memory:") this.database.exec("PRAGMA journal_mode = WAL;");
-    migrate(this.database);
-    migrateExperienceLedger(this.database);
+    const database = new DatabaseSync(databasePath);
+    try {
+      initializeSqliteConnection(database, databasePath, () => {
+        migrate(database);
+        migrateExperienceLedger(database);
+      });
+    } catch (error) {
+      try { database.close(); } catch { /* preserve the initialization error */ }
+      throw error;
+    }
+    this.database = database;
   }
 
   ingest(input: RawEventInput): RawEvent {

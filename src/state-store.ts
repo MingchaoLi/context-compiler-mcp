@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { initializeSqliteConnection } from "./sqlite-initialization.js";
 import type { JsonObject, RawEvent, RawEventRole } from "./raw-store.js";
 import type {
   ContextItem,
@@ -132,12 +133,16 @@ export class SqliteContextStateStore {
     }
     if (databasePath !== ":memory:") mkdirSync(dirname(databasePath), { recursive: true });
 
-    this.database = new DatabaseSync(databasePath);
-    this.database.exec("PRAGMA foreign_keys = ON;");
-    this.database.exec("PRAGMA busy_timeout = 5000;");
-    this.database.exec("PRAGMA synchronous = FULL;");
-    if (databasePath !== ":memory:") this.database.exec("PRAGMA journal_mode = WAL;");
-    migrate(this.database);
+    const database = new DatabaseSync(databasePath);
+    try {
+      initializeSqliteConnection(database, databasePath, () => {
+        migrate(database);
+      });
+    } catch (error) {
+      try { database.close(); } catch { /* preserve the initialization error */ }
+      throw error;
+    }
+    this.database = database;
   }
 
   transaction<T>(sessionId: string, operation: () => T): StateTransactionResult<T> {

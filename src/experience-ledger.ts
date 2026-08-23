@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { JsonObject, JsonValue, RawEvent, RawEventRole } from "./raw-store.js";
+import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
 export const EXPERIENCE_LEDGER_KINDS = [
   "EVENT",
@@ -107,9 +108,16 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
     }
     if (databasePath !== ":memory:") mkdirSync(dirname(databasePath), { recursive: true });
 
-    this.database = new DatabaseSync(databasePath);
-    configureDatabase(this.database, databasePath);
-    migrateExperienceLedger(this.database);
+    const database = new DatabaseSync(databasePath);
+    try {
+      initializeSqliteConnection(database, databasePath, () => {
+        migrateExperienceLedger(database);
+      });
+    } catch (error) {
+      try { database.close(); } catch { /* preserve the initialization error */ }
+      throw error;
+    }
+    this.database = database;
   }
 
   append(input: ExperienceLedgerInput): ExperienceLedgerRecord {
@@ -768,13 +776,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 function validateNonEmptyString(value: unknown, label: string): asserts value is string {
   if (typeof value !== "string" || value.length === 0) invalid(`${label} must not be empty`);
-}
-
-function configureDatabase(database: DatabaseSync, databasePath: string): void {
-  database.exec("PRAGMA foreign_keys = ON;");
-  database.exec("PRAGMA busy_timeout = 5000;");
-  database.exec("PRAGMA synchronous = FULL;");
-  if (databasePath !== ":memory:") database.exec("PRAGMA journal_mode = WAL;");
 }
 
 function invalid(message: string): never {

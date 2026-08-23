@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { JsonObject, RawEvent, RawEventRole } from "./raw-store.js";
+import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
 export type HistoryRecallErrorCode =
   | "INVALID_INPUT"
@@ -152,19 +153,16 @@ export class SqliteHistoryRecallStore {
     try {
       if (databasePath !== ":memory:") mkdirSync(dirname(databasePath), { recursive: true });
       database = new DatabaseSync(databasePath);
-      database.exec("PRAGMA foreign_keys = ON;");
-      database.exec("PRAGMA busy_timeout = 5000;");
-      database.exec("PRAGMA synchronous = FULL;");
-      if (databasePath !== ":memory:") database.exec("PRAGMA journal_mode = WAL;");
-      if (!hasRawSchema(database)) {
-        database.close();
-        throw new HistoryRecallError(
-          "RAW_SCHEMA_MISSING",
-          "state",
-          "History recall requires the raw history schema"
-        );
-      }
-      migrate(database);
+      initializeSqliteConnection(database, databasePath, () => {
+        if (!hasRawSchema(database!)) {
+          throw new HistoryRecallError(
+            "RAW_SCHEMA_MISSING",
+            "state",
+            "History recall requires the raw history schema"
+          );
+        }
+        migrate(database!);
+      });
       this.database = database;
     } catch (error) {
       if (error instanceof HistoryRecallError) throw error;

@@ -5,7 +5,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { Worker } from "node:worker_threads";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -30,6 +32,81 @@ beforeAll(() => {
 afterAll(() => rmSync(temporaryRoot, { recursive: true, force: true }));
 
 describe("Context Compiler stdio MCP protocol", () => {
+  it("opens synchronized fresh DBs from independent Raw stores, services, and stdio processes", async () => {
+    for (let index = 0; index < 10; index += 1) {
+      const freshRaw = join(temporaryRoot, `fresh-raw-${index}.db`);
+      const rawResults = await runFreshDatabaseBarrier("raw_open", freshRaw);
+      expect(rawResults).toEqual([{ type: "result", ok: true }, { type: "result", ok: true }]);
+
+      const freshService = join(temporaryRoot, `fresh-service-${index}.db`);
+      const serviceResults = await runFreshDatabaseBarrier("service_health", freshService);
+      expect(serviceResults.every((result) => result.ok &&
+        result.response?.ok && result.response.result?.ready === true)).toBe(true);
+    }
+
+    for (let index = 0; index < 5; index += 1) {
+      const freshStdio = join(temporaryRoot, `fresh-stdio-${index}.db`);
+      const connections = await Promise.all([
+        connect(serverEntry, freshStdio),
+        connect(serverEntry, freshStdio),
+      ]);
+      try {
+        const health = await Promise.all(connections.map((connection) =>
+          connection.client.callTool({ name: "health", arguments: {} })
+        ));
+        expect(health.map(parse).every((response: any) =>
+          response.ok && response.result.ready === true
+        )).toBe(true);
+      } finally {
+        await Promise.all(connections.map(close));
+      }
+    }
+  });
+
+  it("preserves preinitialized same-source and same-operation concurrency", async () => {
+    const rawDatabase = join(temporaryRoot, "preinitialized-raw-concurrency.db");
+    await runFreshDatabaseBarrier("raw_open", rawDatabase);
+    const rawResults = await runFreshDatabaseBarrier("raw_ingest", rawDatabase);
+    expect(rawResults.every((result) => result.ok)).toBe(true);
+    expect(new Set(rawResults.map((result) => result.event_id)).size).toBe(1);
+    const rawAudit = new DatabaseSync(rawDatabase);
+    expect(rawAudit.prepare("SELECT COUNT(*) AS count FROM raw_events").get()).toEqual({ count: 1 });
+    expect(rawAudit.prepare("SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'EVENT'").get())
+      .toEqual({ count: 1 });
+    rawAudit.close();
+
+    const compileDatabase = join(temporaryRoot, "preinitialized-compile-concurrency.db");
+    const setup = await connect(serverEntry, compileDatabase);
+    try {
+      for (let index = 1; index <= 3; index += 1) {
+        expect(parse(await setup.client.callTool({
+          name: "ingest_event",
+          arguments: {
+            session_id: "concurrent-compile",
+            role: "user",
+            content: index === 1 ? "old needle" : `turn ${index}`,
+            source_event_id: `compile-source-${index}`,
+          },
+        }))).toMatchObject({ ok: true });
+      }
+    } finally {
+      await close(setup);
+    }
+    const compileResults = await runFreshDatabaseBarrier("service_compile", compileDatabase);
+    expect(compileResults.every((result) => result.ok && result.response?.ok)).toBe(true);
+    expect(new Set(compileResults.map((result) =>
+      result.response.result.context.operational_debug.compile_trace_id
+    )).size).toBe(1);
+    const compileAudit = new DatabaseSync(compileDatabase);
+    expect(compileAudit.prepare(
+      "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'CONTEXT_COMPILE'"
+    ).get()).toEqual({ count: 1 });
+    expect(compileAudit.prepare(
+      "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'RETRIEVAL_HIT'"
+    ).get()).toEqual({ count: 1 });
+    compileAudit.close();
+  });
+
   it("initializes, lists exactly nine tools, calls each tool, and keeps stdout protocol-pure", async () => {
     const connection = await connect(serverEntry, databasePath);
     try {
@@ -626,6 +703,55 @@ describe("Context Compiler stdio MCP protocol", () => {
   });
 
 });
+
+type FreshWorkerKind = "raw_open" | "service_health" | "raw_ingest" | "service_compile";
+
+interface FreshWorkerResult {
+  type: "result";
+  ok: boolean;
+  response?: any;
+  event_id?: string;
+  error?: { name: string; message: string; code: unknown };
+}
+
+async function runFreshDatabaseBarrier(
+  kind: FreshWorkerKind,
+  database: string
+): Promise<FreshWorkerResult[]> {
+  const barrier = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
+  const view = new Int32Array(barrier);
+  const workerEntry = join(root, "test", "fixtures", "fresh-db-startup-worker.mjs");
+  const workers = [0, 1].map(() => new Worker(workerEntry, {
+    workerData: { root, database, kind, barrier },
+    execArgv: ["--no-warnings"],
+  }));
+  const tasks = workers.map((worker) => {
+    let readyResolve!: () => void;
+    let resultResolve!: (result: FreshWorkerResult) => void;
+    const ready = new Promise<void>((resolvePromise) => { readyResolve = resolvePromise; });
+    const result = new Promise<FreshWorkerResult>((resolvePromise, rejectPromise) => {
+      resultResolve = resolvePromise;
+      worker.once("error", rejectPromise);
+    });
+    const exited = new Promise<void>((resolvePromise, rejectPromise) => {
+      worker.once("exit", (code) => {
+        if (code === 0) resolvePromise();
+        else rejectPromise(new Error(`Fresh DB worker exited ${code}`));
+      });
+    });
+    worker.on("message", (message: { type?: string }) => {
+      if (message.type === "ready") readyResolve();
+      if (message.type === "result") resultResolve(message as FreshWorkerResult);
+    });
+    return { ready, result, exited };
+  });
+  await Promise.all(tasks.map(({ ready }) => ready));
+  Atomics.store(view, 0, 1);
+  Atomics.notify(view, 0, workers.length);
+  const results = await Promise.all(tasks.map(({ result }) => result));
+  await Promise.all(tasks.map(({ exited }) => exited));
+  return results;
+}
 
 function emptyDelta() {
   return {
