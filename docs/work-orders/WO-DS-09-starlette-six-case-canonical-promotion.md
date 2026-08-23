@@ -33,7 +33,7 @@ WO-DS-05 已把 STR-08/05/04 以 21 个逐字节一致文件放入 promotion 目
 
 - 恰好 6 cases、75 slices、588 个 projected history turns；
 - case 顺序与注册顺序一致；
-- 所有 slice id、session id 与 raw-event source id 全局唯一；
+- 所有 slice id 全局唯一，session id 必须与所属 segment 对齐；每个 slice 内 raw-event id、seq 与 source-event id 唯一且顺序连续；相邻时间切片按设计可以重复同一历史事件，但不同案例的命名空间不得碰撞；
 - 每一 slice 仍由真实 `parseEvaluationSuiteV2` 静态解析；
 - `evaluation_run_count: 0`、`model_call_count: 0`、`effect_metrics_generated: false`。
 
