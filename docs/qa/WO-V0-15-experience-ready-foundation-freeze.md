@@ -274,3 +274,59 @@ Builder 需要 append-only 修复提交，并至少补齐以下回归后再申�
 WO-V0-15 的实现 correctness、兼容、并发、迁移和打包合同已有足够非空证据，因此独立 QA 接受并冻结 Context / State 基础设施。该 PASS **不表示** Dense retrieval 有正向效果，也不表示 Experience Formation 已实现或有效；二者均仍为 **未评估**。
 
 下一阶段只转向真实长期使用，积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据。Context / State 默认只允许 correctness 修复；不再进行 Context 算法、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation 实现，除非之后另有明确工单和独立验证。
+
+---
+
+## 终局对抗审查 P1 修复独立 re-QA（2026-08-24）
+
+结论：**PASS — WO-V0-15 再次 ACCEPTED / FROZEN。** 冻结后终局对抗审查提出的 public v1 source-less late update dormant P1 已由最小 append-only fix 关闭；本轮没有发现新的 P0/P1/P2。前述三次返回、历史 PASS 与冻结后重开记录全部保留，但不再表示当前候选状态。
+
+### 固定候选与独立性
+
+- 分支：`main`
+- 固定 source candidate：`7567ac1219db65886bdc157af969c51a379a9fb9`
+- 固定父提交：`4ccb4a2d1e3fc51ce4e2aa960e97c26f4ea6af4e`
+- re-QA 开始时分支、HEAD、parent 精确匹配且工作树 clean；source diff 仅包含本次 state-snapshot dormancy 修复、对应测试、handoff 与冻结状态文档，`git diff --check HEAD^..HEAD` 通过，`evaluation/` 相对父提交零差异。
+- 本次没有调用模型或网络，没有修改 core、Gold、`feasibility-01`、WO-DS-14 official artifact 或 evaluation。QA 只追加中文报告，并在 PASS 后更新 WO / PROJECT_STATE / ROADMAP。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### 终局 P1 独立动态复现
+
+QA 没有用内部 helper 代替 public path，而是分别通过真实九工具服务的 `prepare_state_update` 与 `apply_state_delta` 建立三类 v1 source-less late mutation：
+
+1. 更新既有 ACTIVE item 的 `content`；
+2. 把一个既有 ACTIVE item 改为 `COMPLETED`，同时保留另一个未更新 ACTIVE item；
+3. 在两个既有 ACTIVE item 之间新增 `DEPENDS_ON` relation。
+
+三类 mutation 均使 authoritative state revision 前进到 2；QA 以稳定 JSON 规范化和 SHA-256 独立重算当前 `revision + items + relations` 指纹，逐项与新 trace 的 `state_sha256` 核对一致。更新后的首个 operation-id compile 不沿用旧 snapshot baseline：整次 dormancy fail-open、刚更新或仍有效的 root 保持前台，同时写入新 snapshot 的可信 trace。此后在同一 snapshot 中插入两个中间 compile，连续尾部仍以该 snapshot 的第一条 trace 为 baseline，没有被中间 compile 重置；相对新 baseline 经过 14 个完整用户轮次时没有 dormant，第 15 个轮次才允许满足其他条件的非 Constraint root dormant。status mutation 中已完成 item 不被误作 ACTIVE root；content 与 relation mutation 的 ACTIVE root 行为均符合上述边界。
+
+### revision / hash / telemetry 攻击
+
+- latest trace 为旧 revision + 旧 hash、当前 revision + 伪 hash、当前 hash + 错 revision、或最新尾记录退回旧 snapshot 时，均全量 dormancy fail-open。
+- exact-shape trace 出现未知键或坏结构时 telemetry 标为不完整并 fail-open；不能把坏记录解释成 zero-hit。
+- 同一 current revision/hash 的连续尾 trace 只取该 snapshot 的第一条作为 age baseline；14/15 边界独立复算通过。
+- 同 operation-id 重试在后续 telemetry 已追加后仍返回逐字相同 trace 与完整 context，且 ledger 没有重复写；同 id 异输入与并发幂等合同由 focused/protocol 回归继续覆盖。
+
+这些结果同时关闭“只看 revision”“只看 hash”“latest trace 形状合法即可”“中间 compile 重置年龄”四类替代实现。任一旧、伪造或不完整 snapshot 证据都不能使 dormant fail-closed。
+
+### 既有 correctness 与兼容反例重放
+
+- v2 current-event provenance、scripted non-empty Delta、zero-hit、所有 ACTIVE Constraint 强制保留，以及 hit/query/dependency rescue 全部通过 focused 回归；public v1 parser/apply 与 DS-13/14 固定回放未漂移。
+- 前三轮五类反例继续关闭：不完整/伪造 telemetry、`__proto__ / constructor / prototype`、Dense 极值与维度/覆盖降级、坏 persisted row 的 `STORAGE_FAILURE` 分类、RuntimeStateUpdater `contract_version:2` 均未回归。
+- fresh 与 legacy SQLite 并发路径由真实 protocol 再次同步重放：独立 Raw store、Service 与双 stdio 均 ready；预初始化 same-source ingest / same-operation compile 仍幂等；legacy schema migration、EVENT backfill、append-only trigger 与 production-only package 均通过。候选没有改动已接受的 SQLite initialization 实现。
+
+### 回归、打包与范围
+
+- focused 10 文件：172/172 PASS。
+- 全量 `npm test`：469 PASS / 1 个既有 opt-in official runner SKIP。
+- 独立 `npm run test:protocol`：11/11 PASS；覆盖 fresh/legacy 并发、same-source/same-operation、真实 `npm pack`、production-only 隔离安装、精确九工具、stdio health 与进程关闭。
+- `npm run build`、`git diff --check HEAD^..HEAD`：PASS。
+- DS-13 fixed-object validator：PASS；只复现既有 automatic diagnostic / blank review bundle，没有重跑 official artifact 或模型。
+- DS-14 定向回归：ST-01 7/7、ST-02 contract 8/8、empty-state score 8/8、feasibility results 7/7，合计 30/30 PASS。
+- 没有新增 provider/network/Graph DB/Experience Formation/PACE，Context reduction、Dense retrieval 效果和 Experience Formation 效果均未在本工单评估。
+
+### 最终接受与冻结边界
+
+本轮用真实 public v1 mutation、独立 state fingerprint、连续 snapshot 尾部和 14/15 边界关闭了终局 AR 的最强反例；现有证据足以恢复 WO-V0-15 的 `ACCEPTED / FROZEN`。该结论只接受 correctness、兼容、迁移、并发、可回放和打包合同，不声明 Dense 有收益，也不声明 Experience 已形成或有效。
+
+下一阶段只允许通过真实长期使用积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据。Context / State 基础设施默认冻结；除非出现新的可复现 correctness 缺陷或另立明确工单，不再开发 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation。
