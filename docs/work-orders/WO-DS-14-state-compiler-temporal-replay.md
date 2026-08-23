@@ -1,6 +1,6 @@
 # WO-DS-14 — State Compiler v0.1 时间状态回放
 
-状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 RUN CONTRACT REIMPLEMENTED — PENDING RUN-GATE RE-QA; MODEL NOT AUTHORIZED
+状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 RUN-GATE ACCEPTED; OFFICIAL CAPTURE AWAITS CONTROLLER AUTHORIZATION; MODEL NOT CALLED
 
 ## 当前 ST-02 Run-Gate checkpoint
 
@@ -13,6 +13,12 @@ ST-01 接受后已实现零模型 ST-02 run contract、source-only packet/replay
 - 当前 `packets/`、`capture/`、`internal/` 只有边界说明，没有模型回答、capture、Gold 映射或评分。
 
 只有该 checkpoint 经独立 Run-Gate QA PASS 后，主控才可另行授权一次 official 30-step capture。QA 不得调用模型或预填 response。
+
+### 独立 Run-Gate re-QA 接受记录
+
+2026-08-23，独立 re-QA 在固定 Builder fix candidate `a4c336d7f2e421c507e926fe333e5a1f4e5dbd06` 上通过。首次 QA 的 contract/validator 协调自证 P1 已由固定前置 contract candidate `8d31cb6fc06b6b99bc141258539deb51b46d2d1b` 的 parent/path/blob/SHA/current-byte pre-parse anchor 关闭；同步修改两份 contract 与 runtime 期望值仍先在固定 Git-object boundary 拒绝。默认项目根 P1 也已关闭：无参数真实 CLI 从仓库、`/private/tmp` 与新建临时 cwd 均生成 `STR-08/E1`，model/scoring 为 0。
+
+此次接受只冻结 Run-Gate，不是 ST-02 Extractor correctness 或结果接受。QA 没有调用模型，当前没有真实 response/capture/error distribution。下一步只有主控可以另行授权按固定 order 执行恰好一次 30-step fresh GPT-5.6-terra non-sol / medium capture；未经该显式授权不得开始。
 
 ## 背景与边界
 
