@@ -143,3 +143,9 @@ STR-02 必须先列出所有拟纳入与明确排除的事件，再回答：
 - 聚焦 validator 反例覆盖未来 event、未来 Gold provenance、Outcome 混入、重复 id、时间逆序、未知字段、跨案例引用、task 原样复述 Gold 与 hash 篡改。
 
 实现者自检完成后必须固定候选提交并交给独立 data QA；未通过前不得开始 6 条正式 freeze 或远端模型实验。
+
+## 首轮 QA 退回与修复
+
+首轮独立 data QA 结论为 FAIL：发现 `STR-02A/E4` 的创建时 slice 混入 PR #1715 后加测试，并证明 validator 接受未来 Gold、Outcome 内容及非法 source 更新时间。
+
+Builder 已按原范围追加修复：所有创建后更新的 Issue/PR body summary 收紧到创建时标题证据；相关 Gold/Oracle/Task 同步去除不可证明细节；validator 增加 source 时间下界、event/source 类型绑定和跨全部 Gold/Outcome/未来 Decision Reference 的 Current Task 内容边界。pilot 仍未冻结、未运行模型，等待同一独立 data QA re-QA。

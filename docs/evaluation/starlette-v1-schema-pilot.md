@@ -29,7 +29,7 @@
 判定：`split_required`。
 
 - `STR-02A`：Issue #919 到 PR #1715，关注 background task 完成时序、StreamingResponse/evaluated-response 冲突，以及以 disconnect + stream close 替换 cancellation；5 个信息增量节点，medium。
-- `STR-02B`：Issue #2516 到 PR #2620，关注 client-disconnect race、四层 middleware 复现、被否决的异常吞掉方案与最终 non-polling 实现；7 个信息增量节点，medium。
+- `STR-02B`：Issue #2516 到 PR #2620，关注 client-disconnect race、四层 middleware 复现、被否决的首个修复方案与最终 non-polling 实现；7 个信息增量节点，medium。
 
 #2516 的确把 #1715 称为“supposedly fixed”，但这只能证明历史依赖，不能证明相同根因。两段的现象、复现条件、失败方案和修复边界不同；把它们合并会让早期 slice 承担后期才出现的根因解释。只有 immutable patch/test 分析能证明一个因果缺陷同时解释两段时，才可推翻本次拆分。
 
@@ -45,7 +45,9 @@
 - `decision-references.json`：真实后续动作，不定义唯一正确答案；
 - `outcome-anchors.json`：merge、test 或关闭结果。
 
-Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在创建后编辑，GitHub 常规 API不提供完整历史正文；因此保存当前正文 digest 与更新时间，summary 只做保守转述，并优先用 timestamped comment 与 immutable merge commit 交叉核查。
+Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在创建后编辑，GitHub 常规 API 不提供完整历史正文；因此保存当前正文 digest 与更新时间，但 digest 只负责检测当前来源继续变化，不冒充创建时正文快照。
+
+首次 data QA 后对全部 `source_updated_at > occurred_at` 的 body event 重新执行了标题历史审计：#1083、#1683、#2516、#2519、#2620 没有 rename event；#1298、#1377、#919、#1715 的 GitHub timeline 明确保存了旧标题与改名时间。早期 summary 已限制为创建时标题能够证明的事实；当前 body、当前 changed-files、后加测试与 merge 结果均不得反向进入该 cutoff。尤其 `STR-02A/E4` 不再包含 PR #1715 后加的测试信息。
 
 ## Contamination 扫描
 
@@ -92,6 +94,6 @@ Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在�
 
 ## 机械验证
 
-`validate-pilot.mjs` 严格检查 envelope、未知字段、重复 id、segment 前缀、时间顺序、完整 evidence 前缀、Gold/Oracle provenance、supersession、Current Task 原样复述、输入隔离与 SHA-256。
+`validate-pilot.mjs` 严格检查 envelope、未知字段、重复 id、segment 前缀、event/source 类型绑定、source 更新时间下界、时间顺序、完整 evidence 前缀、Gold/Oracle provenance、supersession、Current Task 对任意时点 Gold、Outcome summary/标识与 cutoff 后 Decision Reference 的规范化包含，以及 SHA-256。
 
 pilot hash 状态明确为 `pilot_not_frozen`。它只证明冻结机制可工作；独立 data QA 通过后，仍需新工单重新核查并冻结正式六案。

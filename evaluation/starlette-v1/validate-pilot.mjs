@@ -22,6 +22,14 @@ const NON_INPUT_FILES = [
   "decision-references.json",
   "outcome-anchors.json",
 ];
+const EVENT_SOURCE_KIND = {
+  issue_body: "issue",
+  issue_comment: "issue_comment",
+  pull_request_body: "pull_request",
+  pull_request_comment: "pull_request_comment",
+  pull_request_review: "pull_request_review",
+  issue_state: "issue_state_event",
+};
 
 export class PilotValidationError extends Error {
   constructor(message) {
@@ -211,10 +219,16 @@ function validateEvents(value, caseId, segmentIds, path) {
       "issue_body", "issue_comment", "pull_request_body", "pull_request_comment", "pull_request_review", "issue_state",
     ], `${eventPath}.event_type`);
     const eventSource = source(event.source, `${eventPath}.source`);
+    if (eventSource.kind !== EVENT_SOURCE_KIND[event.event_type]) {
+      fail(`${eventPath}.source.kind`, `does not match event_type ${event.event_type}`);
+    }
     if (sourceIds.has(eventSource.source_id)) fail(`${eventPath}.source.source_id`, "duplicate included source");
     sourceIds.add(eventSource.source_id);
-    iso(event.occurred_at, `${eventPath}.occurred_at`);
-    nullableIso(event.source_updated_at, `${eventPath}.source_updated_at`);
+    const occurredAt = iso(event.occurred_at, `${eventPath}.occurred_at`);
+    const sourceUpdatedAt = nullableIso(event.source_updated_at, `${eventPath}.source_updated_at`);
+    if (sourceUpdatedAt !== null && Date.parse(sourceUpdatedAt) < Date.parse(occurredAt)) {
+      fail(`${eventPath}.source_updated_at`, "cannot precede occurred_at");
+    }
     string(event.actor, `${eventPath}.actor`);
     string(event.summary, `${eventPath}.summary`);
     sha256(event.source_content_sha256, `${eventPath}.source_content_sha256`);
@@ -321,9 +335,6 @@ function validateGold(value, caseId, tasksData, eventData, path) {
       if (fact.superseded_at_event_id !== null && visible.has(fact.superseded_at_event_id)) {
         fail(`${slicePath}.fact_ids`, "superseded fact remains current");
       }
-      const taskText = normalize(task.current_task);
-      const factText = normalize(fact.statement);
-      if (factText.length >= 24 && taskText.includes(factText)) fail(`${slicePath}.fact_ids`, "Current Task repeats Fact Gold");
     }
   }
   if (sliceIds.size !== tasksData.ids.size || [...tasksData.ids].some((id) => !sliceIds.has(id))) {
@@ -333,7 +344,51 @@ function validateGold(value, caseId, tasksData, eventData, path) {
 }
 
 function normalize(value) {
-  return value.normalize("NFKC").toLocaleLowerCase("en-US").replace(/\s+/g, " ").trim();
+  return value
+    .normalize("NFKC")
+    .toLocaleLowerCase("en-US")
+    .replace(/[\p{P}\p{S}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sourceIdentifiers(value) {
+  return [value.source_id, value.database_id, value.node_id, value.url, value.commit_sha]
+    .filter((entry) => entry !== null)
+    .map((entry) => String(entry));
+}
+
+function rejectIncluded(taskText, candidate, path, message, minimumLength) {
+  const normalized = normalize(candidate);
+  if (normalized.length >= minimumLength && taskText.includes(normalized)) fail(path, message);
+}
+
+function validateTaskContentBoundaries(tasksData, eventData, goldData, decisionData, outcomeData, path) {
+  for (const [index, task] of tasksData.tasks.entries()) {
+    const taskPath = `${path}.tasks[${index}].current_task`;
+    const taskText = normalize(task.current_task);
+
+    for (const fact of goldData.facts.values()) {
+      rejectIncluded(taskText, fact.statement, taskPath, "Current Task repeats Fact Gold", 24);
+    }
+
+    for (const anchor of outcomeData.anchors) {
+      rejectIncluded(taskText, anchor.summary, taskPath, "Current Task contains Outcome Anchor content", 24);
+      for (const identifier of [anchor.id, ...sourceIdentifiers(anchor.source), ...anchor.artifact_urls]) {
+        rejectIncluded(taskText, identifier, taskPath, "Current Task contains Outcome Anchor identifier", 8);
+      }
+    }
+
+    const cutoff = eventData.events.find((event) => event.id === task.cutoff_event_id);
+    for (const ref of decisionData.references) {
+      const referenceTask = tasksData.tasks.find((candidate) => candidate.id === ref.slice_id);
+      if (referenceTask.segment_id !== task.segment_id || Date.parse(ref.occurred_at) <= Date.parse(cutoff.occurred_at)) continue;
+      rejectIncluded(taskText, ref.description, taskPath, "Current Task contains future Decision Reference", 24);
+      for (const identifier of [ref.id, ...sourceIdentifiers(ref.source)]) {
+        rejectIncluded(taskText, identifier, taskPath, "Current Task contains future Decision Reference identifier", 8);
+      }
+    }
+  }
 }
 
 function validateOracle(value, caseId, tasksData, path) {
@@ -412,7 +467,7 @@ function validateDecisionReferences(value, caseId, tasksData, eventData, path) {
     string(ref.description, `${refPath}.description`);
     bool(ref.non_unique_answer, `${refPath}.non_unique_answer`);
   }
-  return target;
+  return { target, references: target.references };
 }
 
 function validateOutcomeAnchors(value, caseId, eventData, path) {
@@ -433,17 +488,18 @@ function validateOutcomeAnchors(value, caseId, eventData, path) {
     uniqueStrings(anchor.artifact_urls, `${anchorPath}.artifact_urls`);
     string(anchor.limitations, `${anchorPath}.limitations`);
   }
-  return target;
+  return { target, anchors: target.anchors };
 }
 
 export function validateCaseBundle(bundle, label = bundle?.manifest?.case_id ?? "case") {
   const manifestResult = validateManifest(bundle.manifest, label, `${label}/manifest.json`);
   const eventData = validateEvents(bundle.events, label, manifestResult.segmentIds, `${label}/events.json`);
   const taskData = validateTasks(bundle.tasks, label, eventData, `${label}/tasks.json`);
-  validateGold(bundle.factGold, label, taskData, eventData, `${label}/fact-gold.json`);
+  const goldData = validateGold(bundle.factGold, label, taskData, eventData, `${label}/fact-gold.json`);
   validateOracle(bundle.oracleState, label, taskData, `${label}/oracle-state.json`);
-  validateDecisionReferences(bundle.decisionReferences, label, taskData, eventData, `${label}/decision-references.json`);
-  validateOutcomeAnchors(bundle.outcomeAnchors, label, eventData, `${label}/outcome-anchors.json`);
+  const decisionData = validateDecisionReferences(bundle.decisionReferences, label, taskData, eventData, `${label}/decision-references.json`);
+  const outcomeData = validateOutcomeAnchors(bundle.outcomeAnchors, label, eventData, `${label}/outcome-anchors.json`);
+  validateTaskContentBoundaries(taskData, eventData, goldData, decisionData, outcomeData, `${label}/tasks.json`);
   const segmentEventIds = manifestResult.target.segments.flatMap((segment) => segment.event_ids);
   const segmentSliceIds = manifestResult.target.segments.flatMap((segment) => segment.slice_ids);
   if (JSON.stringify(segmentEventIds) !== JSON.stringify(eventData.events.map((event) => event.id))) {

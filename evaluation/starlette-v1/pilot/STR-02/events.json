@@ -6,7 +6,7 @@
       "id": "STR-02A/E1", "segment_id": "STR-02A", "ordinal": 1, "role": "user", "event_type": "issue_body",
       "source": {"source_id": "gh:issue:919", "kind": "issue", "repository": "Kludex/starlette", "number": 919, "database_id": "608227532", "node_id": "MDU6SXNzdWU2MDgyMjc1MzI=", "url": "https://github.com/Kludex/starlette/issues/919", "commit_sha": null},
       "occurred_at": "2020-04-28T11:03:13Z", "source_updated_at": "2024-05-30T20:15:18Z", "actor": "retnikt",
-      "summary": "The reporter observes that adding a transparent BaseHTTPMiddleware makes later requests wait for a response background task to finish, while the first response appears to return.",
+      "summary": "The issue opens with the report that background tasks do not work with simple dispatched middleware; its later-edited body is not treated as a creation-time snapshot.",
       "source_content_sha256": "147f02468ed1d0824f6fc6e48ef15df935855d8cfe0d4aaa8d912cd6b63a32d1"
     },
     {
@@ -27,7 +27,7 @@
       "id": "STR-02A/E4", "segment_id": "STR-02A", "ordinal": 4, "role": "user", "event_type": "pull_request_body",
       "source": {"source_id": "gh:pr:1715", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1715, "database_id": "983194198", "node_id": "PR_kwDOCELT_M46mlpW", "url": "https://github.com/Kludex/starlette/pull/1715", "commit_sha": null},
       "occurred_at": "2022-06-29T23:11:14Z", "source_updated_at": "2022-09-24T05:29:09Z", "actor": "jhominal",
-      "summary": "A broad BaseHTTPMiddleware pull request proposes replacing downstream task cancellation with http.disconnect signaling and receive-stream closure, and records tests for related cancellation and deadlock cases.",
+      "summary": "A draft pull request opens under the creation-time title 'Replace task cancellation in BaseHTTPMiddleware with http.disconnect plus recv_stream.close'; later body, test, and merge details are not visible at this cutoff.",
       "source_content_sha256": "441731fbfcf356c64825542fb22a1db9f0c44bb0f4d97015718576faa9df9eae"
     },
     {
@@ -41,14 +41,14 @@
       "id": "STR-02B/E1", "segment_id": "STR-02B", "ordinal": 1, "role": "user", "event_type": "issue_body",
       "source": {"source_id": "gh:issue:2516", "kind": "issue", "repository": "Kludex/starlette", "number": 2516, "database_id": "2138407240", "node_id": "I_kwDOCELT_M5_dYFI", "url": "https://github.com/Kludex/starlette/issues/2516", "commit_sha": null},
       "occurred_at": "2024-02-16T11:26:28Z", "source_updated_at": "2025-07-30T06:54:49Z", "actor": "jonathanslenders",
-      "summary": "A new issue reports a hard-to-reproduce No response returned race despite PR 1715 being cited as a supposed earlier fix, and supplies a high-middleware client-refresh reproducer.",
+      "summary": "The issue opens with a report of RuntimeError 'No response returned' in BaseHTTPMiddleware; its later-edited body and linked-history details are not treated as a creation-time snapshot.",
       "source_content_sha256": "878bebfcf2534419180027ba1da76da78dded7228f2742468ab4ee4dbb8e78f6"
     },
     {
       "id": "STR-02B/E2", "segment_id": "STR-02B", "ordinal": 2, "role": "user", "event_type": "pull_request_body",
       "source": {"source_id": "gh:pr:2519", "kind": "pull_request", "repository": "Kludex/starlette", "number": 2519, "database_id": "1729398434", "node_id": "PR_kwDOCELT_M5nFIai", "url": "https://github.com/Kludex/starlette/pull/2519", "commit_sha": null},
       "occurred_at": "2024-02-16T12:07:10Z", "source_updated_at": "2024-03-30T11:37:55Z", "actor": "jonathanslenders",
-      "summary": "An initial patch proposes suppressing the RuntimeError when a disconnect wins the race before a response, but it does not add a regression test and notes an even broader dummy-response alternative.",
+      "summary": "A first pull request opens to fix the reported RuntimeError during cancellation in BaseHTTPMiddleware; later body and diff details are not treated as visible at this cutoff.",
       "source_content_sha256": "f2b216f9abdaa03b4562a94fde82816279144567bb5b8e8817053391b153a97d"
     },
     {
@@ -69,7 +69,7 @@
       "id": "STR-02B/E5", "segment_id": "STR-02B", "ordinal": 5, "role": "user", "event_type": "pull_request_body",
       "source": {"source_id": "gh:pr:2620", "kind": "pull_request", "repository": "Kludex/starlette", "number": 2620, "database_id": "1919416492", "node_id": "PR_kwDOCELT_M5yZ_is", "url": "https://github.com/Kludex/starlette/pull/2620", "commit_sha": null},
       "occurred_at": "2024-06-13T19:47:44Z", "source_updated_at": "2024-09-06T22:35:08Z", "actor": "adriangb",
-      "summary": "A new pull request targets the issue by removing StreamingResponse-based disconnect polling from BaseHTTPMiddleware rather than suppressing the observed exception.",
+      "summary": "A replacement pull request opens under the unchanged title 'Do not poll for disconnects in BaseHTTPMiddleware via StreamingResponse'; later body and diff details are not treated as visible at this cutoff.",
       "source_content_sha256": "0f8b77b4c8e9f725668a9a038604489347fefae05dd2703ebbdfcd507f0a68bc"
     },
     {

@@ -4,14 +4,14 @@
   "mode": "oracle",
   "states": [
     {"slice_id": "STR-05/T1", "session_id": "STR-05", "items": [
-      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles support external symlink targets?", "status": "OPEN", "confidence": 1, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2020-10-31T07:33:43Z", "source_refs": ["STR-05/E1"], "metadata": {"oracle": true, "segment_id": "STR-05"}}
+      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles follow symlinks?", "status": "OPEN", "confidence": 1, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2020-10-31T07:33:43Z", "source_refs": ["STR-05/E1"], "metadata": {"oracle": true, "segment_id": "STR-05"}}
     ], "relations": []},
     {"slice_id": "STR-05/T2", "session_id": "STR-05", "items": [
-      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles support external symlink targets?", "status": "OPEN", "confidence": 1, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2020-10-31T07:33:43Z", "source_refs": ["STR-05/E1"], "metadata": {"oracle": true, "segment_id": "STR-05"}},
-      {"id": "STR-05/I2", "session_id": "STR-05", "type": "DECISION", "content": "Evaluate the first implementation attempt with static-files tests.", "status": "ACTIVE", "confidence": 0.8, "created_at": "2021-12-17T14:32:49Z", "updated_at": "2021-12-17T14:32:49Z", "source_refs": ["STR-05/E2"], "metadata": {"oracle": true, "segment_id": "STR-05"}}
+      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles follow symlinks?", "status": "OPEN", "confidence": 1, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2020-10-31T07:33:43Z", "source_refs": ["STR-05/E1"], "metadata": {"oracle": true, "segment_id": "STR-05"}},
+      {"id": "STR-05/I2", "session_id": "STR-05", "type": "DECISION", "content": "Evaluate the first implementation attempt against the reported symlink need.", "status": "ACTIVE", "confidence": 0.8, "created_at": "2021-12-17T14:32:49Z", "updated_at": "2021-12-17T14:32:49Z", "source_refs": ["STR-05/E2"], "metadata": {"oracle": true, "segment_id": "STR-05"}}
     ], "relations": []},
     {"slice_id": "STR-05/T3", "session_id": "STR-05", "items": [
-      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles support external symlink targets?", "status": "RESOLVED", "confidence": 0.9, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2022-05-28T16:10:33Z", "source_refs": ["STR-05/E1", "STR-05/E3"], "metadata": {"oracle": true, "segment_id": "STR-05"}},
+      {"id": "STR-05/I1", "session_id": "STR-05", "type": "OPEN_QUESTION", "content": "Should StaticFiles follow symlinks?", "status": "RESOLVED", "confidence": 0.9, "created_at": "2020-10-31T07:33:43Z", "updated_at": "2022-05-28T16:10:33Z", "source_refs": ["STR-05/E1", "STR-05/E3"], "metadata": {"oracle": true, "segment_id": "STR-05"}},
       {"id": "STR-05/I2", "session_id": "STR-05", "type": "DECISION", "content": "Treat the first merged change as the current fix.", "status": "ACTIVE", "confidence": 0.9, "created_at": "2021-12-17T14:32:49Z", "updated_at": "2022-05-28T16:10:33Z", "source_refs": ["STR-05/E2", "STR-05/E3"], "metadata": {"oracle": true, "segment_id": "STR-05"}}
     ], "relations": []},
     {"slice_id": "STR-05/T4", "session_id": "STR-05", "items": [

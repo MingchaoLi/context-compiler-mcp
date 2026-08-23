@@ -2,8 +2,8 @@
   "schema_version": "starlette-pilot/v1",
   "case_id": "STR-05",
   "facts": [
-    {"id": "STR-05/F1", "segment_id": "STR-05", "category": "open_question", "statement": "Whether StaticFiles should follow symlinks outside the configured directory remains open.", "first_known_at_event_id": "STR-05/E1", "superseded_at_event_id": "STR-05/E3", "provenance_event_ids": ["STR-05/E1"]},
-    {"id": "STR-05/F2", "segment_id": "STR-05", "category": "decision", "statement": "The first pull request attempts unconditional support for following an external symlink target.", "first_known_at_event_id": "STR-05/E2", "superseded_at_event_id": "STR-05/E4", "provenance_event_ids": ["STR-05/E2"]},
+    {"id": "STR-05/F1", "segment_id": "STR-05", "category": "open_question", "statement": "Whether StaticFiles should follow symlinks remains open.", "first_known_at_event_id": "STR-05/E1", "superseded_at_event_id": "STR-05/E3", "provenance_event_ids": ["STR-05/E1"]},
+    {"id": "STR-05/F2", "segment_id": "STR-05", "category": "decision", "statement": "The first pull request attempts support for following symlinks outside the static directory.", "first_known_at_event_id": "STR-05/E2", "superseded_at_event_id": "STR-05/E4", "provenance_event_ids": ["STR-05/E2"]},
     {"id": "STR-05/F3", "segment_id": "STR-05", "category": "resolved_issue", "statement": "Maintainers currently consider the symlink request fixed by the first merged change.", "first_known_at_event_id": "STR-05/E3", "superseded_at_event_id": "STR-05/E4", "provenance_event_ids": ["STR-05/E3"]},
     {"id": "STR-05/F4", "segment_id": "STR-05", "category": "evidence", "statement": "The first merged fix was reverted, so its resolved status is no longer valid.", "first_known_at_event_id": "STR-05/E4", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E3", "STR-05/E4"]},
     {"id": "STR-05/F5", "segment_id": "STR-05", "category": "open_question", "statement": "A safe replacement for the reverted symlink behavior is unresolved.", "first_known_at_event_id": "STR-05/E4", "superseded_at_event_id": "STR-05/E9", "provenance_event_ids": ["STR-05/E4"]},

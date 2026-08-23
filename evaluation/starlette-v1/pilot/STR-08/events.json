@@ -21,7 +21,7 @@
       "occurred_at": "2021-10-04T10:48:05Z",
       "source_updated_at": "2021-12-18T10:22:53Z",
       "actor": "Kolumbs",
-      "summary": "The reporter expects TestClient construction to run application startup and shutdown hooks so request tests can use initialized state.",
+      "summary": "The issue opens with the report that TestClient does not trigger startup or shutdown events; its later-edited body is not treated as a creation-time snapshot.",
       "source_content_sha256": "a07cb71516117f53fc386bcdb6d8a04466acc31399f76d4eda364cc73d7db5be"
     },
     {

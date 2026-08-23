@@ -55,6 +55,18 @@ describe("Starlette schema pilot", () => {
     expect(() => validateCaseBundle(candidate, "STR-05")).toThrow(/input boundary changed/);
   });
 
+  it("rejects Outcome Anchor content copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.outcomeAnchors.anchors[0].summary;
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor content/);
+  });
+
+  it("rejects an Outcome Anchor identifier copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = `Use ${candidate.outcomeAnchors.anchors[0].id} as the answer.`;
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Outcome Anchor identifier/);
+  });
+
   it("rejects duplicate evidence IDs", () => {
     const candidate = bundle("STR-08");
     candidate.events.events[1].id = candidate.events.events[0].id;
@@ -65,6 +77,18 @@ describe("Starlette schema pilot", () => {
     const candidate = bundle("STR-08");
     candidate.events.events[1].occurred_at = "2021-10-03T00:00:00Z";
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/time reversal/);
+  });
+
+  it("rejects a source_updated_at value before occurred_at", () => {
+    const candidate = bundle("STR-08");
+    candidate.events.events[0].source_updated_at = "2021-10-03T15:33:45Z";
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/cannot precede occurred_at/);
+  });
+
+  it("rejects an event type and source kind mismatch", () => {
+    const candidate = bundle("STR-08");
+    candidate.events.events[0].source.kind = "issue_comment";
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/does not match event_type/);
   });
 
   it("rejects unknown fields", () => {
@@ -83,6 +107,18 @@ describe("Starlette schema pilot", () => {
     const candidate = bundle("STR-08");
     candidate.tasks.tasks[0].current_task = candidate.factGold.facts[0].statement;
     expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Current Task repeats Fact Gold/);
+  });
+
+  it("rejects a Current Task that repeats future Fact Gold", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.factGold.facts.at(-1).statement.toUpperCase().replaceAll(" ", "  ");
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/Current Task repeats Fact Gold/);
+  });
+
+  it("rejects a future Decision Reference copied into Current Task", () => {
+    const candidate = bundle("STR-08");
+    candidate.tasks.tasks[0].current_task = candidate.decisionReferences.references[0].description;
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/future Decision Reference/);
   });
 
   it("rejects content-preserving hash tampering", async () => {

@@ -6,14 +6,14 @@
       "id": "STR-05/E1", "segment_id": "STR-05", "ordinal": 1, "role": "user", "event_type": "issue_body",
       "source": {"source_id": "gh:issue:1083", "kind": "issue", "repository": "Kludex/starlette", "number": 1083, "database_id": "733659147", "node_id": "MDU6SXNzdWU3MzM2NTkxNDc=", "url": "https://github.com/Kludex/starlette/issues/1083", "commit_sha": null},
       "occurred_at": "2020-10-31T07:33:43Z", "source_updated_at": "2023-02-04T17:23:16Z", "actor": "abe-winter",
-      "summary": "StaticFiles resolves a symlink target with realpath and rejects it when the target lies outside the configured static directory, blocking a development-assets use case.",
+      "summary": "The issue opens with the report that StaticFiles does not follow symlinks; its later-edited body is not treated as a creation-time snapshot.",
       "source_content_sha256": "3809876ad2dd8a0f64945292d98a819c2594c2e16937140b701f35a3aa44307b"
     },
     {
       "id": "STR-05/E2", "segment_id": "STR-05", "ordinal": 2, "role": "user", "event_type": "pull_request_body",
       "source": {"source_id": "gh:pr:1377", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1377, "database_id": "805419178", "node_id": "PR_kwDOCELT_M4wAbiq", "url": "https://github.com/Kludex/starlette/pull/1377", "commit_sha": null},
       "occurred_at": "2021-12-17T14:32:49Z", "source_updated_at": "2022-12-12T07:17:11Z", "actor": "aminalaee",
-      "summary": "A pull request proposes allowing StaticFiles to leave the configured directory when path resolution follows a symlink; its changed files include the implementation and static-files tests.",
+      "summary": "A first pull request opens under the creation-time title 'Fix staticfiles follow symlinks outside directory'; later body and changed-file details are not treated as visible at this cutoff.",
       "source_content_sha256": "a85e9d6c5030e315ee6dd455d0e4fca62c053a62d1529b2d06d7f5204fb5e72b"
     },
     {
@@ -34,7 +34,7 @@
       "id": "STR-05/E5", "segment_id": "STR-05", "ordinal": 5, "role": "user", "event_type": "pull_request_body",
       "source": {"source_id": "gh:pr:1683", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1683, "database_id": "964125852", "node_id": "PR_kwDOCELT_M45d2Sc", "url": "https://github.com/Kludex/starlette/pull/1683", "commit_sha": null},
       "occurred_at": "2022-06-10T13:23:29Z", "source_updated_at": "2023-02-04T17:22:38Z", "actor": "aminalaee",
-      "summary": "A second pull request explicitly starts from the previous attempt and again proposes controlled support for symlinks outside the static directory.",
+      "summary": "A second pull request opens to allow StaticFiles to follow symlinks after the first implementation was reverted; later body and diff details are not treated as visible at this cutoff.",
       "source_content_sha256": "ea4f255eac110c68c8db12f67ec6a31c7b99880077a3db74353c19b9121738a0"
     },
     {

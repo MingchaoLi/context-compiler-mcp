@@ -41,3 +41,19 @@
 - 外部研究仅通过公开 GitHub 主来源只读进行，没有克隆 Starlette、提交抓取缓存或原始长正文。
 
 实现者不批准本工单。独立 data QA PASS 前，不得开始正式六案 freeze 或远端 GPT-5.6 实验。
+
+## 首轮 QA 退回后的追加修复
+
+独立 data QA 在提交 `0226a754` 中确认两类 P0：`STR-02A/E4` 把 PR #1715 后加测试写入创建时 slice，以及 validator 只验证文件名隔离、仍接受未来 Gold/Outcome 内容进入 Current Task。
+
+追加修复已完成：
+
+- 对 9 个创建后更新的 Issue/PR body event 全量核对 GitHub title rename timeline；summary 只保留创建时标题可证明的信息，移除后写正文、当前 diff、测试与 merge 结论；
+- 同步收紧相关 Gold、Oracle 与 Current Task，尤其删除 STR-02B 早期 slice 中无法由创建标题证明的异常吞掉/no-test 细节；
+- validator 新增 `source_updated_at >= occurred_at`、`event_type`/`source.kind` 绑定，以及 Current Task 对全部 Gold、Outcome summary/标识、cutoff 后 Decision Reference 的规范化内容扫描；
+- 聚焦测试由 10 项增至 16 项，分别覆盖未来 Gold、Outcome 内容、Outcome 标识、未来 Decision Reference、非法 source 更新时间和 event/source 错配；
+- 更新 pilot hash，状态仍为 `pilot_not_frozen`。
+
+追加修复自检：validator 通过并保持 3 cases / 4 segments / 25 events / 25 slices；聚焦测试 16/16；`npm test` 258/258；protocol 8/8；build 与 `git diff --check` 通过。
+
+该修复仍需原独立 data QA 复验；实现者不自我批准。
