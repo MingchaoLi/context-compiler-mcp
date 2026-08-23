@@ -46,6 +46,8 @@ DS-09 后关键节点对抗审查 `docs/adversarial-reviews/AR-2026-08-23-post-d
 
 WO-DS-10 已在独立 Data QA 于 2026-08-23 接受为 `protocol_canary_not_frozen`，固定 Builder candidate 为 `bc78c42505c34ae6f3220db49b2e5a5af905d0eb`。protocol 从固定六案数据独立重建并复验 83 facts / 75 slices / 499 assignments，固定 12 slices / 101 projected turns；仅有 8 个共同 exact lexical-anchor Probe，19 个 task dependency 明确 `not_exactly_scorable`，答案 rubric 为 42 required / 16 forbidden。接受没有改动 promotion payload、`src/` 或 package surface；canonical collection 仍为 `promotion_candidate_not_frozen`，且 `formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`，runner/model/effect count 均为 0。0 medium 仍是外推限制；这不是 Probe 实验、正式 freeze、D0/D1/D2 或模型运行授权。
 
+DS-10 接受后已建立 WO-DS-11，只做 data+protocol 原子 freeze、append-only pre-run contamination rescan 与 36 个盲化 D0/D1/D2 input packet/GPT-5.6-terra non-sol feasibility 运行合同。该工单本身禁止 evaluator/model 调用；只有新的独立 QA PASS，下一工单才可按固定 order 发起恰好 36 个 fresh session。语义评分仍要求两名 condition-blind 人类 reviewer，不能由第二模型替代。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
