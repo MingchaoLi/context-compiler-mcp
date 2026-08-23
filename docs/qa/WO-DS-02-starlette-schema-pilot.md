@@ -50,3 +50,30 @@
 1. 对每个 `source_updated_at > occurred_at` 的 Issue/PR body，删除所有不能由创建时 timestamped evidence 证明的内容；或将内容移至其真实后续 event，并以 cutoff 前 immutable commit/diff 或 timestamped comment 作为 provenance。尤其必须修正/拆分 `STR-02A/E4`，不得在 E4/T4 使用测试或 merge 后信息。
 2. 收紧 validator：强制 `source_updated_at >= occurred_at`；将 event type 与 source kind 绑定；拒绝 `Current Task` 对任何（含未来）Gold statement、Outcome Anchor summary/标识及 cutoff 后 Decision Reference 的规范化原样混入；并为这些反例加入独立测试。文件名边界检查不能替代内容边界检查。
 3. 更新 hash 后，在新的 append-only Builder fix commit 上重新运行 source audit、全部对抗篡改、focused test、`npm test`、protocol、build 和 diff check。QA 复验通过前，保持 `pilot_not_frozen`，不得启动六案 freeze 或模型实验。
+
+## Re-QA（候选 `af4c3f09109edbedffad47a68a4ba11bf94a80b7`）
+
+日期：2026-08-23
+
+结论：**仍为 FAIL。** 候选 branch 为 `main`，父提交为首轮 QA commit `0226a754cb4d7cd24d2aa9d8599bb152b8835b13`，开始时工作树 clean；本段只追加独立 re-QA 结论，不改变工单、项目状态或路线图。
+
+### 首轮 P0 的已修复部分
+
+- 9 个可变 Issue/PR body event（STR-02A/E1,E4、STR-02B/E1,E2,E5、STR-05/E1,E2,E5、STR-08/E1）都重新与 GitHub API metadata/title 和 timeline 交叉核对。#1377 的创建时标题为 `Fix staticfiles follow symlinks outside directory`，之后才改为 `Allow ...`；#1298 后来的改名只修正 `trigggering` 拼写。其余七项无 title-rename timeline；PR #1715 的页面 timeline 还显示它在 `2022-07-02T06:39:38Z` 才标记 ready for review，支持 E4 创建时 draft 表述。
+- E4 已删除 tests/merge 后信息；其 Gold、Oracle 和 Task 不再携带该测试细节。其余八项 summary 同样限定为创建时标题，或仅使用已有较早 event（STR-05/E5 的 first-revert 关系）。未发现删去的 PR body/diff/linked-history 细节残留在对应早期 Gold、Oracle 或 Current Task。
+- 首轮三项最小 mutation 均已被拒绝：未来 Gold、Outcome summary、`source_updated_at < occurred_at`。Outcome identifier、cutoff 后 Decision Reference、event_type/source.kind mismatch，以及大小写/全角标识/标点/空白规范化变体也均被拒绝。
+
+### 新 P0：Unicode zero-width 规范化绕过仍可把未来 Gold 放入输入
+
+最小复现（无文件写入）：加载 `STR-08` bundle，将 `STR-08/T1.current_task` 设为未来 Gold `STR-08/F4.statement`，但把每个 ASCII space 替换成 U+200B ZERO WIDTH SPACE，然后调用 `validateCaseBundle(bundle, "STR-08")`。validator **接受**该 bundle，并输出 `ZERO_WIDTH_GOLD_ACCEPTED`。
+
+根因是 `normalize()` 只删除 Unicode punctuation/symbol 和普通 whitespace；U+200B 是 Unicode format character，不会被移除。该文本在模型输入中仍是同一可见答案，故此绕过直接违反“Current Task 不复述 future Gold”及本轮“规范化绕过失败”的要求。相同规范化缺口也会影响 Outcome/Decision 的内容边界。
+
+### 其余验证
+
+- `node evaluation/starlette-v1/validate-pilot.mjs`：3 cases / 4 segments / 25 events / 25 slices，hash verified。
+- `npx vitest run test/starlette-pilot.test.ts`：16/16；`npm test`：12 files / 258 tests；`npm run test:protocol`：8/8；`npm run build`、候选 `git diff --check HEAD^ HEAD` 均通过。
+
+### 返回条件
+
+将 `normalize()` 扩展为移除 Unicode format/control separators（至少 U+200B、WORD JOINER、bidi/control 变体），并对 future Gold、Outcome summary/identifier 与 future Decision Reference 分别加入 zero-width/Unicode 规范化反例。更新 hash 后在新的 append-only Builder fix commit 重跑本段所有攻击与回归；在独立 re-QA 通过前保持 PENDING 和 `pilot_not_frozen`。
