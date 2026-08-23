@@ -10,17 +10,20 @@ import {
   validateCaseBundle,
   validatePilot,
 } from "./validate-pilot.mjs";
+import { validateStr06Checkpoint } from "./validate-str06-checkpoint.mjs";
+import { validateStr07Checkpoint } from "./validate-str07-checkpoint.mjs";
+import { validateStr01Checkpoint } from "./validate-str01-checkpoint.mjs";
 
 const PROMOTION_VERSION = "starlette-promotion/v1";
 const DIFF_VERSION = "starlette-promotion-diff/v1";
 const SNAPSHOT_VERSION = "starlette-contamination-snapshot/v1";
-const SOURCE_REAUDIT_VERSION = "starlette-source-reaudit/v1";
+const SOURCE_ACCEPTANCE_LEDGER_VERSION = "starlette-source-acceptance-ledger/v1";
 const RULE_VERSION = "starlette-contamination-rule/v1";
 const RULE_TEXT = "Mark confirmed only when a public repository explicitly reuses the same Starlette issue or fix as an LLM, agent, benchmark, code-repair, or evaluation task, or highly copies that task or patch. Ordinary downstream references, vendored source, production workarounds, repository names that merely contain agent or SWE, and retrieved-context noise unrelated to the task, Gold, or answer do not count.";
 const CUTOFF = "2026-08-23T03:00:00Z";
 const REGISTERED_CASES = ["STR-07", "STR-08", "STR-05", "STR-06", "STR-01", "STR-04"];
-const PROMOTED_CASES = ["STR-08", "STR-05", "STR-04"];
-const REMAINING_CASES = ["STR-07", "STR-06", "STR-01"];
+const PROMOTED_CASES = [...REGISTERED_CASES];
+const REMAINING_CASES = [];
 const CASE_FILES = [
   "manifest.json",
   "events.json",
@@ -31,17 +34,56 @@ const CASE_FILES = [
   "outcome-anchors.json",
 ];
 const SOURCE_PATHS = {
+  "STR-07": "checkpoint/STR-07",
   "STR-08": "pilot/STR-08",
   "STR-05": "pilot/STR-05",
+  "STR-06": "checkpoint/STR-06",
+  "STR-01": "checkpoint/STR-01",
   "STR-04": "canary/STR-04",
 };
 const ACCEPTED_STATUSES = {
+  "STR-07": "checkpoint_not_frozen",
   "STR-08": "pilot_not_frozen",
   "STR-05": "pilot_not_frozen",
+  "STR-06": "checkpoint_not_frozen",
+  "STR-01": "checkpoint_not_frozen",
   "STR-04": "canary_not_frozen",
 };
-const ACCEPTED_SOURCE_COMMIT = "32600eb6b7caf3fbe339e1103d3293f0b7e33103";
+const ACCEPTED_SOURCE_COMMITS = {
+  "STR-07": "8f51bf4f9308d124ace63c5c8ca755373105c71f",
+  "STR-08": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+  "STR-05": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+  "STR-06": "f4931ad35cc7e4a844bb40ceb397aaf07842616d",
+  "STR-01": "454565b863cf7e9470e7ac8079febf2a5c0d42d9",
+  "STR-04": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+};
+const ACCEPTED_QA_REPORTS = {
+  "STR-07": "docs/qa/WO-DS-07-starlette-str07-source-gold-checkpoint.md",
+  "STR-08": "docs/qa/WO-DS-02-starlette-schema-pilot.md",
+  "STR-05": "docs/qa/WO-DS-02-starlette-schema-pilot.md",
+  "STR-06": "docs/qa/WO-DS-06-starlette-str06-source-gold-checkpoint.md",
+  "STR-01": "docs/qa/WO-DS-08-starlette-str01-source-gold-checkpoint.md",
+  "STR-04": "docs/qa/WO-DS-03-starlette-long-open-canary.md",
+};
+const EXPECTED_TIERS = {
+  "STR-07": "long", "STR-08": "short", "STR-05": "long",
+  "STR-06": "long", "STR-01": "long", "STR-04": "long",
+};
+const EXPECTED_SLICE_COUNTS = {
+  "STR-07": 10, "STR-08": 4, "STR-05": 9, "STR-06": 16, "STR-01": 18, "STR-04": 18,
+};
+const SNAPSHOT_PATH = "promotion/contamination-snapshot-freeze-candidate.json";
+const PRIOR_SNAPSHOT_PATH = "promotion/contamination-snapshot.json";
+const PRIOR_SNAPSHOT_SHA256 = "02361a573d0bcab37c0e617ddc4e5feb0cb44b93174d6ea029ae94c622527eb1";
+const ACCEPTANCE_LEDGER_PATH = "promotion/source-acceptance-ledger.json";
 const ACCEPTED_SOURCE_CONTRACT = [
+  { case_id: "STR-07", path: "checkpoint/STR-07/manifest.json", sha256: "50be99952568fa0c1d8842f21eaa2cc1f75ccde589168ca57c809128252692e2" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/events.json", sha256: "3997eb8605f3b666eb0bc722e15279b0e680b5ea9130fb41a244d2bcbba30111" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/tasks.json", sha256: "d3cbd14605d0994be5d493e7257e4d79cf61a44cc7373ebfeea7820e697e2040" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/fact-gold.json", sha256: "159391d3b9985a2148d36650f8e30dfe7dc7bcfa383fd1e11f6cf61df02baa8a" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/oracle-state.json", sha256: "ffda91eda4f11e0d5e451824d2723f1029ba329a65a92486c246b234c1fc1ff8" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/decision-references.json", sha256: "31e8993a52d42c3853d2e8c40ce15130bfb53c260c602429baa247ec832ce1a5" },
+  { case_id: "STR-07", path: "checkpoint/STR-07/outcome-anchors.json", sha256: "a728b56bc371a548973875f90f55234fcc52b47fa1245111d343d390512c8aa3" },
   { case_id: "STR-08", path: "pilot/STR-08/manifest.json", sha256: "7b58e7620f0f6b572976cd47cfbbc37661e29268509d13a88f27669533e35baf" },
   { case_id: "STR-08", path: "pilot/STR-08/events.json", sha256: "63ddd24b005790b0d8d9236580a685a8bde0572d3702668e7a255b70906e2831" },
   { case_id: "STR-08", path: "pilot/STR-08/tasks.json", sha256: "b43aa97419bc86f30f1b6d1aa32e31177469cd89217dd600837ba0e731e7be7d" },
@@ -56,6 +98,20 @@ const ACCEPTED_SOURCE_CONTRACT = [
   { case_id: "STR-05", path: "pilot/STR-05/oracle-state.json", sha256: "94a6f2028f7ce2978a0580f626ef312abd67ef169b92c9bc472251fb3f4a22b2" },
   { case_id: "STR-05", path: "pilot/STR-05/decision-references.json", sha256: "66bcafefbb013df839350e352c1d46836714e8aaf2ec004bda9bb8c1940480b1" },
   { case_id: "STR-05", path: "pilot/STR-05/outcome-anchors.json", sha256: "13547990dc52b322b44fbe3559916d8a63fc53ed0fc69b5fb626615b7b3d90fe" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/manifest.json", sha256: "57db1709992d1931e35cb166bbbaa88722c5ccc6e8f1b1fbc331445a8923154b" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/events.json", sha256: "5c6987c02ec7e22e819ca7f856a041866439bb217b734c6252a92cc367002efd" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/tasks.json", sha256: "9f3b6a743f94b7f421401680505b43f8810b268e46875ba1858ed4efebe834e5" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/fact-gold.json", sha256: "06366e47427a337ab81877bf20cbc5c93eb7669ad8685fbe4d1cbabf45eb593b" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/oracle-state.json", sha256: "a432b420dcd7437c936b991f3c551564f1f66f8b889910a8f91c6c0c46e6bca4" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/decision-references.json", sha256: "10fdaf1976b85d8a999ec33956894120189af131ff252e10be5b30943b2e85d1" },
+  { case_id: "STR-06", path: "checkpoint/STR-06/outcome-anchors.json", sha256: "98da239df9e97d05ba56b9c8a98bf7dad15b4954ac3787b057b98769d3258ff6" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/manifest.json", sha256: "521ab26db11326f774b25af85b39fa986d064a86a3bff527948a2c529d98715a" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/events.json", sha256: "6b469975f50ccdf546dd94f23fc16c4a71e8cd22ef0bfa38e61f59dc3f594483" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/tasks.json", sha256: "7b29b509fc964e62e314fa7cfabb55e8c6625084e4bfbf165dc817232dae3741" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/fact-gold.json", sha256: "46901de933704a0a1487e94aea21e903fc26db27d0eb3ed031c7423fbdf5a87b" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/oracle-state.json", sha256: "ad8c0c18e1ef1c48b1d74905e22f7edb29f035d574db76f06e62f67d406c8bd3" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/decision-references.json", sha256: "ab0c0b3ecbb8389bbe49477405bf6c10ee298dbb987401adab5459272cc4a8fb" },
+  { case_id: "STR-01", path: "checkpoint/STR-01/outcome-anchors.json", sha256: "ae2883e0a72473f34077f9b09b38e03c788360ebc20c2b126560d62bc14d66f3" },
   { case_id: "STR-04", path: "canary/STR-04/manifest.json", sha256: "19b436786ce401b3f3e385297d6bd58c4e8bacd905f9fb1e4c179b51aecb0f1d" },
   { case_id: "STR-04", path: "canary/STR-04/events.json", sha256: "00833cbfbf0d3a6cea2bd5615c5f353db31c3e200274fd58c4ea2f6710828154" },
   { case_id: "STR-04", path: "canary/STR-04/tasks.json", sha256: "8f69ae4c11546b4fee84a27da3dbc173d231b146ab7b6a5d6cc51b67e4af8104" },
@@ -184,8 +240,8 @@ async function loadCase(root, relativePath) {
 function validateCollection(value, path) {
   const target = exact(value, [
     "schema_version", "collection_id", "status", "evidence_cutoff_at", "registered_case_ids",
-    "promoted_case_ids", "remaining_case_ids", "contamination_rule_version",
-    "contamination_snapshot", "source_reaudit", "promotion_diff", "cases",
+    "promoted_case_ids", "remaining_case_ids", "tier_distribution", "contamination_rule_version",
+    "contamination_snapshot", "source_acceptance_ledger", "promotion_diff", "cases",
     "evaluation_ready", "model_run_authorized",
   ], path);
   if (target.schema_version !== PROMOTION_VERSION || target.collection_id !== "starlette-v1") {
@@ -196,10 +252,27 @@ function validateCollection(value, path) {
   exactArray(target.registered_case_ids, REGISTERED_CASES, `${path}.registered_case_ids`);
   exactArray(target.promoted_case_ids, PROMOTED_CASES, `${path}.promoted_case_ids`);
   exactArray(target.remaining_case_ids, REMAINING_CASES, `${path}.remaining_case_ids`);
+  const tiers = exact(target.tier_distribution, [
+    "case_counts", "slice_counts", "medium_status", "tier_balanced_claim_authorized",
+    "pooled_aggregate_status",
+  ], `${path}.tier_distribution`);
+  const caseCounts = exact(tiers.case_counts, ["short", "medium", "long"], `${path}.tier_distribution.case_counts`);
+  const sliceCounts = exact(tiers.slice_counts, ["short", "medium", "long"], `${path}.tier_distribution.slice_counts`);
+  if (
+    integer(caseCounts.short, `${path}.tier_distribution.case_counts.short`) !== 1 ||
+    integer(caseCounts.medium, `${path}.tier_distribution.case_counts.medium`) !== 0 ||
+    integer(caseCounts.long, `${path}.tier_distribution.case_counts.long`) !== 5 ||
+    integer(sliceCounts.short, `${path}.tier_distribution.slice_counts.short`) !== 4 ||
+    integer(sliceCounts.medium, `${path}.tier_distribution.slice_counts.medium`) !== 0 ||
+    integer(sliceCounts.long, `${path}.tier_distribution.slice_counts.long`) !== 71 ||
+    tiers.medium_status !== "not_represented_not_evaluable" ||
+    bool(tiers.tier_balanced_claim_authorized, `${path}.tier_distribution.tier_balanced_claim_authorized`) !== false ||
+    tiers.pooled_aggregate_status !== "descriptive_only_not_authorized"
+  ) fail(`${path}.tier_distribution`, "audited tier limitation changed");
   if (target.contamination_rule_version !== RULE_VERSION) fail(`${path}.contamination_rule_version`, "rule changed");
   for (const [key, expectedPath] of [
-    ["contamination_snapshot", "promotion/contamination-snapshot.json"],
-    ["source_reaudit", "promotion/source-reaudit.json"],
+    ["contamination_snapshot", SNAPSHOT_PATH],
+    ["source_acceptance_ledger", ACCEPTANCE_LEDGER_PATH],
     ["promotion_diff", "promotion/promotion-diff.json"],
   ]) {
     const ref = exact(target[key], ["path", "sha256"], `${path}.${key}`);
@@ -207,7 +280,7 @@ function validateCollection(value, path) {
     sha256(ref.sha256, `${path}.${key}.sha256`);
   }
   const cases = array(target.cases, `${path}.cases`);
-  if (cases.length !== PROMOTED_CASES.length) fail(`${path}.cases`, "expected three promoted cases");
+  if (cases.length !== PROMOTED_CASES.length) fail(`${path}.cases`, "expected six promoted cases");
   for (const [index, entry] of cases.entries()) {
     const casePath = `${path}.cases[${index}]`;
     const item = exact(entry, [
@@ -218,7 +291,7 @@ function validateCollection(value, path) {
     if (
       item.case_id !== caseId || item.accepted_path !== SOURCE_PATHS[caseId] ||
       item.accepted_status !== ACCEPTED_STATUSES[caseId] ||
-      item.accepted_candidate_commit !== ACCEPTED_SOURCE_COMMIT ||
+      item.accepted_candidate_commit !== ACCEPTED_SOURCE_COMMITS[caseId] ||
       item.promotion_path !== `promotion/cases/${caseId}` ||
       item.promotion_status !== "promoted_not_frozen"
     ) fail(casePath, "case promotion registration changed");
@@ -239,17 +312,17 @@ function validateSnapshot(value, path) {
   iso(target.scan_observed_at, `${path}.scan_observed_at`);
   if (Date.parse(target.scan_observed_at) < Date.parse(CUTOFF)) fail(`${path}.scan_observed_at`, "scan predates cutoff");
   const prior = exact(target.prior_snapshot, ["path", "sha256"], `${path}.prior_snapshot`);
-  if (prior.path !== "contamination-scan.json" || prior.sha256 !== "4397c5d7c0d9ea5cd729d1131c12960167f951619d1caf623bab988a0746a87f") {
+  if (prior.path !== PRIOR_SNAPSHOT_PATH || prior.sha256 !== PRIOR_SNAPSHOT_SHA256) {
     fail(`${path}.prior_snapshot`, "prior snapshot changed");
   }
-  if (target.snapshot_id !== `starlette-v1-promotion-${target.scan_observed_at}`) fail(`${path}.snapshot_id`, "snapshot id/time mismatch");
+  if (target.snapshot_id !== `starlette-v1-freeze-candidate-${target.scan_observed_at}`) fail(`${path}.snapshot_id`, "snapshot id/time mismatch");
   if (target.rule !== RULE_TEXT) fail(`${path}.rule`, "contamination rule text changed");
   const capabilities = exact(target.search_capabilities, [
     "github_code_search_api", "github_public_code_search_ui", "web_index_exact_path_search",
   ], `${path}.search_capabilities`);
   if (
-    capabilities.github_code_search_api !== "unavailable_requires_authentication" ||
-    capabilities.github_public_code_search_ui !== "unavailable_requires_sign_in" ||
+    capabilities.github_code_search_api !== "unavailable_in_current_tooling" ||
+    capabilities.github_public_code_search_ui !== "unavailable_in_current_tooling" ||
     capabilities.web_index_exact_path_search !== "completed_with_index_limitations"
   ) fail(`${path}.search_capabilities`, "search capability disclosure changed");
   const results = array(target.results, `${path}.results`);
@@ -291,58 +364,61 @@ function validateSnapshot(value, path) {
   return target;
 }
 
-function validateSourceReaudit(value, bundles, path) {
+function validateSourceAcceptanceLedger(value, bundles, path) {
   const target = exact(value, [
-    "schema_version", "repository", "evidence_cutoff_at", "observed_at", "checks",
-    "cases", "summary", "limitations",
+    "schema_version", "collection_id", "evidence_cutoff_at", "basis",
+    "live_source_reaudit_performed", "cases", "summary", "limitations",
   ], path);
-  if (target.schema_version !== SOURCE_REAUDIT_VERSION || target.repository !== "Kludex/starlette") fail(path, "source re-audit identity changed");
+  if (target.schema_version !== SOURCE_ACCEPTANCE_LEDGER_VERSION || target.collection_id !== "starlette-v1") {
+    fail(path, "source acceptance ledger identity changed");
+  }
   if (target.evidence_cutoff_at !== CUTOFF) fail(`${path}.evidence_cutoff_at`, "evidence cutoff changed");
-  iso(target.observed_at, `${path}.observed_at`);
-  exactArray(target.checks, ["database_id", "node_id", "actor", "occurred_at", "content_sha256"], `${path}.checks`);
+  if (target.basis !== "independent_data_qa_and_fixed_git_candidates") fail(`${path}.basis`, "acceptance basis changed");
+  if (bool(target.live_source_reaudit_performed, `${path}.live_source_reaudit_performed`) !== false) {
+    fail(`${path}.live_source_reaudit_performed`, "DS-09 must not claim a live source re-audit");
+  }
   const cases = array(target.cases, `${path}.cases`);
-  if (cases.length !== PROMOTED_CASES.length) fail(`${path}.cases`, "expected three source re-audits");
-  let sourceCount = 0;
-  let reviewCount = 0;
-  let stateCount = 0;
+  if (cases.length !== PROMOTED_CASES.length) fail(`${path}.cases`, "expected six accepted cases");
+  let eventCount = 0;
+  let sliceCount = 0;
+  let fileCount = 0;
   for (const [index, entry] of cases.entries()) {
     const casePath = `${path}.cases[${index}]`;
     const item = exact(entry, [
-      "case_id", "event_ids_verified", "review_submitted_at_event_ids",
-      "state_canonical_hash_event_ids", "semantic_payload_change_required",
+      "case_id", "accepted_path", "accepted_status", "accepted_candidate_commit", "qa_report_path",
+      "event_count", "slice_count", "file_count", "semantic_payload_change_required",
     ], casePath);
     const caseId = PROMOTED_CASES[index];
-    if (item.case_id !== caseId) fail(`${casePath}.case_id`, "case order changed");
-    const events = bundles.get(caseId).events.events;
-    exactArray(item.event_ids_verified, events.map(({ id }) => id), `${casePath}.event_ids_verified`);
-    exactArray(
-      item.review_submitted_at_event_ids,
-      events.filter(({ event_type }) => event_type === "pull_request_review").map(({ id }) => id),
-      `${casePath}.review_submitted_at_event_ids`
-    );
-    exactArray(
-      item.state_canonical_hash_event_ids,
-      events.filter(({ event_type }) => event_type === "issue_state").map(({ id }) => id),
-      `${casePath}.state_canonical_hash_event_ids`
-    );
+    const bundle = bundles.get(caseId);
+    if (
+      item.case_id !== caseId || item.accepted_path !== SOURCE_PATHS[caseId] ||
+      item.accepted_status !== ACCEPTED_STATUSES[caseId] ||
+      item.accepted_candidate_commit !== ACCEPTED_SOURCE_COMMITS[caseId] ||
+      item.qa_report_path !== ACCEPTED_QA_REPORTS[caseId]
+    ) fail(casePath, "accepted source registration changed");
+    if (
+      integer(item.event_count, `${casePath}.event_count`) !== bundle.events.events.length ||
+      integer(item.slice_count, `${casePath}.slice_count`) !== bundle.tasks.tasks.length ||
+      integer(item.file_count, `${casePath}.file_count`) !== CASE_FILES.length
+    ) fail(casePath, "accepted source counts changed");
     if (bool(item.semantic_payload_change_required, `${casePath}.semantic_payload_change_required`) !== false) {
       fail(`${casePath}.semantic_payload_change_required`, "metadata-only promotion must remain false");
     }
-    sourceCount += events.length;
-    reviewCount += item.review_submitted_at_event_ids.length;
-    stateCount += item.state_canonical_hash_event_ids.length;
+    eventCount += item.event_count;
+    sliceCount += item.slice_count;
+    fileCount += item.file_count;
   }
   const summary = exact(target.summary, [
-    "source_count", "exact_match_count", "review_updated_at_unavailable_count",
-    "state_canonical_hash_count", "semantic_payload_change_count",
+    "accepted_case_count", "source_event_count", "slice_count", "promotion_file_count",
+    "semantic_payload_change_count",
   ], `${path}.summary`);
   if (
-    integer(summary.source_count, `${path}.summary.source_count`) !== sourceCount ||
-    integer(summary.exact_match_count, `${path}.summary.exact_match_count`) !== sourceCount ||
-    integer(summary.review_updated_at_unavailable_count, `${path}.summary.review_updated_at_unavailable_count`) !== reviewCount ||
-    integer(summary.state_canonical_hash_count, `${path}.summary.state_canonical_hash_count`) !== stateCount ||
+    integer(summary.accepted_case_count, `${path}.summary.accepted_case_count`) !== PROMOTED_CASES.length ||
+    integer(summary.source_event_count, `${path}.summary.source_event_count`) !== eventCount ||
+    integer(summary.slice_count, `${path}.summary.slice_count`) !== sliceCount ||
+    integer(summary.promotion_file_count, `${path}.summary.promotion_file_count`) !== fileCount ||
     integer(summary.semantic_payload_change_count, `${path}.summary.semantic_payload_change_count`) !== 0
-  ) fail(`${path}.summary`, "source re-audit counts changed");
+  ) fail(`${path}.summary`, "source acceptance counts changed");
   string(target.limitations, `${path}.limitations`);
   return target;
 }
@@ -358,7 +434,9 @@ async function expectedDiffEntries(root) {
     ]);
     const oldHash = createHash("sha256").update(oldContent).digest("hex");
     const newHash = createHash("sha256").update(newContent).digest("hex");
-    if (oldHash !== accepted.sha256) fail(accepted.path, `accepted source differs from fixed ${ACCEPTED_SOURCE_COMMIT} contract`);
+    if (oldHash !== accepted.sha256) {
+      fail(accepted.path, `accepted source differs from fixed ${ACCEPTED_SOURCE_COMMITS[accepted.case_id]} contract`);
+    }
     if (!oldContent.equals(newContent) || newHash !== accepted.sha256) fail(newPath, "promotion copy differs from fixed accepted-source contract");
     entries.push({
       case_id: accepted.case_id,
@@ -388,8 +466,8 @@ export async function computePromotionHashEntries(root) {
   const targetRoot = resolve(root);
   const paths = [
     "promotion/collection.json",
-    "promotion/contamination-snapshot.json",
-    "promotion/source-reaudit.json",
+    SNAPSHOT_PATH,
+    ACCEPTANCE_LEDGER_PATH,
     "promotion/promotion-diff.json",
   ];
   for (const caseId of PROMOTED_CASES) {
@@ -425,24 +503,37 @@ export async function loadPromotionBundles(root) {
 
 export async function validatePromotion(root) {
   const targetRoot = resolve(root);
-  await Promise.all([validatePilot(targetRoot), validateCanary(targetRoot)]);
-  const [collection, snapshot, sourceReaudit, diff, hashes, bundles] = await Promise.all([
+  await Promise.all([
+    validatePilot(targetRoot), validateCanary(targetRoot), validateStr06Checkpoint(targetRoot),
+    validateStr07Checkpoint(targetRoot), validateStr01Checkpoint(targetRoot),
+  ]);
+  const [collection, snapshot, acceptanceLedger, diff, hashes, bundles] = await Promise.all([
     readJson(join(targetRoot, "promotion/collection.json")),
-    readJson(join(targetRoot, "promotion/contamination-snapshot.json")),
-    readJson(join(targetRoot, "promotion/source-reaudit.json")),
+    readJson(join(targetRoot, SNAPSHOT_PATH)),
+    readJson(join(targetRoot, ACCEPTANCE_LEDGER_PATH)),
     readJson(join(targetRoot, "promotion/promotion-diff.json")),
     readJson(join(targetRoot, "promotion-hashes.json")),
     loadPromotionBundles(targetRoot),
   ]);
   const collectionData = validateCollection(collection, "promotion/collection.json");
-  const snapshotData = validateSnapshot(snapshot, "promotion/contamination-snapshot.json");
-  const sourceData = validateSourceReaudit(sourceReaudit, bundles, "promotion/source-reaudit.json");
+  const snapshotData = validateSnapshot(snapshot, SNAPSHOT_PATH);
+  if (await hashFile(join(targetRoot, PRIOR_SNAPSHOT_PATH)) !== PRIOR_SNAPSHOT_SHA256) {
+    fail(PRIOR_SNAPSHOT_PATH, "prior promotion snapshot changed");
+  }
+  const sourceData = validateSourceAcceptanceLedger(acceptanceLedger, bundles, ACCEPTANCE_LEDGER_PATH);
   const caseResults = PROMOTED_CASES.map((caseId) => validateCaseBundle(bundles.get(caseId), caseId));
+  for (const [index, result] of caseResults.entries()) {
+    const caseId = PROMOTED_CASES[index];
+    if (
+      bundles.get(caseId).manifest.tier !== EXPECTED_TIERS[caseId] ||
+      result.slices !== EXPECTED_SLICE_COUNTS[caseId]
+    ) fail(`promotion/cases/${caseId}/manifest.json`, "audited tier or slice count changed");
+  }
   const diffEntries = await expectedDiffEntries(targetRoot);
   validateDiff(diff, diffEntries, "promotion/promotion-diff.json");
   for (const [key, relativePath] of [
-    ["contamination_snapshot", "promotion/contamination-snapshot.json"],
-    ["source_reaudit", "promotion/source-reaudit.json"],
+    ["contamination_snapshot", SNAPSHOT_PATH],
+    ["source_acceptance_ledger", ACCEPTANCE_LEDGER_PATH],
     ["promotion_diff", "promotion/promotion-diff.json"],
   ]) {
     const actual = await hashFile(join(targetRoot, relativePath));
@@ -459,8 +550,12 @@ export async function validatePromotion(root) {
     remaining_case_count: REMAINING_CASES.length,
     relocation_file_count: diffEntries.length,
     byte_identical_file_count: diffEntries.filter(({ change_class }) => change_class === "byte_identical_relocation").length,
-    source_reaudit_count: sourceData.summary.source_count,
+    source_acceptance_event_count: sourceData.summary.source_event_count,
     slice_count: caseResults.reduce((sum, result) => sum + result.slices, 0),
+    short_case_count: 1,
+    medium_case_count: 0,
+    long_case_count: 5,
+    medium_evaluable: false,
     contamination_confirmed: confirmed,
     evaluation_ready: false,
     model_run_authorized: false,

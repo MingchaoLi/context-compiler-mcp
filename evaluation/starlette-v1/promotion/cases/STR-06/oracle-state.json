@@ -1,0 +1,74 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-06",
+  "mode": "oracle",
+  "states": [
+    {"slice_id":"STR-06/T1","session_id":"STR-06","items":[
+      {"id":"STR-06/I1","session_id":"STR-06","type":"GOAL","content":"Keep FileResponse ETag hashing usable on the reported FIPS setup.","status":"ACTIVE","confidence":1,"created_at":"2021-12-14T22:20:55Z","updated_at":"2021-12-14T22:20:55Z","source_refs":["STR-06/E1"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I2","session_id":"STR-06","type":"OPEN_QUESTION","content":"Which MD5 compatibility change avoids the reported FIPS exception?","status":"OPEN","confidence":1,"created_at":"2021-12-14T22:20:55Z","updated_at":"2021-12-14T22:20:55Z","source_refs":["STR-06/E1"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T2","session_id":"STR-06","items":[
+      {"id":"STR-06/I1","session_id":"STR-06","type":"GOAL","content":"Keep FileResponse ETag hashing usable on the reported FIPS setup.","status":"ACTIVE","confidence":1,"created_at":"2021-12-14T22:20:55Z","updated_at":"2021-12-14T22:20:55Z","source_refs":["STR-06/E1"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I3","session_id":"STR-06","type":"DECISION","content":"Investigate a Django-style usedforsecurity compatibility path before changing algorithms.","status":"ACTIVE","confidence":0.8,"created_at":"2021-12-14T23:19:25Z","updated_at":"2021-12-14T23:19:25Z","source_refs":["STR-06/E2"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T3","session_id":"STR-06","items":[
+      {"id":"STR-06/I1","session_id":"STR-06","type":"GOAL","content":"Keep FileResponse ETag hashing usable on the reported FIPS setup.","status":"ACTIVE","confidence":1,"created_at":"2021-12-14T22:20:55Z","updated_at":"2021-12-14T22:20:55Z","source_refs":["STR-06/E1"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I4","session_id":"STR-06","type":"CONSTRAINT","content":"Do not treat an ETag hash as a security proof without a separate requirement.","status":"ACTIVE","confidence":0.8,"created_at":"2021-12-15T07:15:31Z","updated_at":"2021-12-15T07:15:31Z","source_refs":["STR-06/E3"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T4","session_id":"STR-06","items":[
+      {"id":"STR-06/I3","session_id":"STR-06","type":"DECISION","content":"Investigate a Django-style usedforsecurity compatibility path before changing algorithms.","status":"ACTIVE","confidence":0.9,"created_at":"2021-12-14T23:19:25Z","updated_at":"2021-12-15T11:46:36Z","source_refs":["STR-06/E2","STR-06/E4"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I5","session_id":"STR-06","type":"REJECTED_ALTERNATIVE","content":"Require a security-grade ETag hash as part of this compatibility fix.","status":"REJECTED","confidence":0.9,"created_at":"2021-12-15T11:46:36Z","updated_at":"2021-12-15T11:46:36Z","source_refs":["STR-06/E3","STR-06/E4"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T5","session_id":"STR-06","items":[
+      {"id":"STR-06/I3","session_id":"STR-06","type":"DECISION","content":"Use a wrapper that can pass usedforsecurity=False while retaining MD5.","status":"ACTIVE","confidence":0.9,"created_at":"2021-12-14T23:19:25Z","updated_at":"2021-12-15T12:51:28Z","source_refs":["STR-06/E2","STR-06/E4","STR-06/E5"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I4","session_id":"STR-06","type":"CONSTRAINT","content":"Do not treat an ETag hash as a security proof without a separate requirement.","status":"ACTIVE","confidence":0.9,"created_at":"2021-12-15T07:15:31Z","updated_at":"2021-12-15T11:46:36Z","source_refs":["STR-06/E3","STR-06/E4"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T6","session_id":"STR-06","items":[
+      {"id":"STR-06/I3","session_id":"STR-06","type":"DECISION","content":"Use a wrapper that can pass usedforsecurity=False while retaining MD5.","status":"ACTIVE","confidence":0.9,"created_at":"2021-12-14T23:19:25Z","updated_at":"2021-12-15T15:50:58Z","source_refs":["STR-06/E5","STR-06/E6"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"Does the first wrapper work on the reported FIPS and backported-runtime paths?","status":"OPEN","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2021-12-15T15:50:58Z","source_refs":["STR-06/E1","STR-06/E6"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T7","session_id":"STR-06","items":[
+      {"id":"STR-06/I3","session_id":"STR-06","type":"DECISION","content":"The first compatibility wrapper is repository-accepted.","status":"ACTIVE","confidence":1,"created_at":"2021-12-14T23:19:25Z","updated_at":"2021-12-17T12:37:33Z","source_refs":["STR-06/E6","STR-06/E7"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"The tracker is closed, but target FIPS behavior of the first wrapper is unverified.","status":"DEFERRED","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2021-12-17T12:37:33Z","source_refs":["STR-06/E6","STR-06/E7"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T8","session_id":"STR-06","items":[
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"The tracker is closed, but target FIPS behavior of the first wrapper is unverified.","status":"DEFERRED","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2021-12-17T12:37:33Z","source_refs":["STR-06/E6","STR-06/E7"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I7","session_id":"STR-06","type":"CONSTRAINT","content":"Probe runtime capability because downstream RHEL backports do not follow a simple Python-version boundary.","status":"ACTIVE","confidence":0.8,"created_at":"2021-12-17T15:46:32Z","updated_at":"2021-12-17T15:46:32Z","source_refs":["STR-06/E5","STR-06/E8"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T9","session_id":"STR-06","items":[
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"Does the first wrapper work on the reported FIPS and older-runtime paths?","status":"OPEN","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2021-12-17T15:53:09Z","source_refs":["STR-06/E6","STR-06/E8","STR-06/E9"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I7","session_id":"STR-06","type":"CONSTRAINT","content":"Probe runtime capability because downstream RHEL backports do not follow a simple Python-version boundary.","status":"ACTIVE","confidence":0.8,"created_at":"2021-12-17T15:46:32Z","updated_at":"2021-12-17T15:46:32Z","source_refs":["STR-06/E5","STR-06/E8"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T10","session_id":"STR-06","items":[
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"Does the first wrapper work on the reported FIPS and older-runtime paths?","status":"OPEN","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2022-01-11T13:16:25Z","source_refs":["STR-06/E6","STR-06/E9","STR-06/E10"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I7","session_id":"STR-06","type":"CONSTRAINT","content":"Probe runtime capability because downstream RHEL backports do not follow a simple Python-version boundary.","status":"ACTIVE","confidence":0.8,"created_at":"2021-12-17T15:46:32Z","updated_at":"2021-12-17T15:46:32Z","source_refs":["STR-06/E5","STR-06/E8"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T11","session_id":"STR-06","items":[
+      {"id":"STR-06/I6","session_id":"STR-06","type":"OPEN_QUESTION","content":"Does the first wrapper work on the reported FIPS path? No; its capability probe raises ValueError.","status":"RESOLVED","confidence":1,"created_at":"2021-12-15T15:50:58Z","updated_at":"2022-01-13T22:22:24Z","source_refs":["STR-06/E6","STR-06/E9","STR-06/E11"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I8","session_id":"STR-06","type":"REJECTED_ALTERNATIVE","content":"Treat the first merge and tracker close as FIPS behavior proof.","status":"REJECTED","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:22:24Z","source_refs":["STR-06/E7","STR-06/E11"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"Will a capability probe using usedforsecurity=False work without breaking other supported runtimes?","status":"OPEN","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:22:24Z","source_refs":["STR-06/E11"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T12","session_id":"STR-06","items":[
+      {"id":"STR-06/I8","session_id":"STR-06","type":"REJECTED_ALTERNATIVE","content":"Treat the first merge and tracker close as FIPS behavior proof.","status":"REJECTED","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:22:24Z","source_refs":["STR-06/E7","STR-06/E11"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I10","session_id":"STR-06","type":"DECISION","content":"Revise the parameter-support probe to use usedforsecurity=False.","status":"ACTIVE","confidence":1,"created_at":"2022-01-13T22:26:10Z","updated_at":"2022-01-13T22:26:10Z","source_refs":["STR-06/E11","STR-06/E12"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"Will the revised probe work without breaking other supported runtimes?","status":"OPEN","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:26:10Z","source_refs":["STR-06/E11","STR-06/E12"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T13","session_id":"STR-06","items":[
+      {"id":"STR-06/I8","session_id":"STR-06","type":"REJECTED_ALTERNATIVE","content":"Treat the first merge and tracker close as FIPS behavior proof.","status":"REJECTED","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:26:11Z","source_refs":["STR-06/E7","STR-06/E11","STR-06/E13"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I10","session_id":"STR-06","type":"DECISION","content":"Revise the parameter-support probe to use usedforsecurity=False.","status":"ACTIVE","confidence":1,"created_at":"2022-01-13T22:26:10Z","updated_at":"2022-01-13T22:26:10Z","source_refs":["STR-06/E11","STR-06/E12"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"The tracker is open again while the revised probe awaits implementation and review.","status":"OPEN","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:26:11Z","source_refs":["STR-06/E11","STR-06/E12","STR-06/E13"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T14","session_id":"STR-06","items":[
+      {"id":"STR-06/I10","session_id":"STR-06","type":"DECISION","content":"Evaluate the second PR's usedforsecurity=False capability probe.","status":"ACTIVE","confidence":1,"created_at":"2022-01-13T22:26:10Z","updated_at":"2022-01-13T22:27:18Z","source_refs":["STR-06/E11","STR-06/E12","STR-06/E14"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"Will the revised probe work without a repository regression test or target-system replay on current master?","status":"OPEN","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:27:18Z","source_refs":["STR-06/E11","STR-06/E14"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T15","session_id":"STR-06","items":[
+      {"id":"STR-06/I10","session_id":"STR-06","type":"DECISION","content":"The usedforsecurity=False probe has limited target-system support and remains the active correction.","status":"ACTIVE","confidence":0.9,"created_at":"2022-01-13T22:26:10Z","updated_at":"2022-01-13T22:50:40Z","source_refs":["STR-06/E12","STR-06/E14","STR-06/E15"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"The altered commit works on one FIPS system, while current master and cross-environment behavior remain unverified.","status":"OPEN","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-13T22:50:40Z","source_refs":["STR-06/E11","STR-06/E14","STR-06/E15"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]},
+    {"slice_id":"STR-06/T16","session_id":"STR-06","items":[
+      {"id":"STR-06/I10","session_id":"STR-06","type":"DECISION","content":"The second compatibility-probe correction is repository-accepted.","status":"ACTIVE","confidence":1,"created_at":"2022-01-13T22:26:10Z","updated_at":"2022-01-14T09:40:19Z","source_refs":["STR-06/E12","STR-06/E14","STR-06/E16"],"metadata":{"oracle":true,"segment_id":"STR-06"}},
+      {"id":"STR-06/I9","session_id":"STR-06","type":"OPEN_QUESTION","content":"The tracker is closed, but current-master and cross-environment FIPS behavior remain unverified.","status":"DEFERRED","confidence":1,"created_at":"2022-01-13T22:22:24Z","updated_at":"2022-01-14T09:40:19Z","source_refs":["STR-06/E14","STR-06/E15","STR-06/E16"],"metadata":{"oracle":true,"segment_id":"STR-06"}}
+    ],"relations":[]}
+  ]
+}

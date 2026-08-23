@@ -1,0 +1,22 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-07",
+  "anchors": [
+    {
+      "id":"STR-07/O1","segment_id":"STR-07","kind":"design_resolution",
+      "source":{"source_id":"gh:pr-close:1010","kind":"pull_request","repository":"Kludex/starlette","number":1010,"database_id":"456633530","node_id":"MDExOlB1bGxSZXF1ZXN0NDU2NjMzNTMw","url":"https://github.com/Kludex/starlette/pull/1010","commit_sha":null},
+      "occurred_at":"2020-07-27T07:55:29Z",
+      "summary":"PR 1010 closes without merge after the maintainer rejects optional route regex as the desired contract.",
+      "artifact_urls":["https://github.com/Kludex/starlette/pull/1010","https://github.com/Kludex/starlette/commit/503e95931b3be47fb606069698cc1d6558c91f33"],
+      "limitations":"GitHub REST reports merged_at null. The proposed routing.py change and tests remained in the unmerged PR and never entered the repository; the API merge_commit_sha field is not evidence of a merge."
+    },
+    {
+      "id":"STR-07/O2","segment_id":"STR-07","kind":"issue_closed",
+      "source":{"source_id":"gh:issue-close:1008","kind":"issue_state_event","repository":"Kludex/starlette","number":1008,"database_id":null,"node_id":null,"url":"https://github.com/Kludex/starlette/issues/1008","commit_sha":null},
+      "occurred_at":"2020-07-28T08:46:28Z",
+      "summary":"Issue 1008 is tracker-closed at the design explanation rather than by a merged patch.",
+      "artifact_urls":["https://github.com/Kludex/starlette/issues/1008#issuecomment-664875431","https://github.com/Kludex/starlette/issues/1008#issuecomment-666997766"],
+      "limitations":"Tracker closure does not prove every affected use case resolved. Later comments preserve redirect/CORS and release-documentation questions, and no STR-07 patch or regression test was merged."
+    }
+  ]
+}

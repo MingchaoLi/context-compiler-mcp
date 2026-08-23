@@ -1,0 +1,23 @@
+{
+  "schema_version": "starlette-source-acceptance-ledger/v1",
+  "collection_id": "starlette-v1",
+  "evidence_cutoff_at": "2026-08-23T03:00:00Z",
+  "basis": "independent_data_qa_and_fixed_git_candidates",
+  "live_source_reaudit_performed": false,
+  "cases": [
+    {"case_id":"STR-07","accepted_path":"checkpoint/STR-07","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"8f51bf4f9308d124ace63c5c8ca755373105c71f","qa_report_path":"docs/qa/WO-DS-07-starlette-str07-source-gold-checkpoint.md","event_count":10,"slice_count":10,"file_count":7,"semantic_payload_change_required":false},
+    {"case_id":"STR-08","accepted_path":"pilot/STR-08","accepted_status":"pilot_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","qa_report_path":"docs/qa/WO-DS-02-starlette-schema-pilot.md","event_count":4,"slice_count":4,"file_count":7,"semantic_payload_change_required":false},
+    {"case_id":"STR-05","accepted_path":"pilot/STR-05","accepted_status":"pilot_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","qa_report_path":"docs/qa/WO-DS-02-starlette-schema-pilot.md","event_count":9,"slice_count":9,"file_count":7,"semantic_payload_change_required":false},
+    {"case_id":"STR-06","accepted_path":"checkpoint/STR-06","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"f4931ad35cc7e4a844bb40ceb397aaf07842616d","qa_report_path":"docs/qa/WO-DS-06-starlette-str06-source-gold-checkpoint.md","event_count":16,"slice_count":16,"file_count":7,"semantic_payload_change_required":false},
+    {"case_id":"STR-01","accepted_path":"checkpoint/STR-01","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"454565b863cf7e9470e7ac8079febf2a5c0d42d9","qa_report_path":"docs/qa/WO-DS-08-starlette-str01-source-gold-checkpoint.md","event_count":18,"slice_count":18,"file_count":7,"semantic_payload_change_required":false},
+    {"case_id":"STR-04","accepted_path":"canary/STR-04","accepted_status":"canary_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","qa_report_path":"docs/qa/WO-DS-03-starlette-long-open-canary.md","event_count":18,"slice_count":18,"file_count":7,"semantic_payload_change_required":false}
+  ],
+  "summary": {
+    "accepted_case_count": 6,
+    "source_event_count": 75,
+    "slice_count": 75,
+    "promotion_file_count": 42,
+    "semantic_payload_change_count": 0
+  },
+  "limitations": "This ledger inherits source and semantic acceptance from the listed fixed Data-QA candidates. DS-09 does not claim a new live re-audit of 75 sources; its gate is fixed Git source contracts plus byte-identical relocation. Any semantic byte change must return to case-level Data QA."
+}

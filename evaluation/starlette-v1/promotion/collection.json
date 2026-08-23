@@ -4,46 +4,35 @@
   "status": "promotion_candidate_not_frozen",
   "evidence_cutoff_at": "2026-08-23T03:00:00Z",
   "registered_case_ids": ["STR-07", "STR-08", "STR-05", "STR-06", "STR-01", "STR-04"],
-  "promoted_case_ids": ["STR-08", "STR-05", "STR-04"],
-  "remaining_case_ids": ["STR-07", "STR-06", "STR-01"],
+  "promoted_case_ids": ["STR-07", "STR-08", "STR-05", "STR-06", "STR-01", "STR-04"],
+  "remaining_case_ids": [],
+  "tier_distribution": {
+    "case_counts": {"short":1,"medium":0,"long":5},
+    "slice_counts": {"short":4,"medium":0,"long":71},
+    "medium_status": "not_represented_not_evaluable",
+    "tier_balanced_claim_authorized": false,
+    "pooled_aggregate_status": "descriptive_only_not_authorized"
+  },
   "contamination_rule_version": "starlette-contamination-rule/v1",
   "contamination_snapshot": {
-    "path": "promotion/contamination-snapshot.json",
-    "sha256": "02361a573d0bcab37c0e617ddc4e5feb0cb44b93174d6ea029ae94c622527eb1"
+    "path": "promotion/contamination-snapshot-freeze-candidate.json",
+    "sha256": "d3fe578e8f9b70eaba48ae24d4fdb13615104b27de11ca7d5b2ae3906fd98dd2"
   },
-  "source_reaudit": {
-    "path": "promotion/source-reaudit.json",
-    "sha256": "4565223f779839a6240bb3f1497e911090ff2aa0f285f96133facd08271b09d4"
+  "source_acceptance_ledger": {
+    "path": "promotion/source-acceptance-ledger.json",
+    "sha256": "8d3b6285966603c8de82553f72e7a66eb6e5b01a5e93a177188ec91c968e8ba9"
   },
   "promotion_diff": {
     "path": "promotion/promotion-diff.json",
-    "sha256": "297dd49b77553aa52bf8661fd1093f90fa1ef9aa4d1da1ac9c3803f1b1727bf9"
+    "sha256": "d78a1737fc3999c5f04db2cac39d910313a0855393b5ea0e46aa6335eaeaf1c7"
   },
   "cases": [
-    {
-      "case_id": "STR-08",
-      "accepted_path": "pilot/STR-08",
-      "accepted_status": "pilot_not_frozen",
-      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
-      "promotion_path": "promotion/cases/STR-08",
-      "promotion_status": "promoted_not_frozen"
-    },
-    {
-      "case_id": "STR-05",
-      "accepted_path": "pilot/STR-05",
-      "accepted_status": "pilot_not_frozen",
-      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
-      "promotion_path": "promotion/cases/STR-05",
-      "promotion_status": "promoted_not_frozen"
-    },
-    {
-      "case_id": "STR-04",
-      "accepted_path": "canary/STR-04",
-      "accepted_status": "canary_not_frozen",
-      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
-      "promotion_path": "promotion/cases/STR-04",
-      "promotion_status": "promoted_not_frozen"
-    }
+    {"case_id":"STR-07","accepted_path":"checkpoint/STR-07","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"8f51bf4f9308d124ace63c5c8ca755373105c71f","promotion_path":"promotion/cases/STR-07","promotion_status":"promoted_not_frozen"},
+    {"case_id":"STR-08","accepted_path":"pilot/STR-08","accepted_status":"pilot_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","promotion_path":"promotion/cases/STR-08","promotion_status":"promoted_not_frozen"},
+    {"case_id":"STR-05","accepted_path":"pilot/STR-05","accepted_status":"pilot_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","promotion_path":"promotion/cases/STR-05","promotion_status":"promoted_not_frozen"},
+    {"case_id":"STR-06","accepted_path":"checkpoint/STR-06","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"f4931ad35cc7e4a844bb40ceb397aaf07842616d","promotion_path":"promotion/cases/STR-06","promotion_status":"promoted_not_frozen"},
+    {"case_id":"STR-01","accepted_path":"checkpoint/STR-01","accepted_status":"checkpoint_not_frozen","accepted_candidate_commit":"454565b863cf7e9470e7ac8079febf2a5c0d42d9","promotion_path":"promotion/cases/STR-01","promotion_status":"promoted_not_frozen"},
+    {"case_id":"STR-04","accepted_path":"canary/STR-04","accepted_status":"canary_not_frozen","accepted_candidate_commit":"32600eb6b7caf3fbe339e1103d3293f0b7e33103","promotion_path":"promotion/cases/STR-04","promotion_status":"promoted_not_frozen"}
   ],
   "evaluation_ready": false,
   "model_run_authorized": false

@@ -1,6 +1,6 @@
 # WO-DS-09 — Starlette 六案 canonical-data promotion candidate
 
-状态：PLANNED — NOT IMPLEMENTED
+状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
 
 ## 背景与对抗审查处置
 
@@ -110,3 +110,11 @@ validator、wiring 与聚焦测试至少验证：
 ## Gate
 
 Builder 必须提交中文 handoff 且不能自批。新的独立 Data QA 固定 Builder candidate，复验 42 项 source contract、协调改写、snapshot、75/588 preflight、parser、pack 与禁运行边界。只有 QA PASS，才接受六案 canonical-data freeze candidate；接受后仍保持 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`。
+
+## Builder 实现结果
+
+2026-08-23 已完成待验收候选：Phase 0 的混合 accepted layout 先通过 6 案 / 75 slices / 588 turns 静态 preflight；随后 STR-06/07/01 共 21 个文件以 byte-identical relocation 加入 promotion，使六案合计 42 个副本。collection、42 项 diff、accepted-source 代码合同、来源接受 ledger、追加式 freeze-candidate contamination snapshot 与 promotion hash 已更新；promotion-only suite 与 Phase 0 suite 逐字段一致，并由真实 evaluator v2 parser 接受。
+
+Builder 未修改任何 accepted payload/hash、旧 contamination snapshot、`src/`、runtime、MCP、provider 或 host；没有 Probe、runner/model 调用或效果指标。当前仍等待新的独立 Data QA，Builder 不批准本工单。
+
+Builder 自检通过：promotion validator；15 项聚焦 preflight/promotion；全量 337 项单测；protocol 8 项；build、diff check；50-entry production pack 隔离且不含 evaluation/docs/test。

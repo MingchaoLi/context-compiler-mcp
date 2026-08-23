@@ -1,0 +1,30 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-07",
+  "facts": [
+    {"id":"STR-07/F1","segment_id":"STR-07","category":"open_question","statement":"Whether the new 404 is an intended API correction or a regression in supported route syntax remains unknown.","first_known_at_event_id":"STR-07/E1","superseded_at_event_id":"STR-07/E6","provenance_event_ids":["STR-07/E1"]},
+    {"id":"STR-07/F2","segment_id":"STR-07","category":"evidence","statement":"The behavior change is linked to 0.13.5 escaping regex metacharacters in route path strings.","first_known_at_event_id":"STR-07/E2","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E1","STR-07/E2"]},
+    {"id":"STR-07/F3","segment_id":"STR-07","category":"decision","statement":"PR 1010 proposes special-casing a final question mark and adds tests for both slash variants.","first_known_at_event_id":"STR-07/E3","superseded_at_event_id":"STR-07/E4","provenance_event_ids":["STR-07/E2","STR-07/E3"]},
+    {"id":"STR-07/F4","segment_id":"STR-07","category":"rejected_alternative","statement":"Restoring optional trailing-slash behavior by treating a final question mark as raw route regex is not the accepted API direction.","first_known_at_event_id":"STR-07/E4","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E3","STR-07/E4"]},
+    {"id":"STR-07/F5","segment_id":"STR-07","category":"decision","statement":"One canonical slash form plus automatic redirect is the maintainer's initial supported alternative.","first_known_at_event_id":"STR-07/E4","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E4"]},
+    {"id":"STR-07/F6","segment_id":"STR-07","category":"evidence","statement":"The compatibility impact also reaches a wildcard SPA route written as /.*, not only the root /? form.","first_known_at_event_id":"STR-07/E5","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E2","STR-07/E5"]},
+    {"id":"STR-07/F7","segment_id":"STR-07","category":"constraint","statement":"Route and Mount path strings expose URI templating, not arbitrary embedded regular expressions.","first_known_at_event_id":"STR-07/E6","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E6"]},
+    {"id":"STR-07/F8","segment_id":"STR-07","category":"decision","statement":"A path converter is the supported alternative for the wildcard-segment use case.","first_known_at_event_id":"STR-07/E6","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E5","STR-07/E6"]},
+    {"id":"STR-07/F9","segment_id":"STR-07","category":"constraint","statement":"A 307 redirect is not behaviorally equivalent for every caller because it can lose CORS headers and adds a redirect round trip.","first_known_at_event_id":"STR-07/E7","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E5","STR-07/E7"]},
+    {"id":"STR-07/F10","segment_id":"STR-07","category":"open_question","statement":"Whether to revert and later reapply the escaping change with a larger release and clearer documentation remains undecided.","first_known_at_event_id":"STR-07/E8","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E7","STR-07/E8"]},
+    {"id":"STR-07/F11","segment_id":"STR-07","category":"evidence","statement":"The wildcard-route reporter confirms that the supported path-converter alternative works for the SPA case.","first_known_at_event_id":"STR-07/E9","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E6","STR-07/E9"]},
+    {"id":"STR-07/F12","segment_id":"STR-07","category":"decision","statement":"Registering both slash and no-slash route forms directly avoids raw regex and a redirect for the root endpoint.","first_known_at_event_id":"STR-07/E10","superseded_at_event_id":null,"provenance_event_ids":["STR-07/E7","STR-07/E10"]}
+  ],
+  "slices": [
+    {"slice_id":"STR-07/T1","fact_ids":["STR-07/F1"]},
+    {"slice_id":"STR-07/T2","fact_ids":["STR-07/F1","STR-07/F2"]},
+    {"slice_id":"STR-07/T3","fact_ids":["STR-07/F1","STR-07/F2","STR-07/F3"]},
+    {"slice_id":"STR-07/T4","fact_ids":["STR-07/F1","STR-07/F2","STR-07/F4","STR-07/F5"]},
+    {"slice_id":"STR-07/T5","fact_ids":["STR-07/F1","STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6"]},
+    {"slice_id":"STR-07/T6","fact_ids":["STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6","STR-07/F7","STR-07/F8"]},
+    {"slice_id":"STR-07/T7","fact_ids":["STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6","STR-07/F7","STR-07/F8","STR-07/F9"]},
+    {"slice_id":"STR-07/T8","fact_ids":["STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6","STR-07/F7","STR-07/F8","STR-07/F9","STR-07/F10"]},
+    {"slice_id":"STR-07/T9","fact_ids":["STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6","STR-07/F7","STR-07/F8","STR-07/F9","STR-07/F10","STR-07/F11"]},
+    {"slice_id":"STR-07/T10","fact_ids":["STR-07/F2","STR-07/F4","STR-07/F5","STR-07/F6","STR-07/F7","STR-07/F8","STR-07/F9","STR-07/F10","STR-07/F11","STR-07/F12"]}
+  ]
+}

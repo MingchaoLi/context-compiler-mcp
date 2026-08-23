@@ -97,3 +97,20 @@ npx vitest run test/starlette-str01-checkpoint.test.ts
 ```
 
 真实 evaluator v2 parser 只做 18 slices 的静态输入验证，不调用 runner 或模型。独立 Data QA PASS 前不接受该 checkpoint；PASS 后仍不表示 STR-01 promoted/frozen、六案完整或可运行 D0/D1/D2。
+
+## DS-09 六案 canonical-data promotion candidate
+
+`six-case-preflight.ts` 先以旧三案 promotion 与三个 accepted checkpoint 做不落盘全集预检：固定顺序 STR-07/08/05/06/01/04，共 75 slices、588 个 projected history turn，由真实 evaluator v2 parser 静态解析，runner/model/effect metrics 均为 0。preflight 通过后，STR-06/07/01 的 21 个文件才被逐字节复制到 `promotion/cases/`。
+
+当前 promotion 目录包含六案 42 个普通文件；`promotion-diff.json` 的 42 项全部为 `byte_identical_relocation`。validator 在代码内分别固定 `32600eb6…`、`f4931ad…`、`8f51bf4…`、`454565b…` 的 accepted path/order/SHA，协调改 accepted source、checkpoint/pilot hash、副本、diff、collection 与 promotion hash 仍会拒绝。`source-acceptance-ledger.json` 只继承固定 Data-QA candidate，不冒充本次重新 live re-audit 75 个来源。
+
+新的 `contamination-snapshot-freeze-candidate.json` 追加在 DS-05 snapshot 之后，保持旧 evidence cutoff，不覆盖旧文件。它覆盖六案，但公开索引与 GitHub code search 能力仍有限；`no_public_hit_found` 只表示本次 as-of 观察，首次模型调用前仍需 append-only rescan。
+
+实际分布固定披露为 1 short / 0 medium / 5 long，slice 分布为 4 / 0 / 71；medium 是 `not_represented_not_evaluable`，禁止 tier-balanced 声明。collection 仍是 `promotion_candidate_not_frozen`，且 `evaluation_ready:false`、`model_run_authorized:false`。
+
+```bash
+node evaluation/starlette-v1/validate-promotion.mjs
+npx vitest run test/starlette-six-case-preflight.test.ts test/starlette-promotion.test.ts
+```
+
+独立 Data QA PASS 也只接受 canonical-data freeze candidate，不等于正式 frozen、Probe/answer protocol 就绪或可运行 D0/D1/D2/远端模型。
