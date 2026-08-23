@@ -109,3 +109,61 @@ Builder 需要 append-only 修复提交，并至少补齐以下回归后再申�
 ## 冻结判断
 
 当前不能冻结 Context / State 基础设施，也不能进入真实 Experience 数据积累阶段：P1-1 会错误遗漏 ACTIVE state，P1-2 会拒绝或丢失本应 append-only 保留的研究数据，P1-3 会生成错误且自称 hybrid 的召回结果。Dense 效果与 Experience Formation 效果仍均为 **未评估**；本次 FAIL 不授权 PACE、Graph DB、provider、ontology、retrieval 调参或 Experience Formation 扩展。
+
+---
+
+## Append-only re-QA（2026-08-24）
+
+结论：**FAIL — 首轮五项 correctness 问题已关闭，但新发现 fresh DB 并发初始化 P2；WO-V0-15 继续保持 PENDING，不得标记 ACCEPTED/FROZEN。**
+
+### 固定修复候选与边界
+
+- 分支：`main`
+- 固定修复候选：`1d987a54dd81ae09013d624a0ad9e107bf239d69`
+- 固定父提交：`c625e1632de76e63d05ddfa68c787d19dc6fe2a7`
+- re-QA 开始和测试完成后候选均为 clean；分支、HEAD 和 parent 未漂移。
+- 本次未调用模型或网络，未修改 core、Gold、`feasibility-01` 或 WO-DS-14 official artifact；QA 只追加本报告。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### 首轮五项返回条件的独立重放
+
+1. **telemetry 信任与连续性：已关闭。** 合法 baseline 后缺少 `operation_id` 的 compile 稳定返回 `INVALID_INPUT`，raw / state / ledger 计数与 revision 零变化；通用 ledger `append` 拒绝 `EVENT / CONTEXT_COMPILE / RETRIEVAL_HIT` 和三个保留 source namespace。独立协调变异了 trace extra key、`hits_sha256` 和额外 hit：只有完整合法 baseline 产生 `telemetry_complete:true` 与非空 dormant，变异样本均为 `telemetry_complete:false` 并 fail-open 保留 ACTIVE item。trace payload 仍只含 hash / policy / id，未包含 current/raw 正文。
+2. **特殊 JSON 数据键：已关闭。** live raw mirror、legacy EVENT-only backfill、ledger payload 与 operational fingerprint 均无损保留嵌套 `__proto__ / constructor / prototype`；同 source 不同特殊键内容稳定 `CONFLICT`，没有原型污染或幂等合并。
+3. **Dense 极值数值稳定性：已关闭。** `[1e308]`、`[Number.MIN_VALUE]` 和 `[1e308,-1e308,5e307]` 在同 space / dimension 的相同 query/candidate 上均报告 `hybrid`，cosine 为有限值 `1`，召回顺序稳定；partial/missing/space/dimension/zero/numeric 整腿 fallback 与报告回归通过。
+4. **持久层坏行错误分类：已关闭。** 直接注入 `raw_event_ids_json='[1]'` 后，合法 `compile_context` 稳定返回 `STORAGE_FAILURE`，不再误报调用方 `INVALID_INPUT`。
+5. **RuntimeStateUpdater v2 错误合同：已关闭。** 成功结果及 extractor validation / transport / abort / conflict / storage 等稳定失败路径均暴露 `contract_version:2`；v1 legacy parser/apply 与 DS-13/14 固定重放没有变化。
+
+### 新阻塞问题
+
+#### P2：两个独立实例同时首次打开同一 fresh DB 时存在可重复的初始化竞争
+
+使用两个真实 Worker，同时构造两个 `ContextCompilerMcpService`，指向同一个尚不存在的数据库路径。10 组独立 fresh DB 中有 3 组的一个实例启动失败并抛出 `STORAGE_FAILURE`；直接对两个 `SqliteRawHistoryStore` 做同样攻击时，stack 指向 `PRAGMA journal_mode = WAL`（`dist/raw-store.js:31`，对应 `src/raw-store.ts:82`）的 `database is locked`。`busy_timeout=5000` 没有使该 fresh schema/WAL 初始化路径可并发。
+
+对照证据说明这是初始化 race，不是幂等数据重复：
+
+- 对同一 DB 先单实例完成初始化后，20 组双实例同时启动为 40/40 成功。
+- 已初始化 DB 上，两个 Worker 同时 ingest 相同 `source_event_id` 返回同一 raw id，最终只有一个 EVENT mirror；两个 service 同时 compile 相同 operation/input 返回同一 trace，最终只有一条 CONTEXT_COMPILE 和一条 RETRIEVAL_HIT。
+- 已有数据库 migration、raw + EVENT 同事务回滚、外部 UPDATE/DELETE trigger、restart replay 和 source / operation retry 回归均通过。
+
+该问题不会静默改写数据，但在两个宿主/子进程共用首次配置的本地 DB 时，会使一个 MCP 实例在 health 可用前直接退出；因此按 operational stability 和“两连接并发”验收范围记为 P2，不允许带着该已知启动失败面冻结。
+
+### 新问题的精确返回条件
+
+1. 从本 QA 报告提交追加单一 fix，不扩大 WO-V0-15 范围，不修改 core policy / evaluator / Gold / official artifact。
+2. 增加同步起跑的双 Worker 或双进程回归：两个独立 `ContextCompilerMcpService` 首次打开同一个尚不存在的 DB，两者都必须构造成功并通过 health；不能向宿主暴露可重现的 `database is locked` / `STORAGE_FAILURE`。
+3. 如采用 retry，必须是内部有界且只针对安全的 SQLite busy/locked 初始化路径，不得吞掉真实 schema / trigger / ALTER / 数据损坏错误。
+4. 保留已初始化 DB 的双连接 raw mirror / operation trace 幂等、原子回滚、旧库 migration 及本次已关闭的五组反例；再重跑 focused、full、protocol、build、DS-13/14 和 production-only package/stdio。
+
+### re-QA 回归与打包证据
+
+- 修复 focused：8 个相关测试文件，158/158 PASS。
+- 全量 `npm test`：458 PASS / 1 个既有 opt-in official runner SKIP。
+- `npm run test:protocol`：8/8 PASS；其中真实 `npm pack` + production-only 隔离安装 + stdio 启动/关闭通过，协议仍精确暴露九个工具。
+- `npm run build`、`git diff --check HEAD^..HEAD`：PASS。
+- DS-13 `validate-results.mjs`：fixed Git object anchor、36 answer / 8 lexical Probe 诊断复现，没有重跑 official artifact。
+- DS-14 定向回归：ST-01 7/7、ST-02 contract 8/8、empty-state score 8/8、feasibility results 7/7，合计 30/30 PASS。
+- candidate 相对父提交没有修改 `evaluation/`；provider/network/Graph DB/Experience Formation/PACE 范围未扩大。
+
+### re-QA 冻结判断
+
+首轮的 vacuous telemetry 自证、特殊 JSON 丢失、Dense 极值、persisted-row 错误分类与 Runtime v2 合同已经关闭，没有新的 P0/P1。但 fresh DB 双实例启动 P2 使 operational stability 尚未闭合，因此本轮仍为 FAIL；WO、PROJECT_STATE 与 ROADMAP 保持 `QA FIX IMPLEMENTED / INDEPENDENT RE-QA PENDING`。Dense 效果与 Experience Formation 效果继续标记为 **未评估**，本次不授权进入下一阶段或任何 Context 算法扩展。
