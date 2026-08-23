@@ -1,0 +1,38 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-01",
+  "anchors": [
+    {
+      "id":"STR-01/O1","segment_id":"STR-01","kind":"design_resolution",
+      "source":{"source_id":"gh:pr-close:500","kind":"pull_request","repository":"Kludex/starlette","number":500,"database_id":"275466541","node_id":"MDExOlB1bGxSZXF1ZXN0Mjc1NDY2NTQx","url":"https://github.com/Kludex/starlette/pull/500","commit_sha":null},
+      "occurred_at":"2019-05-20T14:15:53Z",
+      "summary":"PR 500 closes without merge after a maintainer punts global scope-level body caching pending a complete streaming contract.",
+      "artifact_urls":["https://github.com/Kludex/starlette/pull/500","https://github.com/Kludex/starlette/commit/d388e06d16db09931e424db6ba767317393da17b"],
+      "limitations":"GitHub reports merged_at null. Its requests.py change and repeated-Request test remained in the unmerged PR; merge_commit_sha is not evidence that either artifact entered Starlette."
+    },
+    {
+      "id":"STR-01/O2","segment_id":"STR-01","kind":"patch_merged",
+      "source":{"source_id":"gh:pr-merge:1692","kind":"pull_request","repository":"Kludex/starlette","number":1692,"database_id":"967628660","node_id":"PR_kwDOCELT_M45rNd0","url":"https://github.com/Kludex/starlette/pull/1692","commit_sha":"554b9e21f6161a6d83b4ebb90909282114266317"},
+      "occurred_at":"2023-06-01T18:57:28Z",
+      "summary":"PR 1692 merges a _CachedRequest wrapper for BaseHTTPMiddleware.call_next and changes Request.stream consumption tracking.",
+      "artifact_urls":["https://github.com/Kludex/starlette/pull/1692","https://github.com/Kludex/starlette/commit/554b9e21f6161a6d83b4ebb90909282114266317"],
+      "limitations":"The patch replays a body cached by middleware-before-call_next, or sends an empty body after the middleware consumed the stream. It is not general replay for endpoint-first or exception-handler rereads."
+    },
+    {
+      "id":"STR-01/O3","segment_id":"STR-01","kind":"regression_test",
+      "source":{"source_id":"gh:pr-tests:1692","kind":"pull_request","repository":"Kludex/starlette","number":1692,"database_id":"967628660","node_id":"PR_kwDOCELT_M45rNd0","url":"https://github.com/Kludex/starlette/pull/1692/files","commit_sha":"68efb83cf38784be7e89e0583923dca2055b733b"},
+      "occurred_at":"2023-06-01T18:44:09Z",
+      "summary":"The final head contains regression coverage in tests/middleware/test_base.py and tests/test_requests.py, including downstream receive modification, disconnects, middleware/endpoint read orders, and multi-chunk Request streams.",
+      "artifact_urls":["https://github.com/Kludex/starlette/blob/68efb83cf38784be7e89e0583923dca2055b733b/tests/middleware/test_base.py","https://github.com/Kludex/starlette/blob/68efb83cf38784be7e89e0583923dca2055b733b/tests/test_requests.py"],
+      "limitations":"The tests support the narrow merged behavior. They do not turn explicitly unsupported endpoint-first or exception-handler rereads into accepted behavior."
+    },
+    {
+      "id":"STR-01/O4","segment_id":"STR-01","kind":"issue_closed",
+      "source":{"source_id":"gh:issue-close:495","kind":"issue_state_event","repository":"Kludex/starlette","number":495,"database_id":"9406862724","node_id":"CE_lADOCELT_M4aJC8szwAAAAIwsVWE","url":"https://github.com/Kludex/starlette/issues/495#event-9406862724","commit_sha":null},
+      "occurred_at":"2023-06-01T18:57:30Z",
+      "summary":"Issue 495 closes immediately after PR 1692 merges.",
+      "artifact_urls":["https://github.com/Kludex/starlette/issues/495","https://github.com/Kludex/starlette/pull/1692"],
+      "limitations":"Tracker closure records acceptance of the linked middleware-first target. It does not prove every request-body ownership order or every workaround is supported."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-01",
+  "title": "BaseHTTPMiddleware request-body ownership: broad scope cache rejected, narrow call_next replay delivered",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "long",
+  "pilot_status": "canary_not_frozen",
+  "segments": [
+    {
+      "id": "STR-01",
+      "classification": "long",
+      "boundary": "independent",
+      "event_ids": ["STR-01/E1","STR-01/E2","STR-01/E3","STR-01/E4","STR-01/E5","STR-01/E6","STR-01/E7","STR-01/E8","STR-01/E9","STR-01/E10","STR-01/E11","STR-01/E12","STR-01/E13","STR-01/E14","STR-01/E15","STR-01/E16","STR-01/E17","STR-01/E18"],
+      "information_increment_event_ids": ["STR-01/E1","STR-01/E2","STR-01/E3","STR-01/E4","STR-01/E5","STR-01/E6","STR-01/E7","STR-01/E8","STR-01/E9","STR-01/E10","STR-01/E11","STR-01/E12","STR-01/E13","STR-01/E14","STR-01/E15","STR-01/E16","STR-01/E17","STR-01/E18"],
+      "slice_ids": ["STR-01/T1","STR-01/T2","STR-01/T3","STR-01/T4","STR-01/T5","STR-01/T6","STR-01/T7","STR-01/T8","STR-01/T9","STR-01/T10","STR-01/T11","STR-01/T12","STR-01/T13","STR-01/T14","STR-01/T15","STR-01/T16","STR-01/T17","STR-01/T18"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "Issue 495, rejected PR 500, and merged PR 1692 form one request-body ownership lineage: the broad scope-cache attempt was punted over streaming semantics, while the later implementation narrowed replay to BaseHTTPMiddleware.call_next and survived a multi-chunk review correction.",
+    "falsification": "Split the lineage if immutable patch or timestamped review evidence shows PR 1692 did not address the middleware-first body-consumption path reported in Issue 495, or if PR 500 was independently merged or delivered elsewhere in Starlette."
+  },
+  "included_source_ids": [
+    "gh:issue:495",
+    "gh:issue-comment:488205460",
+    "gh:pr:500",
+    "gh:pr-comment:494006150",
+    "gh:issue-comment:494008175",
+    "gh:issue-comment:886876930",
+    "gh:issue-comment:1101403203",
+    "gh:pr:1692",
+    "gh:pr-comment:1236394572",
+    "gh:issue-event:7329871772",
+    "gh:pr-comment:1265515733",
+    "gh:pr-comment:1266401636",
+    "gh:issue-comment:1522359931",
+    "gh:pr-review-comment:1184692481",
+    "gh:pr-comment:1535152681",
+    "gh:pr-review:1456104075",
+    "gh:issue-event:9406862296",
+    "gh:issue-event:9406862724"
+  ],
+  "excluded_sources": [
+    {"source_id":"gh:issue-comment:488205151","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-488205151","reason":"This asks whether a second Request instance explains the block; E2 retains the subsequent source inspection and test request that advances the diagnosis."},
+    {"source_id":"gh:issue-comment:513138055","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-513138055","reason":"The receive-monkeypatch logging workaround is not repository-supported and is superseded as evidence by the later cache-versus-form distinction and explicit exhausted-queue diagnosis."},
+    {"source_id":"gh:issue-comment:575303938","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-575303938","reason":"The FastAPI custom route workaround is an ecosystem-specific bypass and does not change the Starlette ownership contract."},
+    {"source_id":"gh:issue-comment:953524449","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-953524449","reason":"This combines response consumption and a custom Request workaround; the next reply later concedes project/version dependence, so it is not durable evidence for the request-body lineage."},
+    {"source_id":"gh:issue-comment:1010887383","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-1010887383","reason":"The proposal to store and reuse the Request object through scope repeats the broad scope-caching direction already audited in rejected PR 500 and was not merged."},
+    {"source_id":"gh:issue-comment:1344526334","url":"https://github.com/Kludex/starlette/issues/495#issuecomment-1344526334","reason":"This is another logging workaround and request for a mixin, not a repository decision or validation result."},
+    {"source_id":"gh:pr-comment:1383179180","url":"https://github.com/Kludex/starlette/pull/1692#issuecomment-1383179180","reason":"The comment calls the implementation confusing without a concrete counterexample; the later multi-chunk review supplies an actionable failure."},
+    {"source_id":"gh:pr-comment:1426330315","url":"https://github.com/Kludex/starlette/pull/1692#issuecomment-1426330315","reason":"The double-consumption idea is represented more precisely by the final patch boundary and multi-chunk review; the adjacent ContextVar exchange belongs to a separate BaseHTTPMiddleware concern."},
+    {"source_id":"gh:pr-comment:1486687880","url":"https://github.com/Kludex/starlette/pull/1692#issuecomment-1486687880","reason":"This is a review-status reminder and adds no diagnosis, constraint, patch, or validation evidence."},
+    {"source_id":"gh:pr-review-comment:1376067707","url":"https://github.com/Kludex/starlette/pull/1692#discussion_r1376067707","reason":"The post-merge clarification repeats the delivered middleware-before-call_next behavior and occurs after the case outcome; it cannot alter earlier slices."}
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "Issue and PR bodies are mutable. GitHub's current structured record for Issue 495 exposes the original datePublished/bodyVersion and no content-edit record; immediate comments independently anchor the second-Request diagnosis. PR 1692 creation records only that a candidate opened; its current body/title/commit list are not backfilled into 2022. The timestamped rename, comments, original review commit, final patch, approval, merge, and close are separate sources. Timeline events use documented canonical JSON subsets."
+}

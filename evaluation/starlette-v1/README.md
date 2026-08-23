@@ -84,3 +84,16 @@ npx vitest run test/starlette-str07-checkpoint.test.ts
 ```
 
 真实 evaluator v2 parser 只做 10 slices 的静态输入验证，不调用 runner 或模型。独立 Data QA PASS 前不接受该 checkpoint；PASS 后仍不表示 STR-07 promoted/frozen、六案完整或可运行 D0/D1/D2。
+
+## DS-08 STR-01 source/Gold checkpoint
+
+`checkpoint/STR-01/` 覆盖 Issue #495、closed-unmerged PR #500 与 merged PR #1692 的 18 个真实增量、18 个 slice 和 171 个投影历史 turn。逐事件审计机械归为 long，并严格分离 broad scope-cache 被 punt、streaming constraint、body/form cache 差异、receive queue hang、`call_next` 窄化、明确 non-goal、multi-chunk review bug、补测修正、approval、merge 与 tracker close。
+
+`str01-checkpoint.json` 保持 `checkpoint_not_frozen`，显式禁止 promotion/evaluation/model run。validator 固定 18 个 source contract 与 3 个 canonical timeline hash，并拒绝把 PR #500 当 merged/delivered、把 PR #1692 当 general replay、把 current PR body/title/force-push 结果回填创建切片、把 approval 当 merge，或把 Issue close 当所有 ownership 场景解决。
+
+```bash
+node evaluation/starlette-v1/validate-str01-checkpoint.mjs evaluation/starlette-v1
+npx vitest run test/starlette-str01-checkpoint.test.ts
+```
+
+真实 evaluator v2 parser 只做 18 slices 的静态输入验证，不调用 runner 或模型。独立 Data QA PASS 前不接受该 checkpoint；PASS 后仍不表示 STR-01 promoted/frozen、六案完整或可运行 D0/D1/D2。

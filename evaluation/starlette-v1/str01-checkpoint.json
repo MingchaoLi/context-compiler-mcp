@@ -1,0 +1,29 @@
+{
+  "schema_version": "starlette-str01-checkpoint/v1",
+  "status": "checkpoint_not_frozen",
+  "case_id": "STR-01",
+  "evidence_cutoff_at": "2026-08-23T03:00:00Z",
+  "source_numbers": [495, 500, 1692],
+  "case": {
+    "path": "checkpoint/STR-01",
+    "status": "canary_not_frozen",
+    "file_count": 7
+  },
+  "contamination_snapshot": {
+    "path": "promotion/contamination-snapshot.json",
+    "sha256": "02361a573d0bcab37c0e617ddc4e5feb0cb44b93174d6ea029ae94c622527eb1",
+    "rule_version": "starlette-contamination-rule/v1",
+    "result_status": "no_public_hit_found"
+  },
+  "promotion_authorized": false,
+  "evaluation_ready": false,
+  "model_run_authorized": false,
+  "outcome_assertions": {
+    "pr500_patch_merged": false,
+    "pr500_repository_test_delivered": false,
+    "pr1692_is_general_body_replay": false,
+    "endpoint_first_reread_supported": false,
+    "exception_handler_reread_supported": false,
+    "issue_close_proves_all_body_ownership_cases": false
+  }
+}

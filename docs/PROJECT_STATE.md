@@ -36,7 +36,7 @@ DS-06 接受后的第四次关键节点对抗审查记录为 `docs/adversarial-r
 
 WO-DS-07 已在独立 Data QA 于 2026-08-23 接受，固定 source candidate 为 `8f51bf4f9308d124ace63c5c8ca755373105c71f`。Issue #1008 与 closed-unmerged PR #1010 的 10 个 information increment/slice 经 GitHub 官方 REST 逐项重验，机械分层为 long，已审计分布为 1 short / 0 medium / 4 long。候选严格区分未合并 patch/test、公开 URI-template API、redirect/CORS 限制、path-converter 与 dual-route workaround，以及仍未决的 revert/release/docs；此次仅接受 checkpoint/schema gate，保持 checkpoint_not_frozen、未 promotion、promotion_authorized:false、evaluation_ready:false、model_run_authorized:false，未授权 D0/D1/D2 或远端模型。
 
-当前唯一活动工单为 WO-DS-08：只制作 STR-01（Issue #495、closed-unmerged PR #500、merged PR #1692）的 source/Gold checkpoint。工单要求把宽 scope-body 缓存被搁置、streaming 约束、多年 workaround、`call_next` 窄化、multi-chunk review bug、补测修正、approval/merge/Issue close 严格按时间分离。它不 promotion STR-06/07/01，不创建 Probe，不运行 D0/D1/D2 或远端模型；只有独立 Data QA PASS 后才可考虑下一工单的一次性 promotion。
+当前唯一活动工单 WO-DS-08 已完成 Builder 候选，等待新的独立 Data QA。STR-01（Issue #495、closed-unmerged PR #500、merged PR #1692）保留 18 个真实增量/slice，机械为 long，使已审计分布变为 1 short / 0 medium / 5 long。候选把宽 scope-body 缓存被搁置、streaming 约束、body/form 差异、receive hang、`call_next` 窄化、endpoint-first 非目标、multi-chunk review bug、补测修正、approval/merge/Issue close 严格按时间分离。它未 promotion STR-06/07/01，未创建 Probe，未运行 D0/D1/D2 或远端模型；只有独立 Data QA PASS 后才可考虑下一工单的一次性 promotion。
 
 ## 最新对抗审查
 

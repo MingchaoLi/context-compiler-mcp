@@ -1,6 +1,6 @@
 # WO-DS-08 — Starlette STR-01 source/Gold checkpoint
 
-状态：PLANNED — NOT IMPLEMENTED
+状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
 
 ## 背景与唯一结果
 
@@ -121,3 +121,9 @@ Builder 至少执行：checkpoint validator、聚焦反例、真实 `parseEvalua
 ## 验收边界
 
 只有独立 QA PASS，STR-01 source/Gold checkpoint 才接受。PASS 仍不表示 STR-01 promoted/frozen、六案完整、Probe/answer rubric 就绪、`evaluation_ready` 或可运行模型；下一步只能另开工单一次性 promotion STR-06/07/01，再在关键节点申请对抗审查。
+
+## Builder 实现结果
+
+2026-08-23 已完成待验收候选：保留 18 个真实信息增量与 18 个严格前缀 slice，机械分层为 long。候选严格分开 PR #500 closed-unmerged、不可逆 streaming constraint、body/form cache 差异、receive queue hang、PR #1692 current-body 限制、`call_next` 窄化、endpoint-first 非目标、multi-chunk review bug、修正/补测、approval、merge 与 tracker close。
+
+新增七文件 checkpoint、wrapper、八项 hash、严格 validator、13 项聚焦反例、中文 source ledger 与 handoff；真实 evaluator v2 parser 静态接受 18 slices / 171 raw turns。Builder 自检通过聚焦 13/13、全量 333、protocol 8/8、build、diff check 与真实 50-entry npm pack 隔离。没有修改 promotion、旧 fixture、core、runner/provider/host/MCP，也没有创建 Probe、运行 D0/D1/D2 或远端模型。实现者不接受本工单，必须由新的独立 Data QA 固定 Builder candidate 后决定 PASS/FAIL。
