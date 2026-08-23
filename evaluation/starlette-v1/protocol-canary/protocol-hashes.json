@@ -1,0 +1,15 @@
+{
+  "schema_version": "starlette-protocol-canary-hashes/v1",
+  "status": "protocol_canary_not_frozen",
+  "algorithm": "sha256",
+  "source_identity": {
+    "accepted_builder_candidate": "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
+    "promotion_hashes_path": "promotion-hashes.json",
+    "promotion_hashes_sha256": "c216719f1745601786ad53f50bbaed6c5e7b0a8e8d9d6612cfb79b9c103ff51b"
+  },
+  "files": [
+    {"path":"protocol-canary/derive-eligibility.mjs","sha256":"f4a1581624906f022ffa85cb35b339e3180e396aa8255668554af5443f5759a3"},
+    {"path":"protocol-canary/eligibility-inventory.json","sha256":"1ddc5961a12d510caf97274710ac783d7631ea27b2fbf335f870471064a27d65"},
+    {"path":"protocol-canary/protocol.json","sha256":"21fc57bb02a67868965475dab82347fb5abde0fb2eb2a0c8fd3b71f24c58c3f0"}
+  ]
+}

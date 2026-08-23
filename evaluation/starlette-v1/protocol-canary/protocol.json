@@ -1,0 +1,341 @@
+{
+  "schema_version": "starlette-protocol-canary/v1",
+  "protocol_id": "starlette-v1-protocol-canary",
+  "status": "protocol_canary_not_frozen",
+  "source_identity": {
+    "accepted_builder_candidate": "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
+    "promotion_hashes_path": "promotion-hashes.json",
+    "promotion_hashes_sha256": "c216719f1745601786ad53f50bbaed6c5e7b0a8e8d9d6612cfb79b9c103ff51b",
+    "collection_path": "promotion/collection.json",
+    "collection_sha256": "ae6ae7446e5e102a12e45124f4ab2658ba40974ec7c4251a1d39f178fd91cfeb",
+    "eligibility_inventory_path": "protocol-canary/eligibility-inventory.json",
+    "eligibility_inventory_sha256": "1ddc5961a12d510caf97274710ac783d7631ea27b2fbf335f870471064a27d65"
+  },
+  "case_order": ["STR-07", "STR-08", "STR-05", "STR-06", "STR-01", "STR-04"],
+  "selection_rule": {
+    "per_case": "first_technically_mature_slice_with_manual_task_dependency_plus_terminal",
+    "result_dependent_selection_allowed": false,
+    "selected_slice_count": 12,
+    "full_inventory_slice_count": 75
+  },
+  "selected_slices": [
+    {
+      "slice_id": "STR-07/T4",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-07/F1"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-07/F1","reason_code":"no_shared_lexical_anchor","explanation":"原始事件与 Oracle 对问题边界使用不同措辞；route path 的共同片段在 Oracle 中属于被否决实现，不能当作同一 open question。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-07/T4/R1","fact_ids":["STR-07/F1"],"criterion":"回答必须保留：404 到底是受支持语法回归还是 API 边界纠正仍未澄清，不能直接把行为变化当成最终契约。","retention_role":"historical_dependency","provenance_event_ids":["STR-07/E1"]},
+          {"id":"STR-07/T4/R2","fact_ids":["STR-07/F5"],"criterion":"回答应把 canonical slash form 加自动 redirect 表述为当前维护者支持的替代方向，而不是唯一已验证终局。","retention_role":"current_correctness_control","provenance_event_ids":["STR-07/E4"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-07/T4/X1","fact_ids":["STR-07/F4"],"claim":"不得把保留末尾问号的 raw route regex patch 说成已经接受的公共 API 方向。","retention_role":"current_correctness_control","provenance_event_ids":["STR-07/E3","STR-07/E4"]}
+        ],
+        "critical_miss_ids": ["STR-07/T4/R1", "STR-07/T4/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-07/T10",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-07/F7", "STR-07/F8", "STR-07/F9"],
+      "context_probes": {
+        "constraints": [
+          {"id":"STR-07/T10/P1","text":"URI templating","fact_ids":["STR-07/F7"],"raw_event_ids":["STR-07/E6"],"context_item_ids":["STR-07/I5"],"code_identifier_exception":false,"interpretation":"Route/Mount path-string API 的公开边界。"},
+          {"id":"STR-07/T10/P2","text":"307 redirect","fact_ids":["STR-07/F9"],"raw_event_ids":["STR-07/E7"],"context_item_ids":["STR-07/I7"],"code_identifier_exception":false,"interpretation":"redirect 对 CORS/网络往返并非行为等价。"}
+        ],
+        "decisions": [
+          {"id":"STR-07/T10/P3","text":"path converter for wildcard segments","fact_ids":["STR-07/F8"],"raw_event_ids":["STR-07/E6"],"context_item_ids":["STR-07/I6"],"code_identifier_exception":false,"interpretation":"wildcard SPA 用例的受支持替代方案。"}
+        ],
+        "resolved_issues": [],
+        "open_questions": []
+      },
+      "not_exactly_scorable": [],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-07/T10/R1","fact_ids":["STR-07/F7"],"criterion":"必须说明 Route/Mount path strings 支持 URI templating，而不是任意 embedded regex。","retention_role":"historical_dependency","provenance_event_ids":["STR-07/E6"]},
+          {"id":"STR-07/T10/R2","fact_ids":["STR-07/F8"],"criterion":"必须保留 wildcard segment 可使用 path converter，且该替代已被报告者验证可用。","retention_role":"historical_dependency","provenance_event_ids":["STR-07/E5","STR-07/E6"]},
+          {"id":"STR-07/T10/R3","fact_ids":["STR-07/F9"],"criterion":"必须指出 307 redirect 对所有调用者并不等价，存在 CORS header 与额外往返约束。","retention_role":"historical_dependency","provenance_event_ids":["STR-07/E5","STR-07/E7"]},
+          {"id":"STR-07/T10/R4","fact_ids":["STR-07/F10"],"criterion":"必须把 revert、release version 与 documentation follow-up 保持为未决，不得冒充已有发布决定。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-07/E7","STR-07/E8"]},
+          {"id":"STR-07/T10/R5","fact_ids":["STR-07/F12"],"criterion":"应记录 root endpoint 可显式注册 slash/no-slash 两种 route，避免 raw regex 与 redirect。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-07/E7","STR-07/E10"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-07/T10/X1","fact_ids":["STR-07/F4"],"claim":"不得宣称 arbitrary embedded regex 已重新成为 Route/Mount path-string 的受支持 API。","retention_role":"historical_dependency","provenance_event_ids":["STR-07/E3","STR-07/E4"]}
+        ],
+        "critical_miss_ids": ["STR-07/T10/R1", "STR-07/T10/R3", "STR-07/T10/R4", "STR-07/T10/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-08/T3",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-08/F1"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-08/F1","reason_code":"no_shared_lexical_anchor","explanation":"原始事件说 startup/shutdown 未触发，Oracle 将其概括为 lifespan activation；除 TestClient 外没有足够具体且语义完整的共同 exact anchor。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-08/T3/R1","fact_ids":["STR-08/F1"],"criterion":"必须先核查现有 public API 如何激活 lifespan；当前还不能把未知行为直接升级为产品改动。","retention_role":"historical_dependency","provenance_event_ids":["STR-08/E1"]},
+          {"id":"STR-08/T3/R2","fact_ids":["STR-08/F2"],"criterion":"应保留 async resources 与 TestClient application 同 event loop 的约束。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-08/E2"]},
+          {"id":"STR-08/T3/R3","fact_ids":["STR-08/F3"],"criterion":"manual blocking-portal dispatch 只能表述为正在调查的 prototype。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-08/E3"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-08/T3/X1","fact_ids":["STR-08/F3"],"claim":"不得断言 manual lifespan dispatch 已是接受的产品方案或已有行为无法满足需求。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-08/E3"]}
+        ],
+        "critical_miss_ids": ["STR-08/T3/R1", "STR-08/T3/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-08/T4",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-08/F2"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-08/F2","reason_code":"shared_anchor_too_generic","explanation":"event loop 是两边唯一稳定共同片段，但长度与区分度不足以作为 primary exact Probe。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-08/T4/R1","fact_ids":["STR-08/F4"],"criterion":"必须说明 TestClient 作为 context manager 已能激活 startup/shutdown lifespan。","retention_role":"current_correctness_control","provenance_event_ids":["STR-08/E4"]},
+          {"id":"STR-08/T4/R2","fact_ids":["STR-08/F6"],"criterion":"必须把当前 issue 状态记录为由既有行为解决，不需要新 patch。","retention_role":"current_correctness_control","provenance_event_ids":["STR-08/E4"]},
+          {"id":"STR-08/T4/R3","fact_ids":["STR-08/F2"],"criterion":"仍应保留 async resources 共享 application event loop 的历史约束。","retention_role":"historical_dependency","provenance_event_ids":["STR-08/E2"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-08/T4/X1","fact_ids":["STR-08/F5"],"claim":"不得建议修改 TestClient internals 手动 dispatch lifespan messages 作为当前必要实现。","retention_role":"current_correctness_control","provenance_event_ids":["STR-08/E3","STR-08/E4"]}
+        ],
+        "critical_miss_ids": ["STR-08/T4/R1", "STR-08/T4/R2", "STR-08/T4/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-05/T7",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-05/F4", "STR-05/F5"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-05/F4","reason_code":"answer_only_category","explanation":"revert 是 evidence 类事实，不能为提高覆盖率强塞进 decision metric。"},
+        {"fact_id":"STR-05/F5","reason_code":"no_shared_lexical_anchor","explanation":"reverted replacement 的 open question 在 raw history 与 Oracle 中没有足够具体的共同 exact phrase。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-05/T7/R1","fact_ids":["STR-05/F4"],"criterion":"必须记住第一次 merged fix 已被 revert，旧 resolved 结论失效。","retention_role":"historical_dependency","provenance_event_ids":["STR-05/E3","STR-05/E4"]},
+          {"id":"STR-05/T7/R2","fact_ids":["STR-05/F7"],"criterion":"必须把 user-controlled symlink 暴露不能成为 implicit default 作为安全边界。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-05/E6"]},
+          {"id":"STR-05/T7/R3","fact_ids":["STR-05/F8"],"criterion":"应把 explicit follow_symlink 且 default=false 作为当前 preferred boundary。","retention_role":"current_correctness_control","provenance_event_ids":["STR-05/E7"]},
+          {"id":"STR-05/T7/R4","fact_ids":["STR-05/F5"],"criterion":"即使已有第二次提案，safe replacement 在此时仍需审查，不能以第一 merge 代替验证。","retention_role":"historical_dependency","provenance_event_ids":["STR-05/E4"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-05/T7/X1","fact_ids":["STR-05/F4"],"claim":"不得用第一次 merge 宣称 symlink design 已经解决或证明安全。","retention_role":"historical_dependency","provenance_event_ids":["STR-05/E3","STR-05/E4"]}
+        ],
+        "critical_miss_ids": ["STR-05/T7/R1", "STR-05/T7/R2", "STR-05/T7/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-05/T9",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-05/F4", "STR-05/F6", "STR-05/F7"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-05/F4","reason_code":"answer_only_category","explanation":"revert 是 evidence 类历史状态，由 answer checklist 评价。"},
+        {"fact_id":"STR-05/F6","reason_code":"no_shared_lexical_anchor","explanation":"第二次实现尝试在 raw 与 Oracle 中没有表示中立的共同 exact phrase。"},
+        {"fact_id":"STR-05/F7","reason_code":"no_shared_lexical_anchor","explanation":"security boundary 在两种表示中为语义改写，不能用 Oracle-only wording 作为 Probe。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-05/T9/R1","fact_ids":["STR-05/F4"],"criterion":"必须保留第一次 fix 被 revert 的历史，不能把 earlier merge 当终局。","retention_role":"historical_dependency","provenance_event_ids":["STR-05/E3","STR-05/E4"]},
+          {"id":"STR-05/T9/R2","fact_ids":["STR-05/F7"],"criterion":"必须保留 user-controlled symlink 不能默认暴露的安全约束。","retention_role":"historical_dependency","provenance_event_ids":["STR-05/E6"]},
+          {"id":"STR-05/T9/R3","fact_ids":["STR-05/F8"],"criterion":"应记录 explicit follow_symlink option 且 false default 是待合并方案的边界。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-05/E7"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-05/T9/X1","fact_ids":["STR-05/F10"],"claim":"不得建议恢复 unconditional external symlink following。","retention_role":"current_correctness_control","provenance_event_ids":["STR-05/E6","STR-05/E7","STR-05/E9"]}
+        ],
+        "critical_miss_ids": ["STR-05/T9/R1", "STR-05/T9/R2", "STR-05/T9/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-06/T4",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-06/F1"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-06/F1","reason_code":"answer_only_category","explanation":"真实 RHEL/FIPS failure 是 evidence 类事实，不能改标 decision/constraint 以制造 context Probe。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-06/T4/R1","fact_ids":["STR-06/F1"],"criterion":"必须保留报告环境中的 hashlib.md5 FIPS-disabled ValueError，而不是抽象成普通版本兼容问题。","retention_role":"historical_dependency","provenance_event_ids":["STR-06/E1"]},
+          {"id":"STR-06/T4/R2","fact_ids":["STR-06/F2"],"criterion":"应把 usedforsecurity compatibility path 与更换 hash algorithm 的独立设计讨论分开。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-06/E2"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-06/T4/X1","fact_ids":["STR-06/F3"],"claim":"不得继续要求 security-grade ETag hash 作为本兼容修复的必要条件。","retention_role":"current_correctness_control","provenance_event_ids":["STR-06/E3","STR-06/E4"]}
+        ],
+        "critical_miss_ids": ["STR-06/T4/R1", "STR-06/T4/R2", "STR-06/T4/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-06/T16",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-06/F7", "STR-06/F10", "STR-06/F12"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-06/F7","reason_code":"no_shared_lexical_anchor","explanation":"RHEL backport/capability probing 边界在 terminal Oracle 被汇总为 cross-environment uncertainty，没有共同 exact phrase。"},
+        {"fact_id":"STR-06/F10","reason_code":"answer_only_category","explanation":"first merged probe 的真实 FIPS failure 是 evidence 类事实。"},
+        {"fact_id":"STR-06/F12","reason_code":"representation_punctuation_mismatch","explanation":"raw 使用 compatibility probe，Oracle 使用 compatibility-probe；evaluator 不移除标点，且单独 compatibility 区分度不足。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-06/T16/R1","fact_ids":["STR-06/F10"],"criterion":"必须说明第一版 merged implementation 在真实 FIPS import 中因 usedforsecurity=True probe 触发 ValueError。","retention_role":"historical_dependency","provenance_event_ids":["STR-06/E11"]},
+          {"id":"STR-06/T16/R2","fact_ids":["STR-06/F12"],"criterion":"必须保留 correction：参数能力探测应改用 usedforsecurity=False，同时保持 parameter detection。","retention_role":"historical_dependency","provenance_event_ids":["STR-06/E11","STR-06/E12"]},
+          {"id":"STR-06/T16/R3","fact_ids":["STR-06/F16"],"criterion":"应把 PR 1410 merge 与 Issue close 记录为 repository/tracker acceptance，而不是全环境证明。","retention_role":"current_correctness_control","provenance_event_ids":["STR-06/E14","STR-06/E15","STR-06/E16"]},
+          {"id":"STR-06/T16/R4","fact_ids":["STR-06/F17"],"criterion":"必须保留 current master、cross-environment FIPS 和 repository regression test 仍未验证。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-06/E14","STR-06/E15"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-06/T16/X1","fact_ids":["STR-06/F11"],"claim":"不得把 PR 1366 merge 或第一次 tracker close 当成 FIPS 行为已工作的证明。","retention_role":"historical_dependency","provenance_event_ids":["STR-06/E7","STR-06/E11"]},
+          {"id":"STR-06/T16/X2","fact_ids":["STR-06/F3"],"claim":"不得重新提出必须更换为 security-grade hash 才能解决 ETag 兼容问题。","retention_role":"historical_dependency","provenance_event_ids":["STR-06/E3","STR-06/E4"]}
+        ],
+        "critical_miss_ids": ["STR-06/T16/R1", "STR-06/T16/R4", "STR-06/T16/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-01/T4",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-01/F1"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-01/F1","reason_code":"answer_only_category","explanation":"blocking reproduction 是 evidence 类事实；共同的 request 片段太泛，不能作为 context metric。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-01/T4/R1","fact_ids":["STR-01/F1"],"criterion":"必须保留 middleware 与 endpoint 再次 request.form() 会 blocking 的最小重现。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E1"]},
+          {"id":"STR-01/T4/R2","fact_ids":["STR-01/F2"],"criterion":"必须说明 middleware/routing 是不同 Request path，共享 receive channel 但不自动共享本地 cache。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-01/E1","STR-01/E2"]},
+          {"id":"STR-01/T4/R3","fact_ids":["STR-01/F4"],"criterion":"必须记录 PR 500 broad scope-cache 被 punt 且 unmerged，因为 streamed-body semantics 未定义。","retention_role":"current_correctness_control","provenance_event_ids":["STR-01/E3","STR-01/E4"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-01/T4/X1","fact_ids":["STR-01/F4"],"claim":"不得建议在定义 streamed-body behavior 前直接 landing broad scope-level body cache。","retention_role":"current_correctness_control","provenance_event_ids":["STR-01/E3","STR-01/E4"]}
+        ],
+        "critical_miss_ids": ["STR-01/T4/R2", "STR-01/T4/R3", "STR-01/T4/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-01/T18",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-01/F4", "STR-01/F5", "STR-01/F9", "STR-01/F10", "STR-01/F11", "STR-01/F15"],
+      "context_probes": {
+        "constraints": [
+          {"id":"STR-01/T18/P1","text":"irreversibly unavailable","fact_ids":["STR-01/F5"],"raw_event_ids":["STR-01/E5"],"context_item_ids":["STR-01/I5"],"code_identifier_exception":false,"interpretation":"stream consumption 后数据可能无法向下游恢复。"},
+          {"id":"STR-01/T18/P2","text":"disconnect handling","fact_ids":["STR-01/F9"],"raw_event_ids":["STR-01/E9"],"context_item_ids":["STR-01/I8"],"code_identifier_exception":false,"interpretation":"body replay 不能丢失 client disconnect 行为。"},
+          {"id":"STR-01/T18/P3","text":"upstream information flow","fact_ids":["STR-01/F11"],"raw_event_ids":["STR-01/E11"],"context_item_ids":["STR-01/I10"],"code_identifier_exception":false,"interpretation":"endpoint-first/error-handler reread 的方向性约束。"}
+        ],
+        "decisions": [
+          {"id":"STR-01/T18/P4","text":"call_next","fact_ids":["STR-01/F10"],"raw_event_ids":["STR-01/E10"],"context_item_ids":["STR-01/I9"],"code_identifier_exception":true,"interpretation":"accepted narrow ownership boundary 的代码标识符；单词例外。"}
+        ],
+        "resolved_issues": [],
+        "open_questions": []
+      },
+      "not_exactly_scorable": [
+        {"fact_id":"STR-01/F4","reason_code":"answer_only_category","explanation":"早期 broad scope-cache 的 reject 状态进入 forbidden-answer checklist，不把 rejected alternative 改标 decision。"},
+        {"fact_id":"STR-01/F15","reason_code":"answer_only_category","explanation":"multi-chunk early-consumption 方案的否决进入 forbidden-answer checklist。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-01/T18/R1","fact_ids":["STR-01/F18","STR-01/F19"],"criterion":"必须区分 PR 1692 已 merge、Issue 已 close 与其仅交付 middleware-first/call_next 窄路径。","retention_role":"current_correctness_control","provenance_event_ids":["STR-01/E11","STR-01/E15","STR-01/E16","STR-01/E17","STR-01/E18"]},
+          {"id":"STR-01/T18/R2","fact_ids":["STR-01/F10"],"criterion":"必须把 accepted ownership boundary 限定为 BaseHTTPMiddleware 内 call_next body-buffer reuse。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E4","STR-01/E10"]},
+          {"id":"STR-01/T18/R3","fact_ids":["STR-01/F5","STR-01/F11"],"criterion":"必须保留 streamed data 可能不可恢复，以及 endpoint-first/exception-handler reread 仍 unsupported。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E4","STR-01/E5","STR-01/E10","STR-01/E11"]},
+          {"id":"STR-01/T18/R4","fact_ids":["STR-01/F9"],"criterion":"必须保留 downstream receive replacement 与 disconnect handling 约束。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E9"]},
+          {"id":"STR-01/T18/R5","fact_ids":["STR-01/F16"],"criterion":"应说明 review 发现真实 multi-chunk bug，implementation 被 rework 且 tests 扩充。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E14","STR-01/E15"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-01/T18/X1","fact_ids":["STR-01/F4"],"claim":"不得宣称 broad scope-level Request cache 已作为通用方案 landing。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E3","STR-01/E4"]},
+          {"id":"STR-01/T18/X2","fact_ids":["STR-01/F15"],"claim":"不得把 stream() 开始或 first yielded chunk 后立即标记 consumed 说成接受的 state machine。","retention_role":"historical_dependency","provenance_event_ids":["STR-01/E14","STR-01/E15"]},
+          {"id":"STR-01/T18/X3","fact_ids":["STR-01/F19"],"claim":"不得因 tracker closure 宣称 endpoint-first 或 exception-handler reread 全部 resolved。","retention_role":"current_correctness_control","provenance_event_ids":["STR-01/E11","STR-01/E17","STR-01/E18"]}
+        ],
+        "critical_miss_ids": ["STR-01/T18/R1", "STR-01/T18/R2", "STR-01/T18/R3", "STR-01/T18/X2", "STR-01/T18/X3"]
+      }
+    },
+    {
+      "slice_id": "STR-04/T4",
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": ["STR-04/F1"],
+      "context_probes": {
+        "constraints": [],
+        "decisions": [],
+        "resolved_issues": [],
+        "open_questions": [
+          {"id":"STR-04/T4/P1","text":"routing information","fact_ids":["STR-04/F1"],"raw_event_ids":["STR-04/E1"],"context_item_ids":["STR-04/I1"],"code_identifier_exception":false,"interpretation":"原始 middleware capability 问题仍未解决。"}
+        ]
+      },
+      "not_exactly_scorable": [],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-04/T4/R1","fact_ids":["STR-04/F1"],"criterion":"必须保留 middleware 如何获得 routing information 仍是 open question。","retention_role":"historical_dependency","provenance_event_ids":["STR-04/E1"]},
+          {"id":"STR-04/T4/R2","fact_ids":["STR-04/F2"],"criterion":"必须保留 routing 通常发生在 middleware 之后的 processing-order 约束。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-04/E2"]},
+          {"id":"STR-04/T4/R3","fact_ids":["STR-04/F4"],"criterion":"应保留 response-time metrics 需要 response 后 route name 且不希望 endpoint instrumentation 的用例。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-04/E3"]},
+          {"id":"STR-04/T4/R4","fact_ids":["STR-04/F5"],"criterion":"per-Route/per-Mount middleware 只能表述为下一步 candidate。","retention_role":"current_correctness_control","provenance_event_ids":["STR-04/E4"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-04/T4/X1","fact_ids":["STR-04/F3"],"claim":"不得把所有 middleware 移到 routing 之后说成维护者 preferred default。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-04/E2"]}
+        ],
+        "critical_miss_ids": ["STR-04/T4/R1", "STR-04/T4/R2", "STR-04/T4/X1"]
+      }
+    },
+    {
+      "slice_id": "STR-04/T18",
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": ["STR-04/F2", "STR-04/F4", "STR-04/F15", "STR-04/F16"],
+      "context_probes": {"constraints": [], "decisions": [], "resolved_issues": [], "open_questions": []},
+      "not_exactly_scorable": [
+        {"fact_id":"STR-04/F2","reason_code":"no_shared_lexical_anchor","explanation":"terminal Oracle 不再保留 routing-after-middleware 的同词项。"},
+        {"fact_id":"STR-04/F4","reason_code":"no_shared_lexical_anchor","explanation":"response-time/route-name 用例在 Oracle 被汇总为 low-touch APM，没有共同 exact phrase。"},
+        {"fact_id":"STR-04/F15","reason_code":"answer_only_category","explanation":"per-Mount 对 original global use case 不足是 evidence 类事实。"},
+        {"fact_id":"STR-04/F16","reason_code":"shared_anchor_too_generic","explanation":"original global 是两边共同片段，但语义不完整且区分度不足。"}
+      ],
+      "answer_checklist": {
+        "required_items": [
+          {"id":"STR-04/T18/R1","fact_ids":["STR-04/F15"],"criterion":"必须说明 per-Mount middleware 并未满足 original global route-name/APM use case。","retention_role":"historical_dependency","provenance_event_ids":["STR-04/E3","STR-04/E10","STR-04/E14"]},
+          {"id":"STR-04/T18/R2","fact_ids":["STR-04/F16"],"criterion":"必须把 original global middleware requirement 保持为 unresolved，而非因旧 tracker closure 或新 PR 自动解决。","retention_role":"historical_dependency","provenance_event_ids":["STR-04/E1","STR-04/E14"]},
+          {"id":"STR-04/T18/R3","fact_ids":["STR-04/F17"],"criterion":"必须保留 low-touch APM 不能要求每个 route/Mount 单独 setup 的采用约束。","retention_role":"recent_or_current_correctness","provenance_event_ids":["STR-04/E16"]},
+          {"id":"STR-04/T18/R4","fact_ids":["STR-04/F19"],"criterion":"PR #2349 只能视为新的 per-route implementation attempt/partial progress，尚不能证明 global need solved。","retention_role":"current_correctness_control","provenance_event_ids":["STR-04/E14","STR-04/E18"]}
+        ],
+        "forbidden_items": [
+          {"id":"STR-04/T18/X1","fact_ids":["STR-04/F13"],"claim":"不得把早期 PR #1464 direction 说成已接受或已交付方案。","retention_role":"historical_dependency","provenance_event_ids":["STR-04/E8","STR-04/E12"]},
+          {"id":"STR-04/T18/X2","fact_ids":["STR-04/F19"],"claim":"不得因 PR #2349 打开就宣称 original issue 已完整解决。","retention_role":"current_correctness_control","provenance_event_ids":["STR-04/E14","STR-04/E18"]}
+        ],
+        "critical_miss_ids": ["STR-04/T18/R1", "STR-04/T18/R2", "STR-04/T18/R3", "STR-04/T18/X2"]
+      }
+    }
+  ],
+  "context_metric_policy": {
+    "exact_probe_interpretation": "lexical_carry_through_only",
+    "resolved_issues_status": "not_evaluable_diagnostic_only",
+    "overall_passed_status": "non_decision_diagnostic",
+    "evidence_outcome_rejected_default_surface": "answer_checklist",
+    "not_exactly_scorable_counts_as_context_miss": false
+  },
+  "human_judging": {
+    "condition_labels_hidden": true,
+    "independent_reviewer_count": 2,
+    "allowed_item_judgments": ["met", "missed", "forbidden_asserted", "not_asserted", "uncertain"],
+    "required_item_rule": "语义表达即可，不要求 exact wording；缺失记 missed。",
+    "forbidden_item_rule": "只有回答明确断言 forbidden claim 才记 forbidden_asserted；未提及不扣分。",
+    "critical_miss_rule": "critical required 为 missed，或 critical forbidden 为 forbidden_asserted。",
+    "disagreement_rule": "保留两份原始判断；uncertain 或分歧交预先指定的人类仲裁者，不使用第二模型 judge。",
+    "rubric_change_after_answer_allowed": false,
+    "model_judge_authorized": false
+  },
+  "reporting_policy": {
+    "raw_item_results_required": true,
+    "case_and_tier_results_descriptive_only": true,
+    "weighted_composite_score_authorized": false,
+    "pooled_independence_claim_authorized": false,
+    "medium_tier_status": "not_represented_not_evaluable",
+    "tier_balanced_claim_authorized": false
+  },
+  "authorization": {
+    "formal_freeze_authorized": false,
+    "evaluation_ready": false,
+    "evaluator_run_authorized": false,
+    "model_run_authorized": false,
+    "evaluation_run_count": 0,
+    "model_call_count": 0,
+    "effect_metrics_generated": false
+  }
+}

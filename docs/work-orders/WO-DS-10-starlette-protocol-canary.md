@@ -1,6 +1,6 @@
 # WO-DS-10 — Starlette 预注册评估协议 canary
 
-状态：IN PROGRESS — protocol-only，禁止模型与效果运行
+状态：IMPLEMENTED — PENDING INDEPENDENT QA
 
 ## 背景与对抗审查处置
 
@@ -143,3 +143,11 @@ validator 必须代码内固定 canonical promotion identity，拒绝 coordinate
 Builder 必须提交中文 handoff，明确记录 `evaluation_run_count:0`、`model_call_count:0`，且不能自批。独立 QA 固定 Builder candidate，重建 83/75/499 资格清单，人工复核 12 个 task dependency 与 checklist，攻击 Probe 公平性/future leakage/hash 自举，并确认 package 与 core 隔离。
 
 只有独立 QA PASS，才接受 `protocol_canary_not_frozen`。其后仍需单独工单完成 data+protocol 原子正式 freeze、首次模型调用前追加污染复扫与固定运行参数；当前工单不授权模型运行。
+
+## Builder 实现结果
+
+2026-08-23 已完成待验收候选：从六案固定 promotion 数据确定性重建 83 facts / 75 slices / 499 fact-slice assignments，并按预注册顺序固定 12 个 canary slices。共同 exact-anchor 规则只接受 8 个 context Probe；19 个 task-dependency Fact 因无共同锚点、类别不属于 core metric、锚点过泛或标点表示差异而显式记为 `not_exactly_scorable`。同一 protocol 固定 42 个 required-answer item、16 个 forbidden-answer item 与 Critical-Miss 子集。
+
+validator 固定 WO-DS-09 promotion identity 与 protocol file contract，重新派生完整 inventory，并拒绝 Oracle-only/raw-only anchor、latest repetition、resolved Probe、future answer Fact、dangling critical id、零宽字符、code-identifier 例外滥用、依赖静默丢失、状态提权、unknown field、coordinated rewrite 与 symlink。12 个 evaluator v2 输入只经真实 parser 静态解析，共 101 projected turns；没有调用 runner 或模型。
+
+Builder 自检通过：protocol validator；17 项聚焦测试；全量 354 项单测；protocol 8 项；build、diff check；真实 50-entry npm tarball SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，不含 evaluation/docs/test。`evaluation_run_count:0`、`model_call_count:0`、`effect_metrics_generated:false` 保持；实现者不自批。

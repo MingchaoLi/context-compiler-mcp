@@ -1,0 +1,5458 @@
+{
+  "schema_version": "starlette-protocol-eligibility/v1",
+  "status": "protocol_canary_not_frozen",
+  "source_identity": {
+    "accepted_builder_candidate": "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
+    "promotion_hashes_path": "promotion-hashes.json",
+    "promotion_hashes_sha256": "c216719f1745601786ad53f50bbaed6c5e7b0a8e8d9d6612cfb79b9c103ff51b",
+    "collection_path": "promotion/collection.json",
+    "collection_sha256": "ae6ae7446e5e102a12e45124f4ab2658ba40974ec7c4251a1d39f178fd91cfeb"
+  },
+  "case_order": [
+    "STR-07",
+    "STR-08",
+    "STR-05",
+    "STR-06",
+    "STR-01",
+    "STR-04"
+  ],
+  "summary": {
+    "case_count": 6,
+    "fact_count": 83,
+    "slice_count": 75,
+    "fact_slice_assignment_count": 499,
+    "selected_slice_count": 12
+  },
+  "facts": [
+    {
+      "fact_id": "STR-07/F1",
+      "case_id": "STR-07",
+      "category": "open_question",
+      "statement": "Whether the new 404 is an intended API correction or a regression in supported route syntax remains unknown.",
+      "first_known_at_event_id": "STR-07/E1",
+      "superseded_at_event_id": "STR-07/E6",
+      "provenance_event_ids": [
+        "STR-07/E1"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F2",
+      "case_id": "STR-07",
+      "category": "evidence",
+      "statement": "The behavior change is linked to 0.13.5 escaping regex metacharacters in route path strings.",
+      "first_known_at_event_id": "STR-07/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E1",
+        "STR-07/E2"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-07/F3",
+      "case_id": "STR-07",
+      "category": "decision",
+      "statement": "PR 1010 proposes special-casing a final question mark and adds tests for both slash variants.",
+      "first_known_at_event_id": "STR-07/E3",
+      "superseded_at_event_id": "STR-07/E4",
+      "provenance_event_ids": [
+        "STR-07/E2",
+        "STR-07/E3"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F4",
+      "case_id": "STR-07",
+      "category": "rejected_alternative",
+      "statement": "Restoring optional trailing-slash behavior by treating a final question mark as raw route regex is not the accepted API direction.",
+      "first_known_at_event_id": "STR-07/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E3",
+        "STR-07/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-07/F5",
+      "case_id": "STR-07",
+      "category": "decision",
+      "statement": "One canonical slash form plus automatic redirect is the maintainer's initial supported alternative.",
+      "first_known_at_event_id": "STR-07/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E4"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F6",
+      "case_id": "STR-07",
+      "category": "evidence",
+      "statement": "The compatibility impact also reaches a wildcard SPA route written as /.*, not only the root /? form.",
+      "first_known_at_event_id": "STR-07/E5",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E2",
+        "STR-07/E5"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-07/F7",
+      "case_id": "STR-07",
+      "category": "constraint",
+      "statement": "Route and Mount path strings expose URI templating, not arbitrary embedded regular expressions.",
+      "first_known_at_event_id": "STR-07/E6",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E6"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F8",
+      "case_id": "STR-07",
+      "category": "decision",
+      "statement": "A path converter is the supported alternative for the wildcard-segment use case.",
+      "first_known_at_event_id": "STR-07/E6",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E5",
+        "STR-07/E6"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F9",
+      "case_id": "STR-07",
+      "category": "constraint",
+      "statement": "A 307 redirect is not behaviorally equivalent for every caller because it can lose CORS headers and adds a redirect round trip.",
+      "first_known_at_event_id": "STR-07/E7",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E5",
+        "STR-07/E7"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F10",
+      "case_id": "STR-07",
+      "category": "open_question",
+      "statement": "Whether to revert and later reapply the escaping change with a larger release and clearer documentation remains undecided.",
+      "first_known_at_event_id": "STR-07/E8",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E7",
+        "STR-07/E8"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-07/F11",
+      "case_id": "STR-07",
+      "category": "evidence",
+      "statement": "The wildcard-route reporter confirms that the supported path-converter alternative works for the SPA case.",
+      "first_known_at_event_id": "STR-07/E9",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E6",
+        "STR-07/E9"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-07/F12",
+      "case_id": "STR-07",
+      "category": "decision",
+      "statement": "Registering both slash and no-slash route forms directly avoids raw regex and a redirect for the root endpoint.",
+      "first_known_at_event_id": "STR-07/E10",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-07/E7",
+        "STR-07/E10"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-08/F1",
+      "case_id": "STR-08",
+      "category": "open_question",
+      "statement": "How TestClient should activate application lifespan for request tests is still unknown.",
+      "first_known_at_event_id": "STR-08/E1",
+      "superseded_at_event_id": "STR-08/E4",
+      "provenance_event_ids": [
+        "STR-08/E1"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-08/F2",
+      "case_id": "STR-08",
+      "category": "constraint",
+      "statement": "Async resources used by the app must be initialized on the same event loop as the TestClient application.",
+      "first_known_at_event_id": "STR-08/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-08/E2"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-08/F3",
+      "case_id": "STR-08",
+      "category": "decision",
+      "statement": "A manual blocking-portal lifespan dispatch is the current prototype under investigation.",
+      "first_known_at_event_id": "STR-08/E3",
+      "superseded_at_event_id": "STR-08/E4",
+      "provenance_event_ids": [
+        "STR-08/E3"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-08/F4",
+      "case_id": "STR-08",
+      "category": "decision",
+      "statement": "Use TestClient as a context manager to activate startup and shutdown.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-08/E4"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-08/F5",
+      "case_id": "STR-08",
+      "category": "rejected_alternative",
+      "statement": "Adding manual lifespan dispatch to TestClient internals is unnecessary for this use case.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-08/E3",
+        "STR-08/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-08/F6",
+      "case_id": "STR-08",
+      "category": "resolved_issue",
+      "statement": "The reported lifespan need is resolved by existing behavior rather than a new patch.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-08/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-05/F1",
+      "case_id": "STR-05",
+      "category": "open_question",
+      "statement": "Whether StaticFiles should follow symlinks remains open.",
+      "first_known_at_event_id": "STR-05/E1",
+      "superseded_at_event_id": "STR-05/E3",
+      "provenance_event_ids": [
+        "STR-05/E1"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F2",
+      "case_id": "STR-05",
+      "category": "decision",
+      "statement": "The first pull request attempts support for following symlinks outside the static directory.",
+      "first_known_at_event_id": "STR-05/E2",
+      "superseded_at_event_id": "STR-05/E4",
+      "provenance_event_ids": [
+        "STR-05/E2"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F3",
+      "case_id": "STR-05",
+      "category": "resolved_issue",
+      "statement": "Maintainers currently consider the symlink request fixed by the first merged change.",
+      "first_known_at_event_id": "STR-05/E3",
+      "superseded_at_event_id": "STR-05/E4",
+      "provenance_event_ids": [
+        "STR-05/E3"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-05/F4",
+      "case_id": "STR-05",
+      "category": "evidence",
+      "statement": "The first merged fix was reverted, so its resolved status is no longer valid.",
+      "first_known_at_event_id": "STR-05/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-05/E3",
+        "STR-05/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-05/F5",
+      "case_id": "STR-05",
+      "category": "open_question",
+      "statement": "A safe replacement for the reverted symlink behavior is unresolved.",
+      "first_known_at_event_id": "STR-05/E4",
+      "superseded_at_event_id": "STR-05/E9",
+      "provenance_event_ids": [
+        "STR-05/E4"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F6",
+      "case_id": "STR-05",
+      "category": "decision",
+      "statement": "A second pull request is the active implementation attempt after the revert.",
+      "first_known_at_event_id": "STR-05/E5",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-05/E5"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F7",
+      "case_id": "STR-05",
+      "category": "constraint",
+      "statement": "The design must not make exposure through user-controlled symlinks an implicit default.",
+      "first_known_at_event_id": "STR-05/E6",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-05/E6"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F8",
+      "case_id": "STR-05",
+      "category": "decision",
+      "statement": "The preferred boundary is an explicit follow_symlink option whose default is false.",
+      "first_known_at_event_id": "STR-05/E7",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-05/E7"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F9",
+      "case_id": "STR-05",
+      "category": "open_question",
+      "statement": "Reviewers still require a risk and alternatives justification before accepting the second attempt.",
+      "first_known_at_event_id": "STR-05/E8",
+      "superseded_at_event_id": "STR-05/E9",
+      "provenance_event_ids": [
+        "STR-05/E8"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-05/F10",
+      "case_id": "STR-05",
+      "category": "rejected_alternative",
+      "statement": "Restoring unconditional external symlink following is rejected for this redesign.",
+      "first_known_at_event_id": "STR-05/E9",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-05/E6",
+        "STR-05/E7",
+        "STR-05/E9"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F1",
+      "case_id": "STR-06",
+      "category": "evidence",
+      "statement": "On the reported RHEL 8 FIPS system, Starlette 0.16.0 FileResponse ETag construction raises ValueError from hashlib.md5.",
+      "first_known_at_event_id": "STR-06/E1",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E1"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F2",
+      "case_id": "STR-06",
+      "category": "decision",
+      "statement": "The reviewable narrow path is a usedforsecurity compatibility change; replacing the hash algorithm remains a separate design discussion.",
+      "first_known_at_event_id": "STR-06/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E2"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F3",
+      "case_id": "STR-06",
+      "category": "rejected_alternative",
+      "statement": "Requiring a security-grade hash for this ETag is withdrawn; the compatibility problem can be addressed while retaining MD5.",
+      "first_known_at_event_id": "STR-06/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E3",
+        "STR-06/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F4",
+      "case_id": "STR-06",
+      "category": "decision",
+      "statement": "Use a compatibility wrapper that can call hashlib.md5 with usedforsecurity=False rather than assuming ordinary MD5 calls work under FIPS.",
+      "first_known_at_event_id": "STR-06/E5",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E4",
+        "STR-06/E5"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F5",
+      "case_id": "STR-06",
+      "category": "evidence",
+      "statement": "PR 1366 opens a compatibility-helper implementation without adding a repository test file in its initial patch.",
+      "first_known_at_event_id": "STR-06/E6",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E6"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F6",
+      "case_id": "STR-06",
+      "category": "outcome_status",
+      "statement": "Issue 1365 is tracker-closed when PR 1366 merges, but that state does not itself verify FIPS behavior.",
+      "first_known_at_event_id": "STR-06/E7",
+      "superseded_at_event_id": "STR-06/E13",
+      "provenance_event_ids": [
+        "STR-06/E6",
+        "STR-06/E7"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F7",
+      "case_id": "STR-06",
+      "category": "constraint",
+      "statement": "RHEL backports make runtime capability different from a simple upstream Python-version boundary, so compatibility needs probing rather than version inference.",
+      "first_known_at_event_id": "STR-06/E8",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E5",
+        "STR-06/E8"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F8",
+      "case_id": "STR-06",
+      "category": "open_question",
+      "statement": "Whether the first merged wrapper actually works on the target FIPS setup remains to be tested rather than inferred from try/except.",
+      "first_known_at_event_id": "STR-06/E9",
+      "superseded_at_event_id": "STR-06/E11",
+      "provenance_event_ids": [
+        "STR-06/E8",
+        "STR-06/E9"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F9",
+      "case_id": "STR-06",
+      "category": "open_question",
+      "statement": "Target FIPS verification is still unavailable because the customer temporarily disabled FIPS mode.",
+      "first_known_at_event_id": "STR-06/E10",
+      "superseded_at_event_id": "STR-06/E11",
+      "provenance_event_ids": [
+        "STR-06/E9",
+        "STR-06/E10"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F10",
+      "case_id": "STR-06",
+      "category": "evidence",
+      "statement": "The first merged implementation fails a real FIPS import because its capability probe passes usedforsecurity=True and triggers ValueError.",
+      "first_known_at_event_id": "STR-06/E11",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E11"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F11",
+      "case_id": "STR-06",
+      "category": "rejected_alternative",
+      "statement": "Treating PR 1366 merge or the first tracker close as proof that FIPS behavior works is invalidated by the later target-system failure.",
+      "first_known_at_event_id": "STR-06/E11",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E7",
+        "STR-06/E11"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F12",
+      "case_id": "STR-06",
+      "category": "decision",
+      "statement": "The follow-up should preserve parameter detection while changing the capability probe itself to usedforsecurity=False.",
+      "first_known_at_event_id": "STR-06/E12",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E11",
+        "STR-06/E12"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-06/F13",
+      "case_id": "STR-06",
+      "category": "outcome_status",
+      "statement": "Issue 1365 is reopened after the first accepted direction fails on the reported FIPS path.",
+      "first_known_at_event_id": "STR-06/E13",
+      "superseded_at_event_id": "STR-06/E16",
+      "provenance_event_ids": [
+        "STR-06/E11",
+        "STR-06/E13"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F14",
+      "case_id": "STR-06",
+      "category": "evidence",
+      "statement": "PR 1410 changes the compatibility probe in _compat.py and adds no repository regression test.",
+      "first_known_at_event_id": "STR-06/E14",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E12",
+        "STR-06/E14"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F15",
+      "case_id": "STR-06",
+      "category": "evidence",
+      "statement": "The reporter observes the revised probe working on one FIPS system, but cannot verify current master because of a FastAPI compatibility limit.",
+      "first_known_at_event_id": "STR-06/E15",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E11",
+        "STR-06/E15"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F16",
+      "case_id": "STR-06",
+      "category": "outcome_status",
+      "statement": "Issue 1365 closes when PR 1410 merges; this is repository and tracker acceptance, not proof for every Python, OpenSSL, or FIPS combination.",
+      "first_known_at_event_id": "STR-06/E16",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E14",
+        "STR-06/E15",
+        "STR-06/E16"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-06/F17",
+      "case_id": "STR-06",
+      "category": "open_question",
+      "statement": "Current master and cross-environment FIPS behavior remain unverified; PR 1410 has no repository test and the reporter could not test current master.",
+      "first_known_at_event_id": "STR-06/E15",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-06/E14",
+        "STR-06/E15"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F1",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "Calling request.form() in BaseHTTPMiddleware and then again in the endpoint reproduces a blocking request.",
+      "first_known_at_event_id": "STR-01/E1",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E1"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F2",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "Middleware and routing construct different Request paths over the same receive channel, so a cache local to one Request does not automatically reach the next Request.",
+      "first_known_at_event_id": "STR-01/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E1",
+        "STR-01/E2"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F3",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "PR 500 proposes storing body bytes in the ASGI scope and tests reading them from a newly constructed Request.",
+      "first_known_at_event_id": "STR-01/E3",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E2",
+        "STR-01/E3"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F4",
+      "case_id": "STR-01",
+      "category": "rejected_alternative",
+      "statement": "The broad PR 500 scope-cache direction is punted and closes unmerged because its behavior for streamed request bodies is not defined.",
+      "first_known_at_event_id": "STR-01/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E3",
+        "STR-01/E4"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F5",
+      "case_id": "STR-01",
+      "category": "constraint",
+      "statement": "Request data consumed as a stream may be irreversibly unavailable downstream; any buffered-body solution must preserve that streaming boundary.",
+      "first_known_at_event_id": "STR-01/E5",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E4",
+        "STR-01/E5"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F6",
+      "case_id": "STR-01",
+      "category": "constraint",
+      "statement": "Request.body() and json() can reuse cached bytes, while form() consumes the underlying stream and may fail with Stream consumed.",
+      "first_known_at_event_id": "STR-01/E6",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E5",
+        "STR-01/E6"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F7",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "If middleware exhausts receive, a later request read can wait on an empty receive queue and block rather than producing an immediate error.",
+      "first_known_at_event_id": "STR-01/E7",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E1",
+        "STR-01/E7"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F8",
+      "case_id": "STR-01",
+      "category": "open_question",
+      "statement": "PR 1692 is a new candidate, but its creation event alone does not establish a stable implementation scope or adequate stream/disconnect tests.",
+      "first_known_at_event_id": "STR-01/E8",
+      "superseded_at_event_id": "STR-01/E10",
+      "provenance_event_ids": [
+        "STR-01/E8"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F9",
+      "case_id": "STR-01",
+      "category": "constraint",
+      "statement": "The candidate must preserve downstream receive replacements and still needs explicit coverage for that flow and client disconnects.",
+      "first_known_at_event_id": "STR-01/E9",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E9"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F10",
+      "case_id": "STR-01",
+      "category": "decision",
+      "statement": "The proposed ownership boundary is narrowed to body-buffer reuse for call_next inside BaseHTTPMiddleware rather than a general Request or scope cache.",
+      "first_known_at_event_id": "STR-01/E10",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E4",
+        "STR-01/E10"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F11",
+      "case_id": "STR-01",
+      "category": "constraint",
+      "statement": "The narrow proposal does not support endpoint-first consumption followed by middleware or exception-handler rereads; those would require information to flow upstream.",
+      "first_known_at_event_id": "STR-01/E11",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E10",
+        "STR-01/E11"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F12",
+      "case_id": "STR-01",
+      "category": "open_question",
+      "statement": "The proposal improves middleware-first body reads for the downstream endpoint but leaves other reread orders unsupported, so whether that narrow benefit is worth landing remains undecided.",
+      "first_known_at_event_id": "STR-01/E12",
+      "superseded_at_event_id": "STR-01/E16",
+      "provenance_event_ids": [
+        "STR-01/E11",
+        "STR-01/E12"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F13",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "The no-error hang remains reproducible after four years; full buffering can be an intentional HMAC tradeoff, but user-proposed scope and dummy-receive hacks are not production-ready repository fixes.",
+      "first_known_at_event_id": "STR-01/E13",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E7",
+        "STR-01/E13"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F14",
+      "case_id": "STR-01",
+      "category": "open_question",
+      "statement": "The proposed Request stream state machine lacks a standalone multi-chunk test and may mark the stream consumed before more_body becomes false.",
+      "first_known_at_event_id": "STR-01/E14",
+      "superseded_at_event_id": "STR-01/E15",
+      "provenance_event_ids": [
+        "STR-01/E14"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-01/F15",
+      "case_id": "STR-01",
+      "category": "rejected_alternative",
+      "statement": "Marking a Request stream consumed as soon as stream() starts or after its first yielded chunk is invalid for interleaved multi-chunk consumers.",
+      "first_known_at_event_id": "STR-01/E15",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E14",
+        "STR-01/E15"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F16",
+      "case_id": "STR-01",
+      "category": "evidence",
+      "statement": "The author confirms the multi-chunk concern exposed a real bug, reports reworking the implementation, and adds substantially more tests.",
+      "first_known_at_event_id": "STR-01/E15",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E14",
+        "STR-01/E15"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F17",
+      "case_id": "STR-01",
+      "category": "outcome_status",
+      "statement": "A maintainer formally approves the corrected final head and its expanded tests, resolving the repository decision about landing the narrow benefit.",
+      "first_known_at_event_id": "STR-01/E16",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E12",
+        "STR-01/E15",
+        "STR-01/E16"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F18",
+      "case_id": "STR-01",
+      "category": "outcome_status",
+      "statement": "PR 1692 merges as commit 554b9e2 and delivers the BaseHTTPMiddleware call_next body-buffer path plus request-stream and middleware regression tests.",
+      "first_known_at_event_id": "STR-01/E17",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E15",
+        "STR-01/E16",
+        "STR-01/E17"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-01/F19",
+      "case_id": "STR-01",
+      "category": "outcome_status",
+      "statement": "Issue 495 closes after the merge, but closure applies to the delivered middleware-first target and does not make endpoint-first or exception-handler rereads supported.",
+      "first_known_at_event_id": "STR-01/E18",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-01/E11",
+        "STR-01/E17",
+        "STR-01/E18"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F1",
+      "case_id": "STR-04",
+      "category": "open_question",
+      "statement": "How middleware can obtain routing information remains open.",
+      "first_known_at_event_id": "STR-04/E1",
+      "superseded_at_event_id": "STR-04/E13",
+      "provenance_event_ids": [
+        "STR-04/E1"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F2",
+      "case_id": "STR-04",
+      "category": "constraint",
+      "statement": "Routing normally occurs after middleware executes.",
+      "first_known_at_event_id": "STR-04/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E2"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F3",
+      "case_id": "STR-04",
+      "category": "rejected_alternative",
+      "statement": "Moving all middleware after routing is not the preferred default direction.",
+      "first_known_at_event_id": "STR-04/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E2"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F4",
+      "case_id": "STR-04",
+      "category": "constraint",
+      "statement": "Endpoint response-time metrics need the matched route after the response without requiring endpoint instrumentation.",
+      "first_known_at_event_id": "STR-04/E3",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E3"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F5",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "Per-Route or per-Mount middleware is a candidate way to avoid separate route matching.",
+      "first_known_at_event_id": "STR-04/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E4"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F6",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "PR #1286 is the active route-level middleware implementation attempt.",
+      "first_known_at_event_id": "STR-04/E5",
+      "superseded_at_event_id": "STR-04/E9",
+      "provenance_event_ids": [
+        "STR-04/E5"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F7",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "An application-level path_prefix option is proposed as an alternative.",
+      "first_known_at_event_id": "STR-04/E6",
+      "superseded_at_event_id": "STR-04/E7",
+      "provenance_event_ids": [
+        "STR-04/E6"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F8",
+      "case_id": "STR-04",
+      "category": "rejected_alternative",
+      "statement": "The underdefined path_prefix proposal risks argument conflicts and reimplementing routing.",
+      "first_known_at_event_id": "STR-04/E7",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E6",
+        "STR-04/E7"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F9",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "The active design investigation shifts from PR #1286 toward PR #1464.",
+      "first_known_at_event_id": "STR-04/E8",
+      "superseded_at_event_id": "STR-04/E12",
+      "provenance_event_ids": [
+        "STR-04/E8"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F10",
+      "case_id": "STR-04",
+      "category": "evidence",
+      "statement": "PR #1286 closed without merge and is no longer an active implementation.",
+      "first_known_at_event_id": "STR-04/E9",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E5",
+        "STR-04/E9"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F11",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "PR #1649 is an active attempt to add middleware to Mount.",
+      "first_known_at_event_id": "STR-04/E10",
+      "superseded_at_event_id": "STR-04/E14",
+      "provenance_event_ids": [
+        "STR-04/E10"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F12",
+      "case_id": "STR-04",
+      "category": "constraint",
+      "statement": "Local middleware must not silently replace centralized application error handling and I/O.",
+      "first_known_at_event_id": "STR-04/E11",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E11"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F13",
+      "case_id": "STR-04",
+      "category": "rejected_alternative",
+      "statement": "The earlier PR #1464 direction was rejected rather than becoming the accepted solution.",
+      "first_known_at_event_id": "STR-04/E12",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E8",
+        "STR-04/E12"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F14",
+      "case_id": "STR-04",
+      "category": "outcome_status",
+      "statement": "Issue #685 has a closed tracker state at this cutoff; the event does not prove semantic resolution.",
+      "first_known_at_event_id": "STR-04/E13",
+      "superseded_at_event_id": "STR-04/E15",
+      "provenance_event_ids": [
+        "STR-04/E13"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F15",
+      "case_id": "STR-04",
+      "category": "evidence",
+      "statement": "Per-Mount middleware does not by itself satisfy the original global route-name and APM use case.",
+      "first_known_at_event_id": "STR-04/E14",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E3",
+        "STR-04/E10",
+        "STR-04/E14"
+      ],
+      "context_probe_category_eligible": false
+    },
+    {
+      "fact_id": "STR-04/F16",
+      "case_id": "STR-04",
+      "category": "open_question",
+      "statement": "The original global middleware requirement is disputed again and remains unresolved.",
+      "first_known_at_event_id": "STR-04/E14",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E1",
+        "STR-04/E14"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F17",
+      "case_id": "STR-04",
+      "category": "constraint",
+      "statement": "Low-touch APM cannot require users to attach middleware separately to every route or Mount.",
+      "first_known_at_event_id": "STR-04/E16",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E16"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F18",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "Startup wrapping, monkeypatching, or a global route-middleware registry remain workaround directions while a framework feature is considered.",
+      "first_known_at_event_id": "STR-04/E17",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E17"
+      ],
+      "context_probe_category_eligible": true
+    },
+    {
+      "fact_id": "STR-04/F19",
+      "case_id": "STR-04",
+      "category": "decision",
+      "statement": "PR #2349 is a new per-route middleware implementation attempt, not yet proof that the global APM need is solved.",
+      "first_known_at_event_id": "STR-04/E18",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": [
+        "STR-04/E14",
+        "STR-04/E18"
+      ],
+      "context_probe_category_eligible": true
+    }
+  ],
+  "slices": [
+    {
+      "slice_id": "STR-07/T1",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-07/E1",
+      "latest_event_id": "STR-07/E1",
+      "active_fact_ids": [
+        "STR-07/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F1"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-07/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-07/T2",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-07/E1",
+      "latest_event_id": "STR-07/E2",
+      "active_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F1": 1,
+        "STR-07/F2": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F1"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-07/T3",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E1",
+      "latest_event_id": "STR-07/E3",
+      "active_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2",
+        "STR-07/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F1": 2,
+        "STR-07/F2": 1,
+        "STR-07/F3": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F3"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2",
+        "STR-07/F3"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-07/T4",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E2",
+      "latest_event_id": "STR-07/E4",
+      "active_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F1": 3,
+        "STR-07/F2": 2,
+        "STR-07/F4": 0,
+        "STR-07/F5": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F1"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F5"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F1"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-07/F1"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-07/T5",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E5",
+      "available_event_count": 5,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E3",
+      "latest_event_id": "STR-07/E5",
+      "active_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F1": 4,
+        "STR-07/F2": 3,
+        "STR-07/F4": 1,
+        "STR-07/F5": 1,
+        "STR-07/F6": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F5"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F1",
+        "STR-07/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-07/T6",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E6",
+      "available_event_count": 6,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E4",
+      "latest_event_id": "STR-07/E6",
+      "active_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F2": 4,
+        "STR-07/F4": 2,
+        "STR-07/F5": 2,
+        "STR-07/F6": 1,
+        "STR-07/F7": 0,
+        "STR-07/F8": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F5",
+        "STR-07/F7",
+        "STR-07/F8"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-07/T7",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E7",
+      "available_event_count": 7,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E5",
+      "latest_event_id": "STR-07/E7",
+      "active_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F2": 5,
+        "STR-07/F4": 3,
+        "STR-07/F5": 3,
+        "STR-07/F6": 2,
+        "STR-07/F7": 1,
+        "STR-07/F8": 1,
+        "STR-07/F9": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F5",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-07/T8",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E8",
+      "available_event_count": 8,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E6",
+      "latest_event_id": "STR-07/E8",
+      "active_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F2": 6,
+        "STR-07/F4": 4,
+        "STR-07/F5": 4,
+        "STR-07/F6": 3,
+        "STR-07/F7": 2,
+        "STR-07/F8": 2,
+        "STR-07/F9": 1,
+        "STR-07/F10": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F5",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-07/T9",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E9",
+      "available_event_count": 9,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E7",
+      "latest_event_id": "STR-07/E9",
+      "active_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10",
+        "STR-07/F11"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F2": 7,
+        "STR-07/F4": 5,
+        "STR-07/F5": 5,
+        "STR-07/F6": 4,
+        "STR-07/F7": 3,
+        "STR-07/F8": 3,
+        "STR-07/F9": 2,
+        "STR-07/F10": 1,
+        "STR-07/F11": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F5",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6",
+        "STR-07/F11"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F9",
+        "STR-07/F10",
+        "STR-07/F11"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-07/T10",
+      "case_id": "STR-07",
+      "cutoff_event_id": "STR-07/E10",
+      "available_event_count": 10,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-07/E8",
+      "latest_event_id": "STR-07/E10",
+      "active_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10",
+        "STR-07/F11",
+        "STR-07/F12"
+      ],
+      "age_events_by_fact_id": {
+        "STR-07/F2": 8,
+        "STR-07/F4": 6,
+        "STR-07/F5": 6,
+        "STR-07/F6": 5,
+        "STR-07/F7": 4,
+        "STR-07/F8": 4,
+        "STR-07/F9": 3,
+        "STR-07/F10": 2,
+        "STR-07/F11": 1,
+        "STR-07/F12": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-07/F5",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9",
+        "STR-07/F10",
+        "STR-07/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F6",
+        "STR-07/F11"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-07/F2",
+        "STR-07/F4",
+        "STR-07/F5",
+        "STR-07/F6",
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-07/F10",
+        "STR-07/F11",
+        "STR-07/F12"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-07/F7",
+        "STR-07/F8",
+        "STR-07/F9"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    },
+    {
+      "slice_id": "STR-08/T1",
+      "case_id": "STR-08",
+      "cutoff_event_id": "STR-08/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-08/E1",
+      "latest_event_id": "STR-08/E1",
+      "active_fact_ids": [
+        "STR-08/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-08/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-08/F1"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-08/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-08/T2",
+      "case_id": "STR-08",
+      "cutoff_event_id": "STR-08/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-08/E1",
+      "latest_event_id": "STR-08/E2",
+      "active_fact_ids": [
+        "STR-08/F1",
+        "STR-08/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-08/F1": 1,
+        "STR-08/F2": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-08/F1",
+        "STR-08/F2"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-08/F1",
+        "STR-08/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-08/T3",
+      "case_id": "STR-08",
+      "cutoff_event_id": "STR-08/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-08/E2",
+      "latest_event_id": "STR-08/E3",
+      "active_fact_ids": [
+        "STR-08/F1",
+        "STR-08/F2",
+        "STR-08/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-08/F1": 2,
+        "STR-08/F2": 1,
+        "STR-08/F3": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-08/F1"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-08/F1",
+        "STR-08/F2",
+        "STR-08/F3"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [
+        "STR-08/F1"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-08/F2",
+        "STR-08/F3"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-08/F1"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-08/T4",
+      "case_id": "STR-08",
+      "cutoff_event_id": "STR-08/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-08/E3",
+      "latest_event_id": "STR-08/E4",
+      "active_fact_ids": [
+        "STR-08/F2",
+        "STR-08/F4",
+        "STR-08/F5",
+        "STR-08/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-08/F2": 2,
+        "STR-08/F4": 0,
+        "STR-08/F5": 0,
+        "STR-08/F6": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-08/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-08/F2",
+        "STR-08/F4"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-08/F5",
+        "STR-08/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-08/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-08/F4",
+        "STR-08/F5",
+        "STR-08/F6"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-08/F2"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    },
+    {
+      "slice_id": "STR-05/T1",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-05/E1",
+      "latest_event_id": "STR-05/E1",
+      "active_fact_ids": [
+        "STR-05/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F1"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T2",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-05/E1",
+      "latest_event_id": "STR-05/E2",
+      "active_fact_ids": [
+        "STR-05/F1",
+        "STR-05/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F1": 1,
+        "STR-05/F2": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F1",
+        "STR-05/F2"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F1",
+        "STR-05/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T3",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E1",
+      "latest_event_id": "STR-05/E3",
+      "active_fact_ids": [
+        "STR-05/F2",
+        "STR-05/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F2": 1,
+        "STR-05/F3": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F2"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F3"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F2",
+        "STR-05/F3"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T4",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E2",
+      "latest_event_id": "STR-05/E4",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 0,
+        "STR-05/F5": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F5"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T5",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E5",
+      "available_event_count": 5,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E3",
+      "latest_event_id": "STR-05/E5",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 1,
+        "STR-05/F5": 1,
+        "STR-05/F6": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F5",
+        "STR-05/F6"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T6",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E6",
+      "available_event_count": 6,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E4",
+      "latest_event_id": "STR-05/E6",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 2,
+        "STR-05/F5": 2,
+        "STR-05/F6": 1,
+        "STR-05/F7": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-05/T7",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E7",
+      "available_event_count": 7,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E5",
+      "latest_event_id": "STR-05/E7",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 3,
+        "STR-05/F5": 3,
+        "STR-05/F6": 2,
+        "STR-05/F7": 1,
+        "STR-05/F8": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-05/T8",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E8",
+      "available_event_count": 8,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E6",
+      "latest_event_id": "STR-05/E8",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8",
+        "STR-05/F9"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 4,
+        "STR-05/F5": 4,
+        "STR-05/F6": 3,
+        "STR-05/F7": 2,
+        "STR-05/F8": 1,
+        "STR-05/F9": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F5",
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8",
+        "STR-05/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F5",
+        "STR-05/F6"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-05/F7",
+        "STR-05/F8",
+        "STR-05/F9"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-05/T9",
+      "case_id": "STR-05",
+      "cutoff_event_id": "STR-05/E9",
+      "available_event_count": 9,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-05/E7",
+      "latest_event_id": "STR-05/E9",
+      "active_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8",
+        "STR-05/F10"
+      ],
+      "age_events_by_fact_id": {
+        "STR-05/F4": 5,
+        "STR-05/F6": 4,
+        "STR-05/F7": 3,
+        "STR-05/F8": 2,
+        "STR-05/F10": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-05/F6",
+        "STR-05/F7",
+        "STR-05/F8"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F10"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-05/F8",
+        "STR-05/F10"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-05/F4",
+        "STR-05/F6",
+        "STR-05/F7"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    },
+    {
+      "slice_id": "STR-06/T1",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-06/E1",
+      "latest_event_id": "STR-06/E1",
+      "active_fact_ids": [
+        "STR-06/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-06/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-06/T2",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-06/E1",
+      "latest_event_id": "STR-06/E2",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 1,
+        "STR-06/F2": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-06/T3",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E1",
+      "latest_event_id": "STR-06/E3",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 2,
+        "STR-06/F2": 1
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-06/T4",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E2",
+      "latest_event_id": "STR-06/E4",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 3,
+        "STR-06/F2": 2,
+        "STR-06/F3": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F3"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-06/F1"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-06/T5",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E5",
+      "available_event_count": 5,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E3",
+      "latest_event_id": "STR-06/E5",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 4,
+        "STR-06/F2": 3,
+        "STR-06/F3": 1,
+        "STR-06/F4": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F3",
+        "STR-06/F4"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T6",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E6",
+      "available_event_count": 6,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E4",
+      "latest_event_id": "STR-06/E6",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 5,
+        "STR-06/F2": 4,
+        "STR-06/F3": 2,
+        "STR-06/F4": 1,
+        "STR-06/F5": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T7",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E7",
+      "available_event_count": 7,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E5",
+      "latest_event_id": "STR-06/E7",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 6,
+        "STR-06/F2": 5,
+        "STR-06/F3": 3,
+        "STR-06/F4": 2,
+        "STR-06/F5": 1,
+        "STR-06/F6": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T8",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E8",
+      "available_event_count": 8,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E6",
+      "latest_event_id": "STR-06/E8",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 7,
+        "STR-06/F2": 6,
+        "STR-06/F3": 4,
+        "STR-06/F4": 3,
+        "STR-06/F5": 2,
+        "STR-06/F6": 1,
+        "STR-06/F7": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T9",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E9",
+      "available_event_count": 9,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E7",
+      "latest_event_id": "STR-06/E9",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7",
+        "STR-06/F8"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 8,
+        "STR-06/F2": 7,
+        "STR-06/F3": 5,
+        "STR-06/F4": 4,
+        "STR-06/F5": 3,
+        "STR-06/F6": 2,
+        "STR-06/F7": 1,
+        "STR-06/F8": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F8"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F6",
+        "STR-06/F7",
+        "STR-06/F8"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T10",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E10",
+      "available_event_count": 10,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E8",
+      "latest_event_id": "STR-06/E10",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7",
+        "STR-06/F8",
+        "STR-06/F9"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 9,
+        "STR-06/F2": 8,
+        "STR-06/F3": 6,
+        "STR-06/F4": 5,
+        "STR-06/F5": 4,
+        "STR-06/F6": 3,
+        "STR-06/F7": 2,
+        "STR-06/F8": 1,
+        "STR-06/F9": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F8",
+        "STR-06/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F7",
+        "STR-06/F8",
+        "STR-06/F9"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T11",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E11",
+      "available_event_count": 11,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E9",
+      "latest_event_id": "STR-06/E11",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 10,
+        "STR-06/F2": 9,
+        "STR-06/F3": 7,
+        "STR-06/F4": 6,
+        "STR-06/F5": 5,
+        "STR-06/F6": 4,
+        "STR-06/F7": 3,
+        "STR-06/F10": 0,
+        "STR-06/F11": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T12",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E12",
+      "available_event_count": 12,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E10",
+      "latest_event_id": "STR-06/E12",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 11,
+        "STR-06/F2": 10,
+        "STR-06/F3": 8,
+        "STR-06/F4": 7,
+        "STR-06/F5": 6,
+        "STR-06/F6": 5,
+        "STR-06/F7": 4,
+        "STR-06/F10": 1,
+        "STR-06/F11": 1,
+        "STR-06/F12": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F6",
+        "STR-06/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T13",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E13",
+      "available_event_count": 13,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E11",
+      "latest_event_id": "STR-06/E13",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12",
+        "STR-06/F13"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 12,
+        "STR-06/F2": 11,
+        "STR-06/F3": 9,
+        "STR-06/F4": 8,
+        "STR-06/F5": 7,
+        "STR-06/F7": 5,
+        "STR-06/F10": 2,
+        "STR-06/F11": 2,
+        "STR-06/F12": 1,
+        "STR-06/F13": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F13"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12",
+        "STR-06/F13"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T14",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E14",
+      "available_event_count": 14,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E12",
+      "latest_event_id": "STR-06/E14",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12",
+        "STR-06/F13",
+        "STR-06/F14"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 13,
+        "STR-06/F2": 12,
+        "STR-06/F3": 10,
+        "STR-06/F4": 9,
+        "STR-06/F5": 8,
+        "STR-06/F7": 6,
+        "STR-06/F10": 3,
+        "STR-06/F11": 3,
+        "STR-06/F12": 2,
+        "STR-06/F13": 1,
+        "STR-06/F14": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F13",
+        "STR-06/F14"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F12",
+        "STR-06/F13",
+        "STR-06/F14"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T15",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E15",
+      "available_event_count": 15,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E13",
+      "latest_event_id": "STR-06/E15",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12",
+        "STR-06/F13",
+        "STR-06/F14",
+        "STR-06/F15",
+        "STR-06/F17"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 14,
+        "STR-06/F2": 13,
+        "STR-06/F3": 11,
+        "STR-06/F4": 10,
+        "STR-06/F5": 9,
+        "STR-06/F7": 7,
+        "STR-06/F10": 4,
+        "STR-06/F11": 4,
+        "STR-06/F12": 3,
+        "STR-06/F13": 2,
+        "STR-06/F14": 1,
+        "STR-06/F15": 0,
+        "STR-06/F17": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F12",
+        "STR-06/F17"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F13",
+        "STR-06/F14",
+        "STR-06/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F13",
+        "STR-06/F14",
+        "STR-06/F15",
+        "STR-06/F17"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-06/T16",
+      "case_id": "STR-06",
+      "cutoff_event_id": "STR-06/E16",
+      "available_event_count": 16,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-06/E14",
+      "latest_event_id": "STR-06/E16",
+      "active_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12",
+        "STR-06/F14",
+        "STR-06/F15",
+        "STR-06/F16",
+        "STR-06/F17"
+      ],
+      "age_events_by_fact_id": {
+        "STR-06/F1": 15,
+        "STR-06/F2": 14,
+        "STR-06/F3": 12,
+        "STR-06/F4": 11,
+        "STR-06/F5": 10,
+        "STR-06/F7": 8,
+        "STR-06/F10": 5,
+        "STR-06/F11": 5,
+        "STR-06/F12": 4,
+        "STR-06/F14": 2,
+        "STR-06/F15": 1,
+        "STR-06/F16": 0,
+        "STR-06/F17": 1
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-06/F2",
+        "STR-06/F4",
+        "STR-06/F7",
+        "STR-06/F12",
+        "STR-06/F17"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F3",
+        "STR-06/F5",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F14",
+        "STR-06/F15",
+        "STR-06/F16"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-06/F1",
+        "STR-06/F2",
+        "STR-06/F3",
+        "STR-06/F4",
+        "STR-06/F5",
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F11",
+        "STR-06/F12"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-06/F14",
+        "STR-06/F15",
+        "STR-06/F16",
+        "STR-06/F17"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-06/F7",
+        "STR-06/F10",
+        "STR-06/F12"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    },
+    {
+      "slice_id": "STR-01/T1",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-01/E1",
+      "latest_event_id": "STR-01/E1",
+      "active_fact_ids": [
+        "STR-01/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-01/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-01/T2",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-01/E1",
+      "latest_event_id": "STR-01/E2",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 1,
+        "STR-01/F2": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-01/T3",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E1",
+      "latest_event_id": "STR-01/E3",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 2,
+        "STR-01/F2": 1,
+        "STR-01/F3": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-01/T4",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E2",
+      "latest_event_id": "STR-01/E4",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 3,
+        "STR-01/F2": 2,
+        "STR-01/F3": 1,
+        "STR-01/F4": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-01/F1"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-01/T5",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E5",
+      "available_event_count": 5,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E3",
+      "latest_event_id": "STR-01/E5",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 4,
+        "STR-01/F2": 3,
+        "STR-01/F3": 2,
+        "STR-01/F4": 1,
+        "STR-01/F5": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T6",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E6",
+      "available_event_count": 6,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E4",
+      "latest_event_id": "STR-01/E6",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 5,
+        "STR-01/F2": 4,
+        "STR-01/F3": 3,
+        "STR-01/F4": 2,
+        "STR-01/F5": 1,
+        "STR-01/F6": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T7",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E7",
+      "available_event_count": 7,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E5",
+      "latest_event_id": "STR-01/E7",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 6,
+        "STR-01/F2": 5,
+        "STR-01/F3": 4,
+        "STR-01/F4": 3,
+        "STR-01/F5": 2,
+        "STR-01/F6": 1,
+        "STR-01/F7": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T8",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E8",
+      "available_event_count": 8,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E6",
+      "latest_event_id": "STR-01/E8",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F8"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 7,
+        "STR-01/F2": 6,
+        "STR-01/F3": 5,
+        "STR-01/F4": 4,
+        "STR-01/F5": 3,
+        "STR-01/F6": 2,
+        "STR-01/F7": 1,
+        "STR-01/F8": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F8"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F8"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T9",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E9",
+      "available_event_count": 9,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E7",
+      "latest_event_id": "STR-01/E9",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F8",
+        "STR-01/F9"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 8,
+        "STR-01/F2": 7,
+        "STR-01/F3": 6,
+        "STR-01/F4": 5,
+        "STR-01/F5": 4,
+        "STR-01/F6": 3,
+        "STR-01/F7": 2,
+        "STR-01/F8": 1,
+        "STR-01/F9": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F8",
+        "STR-01/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F7",
+        "STR-01/F8",
+        "STR-01/F9"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T10",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E10",
+      "available_event_count": 10,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E8",
+      "latest_event_id": "STR-01/E10",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 9,
+        "STR-01/F2": 8,
+        "STR-01/F3": 7,
+        "STR-01/F4": 6,
+        "STR-01/F5": 5,
+        "STR-01/F6": 4,
+        "STR-01/F7": 3,
+        "STR-01/F9": 1,
+        "STR-01/F10": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F9",
+        "STR-01/F10"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T11",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E11",
+      "available_event_count": 11,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E9",
+      "latest_event_id": "STR-01/E11",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 10,
+        "STR-01/F2": 9,
+        "STR-01/F3": 8,
+        "STR-01/F4": 7,
+        "STR-01/F5": 6,
+        "STR-01/F6": 5,
+        "STR-01/F7": 4,
+        "STR-01/F9": 2,
+        "STR-01/F10": 1,
+        "STR-01/F11": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T12",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E12",
+      "available_event_count": 12,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E10",
+      "latest_event_id": "STR-01/E12",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 11,
+        "STR-01/F2": 10,
+        "STR-01/F3": 9,
+        "STR-01/F4": 8,
+        "STR-01/F5": 7,
+        "STR-01/F6": 6,
+        "STR-01/F7": 5,
+        "STR-01/F9": 3,
+        "STR-01/F10": 2,
+        "STR-01/F11": 1,
+        "STR-01/F12": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T13",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E13",
+      "available_event_count": 13,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E11",
+      "latest_event_id": "STR-01/E13",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12",
+        "STR-01/F13"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 12,
+        "STR-01/F2": 11,
+        "STR-01/F3": 10,
+        "STR-01/F4": 9,
+        "STR-01/F5": 8,
+        "STR-01/F6": 7,
+        "STR-01/F7": 6,
+        "STR-01/F9": 4,
+        "STR-01/F10": 3,
+        "STR-01/F11": 2,
+        "STR-01/F12": 1,
+        "STR-01/F13": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F11",
+        "STR-01/F12",
+        "STR-01/F13"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T14",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E14",
+      "available_event_count": 14,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E12",
+      "latest_event_id": "STR-01/E14",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12",
+        "STR-01/F13",
+        "STR-01/F14"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 13,
+        "STR-01/F2": 12,
+        "STR-01/F3": 11,
+        "STR-01/F4": 10,
+        "STR-01/F5": 9,
+        "STR-01/F6": 8,
+        "STR-01/F7": 7,
+        "STR-01/F9": 5,
+        "STR-01/F10": 4,
+        "STR-01/F11": 3,
+        "STR-01/F12": 2,
+        "STR-01/F13": 1,
+        "STR-01/F14": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12",
+        "STR-01/F14"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F12",
+        "STR-01/F13",
+        "STR-01/F14"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T15",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E15",
+      "available_event_count": 15,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E13",
+      "latest_event_id": "STR-01/E15",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 14,
+        "STR-01/F2": 13,
+        "STR-01/F3": 12,
+        "STR-01/F4": 11,
+        "STR-01/F5": 10,
+        "STR-01/F6": 9,
+        "STR-01/F7": 8,
+        "STR-01/F9": 6,
+        "STR-01/F10": 5,
+        "STR-01/F11": 4,
+        "STR-01/F12": 3,
+        "STR-01/F13": 2,
+        "STR-01/F15": 0,
+        "STR-01/F16": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F12"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T16",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E16",
+      "available_event_count": 16,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E14",
+      "latest_event_id": "STR-01/E16",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 15,
+        "STR-01/F2": 14,
+        "STR-01/F3": 13,
+        "STR-01/F4": 12,
+        "STR-01/F5": 11,
+        "STR-01/F6": 10,
+        "STR-01/F7": 9,
+        "STR-01/F9": 7,
+        "STR-01/F10": 6,
+        "STR-01/F11": 5,
+        "STR-01/F13": 3,
+        "STR-01/F15": 1,
+        "STR-01/F16": 1,
+        "STR-01/F17": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T17",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E17",
+      "available_event_count": 17,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E15",
+      "latest_event_id": "STR-01/E17",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17",
+        "STR-01/F18"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 16,
+        "STR-01/F2": 15,
+        "STR-01/F3": 14,
+        "STR-01/F4": 13,
+        "STR-01/F5": 12,
+        "STR-01/F6": 11,
+        "STR-01/F7": 10,
+        "STR-01/F9": 8,
+        "STR-01/F10": 7,
+        "STR-01/F11": 6,
+        "STR-01/F13": 4,
+        "STR-01/F15": 2,
+        "STR-01/F16": 2,
+        "STR-01/F17": 1,
+        "STR-01/F18": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17",
+        "STR-01/F18"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17",
+        "STR-01/F18"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-01/T18",
+      "case_id": "STR-01",
+      "cutoff_event_id": "STR-01/E18",
+      "available_event_count": 18,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-01/E16",
+      "latest_event_id": "STR-01/E18",
+      "active_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17",
+        "STR-01/F18",
+        "STR-01/F19"
+      ],
+      "age_events_by_fact_id": {
+        "STR-01/F1": 17,
+        "STR-01/F2": 16,
+        "STR-01/F3": 15,
+        "STR-01/F4": 14,
+        "STR-01/F5": 13,
+        "STR-01/F6": 12,
+        "STR-01/F7": 11,
+        "STR-01/F9": 9,
+        "STR-01/F10": 8,
+        "STR-01/F11": 7,
+        "STR-01/F13": 5,
+        "STR-01/F15": 3,
+        "STR-01/F16": 3,
+        "STR-01/F17": 2,
+        "STR-01/F18": 1,
+        "STR-01/F19": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F7",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16",
+        "STR-01/F17",
+        "STR-01/F18",
+        "STR-01/F19"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-01/F1",
+        "STR-01/F2",
+        "STR-01/F3",
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F6",
+        "STR-01/F7",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F13",
+        "STR-01/F15",
+        "STR-01/F16"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-01/F17",
+        "STR-01/F18",
+        "STR-01/F19"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-01/F4",
+        "STR-01/F5",
+        "STR-01/F9",
+        "STR-01/F10",
+        "STR-01/F11",
+        "STR-01/F15"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    },
+    {
+      "slice_id": "STR-04/T1",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E1",
+      "available_event_count": 1,
+      "recent_raw_window_turns": 1,
+      "first_recent_event_id": "STR-04/E1",
+      "latest_event_id": "STR-04/E1",
+      "active_fact_ids": [
+        "STR-04/F1"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-04/F1"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-04/T2",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E2",
+      "available_event_count": 2,
+      "recent_raw_window_turns": 2,
+      "first_recent_event_id": "STR-04/E1",
+      "latest_event_id": "STR-04/E2",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 1,
+        "STR-04/F2": 0,
+        "STR-04/F3": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F3"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-04/T3",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E3",
+      "available_event_count": 3,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E1",
+      "latest_event_id": "STR-04/E3",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3",
+        "STR-04/F4"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 2,
+        "STR-04/F2": 1,
+        "STR-04/F3": 1,
+        "STR-04/F4": 0
+      },
+      "outside_recent_window_fact_ids": [],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F3"
+      ],
+      "technically_mature_fact_ids": [],
+      "recent_or_current_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3",
+        "STR-04/F4"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "no_technically_mature_fact_yet"
+    },
+    {
+      "slice_id": "STR-04/T4",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E4",
+      "available_event_count": 4,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E2",
+      "latest_event_id": "STR-04/E4",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 3,
+        "STR-04/F2": 2,
+        "STR-04/F3": 2,
+        "STR-04/F4": 1,
+        "STR-04/F5": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F3"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F3",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "canary_role": "earliest_mature_dependency",
+      "task_dependency_fact_ids": [
+        "STR-04/F1"
+      ],
+      "selection_reason": "first_technically_mature_slice_with_manual_task_dependency"
+    },
+    {
+      "slice_id": "STR-04/T5",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E5",
+      "available_event_count": 5,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E3",
+      "latest_event_id": "STR-04/E5",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 4,
+        "STR-04/F2": 3,
+        "STR-04/F3": 3,
+        "STR-04/F4": 2,
+        "STR-04/F5": 1,
+        "STR-04/F6": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F3"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F3"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T6",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E6",
+      "available_event_count": 6,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E4",
+      "latest_event_id": "STR-04/E6",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F7"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 5,
+        "STR-04/F2": 4,
+        "STR-04/F4": 3,
+        "STR-04/F5": 2,
+        "STR-04/F6": 1,
+        "STR-04/F7": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F7"
+      ],
+      "answer_only_category_fact_ids": [],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F7"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T7",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E7",
+      "available_event_count": 7,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E5",
+      "latest_event_id": "STR-04/E7",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F8"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 6,
+        "STR-04/F2": 5,
+        "STR-04/F4": 4,
+        "STR-04/F5": 3,
+        "STR-04/F6": 2,
+        "STR-04/F8": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F6",
+        "STR-04/F8"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T8",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E8",
+      "available_event_count": 8,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E6",
+      "latest_event_id": "STR-04/E8",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F8",
+        "STR-04/F9"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 7,
+        "STR-04/F2": 6,
+        "STR-04/F4": 5,
+        "STR-04/F5": 4,
+        "STR-04/F6": 3,
+        "STR-04/F8": 1,
+        "STR-04/F9": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6",
+        "STR-04/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F6"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F9"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T9",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E9",
+      "available_event_count": 9,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E7",
+      "latest_event_id": "STR-04/E9",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F9",
+        "STR-04/F10"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 8,
+        "STR-04/F2": 7,
+        "STR-04/F4": 6,
+        "STR-04/F5": 5,
+        "STR-04/F8": 2,
+        "STR-04/F9": 1,
+        "STR-04/F10": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F9"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F9",
+        "STR-04/F10"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T10",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E10",
+      "available_event_count": 10,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E8",
+      "latest_event_id": "STR-04/E10",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F9",
+        "STR-04/F10",
+        "STR-04/F11"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 9,
+        "STR-04/F2": 8,
+        "STR-04/F4": 7,
+        "STR-04/F5": 6,
+        "STR-04/F8": 3,
+        "STR-04/F9": 2,
+        "STR-04/F10": 1,
+        "STR-04/F11": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F9",
+        "STR-04/F11"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F9",
+        "STR-04/F10",
+        "STR-04/F11"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T11",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E11",
+      "available_event_count": 11,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E9",
+      "latest_event_id": "STR-04/E11",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F9",
+        "STR-04/F10",
+        "STR-04/F11",
+        "STR-04/F12"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 10,
+        "STR-04/F2": 9,
+        "STR-04/F4": 8,
+        "STR-04/F5": 7,
+        "STR-04/F8": 4,
+        "STR-04/F9": 3,
+        "STR-04/F10": 2,
+        "STR-04/F11": 1,
+        "STR-04/F12": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F9"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F9",
+        "STR-04/F11",
+        "STR-04/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F9"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F10",
+        "STR-04/F11",
+        "STR-04/F12"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T12",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E12",
+      "available_event_count": 12,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E10",
+      "latest_event_id": "STR-04/E12",
+      "active_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F11",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F1": 11,
+        "STR-04/F2": 10,
+        "STR-04/F4": 9,
+        "STR-04/F5": 8,
+        "STR-04/F8": 5,
+        "STR-04/F10": 3,
+        "STR-04/F11": 2,
+        "STR-04/F12": 1,
+        "STR-04/F13": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F11",
+        "STR-04/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F1",
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F11",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T13",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E13",
+      "available_event_count": 13,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E11",
+      "latest_event_id": "STR-04/E13",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F11",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F14"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 11,
+        "STR-04/F4": 10,
+        "STR-04/F5": 9,
+        "STR-04/F8": 6,
+        "STR-04/F10": 4,
+        "STR-04/F11": 3,
+        "STR-04/F12": 2,
+        "STR-04/F13": 1,
+        "STR-04/F14": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F11"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F11",
+        "STR-04/F12"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F14"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F11"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F14"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T14",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E14",
+      "available_event_count": 14,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E12",
+      "latest_event_id": "STR-04/E14",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F14",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 12,
+        "STR-04/F4": 11,
+        "STR-04/F5": 10,
+        "STR-04/F8": 7,
+        "STR-04/F10": 5,
+        "STR-04/F12": 3,
+        "STR-04/F13": 2,
+        "STR-04/F14": 1,
+        "STR-04/F15": 0,
+        "STR-04/F16": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F12",
+        "STR-04/F16"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F14",
+        "STR-04/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F13",
+        "STR-04/F14",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T15",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E15",
+      "available_event_count": 15,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E13",
+      "latest_event_id": "STR-04/E15",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 13,
+        "STR-04/F4": 12,
+        "STR-04/F5": 11,
+        "STR-04/F8": 8,
+        "STR-04/F10": 6,
+        "STR-04/F12": 4,
+        "STR-04/F13": 3,
+        "STR-04/F15": 1,
+        "STR-04/F16": 1
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F12",
+        "STR-04/F16"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T16",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E16",
+      "available_event_count": 16,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E14",
+      "latest_event_id": "STR-04/E16",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16",
+        "STR-04/F17"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 14,
+        "STR-04/F4": 13,
+        "STR-04/F5": 12,
+        "STR-04/F8": 9,
+        "STR-04/F10": 7,
+        "STR-04/F12": 5,
+        "STR-04/F13": 4,
+        "STR-04/F15": 2,
+        "STR-04/F16": 2,
+        "STR-04/F17": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F12",
+        "STR-04/F16",
+        "STR-04/F17"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F15",
+        "STR-04/F16",
+        "STR-04/F17"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T17",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E17",
+      "available_event_count": 17,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E15",
+      "latest_event_id": "STR-04/E17",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16",
+        "STR-04/F17",
+        "STR-04/F18"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 15,
+        "STR-04/F4": 14,
+        "STR-04/F5": 13,
+        "STR-04/F8": 10,
+        "STR-04/F10": 8,
+        "STR-04/F12": 6,
+        "STR-04/F13": 5,
+        "STR-04/F15": 3,
+        "STR-04/F16": 3,
+        "STR-04/F17": 1,
+        "STR-04/F18": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F12",
+        "STR-04/F16",
+        "STR-04/F17",
+        "STR-04/F18"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F17",
+        "STR-04/F18"
+      ],
+      "canary_role": "not_selected",
+      "task_dependency_fact_ids": [],
+      "selection_reason": "bounded_canary_excludes_intermediate_slice"
+    },
+    {
+      "slice_id": "STR-04/T18",
+      "case_id": "STR-04",
+      "cutoff_event_id": "STR-04/E18",
+      "available_event_count": 18,
+      "recent_raw_window_turns": 3,
+      "first_recent_event_id": "STR-04/E16",
+      "latest_event_id": "STR-04/E18",
+      "active_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16",
+        "STR-04/F17",
+        "STR-04/F18",
+        "STR-04/F19"
+      ],
+      "age_events_by_fact_id": {
+        "STR-04/F2": 16,
+        "STR-04/F4": 15,
+        "STR-04/F5": 14,
+        "STR-04/F8": 11,
+        "STR-04/F10": 9,
+        "STR-04/F12": 7,
+        "STR-04/F13": 6,
+        "STR-04/F15": 4,
+        "STR-04/F16": 4,
+        "STR-04/F17": 2,
+        "STR-04/F18": 1,
+        "STR-04/F19": 0
+      },
+      "outside_recent_window_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "full_statement_in_current_task_fact_ids": [],
+      "full_statement_in_latest_event_fact_ids": [],
+      "context_probe_category_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F12",
+        "STR-04/F16",
+        "STR-04/F17",
+        "STR-04/F18",
+        "STR-04/F19"
+      ],
+      "answer_only_category_fact_ids": [
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F13",
+        "STR-04/F15"
+      ],
+      "technically_mature_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F5",
+        "STR-04/F8",
+        "STR-04/F10",
+        "STR-04/F12",
+        "STR-04/F13",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "recent_or_current_fact_ids": [
+        "STR-04/F17",
+        "STR-04/F18",
+        "STR-04/F19"
+      ],
+      "canary_role": "terminal",
+      "task_dependency_fact_ids": [
+        "STR-04/F2",
+        "STR-04/F4",
+        "STR-04/F15",
+        "STR-04/F16"
+      ],
+      "selection_reason": "fixed_terminal_boundary_slice"
+    }
+  ],
+  "limitations": {
+    "technical_maturity_is_not_semantic_task_dependency": true,
+    "exact_overlap_checks_do_not_detect_paraphrase": true,
+    "medium_tier_represented": false,
+    "tier_balanced_claim_authorized": false
+  }
+}

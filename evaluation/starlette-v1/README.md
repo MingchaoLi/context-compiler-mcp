@@ -114,3 +114,18 @@ npx vitest run test/starlette-six-case-preflight.test.ts test/starlette-promotio
 ```
 
 独立 Data QA PASS 也只接受 canonical-data freeze candidate，不等于正式 frozen、Probe/answer protocol 就绪或可运行 D0/D1/D2/远端模型。
+
+## DS-10 预注册 protocol canary
+
+`protocol-canary/` 在任何 evaluator/model 输出出现前固定第一版评价协议。`derive-eligibility.mjs` 从六案 promotion 数据确定性重建 83 facts、75 slices、499 个 fact-slice assignments；每案选择首个成熟历史依赖 slice 与 terminal，共 12 slices、101 个 projected history turns。
+
+context Probe 只接受同时出现在 D1-window 外 raw event 与同 slice Oracle item、且不重复 Current Task/最新事件的共同 exact lexical anchor。当前只有 8 个 Probe 满足该合同；另有 19 个 task-dependency Fact 明确记为 `not_exactly_scorable` 并转入答案 checklist，不能计作 context miss。全部 `resolved_issues` Probe 固定为空，因为 evaluator v2 不能读取 Oracle item 的 `RESOLVED` 状态；该维度是 `not_evaluable_diagnostic_only`，overall `passed` 也不能作为条件优劣结论。
+
+同一 protocol 同时预注册 42 个 required-answer item、16 个 forbidden-answer item 与 Critical-Miss 子集。未来答案允许语义改写，不要求复刻开发者回复；D0/D1/D2 标签必须对两名人工 reviewer 隐藏，分歧留痕并人工仲裁，不启用第二模型 judge。0 medium、case 内 slice 相关性与 exact-anchor 表示限制必须逐项披露，不生成综合加权分数。
+
+```bash
+node evaluation/starlette-v1/protocol-canary/validate-protocol-canary.mjs
+npx vitest run test/starlette-protocol-canary.test.ts
+```
+
+当前状态仍为 `protocol_canary_not_frozen`；canonical data 仍是 `promotion_candidate_not_frozen`。validator 与 parser preflight 明确保持 evaluator/model run count 为 0，且 `formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`。独立 QA PASS 后也需另开工单完成 data+protocol 原子 freeze、首次模型调用前追加污染复扫与运行参数预注册。

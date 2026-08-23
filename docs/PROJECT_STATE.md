@@ -44,6 +44,8 @@ WO-DS-09 已在独立 Data QA 于 2026-08-23 接受为六案 canonical-data free
 
 DS-09 后关键节点对抗审查 `docs/adversarial-reviews/AR-2026-08-23-post-ds09-protocol.md` 结论为 `Agree with reservations`。主控接受其更小路径并建立 WO-DS-10：只制作不超过 12 slices 的预注册 protocol canary，同时生成 83 facts / 75 slices 的完整资格清单；context Probe 与 answer required/forbidden/Critical-Miss checklist 必须同冻。现有 resolved context 尺子固定为 diagnostic/not-evaluable，overall `passed` 不作决策。本工单禁止 evaluator/model 运行、core 修改与正式 freeze。
 
+WO-DS-10 Builder candidate 已实现、待新的独立 QA。当前 protocol 从固定六案数据重建 83 facts / 75 slices / 499 assignments，并固定 12 slices / 101 projected turns；只有 8 个共同 exact lexical-anchor Probe，19 个 task dependency 明确 `not_exactly_scorable`，答案 rubric 为 42 required / 16 forbidden。状态仍是 `protocol_canary_not_frozen`，没有改动 promotion payload、`src/` 或 package surface；`formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`，runner/model/effect count 均为 0。独立 QA PASS 前不得接受该 candidate。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
