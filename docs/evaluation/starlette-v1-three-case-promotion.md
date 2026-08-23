@@ -31,12 +31,12 @@ promotion metadata 另行保存 collection、污染快照、source re-audit、�
 
 ## 可执行验证
 
-`validate-promotion.mjs` 从文件系统重建并验证固定集合、时间、21 项 byte-identical diff、25 项 promotion hash、accepted bundle hash、污染快照和来源复核边界。`validate-promotion-wiring.ts` 直接导入真实 evaluator v2 parser，使用 promotion 副本重建 DS-04 的 31 个 slice / 226 个投影 history turn；没有开放 parser 注入，也没有调用 evaluation runner 或模型。
+`validate-promotion.mjs` 从文件系统重建并验证固定集合、时间、21 项 byte-identical diff、25 项 promotion hash、accepted bundle hash、污染快照和来源复核边界。首次独立 QA 发现 accepted fixture、promotion 副本与所有可重算 hash 可以被协调改写；追加修复已在验证器代码内固定 accepted candidate `32600eb6...` 的 21 项路径、顺序与 SHA-256，不再允许被验证数据自举改写该合同，并加入完整协调重写反例。`validate-promotion-wiring.ts` 直接导入真实 evaluator v2 parser，使用 promotion 副本重建 DS-04 的 31 个 slice / 226 个投影 history turn；没有开放 parser 注入，也没有调用 evaluation runner 或模型。
 
 Builder 自检结果：
 
-- promotion 聚焦测试：10/10；
-- 全量单元测试：14 files / 293 tests；
+- promotion 聚焦测试：11/11；
+- 全量单元测试：14 files / 294 tests；
 - 协议测试：8/8；
 - build 与 `git diff --check`：通过；
 - 真实 `npm pack --dry-run --json`：50 个发布文件，Starlette promotion、evaluation fixture 与验证脚本均未进入 tarball。

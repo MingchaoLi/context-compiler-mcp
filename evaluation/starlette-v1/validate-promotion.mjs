@@ -40,6 +40,30 @@ const ACCEPTED_STATUSES = {
   "STR-05": "pilot_not_frozen",
   "STR-04": "canary_not_frozen",
 };
+const ACCEPTED_SOURCE_COMMIT = "32600eb6b7caf3fbe339e1103d3293f0b7e33103";
+const ACCEPTED_SOURCE_CONTRACT = [
+  { case_id: "STR-08", path: "pilot/STR-08/manifest.json", sha256: "7b58e7620f0f6b572976cd47cfbbc37661e29268509d13a88f27669533e35baf" },
+  { case_id: "STR-08", path: "pilot/STR-08/events.json", sha256: "63ddd24b005790b0d8d9236580a685a8bde0572d3702668e7a255b70906e2831" },
+  { case_id: "STR-08", path: "pilot/STR-08/tasks.json", sha256: "b43aa97419bc86f30f1b6d1aa32e31177469cd89217dd600837ba0e731e7be7d" },
+  { case_id: "STR-08", path: "pilot/STR-08/fact-gold.json", sha256: "2ae67a067ef16bd8e12b546b65b9e00e5324f0e683e37ab2809c4b2a5f089ae9" },
+  { case_id: "STR-08", path: "pilot/STR-08/oracle-state.json", sha256: "aad76971651ef204b4af7ed1ab5b84525efa01d42a84bca4a98137058aa76db9" },
+  { case_id: "STR-08", path: "pilot/STR-08/decision-references.json", sha256: "3e86bdc7f73060fd54420e1f2da952108d79b474f23e99c75d0a9bb288328453" },
+  { case_id: "STR-08", path: "pilot/STR-08/outcome-anchors.json", sha256: "c5a7784635c63d136506019a54363fb9dcd921478d219e75c15707cb70c57682" },
+  { case_id: "STR-05", path: "pilot/STR-05/manifest.json", sha256: "3aa84d2523bb4d99ce6d6bb5c48d528920426234d1693afffe1d5c1638a20b2e" },
+  { case_id: "STR-05", path: "pilot/STR-05/events.json", sha256: "49cbe96c411fd42246aba51ddf67d4a90d51ca52970481fccc6026bceecdd402" },
+  { case_id: "STR-05", path: "pilot/STR-05/tasks.json", sha256: "8c0662a4e26ac5ff53d575499a1eaba5168f61ddbb268545db5ad874cfef6beb" },
+  { case_id: "STR-05", path: "pilot/STR-05/fact-gold.json", sha256: "ef98d0a9c50a3e9325620958f393463a6a4e049eabea0436862f55d9762adedd" },
+  { case_id: "STR-05", path: "pilot/STR-05/oracle-state.json", sha256: "94a6f2028f7ce2978a0580f626ef312abd67ef169b92c9bc472251fb3f4a22b2" },
+  { case_id: "STR-05", path: "pilot/STR-05/decision-references.json", sha256: "66bcafefbb013df839350e352c1d46836714e8aaf2ec004bda9bb8c1940480b1" },
+  { case_id: "STR-05", path: "pilot/STR-05/outcome-anchors.json", sha256: "13547990dc52b322b44fbe3559916d8a63fc53ed0fc69b5fb626615b7b3d90fe" },
+  { case_id: "STR-04", path: "canary/STR-04/manifest.json", sha256: "19b436786ce401b3f3e385297d6bd58c4e8bacd905f9fb1e4c179b51aecb0f1d" },
+  { case_id: "STR-04", path: "canary/STR-04/events.json", sha256: "00833cbfbf0d3a6cea2bd5615c5f353db31c3e200274fd58c4ea2f6710828154" },
+  { case_id: "STR-04", path: "canary/STR-04/tasks.json", sha256: "8f69ae4c11546b4fee84a27da3dbc173d231b146ab7b6a5d6cc51b67e4af8104" },
+  { case_id: "STR-04", path: "canary/STR-04/fact-gold.json", sha256: "50150ff6202365832096a4c6eff1592be22540c7694e6ecfd86a080ba02cbffa" },
+  { case_id: "STR-04", path: "canary/STR-04/oracle-state.json", sha256: "be179bf0c2a42a6bad5a9bf0cfca37da433c8a9cb733fd3bb765fbedd5568e3b" },
+  { case_id: "STR-04", path: "canary/STR-04/decision-references.json", sha256: "26d9da7b00e0c50ed4bb3e62866723e2d6af4e509b82516c6905914db3b08549" },
+  { case_id: "STR-04", path: "canary/STR-04/outcome-anchors.json", sha256: "4e71438bb8d138f2973541e8fc3f8170d44942fc3dab8cc5e136525f819f7a1a" },
+];
 const EXPECTED_SOURCE_NUMBERS = {
   "STR-07": [1008, 1010],
   "STR-08": [1298],
@@ -194,7 +218,7 @@ function validateCollection(value, path) {
     if (
       item.case_id !== caseId || item.accepted_path !== SOURCE_PATHS[caseId] ||
       item.accepted_status !== ACCEPTED_STATUSES[caseId] ||
-      item.accepted_candidate_commit !== "32600eb6b7caf3fbe339e1103d3293f0b7e33103" ||
+      item.accepted_candidate_commit !== ACCEPTED_SOURCE_COMMIT ||
       item.promotion_path !== `promotion/cases/${caseId}` ||
       item.promotion_status !== "promoted_not_frozen"
     ) fail(casePath, "case promotion registration changed");
@@ -325,27 +349,26 @@ function validateSourceReaudit(value, bundles, path) {
 
 async function expectedDiffEntries(root) {
   const entries = [];
-  for (const caseId of PROMOTED_CASES) {
-    for (const file of CASE_FILES) {
-      const oldPath = `${SOURCE_PATHS[caseId]}/${file}`;
-      const newPath = `promotion/cases/${caseId}/${file}`;
-      const [oldContent, newContent] = await Promise.all([
-        readRegularFile(join(root, oldPath)),
-        readRegularFile(join(root, newPath)),
-      ]);
-      const oldHash = createHash("sha256").update(oldContent).digest("hex");
-      const newHash = createHash("sha256").update(newContent).digest("hex");
-      if (!oldContent.equals(newContent) || oldHash !== newHash) fail(newPath, "promotion copy is not byte-identical");
-      entries.push({
-        case_id: caseId,
-        file,
-        old_path: oldPath,
-        old_sha256: oldHash,
-        new_path: newPath,
-        new_sha256: newHash,
-        change_class: "byte_identical_relocation",
-      });
-    }
+  for (const accepted of ACCEPTED_SOURCE_CONTRACT) {
+    const file = accepted.path.slice(accepted.path.lastIndexOf("/") + 1);
+    const newPath = `promotion/cases/${accepted.case_id}/${file}`;
+    const [oldContent, newContent] = await Promise.all([
+      readRegularFile(join(root, accepted.path)),
+      readRegularFile(join(root, newPath)),
+    ]);
+    const oldHash = createHash("sha256").update(oldContent).digest("hex");
+    const newHash = createHash("sha256").update(newContent).digest("hex");
+    if (oldHash !== accepted.sha256) fail(accepted.path, `accepted source differs from fixed ${ACCEPTED_SOURCE_COMMIT} contract`);
+    if (!oldContent.equals(newContent) || newHash !== accepted.sha256) fail(newPath, "promotion copy differs from fixed accepted-source contract");
+    entries.push({
+      case_id: accepted.case_id,
+      file,
+      old_path: accepted.path,
+      old_sha256: accepted.sha256,
+      new_path: newPath,
+      new_sha256: accepted.sha256,
+      change_class: "byte_identical_relocation",
+    });
   }
   return entries;
 }

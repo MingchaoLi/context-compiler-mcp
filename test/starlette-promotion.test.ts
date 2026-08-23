@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { createHash } from "node:crypto";
 import { cp, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -8,7 +9,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { validatePromotionWiring } from "../evaluation/starlette-v1/validate-promotion-wiring.js";
 // The promotion validator intentionally remains outside the publishable src/ package.
 // @ts-expect-error JavaScript fixture utility has no declaration file.
-import { validatePromotion } from "../evaluation/starlette-v1/validate-promotion.mjs";
+import {
+  computePromotionHashEntries,
+  validatePromotion,
+} from "../evaluation/starlette-v1/validate-promotion.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "evaluation", "starlette-v1");
 const temporaryDirectories: string[] = [];
@@ -29,6 +33,10 @@ async function mutateJson(root: string, relativePath: string, mutation: (value: 
   const value = JSON.parse(await readFile(path, "utf8"));
   mutation(value);
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function sha256File(path: string): Promise<string> {
+  return createHash("sha256").update(await readFile(path)).digest("hex");
 }
 
 describe("Starlette three-case promotion audit", () => {
@@ -78,7 +86,7 @@ describe("Starlette three-case promotion audit", () => {
     const root = await copiedRoot();
     const path = join(root, "promotion/cases/STR-08/tasks.json");
     await writeFile(path, `${await readFile(path, "utf8")}\n`, "utf8");
-    await expect(validatePromotion(root)).rejects.toThrow(/not byte-identical/);
+    await expect(validatePromotion(root)).rejects.toThrow(/promotion copy differs from fixed accepted-source contract/);
   });
 
   it("rejects a byte-identical promotion payload exposed through a symlink", async () => {
@@ -89,6 +97,39 @@ describe("Starlette three-case promotion audit", () => {
     await rm(target);
     await symlink(saved, target);
     await expect(validatePromotion(root)).rejects.toThrow(/expected regular file/);
+  });
+
+  it("rejects coordinated accepted-source, copy, diff, and hash rewrites", async () => {
+    const root = await copiedRoot();
+    const acceptedPath = "pilot/STR-08/tasks.json";
+    const promotionPath = "promotion/cases/STR-08/tasks.json";
+    for (const path of [acceptedPath, promotionPath]) {
+      await mutateJson(root, path, (value) => {
+        value.tasks[0].current_task += " Also identify one immediate investigation step.";
+      });
+    }
+    const rewrittenHash = await sha256File(join(root, acceptedPath));
+    await mutateJson(root, "pilot-hashes.json", (value) => {
+      value.files.find((entry: any) => entry.path === acceptedPath).sha256 = rewrittenHash;
+    });
+    await mutateJson(root, "promotion/promotion-diff.json", (value) => {
+      const entry = value.entries.find((candidate: any) => candidate.old_path === acceptedPath);
+      entry.old_sha256 = rewrittenHash;
+      entry.new_sha256 = rewrittenHash;
+    });
+    const rewrittenDiffHash = await sha256File(join(root, "promotion/promotion-diff.json"));
+    await mutateJson(root, "promotion/collection.json", (value) => {
+      value.promotion_diff.sha256 = rewrittenDiffHash;
+    });
+    const rewrittenPromotionHashes = await computePromotionHashEntries(root);
+    await writeFile(join(root, "promotion-hashes.json"), `${JSON.stringify({
+      schema_version: "starlette-promotion/v1",
+      status: "promotion_candidate_not_frozen",
+      algorithm: "sha256",
+      files: rewrittenPromotionHashes,
+    }, null, 2)}\n`, "utf8");
+
+    await expect(validatePromotion(root)).rejects.toThrow(/accepted source differs from fixed/);
   });
 
   it("rejects a promotion diff that disguises a change class", async () => {

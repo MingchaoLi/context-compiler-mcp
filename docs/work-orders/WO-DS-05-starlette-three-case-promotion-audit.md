@@ -137,7 +137,9 @@ collection manifest、contamination snapshot、promotion diff 和 promotion hash
 
 2026-08-23 已完成待验收候选：固定共同 evidence cutoff；建立覆盖固定六案的版本化污染 snapshot；轻量复核 STR-08/05/04 共 31 个来源且未发现需要修改语义 payload 的反证；将三案 21 个 accepted 文件逐字节复制到 promotion 目录并生成可重建 diff/hash；以真实 evaluator v2 parser 复验 31 slices / 226 turns。collection 仍为 `promotion_candidate_not_frozen`，`evaluation_ready` 与 `model_run_authorized` 均为 false。
 
-Builder 自检通过 promotion 10/10、全量 293、protocol 8/8、build、diff check 和真实 50-entry npm pack 隔离。完整证据见 `docs/evaluation/starlette-v1-three-case-promotion.md` 与 `docs/handoffs/WO-DS-05-starlette-three-case-promotion-audit.md`。本结果不自行批准；等待新的独立 data QA。
+首轮独立 QA 在 `2dd87a6` 上发现 P1：accepted source、副本与所有可重算 hash 可协调改写后仍被接受。追加修复已在 validator 代码合同中锚定 accepted candidate `32600eb6...` 的全部 21 个路径、顺序与 SHA-256，并加入复刻该攻击的聚焦反例。
+
+追加修复后 Builder 自检通过 promotion 11/11、全量 294、protocol 8/8、build、diff check 和真实 50-entry npm pack 隔离。完整证据见 `docs/evaluation/starlette-v1-three-case-promotion.md` 与 `docs/handoffs/WO-DS-05-starlette-three-case-promotion-audit.md`。本结果不自行批准；等待同一独立 data QA re-QA。
 
 ## 明确不做
 

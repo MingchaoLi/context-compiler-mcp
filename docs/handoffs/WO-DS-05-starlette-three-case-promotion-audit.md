@@ -17,6 +17,12 @@
 
 没有修改 `src/`、MCP、依赖、evaluator/retrieval/assembler policy、provider 接口、旧 pilot/canary fixture/hash 或旧污染快照。没有制作 STR-01/06/07，没有运行 D0/D1/D2、回答模型、aggregate、PASS rate 或任何效果实验。
 
+## 首轮 QA 退回与追加修复
+
+首轮独立 QA 固定候选 `2dd87a6`，确认复制、来源、污染限制、parser、测试与发布包均通过，但构造出 P1 协调重写：同时修改 accepted source、promotion copy、pilot hash、diff、collection reference 与 promotion hash 后，旧 validator 仍接受。失败报告和 docs-only commit 保留。
+
+当前追加修复把 accepted candidate `32600eb6...` 的 21 个 source 路径、顺序与 SHA-256 固定在 validator 代码合同中。old source 与 promotion copy 必须分别匹配该固定合同；仅重建 JSON hash 清单无法改变锚点。聚焦测试完整复刻首轮 QA 的协调改写并要求拒绝，且保留 symlink 与所有既有单点反例。等待同一独立 QA re-QA。
+
 ## 独立 QA 必查
 
 - 固定 Builder candidate、父提交 `4c6e740cddc794e90a310f4c3ee60e739e339fe7` 和 clean worktree，确认差异只属于 DS-05；
@@ -33,8 +39,8 @@
 ## Builder 自检
 
 - `node evaluation/starlette-v1/validate-promotion.mjs`：3 promoted / 21 byte-identical files / 31 sources / 31 slices / hashes verified；
-- `npx vitest run test/starlette-promotion.test.ts`：10/10；
-- `npm test`：14 files / 293 tests；
+- `npx vitest run test/starlette-promotion.test.ts`：11/11；
+- `npm test`：14 files / 294 tests；
 - `npm run test:protocol`：8/8；
 - `npm run build`、`git diff --check`：通过；
 - `npm --cache /private/tmp/context-compiler-ds05-npm-cache pack --dry-run --json`：50-entry tarball，未包含 Starlette/evaluation 文件。

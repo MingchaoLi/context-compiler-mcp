@@ -28,7 +28,7 @@ WO-DS-03 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `32
 
 WO-DS-04 已在独立 re-QA 于 2026-08-23 接受，固定候选为 `c727b68bac28b158a3d6a045adfb00b552c22723`。正式六案预注册保持 STR-07/08/05/06/01/04，不得按任何 dry-run 或模型结果换案；2 short / 1 medium / 3 long 仅为预计分布。接线冒烟把已接受的 STR-08/05/04 共 31 个 slice、226 个投影历史 turn 确定性构造成 evaluator v2 严格 parser 可消费输入；没有调用 `runEvaluationSuiteV2` 或远端模型，也没有产生效果指标。该接受仅为 wiring smoke gate；数据集仍是 `planned_not_frozen`，pilot/canary 状态不变，未授权 promotion/freeze、D0/D1/D2 或任何效果解释。
 
-WO-DS-05 Builder 候选已于 2026-08-23 完成并等待新的独立 data QA。全六案共同 `evidence_cutoff_at` 固定为 `2026-08-23T03:00:00Z`；STR-08/05/04 的 21 个 accepted 文件以 byte-identical relocation 进入独立 promotion 目录，31 个登记来源轻量复核没有要求语义改动。版本化污染 snapshot 覆盖固定六案，但因 GitHub code search 认证限制，`no_public_hit_found` 只是一项有限的 as-of 结论。当前状态仍为 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`，尚未获得 QA 接受。
+WO-DS-05 Builder 候选已于 2026-08-23 完成并等待独立 re-QA。全六案共同 `evidence_cutoff_at` 固定为 `2026-08-23T03:00:00Z`；STR-08/05/04 的 21 个 accepted 文件以 byte-identical relocation 进入独立 promotion 目录，31 个登记来源轻量复核没有要求语义改动。版本化污染 snapshot 覆盖固定六案，但因 GitHub code search 认证限制，`no_public_hit_found` 只是一项有限的 as-of 结论。首轮 QA 已退回可协调改写 accepted source 与全部 hash 的 P1；追加修复在代码合同中锚定 21 个 accepted 路径/顺序/SHA。当前状态仍为 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`，尚未获得 QA 接受。
 
 ## 最新对抗审查
 
