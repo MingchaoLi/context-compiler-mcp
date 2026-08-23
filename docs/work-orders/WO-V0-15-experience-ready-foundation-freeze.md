@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：FROZEN REOPENED — PENDING INDEPENDENT RE-QA
+状态：ACCEPTED / FROZEN
 
 ## 背景校准
 
@@ -34,7 +34,9 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 
 2026-08-24 冻结返回最终复核 `docs/adversarial-reviews/AR-2026-08-24-post-v0-15-freeze-recheck.md` 再次给出 `Challenge`：snapshot baseline 只能证明最近 mutation 后的年龄，不能证明首个可信 telemetry 前 item 整个生命周期没有发生过无 id 命中。冻结因此只为 telemetry completeness P1 再次重开；第五个 append-only fix 同时保留 session global telemetry origin 与 current snapshot baseline 两道门，等待独立 re-QA。历史第四次接受继续保留，但不再代表 never-hit 合同完整关闭。
 
-2026-08-24 第五个 fix 的独立 re-QA 在固定 candidate `cdd1d79446453b3593f5486570a1f7c031af8ddb` 返回 compile telemetry 线性化 P1：首个 operation-id compile 检查空 telemetry 与实际提交首 trace 之间存在跨实例 TOCTOU，另一个实例可在该窗口创建 state 并执行不可观测的无 id 命中。第六个 append-only fix 只用同一 SQLite 的 `BEGIN IMMEDIATE` 包住完整 compile 读取、assembly、首 trace/hits 与 commit，使 no-id compile、raw ingest 和 state apply 与 telemetry origin 处于同一可回滚线性顺序；当前仍为 `FROZEN REOPENED — PENDING INDEPENDENT RE-QA`。
+2026-08-24 第五个 fix 的独立 re-QA 在固定 candidate `cdd1d79446453b3593f5486570a1f7c031af8ddb` 返回 compile telemetry 线性化 P1：首个 operation-id compile 检查空 telemetry 与实际提交首 trace 之间存在跨实例 TOCTOU，另一个实例可在该窗口创建 state 并执行不可观测的无 id 命中。第六个 append-only fix 只用同一 SQLite 的 `BEGIN IMMEDIATE` 包住完整 compile 读取、assembly、首 trace/hits 与 commit，使 no-id compile、raw ingest 和 state apply 与 telemetry origin 处于同一可回滚线性顺序；该修复在当时仍为 `FROZEN REOPENED — PENDING INDEPENDENT RE-QA`。
+
+2026-08-24 第六个 fix 已在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA。QA 用自建双 Service / Worker 同步 barrier 关闭 raw-read 与 trace-commit 两种 TOCTOU：竞争 raw/state writer 不能穿越 A 的 compile boundary，A commit 后竞争 no-id compile 稳定 `INVALID_INPUT`；A rollback 或 hit 注入失败时 trace/hit 零写，竞争 pre-baseline no-id 继续 read-only。短锁、busy 耗尽、异常回滚、nested boundary、same-operation 两实例、health/read 并发及全部历史反例均通过，没有新的 P0/P1/P2。本工单恢复 `ACCEPTED / FROZEN`；Dense、Context 语义收益与 Experience Formation 效果仍未评估，下一阶段只进入真实使用数据积累。
 
 ## 单一结果
 
@@ -144,4 +146,4 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 - 不实现 PACE、多级摘要、glimpse/page fault、Graph DB、复杂 ontology、learned retrieval/compression。
 - 不接入 embedding/provider SDK，不联网，不调权重，不做 PACE/mem0 benchmark。
 - 不增加 MCP tool，不做 Formal Host Mode，不修改宿主仓库。
-- Context / State 冻结当前只因 telemetry completeness P1 重开并等待独立 re-QA；通过后才可恢复冻结并转向真实使用与 Event–Action–Outcome / Feedback 数据积累，不由本工单隐式授权 Experience Formation 实现。
+- Context / State 基础设施已在 compile telemetry 线性化独立 re-QA 后恢复冻结；下一阶段只转向真实使用与 Event–Action–Outcome / Feedback 数据积累，不由本工单隐式授权 Experience Formation 实现。

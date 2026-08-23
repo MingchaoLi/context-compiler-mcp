@@ -393,3 +393,67 @@ Builder 只需继续做一个 bounded correctness fix，不扩大算法或 Exper
 - DS-14 定向固定回放：30/30 PASS。
 
 除上述 concurrency origin P1 外，本轮没有发现新的 P0/P1/P2。Dense retrieval、Context 语义效果与 Experience Formation 效果仍为 **未评估**。在返回条件关闭前不得恢复 `ACCEPTED / FROZEN` 或进入真实使用数据积累；也不得借此引入 PACE、Graph DB、ontology、retrieval 调参、provider/model 或 Experience Formation。
+
+---
+
+## 第六个 compile telemetry 线性化 fix 独立 re-QA（2026-08-24）
+
+结论：**PASS — WO-V0-15 ACCEPTED / FROZEN。** 第五轮返回的跨实例 telemetry origin TOCTOU 已由同一 SQLite 的完整 compile writer boundary 关闭；本轮没有发现新的 P0/P1/P2。全部历史 FAIL、修复和接受记录继续 append-only 保留，但不再表示当前候选状态。
+
+### 固定候选与独立性
+
+- 分支：`main`
+- 固定 source candidate：`ad94f9350482be37f1a38538cf6b624fb69a2b9a`
+- 固定父提交：`9883747fcffdc6bdc6d01da31363ee3edf6f47d1`
+- re-QA 开始与测试完成时 branch / HEAD / parent 均精确匹配，source candidate 工作树 clean，`git diff --check HEAD^..HEAD` 通过；`evaluation/` 相对父提交零差异。
+- source diff 只包含 Experience Ledger 内部 compile boundary、MCP service 接线、同步 protocol fixture/test、中文 handoff 与 reopened 状态文档；没有修改 API/schema、Context policy/权重、Gold、official artifact、MCP 工具数量或 Experience 范围。
+- 本次未调用模型或网络，未修改 source、tests、Gold、`feasibility-01`、WO-DS-14 artifact 或 evaluation。QA 只追加中文报告，并在 PASS 后更新 WO / PROJECT_STATE / ROADMAP。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### 两种 TOCTOU 独立同步重放
+
+QA 没有复用 Builder fixture，而是另建两个真实 `ContextCompilerMcpService` Worker、同一 SQLite 文件和 `SharedArrayBuffer + Atomics` 调度，原样重放第五轮的两个交错点：
+
+1. A 取得 compile writer boundary、读取 raw seq 1 后暂停；
+2. A 已完成 state/raw/ledger 读取与 trace 计算，只在内部 trace append 前暂停。
+
+两种场景中，B 都已进入真实 raw ingest 调用，但在 A 暂停后的 200 ms 观察窗内无法完成，且暂停时 ledger 中 compile/hit 仍为零。释放 A 后：
+
+- A 成功提交 revision 0 / raw boundary 1 / empty selected ids 的首 trace；
+- B 才完成 raw seq 2 ingest、public v1 state prepare/apply；
+- B 随后的无 `operation_id` 相关 compile 重新取得 boundary 后看到已提交 origin，稳定返回 `INVALID_INPUT`，不能再产生不可观测 hit。
+
+这证明 raw/state writer 与 no-id compile 都只能线性落在 origin commit 的一侧，先前 time-of-check 到 trace commit 的穿越窗口已关闭。
+
+### rollback、busy 与事务边界攻击
+
+- A 在 trace append 前注入普通异常：外层事务完整 rollback，compile/hit 均为零；B 随后完成 raw/state 写入，无 id 相关 compile 成功且保持 read-only。结合独立 pre-origin 回放，后来首 origin 会包含既有 Goal，跨 15 轮仍保守 active。
+- 通过外部 SQLite trigger 在 `RETRIEVAL_HIT` 插入点注入失败：已插入的 trace 与 hit 同时回滚为零；移除 trigger 后 pre-baseline no-id compile 立即成功，ledger 仍零写。
+- 外部 `BEGIN IMMEDIATE` 短锁 250 ms 时，竞争 compile 等待约 303 ms 后成功；锁持续到 `busy_timeout` 耗尽时，约 5.39 s 有界返回 `STORAGE_FAILURE`，释放锁后同 operation retry 成功。没有死锁、无限等待或残留 boundary。
+- writer boundary 持有期间，已打开的另一服务 `health` 与 `get_state` 仍为毫秒内成功；只读查询没有被误接成 writer deadlock。
+- 通过内部稳定符号独立触发 nested boundary：嵌套稳定拒绝，原异常对象不被 rollback 覆盖；回滚后同 store 可再次成功开启 boundary。
+- 两独立实例对同一 operation-id、同一 query/state/raw 同步竞争 10 轮：每轮两个调用均成功，最终精确一条 `CONTEXT_COMPILE` 与一条 query hit，两个响应返回同一 trace id。既有同 id 异输入 conflict 与 operation retry 回归继续通过。
+
+新增 boundary 会在同步 deterministic assembly 期间持有 SQLite writer lock；这可能增加写竞争延迟，但当前有固定 5 秒 busy 上界且失败后可重试。该 operational cost 需要真实使用数据观察，不是本轮 correctness blocker，也不构成 Context 算法效果证据。
+
+### global origin、snapshot 与旧反例
+
+- 独立重放 origin 前 public v1 create → no-id related hit → 首可信 origin → 15 轮：item 保持 active；随后 source-less content update、新 snapshot 与再 15 轮仍 active。
+- 独立真实 `RuntimeStateUpdater` v2 正向：origin 后 creation ref 严格晚于 origin，新 snapshot 中间 compile 不重置年龄，第 14 轮 active、第 15 轮 dormant，authoritative status 不变。
+- 多 creation refs、缺失 creation relation、后补/歧义 relation、origin 边界和混合早晚 refs 均保持既有正向或 fail-open 规则；跨 session / dangling raw ref 继续被 StateStore 拒绝。
+- public v1 content/status/relation late update、旧/伪/坏 telemetry、revision/hash mismatch、zero-hit、Constraint、query、prior hit、dependency rescue，以及首轮全部 P1/P2、fresh/legacy migration/concurrency 均未回归。
+
+### 回归、协议与打包
+
+- focused 10 文件：176/176 PASS。
+- 全量 `npm test`：475 PASS / 1 个既有 opt-in official runner SKIP。
+- 独立 `npm run test:protocol`：13/13 PASS；覆盖两项新 boundary 回归、fresh/legacy Raw/Service/双 stdio、same-source/same-operation、真实 `npm pack`、production-only 隔离安装、精确九工具、stdio health 与进程关闭。
+- `npm run build`、candidate diff-check：PASS。
+- DS-13 fixed-object validator：PASS；没有重跑模型或 official artifact。
+- DS-14 定向固定回放：ST-01 7/7、ST-02 contract 8/8、empty-state score 8/8、feasibility results 7/7，共 30/30 PASS。
+
+### 最终接受与冻结边界
+
+第六个 fix 用单一可回滚 SQLite writer boundary 关闭了最后一个已知 telemetry completeness P1，没有增加 reservation schema、算法、provider 或 Experience logic。WO-V0-15 的 correctness、兼容、provenance、迁移、并发、回放、协议与生产打包合同现有足够非空证据，因此恢复 `ACCEPTED / FROZEN`。
+
+该 PASS **不表示** Dense retrieval 有正向效果，不表示 Context / State 语义收益已证明，也不表示 Experience Formation 已实现或有效；这些仍为 **未评估**。下一阶段只通过真实长期使用积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据。Context / State 默认冻结；除非出现新的可复现 correctness 缺陷或另立明确工单，不再开发 Context 算法、PACE/mem0 对比、retrieval 调参、Graph DB、复杂 ontology 或 Experience Formation。

@@ -16,13 +16,13 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
-WO-V0-15 的第三、第四次 append-only fix 独立接受证据继续作为历史保留；第五个 fix 已关闭单实例 global-origin 判定，但独立 re-QA 发现首 trace 提交前跨实例 no-id compile 可穿越 origin 的 TOCTOU P1。当前状态为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。第六个 append-only fix 只增加 SQLite compile telemetry 线性化边界：完整 state/raw/ledger 读取、assembly、首 trace/hits 与 commit 处于同一 `BEGIN IMMEDIATE`，竞争的 raw/state write 与 no-id compile 只能落在 origin 一侧。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval 效果与 Experience Formation 效果都未评估。
+WO-V0-15 的全部历史返回与接受证据继续 append-only 保留。第六个 compile telemetry 线性化 fix 已在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA，关闭首 trace 提交前跨实例 no-id compile 穿越 origin 的 TOCTOU P1；当前状态恢复为 **ACCEPTED / FROZEN**。完整 state/raw/ledger 读取、assembly、首 trace/hits 与 commit 处于同一可回滚 `BEGIN IMMEDIATE` boundary，竞争 raw/state writer 与 no-id compile 只能落在 origin 一侧。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval、Context 语义收益与 Experience Formation 效果都未评估。
 
 WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a`. The accepted evaluator v2 preserves version 1 reproduction, rejects non-plain or untraceable Probe inputs before execution, represents empty rates explicitly as `not_evaluable`, excludes `current_input` from historical matching while retaining it in cost/latency inputs, and reports raw D2-vs-D1 token cost without adding a gate. The first QA return and append-only fix are retained in the QA report. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
 
 ## Current foundation status
 
-WO-V0-15 保留 A/B/C checkpoint、全部 QA/对抗返回和历史接受记录；state-snapshot 与单实例 global-origin 反例已经关闭，当前只因 compile origin 跨实例线性化 P1 继续重开。A、B 不重开，C 只允许第六个 telemetry boundary correctness fix，等待独立 re-QA。
+WO-V0-15 保留 A/B/C checkpoint、全部 QA/对抗返回、历史接受与重开记录；state-snapshot、global-origin 和 compile origin 跨实例线性化反例均已关闭。A/B/C 现统一恢复冻结，后续默认只允许有独立复现证据的 correctness 修复。
 
 首轮 telemetry、特殊 JSON、Dense 极值、persisted-row 错误分类和 Runtime v2 错误合同，以及后续 fresh DB 初始化与 legacy raw ALTER 两项竞争，均已在独立动态反例中关闭。完整证据与返回链保留在 `docs/qa/WO-V0-15-experience-ready-foundation-freeze.md`。
 
@@ -101,6 +101,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
 - WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但已由 WO-DS-14 封存为 Oracle-State feasibility baseline；不再等待双真人评分，answer semantic gain 保持 `not_evaluated`。8 lexical Probes 只覆盖 3/12 slices；0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
 - WO-DS-14 已完成并经独立 QA 接受其 reducer conformance 与 ST-02 capture/raw-scoring 完整性；ST-02 Extractor correctness 实验结果为失败。结果仅相对 accepted standardized-event-summary Gold：Predicted State 全空，unique recall 为 general `0/35`、critical `0/29`，其余 zero-eligibility capability 不可评价。它不能证明 reducer Operational Stability、其他模型/prompt、真实 raw-body 或 State Compiler 架构的一般表现；下一阶段未授权。
-- WO-V0-15 因首 trace commit 前跨实例 telemetry origin TOCTOU P1 继续 `FROZEN REOPENED` 并等待独立 re-QA；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。只有 compile telemetry 线性化 correctness fix 被授权，通过后才可恢复冻结并进入真实使用数据积累。
+- WO-V0-15 的首 trace commit 前跨实例 telemetry origin TOCTOU P1 已由第六个 fix 关闭，Context / State 基础设施恢复冻结。Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。下一阶段只通过真实使用积累可回放的 Event–Action–Outcome / Feedback 数据。
 
-WO-ST-01 through WO-ST-03 与 WO-EV-02 已完成并经独立 QA 接受；WO-V0-15 当前为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。真实使用数据积累等待该 re-QA；Formal Host Mode 仍不在范围内且未开始。
+WO-ST-01 through WO-ST-03、WO-EV-02 与 WO-V0-15 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED / FROZEN**。下一阶段只是真实使用与 Event–Action–Outcome / Feedback 数据积累；Formal Host Mode 仍不在范围内且未开始。
