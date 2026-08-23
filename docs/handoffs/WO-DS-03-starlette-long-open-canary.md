@@ -2,7 +2,7 @@
 
 日期：2026-08-23
 
-状态：**GATE CLOSED — PENDING INDEPENDENT DATA QA**
+状态：**RETURNED BY INDEPENDENT DATA QA — GATE-CLOSED 判断不成立**
 
 ## 交付
 
@@ -39,3 +39,7 @@
 - diff 不含 `src/`、依赖、canary fixture、projection 或模型输出。
 
 实现者不批准 gate closed。独立 QA 前，不得恢复 STR-04、改规则豁免该命中、自动换样或启动模型实验。
+
+## QA 退回后的处置
+
+独立 QA 在提交 `cf600f3` 中证明该 RAGAS 题的 `ground_truth_ref` 是 FastAPI PR #15745，#2349 只属于未被答案使用的 retrieved-context 噪声，不满足原规则的 task/patch 复用限定。主控接受退回，恢复 STR-04 `no_public_hit_found` 并继续原 canary；本交接保留为首轮错误判断的审计记录。

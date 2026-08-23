@@ -64,16 +64,9 @@
     {
       "candidate_id": "STR-04",
       "source_numbers": [685, 1286, 1649, 2349],
-      "status": "confirmed",
-      "direct_evidence": [
-        {
-          "repository": "Uniyalsumit/CT_PROJECT",
-          "path": "evaluation/results/ragas_results_test.csv",
-          "url": "https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/results/ragas_results_test.csv",
-          "reason": "A public RAGAS result uses a Starlette 0.33.0 release-note chunk containing PR 2349 as retrieved context for an LLM question about router changes; the repository's evaluation scripts construct question/answer/context rows and score them with RAGAS."
-        }
-      ],
-      "notes": "The 2026-08-23 rescan found ordinary downstream or vendored references for issue 685 and PRs 1286/1649, but PR 2349 also appears inside an explicit public LLM/RAGAS evaluation artifact. Under the preregistered rule, reuse of any source in the fixed STR-04 lineage is sufficient to mark the canary confirmed rather than no_public_hit_found."
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The 2026-08-23 rescan found ordinary downstream or vendored references for issue 685 and PRs 1286/1649. PR 2349 also appears in a retrieved-context chunk inside Uniyalsumit/CT_PROJECT@c11a9ce, but that ambiguous RAGAS question is registered against FastAPI PR 15745 and its answer does not use PR 2349. Independent QA therefore classified it as context-only retrieval noise rather than explicit reuse of the STR-04 issue/fix as an evaluation task."
     },
     {
       "candidate_id": "STR-05",

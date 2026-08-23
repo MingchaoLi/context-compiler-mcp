@@ -94,7 +94,7 @@ Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在�
 
 ## 后续门禁更新（2026-08-23）
 
-WO-DS-03 在开始 STR-04 canary fixture 前发现两项会改变后续路径的证据：按机械信息增量规则，STR-05 的 9 个事件都应计数，因此实际属于 long；同日污染复扫又发现 PR #2349 进入公开 LLM/RAGAS evaluation context，因此 STR-04 按既有规则改为 `confirmed`。本报告上文的“2/2/2”与 STR-04 `no_public_hit_found` 只保留为当时 pilot 结论，不能再作为当前 freeze 输入。详见 `starlette-v1-long-canary-gate.md`。
+WO-DS-03 的机械信息增量审计确认 STR-05 的 9 个事件都应计数，因此实际属于 long，旧“2/2/2”不能再作为当前 freeze 输入。一次同日扫描还发现 PR #2349 进入公开 RAGAS retrieved context；独立 QA 查明该任务 reference 是 FastAPI PR #15745，#2349 只是未被答案使用的 context-only 噪声，故 STR-04 仍为有限的 `no_public_hit_found`。详见 `starlette-v1-long-canary-gate.md` 与 DS-03 QA 报告。
 
 ## 机械验证
 

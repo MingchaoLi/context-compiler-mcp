@@ -1,6 +1,6 @@
 # WO-DS-03 — Starlette long/open canary 与冻结就绪门
 
-状态：IMPLEMENTED — GATE CLOSED，等待独立 data QA
+状态：IN PROGRESS — 首轮 QA 退回已接受
 
 ## 背景与对抗审查处置
 
@@ -145,3 +145,9 @@ validator 只可被描述为结构、时间前缀、provenance 和规范化字�
 这满足本项目已预注册的 `confirmed` 规则：“同一 Starlette issue 或 fix 被 LLM、agent、benchmark、code-repair 或 evaluation task 显式复用”。即使该问题没有要求修复 #685，#2349 仍是 STR-04 固定证据链的一部分，且确实进入公开 LLM evaluation artifact。若把规则收窄为“只有问题或 Gold 直接针对该缺陷才算污染”，属于看见结果后的选择规则变更，不能在本工单内追溯应用。
 
 因此按 Gate 条款停止 canary：没有创建 STR-04 fixture，没有实现 long/increment/projection，没有运行 D0/D1/D2 或远端模型，也没有自动换入 reserve。`STR-05` 的 long 重分类预检结论保留；旧 2/2/2 声明已经失效。详细证据见 `docs/evaluation/starlette-v1-long-canary-gate.md`，最终是否接受 gate closed 由独立 data QA 决定。
+
+## 首轮 QA 退回与恢复（2026-08-23）
+
+独立 data QA 固定候选 `57279d1` 后复核同仓库 `benchmark.py`，确认“Tell me about router changes.”的 `ground_truth_ref` 是 FastAPI PR #15745，#2349 只是在一次检索中进入 contexts，生成答案也没有使用它。已冻结规则要求同一 issue/fix 被作为 evaluation task 或 patch 复用，不能仅凭 context-only 检索噪声确认污染。
+
+主控接受该 P0：Builder 的 gate-closed 判断扩大了既有规则。STR-04 恢复为有限的 `no_public_hit_found`，notes 保留该交叉引用与排除理由；canary 按原范围继续。若未来要把任意 LLM context 命中都算污染，必须另行预注册并统一重扫全部候选。

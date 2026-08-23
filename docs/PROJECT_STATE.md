@@ -22,7 +22,7 @@ WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71
 
 WO-DS-02 的 Starlette schema 与三案例 pilot 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `2a65c85b1fc9554b24971e8ed20551eef3b53d39`。交付包含 3 个目录、4 个独立 segment、25 个时间有序 evidence event/slice；Gold、人工 Oracle-State、Decision Reference 与 Outcome Anchor 和输入物理隔离，pilot hash 明确保持 `pilot_not_frozen`。`STR-02` 已按证据拆成两个 medium segment，不再视为单一 long 根因链。
 
-WO-DS-03 在 STR-04 fixture 制作前的同日污染复扫发现：公开 RAGAS evaluation artifact 把 PR #2349 的 release-note 内容作为 LLM 问答 retrieved context。按预注册规则，STR-04 已从 `no_public_hit_found` 改为 `confirmed`，canary gate 关闭并等待独立 data QA；没有自动换样、运行模型或修改 core。
+WO-DS-03 首轮 Builder 曾因 PR #2349 出现在公开 RAGAS retrieved context 而关闭 canary；独立 data QA 复核同一固定提交的 `benchmark.py` 后判定 FAIL：该题的 reference 是 FastAPI PR #15745，#2349 只是未被答案使用的 context-only 噪声，不满足既有 task/patch 复用规则。主控已接受退回，STR-04 恢复为有限的 `no_public_hit_found`，canary 继续；该命中仍保留在 notes。
 
 同一预检还证明 STR-05 的 9 个 pilot event 都是真实信息增量，必须从 medium 更正为 long。由此，先前 STR-07/08、STR-05/06、STR-01/04 的 2/2/2 声明已经失效；正式 freeze 不能沿用该配额或把 STR-04 当未污染样本。尚未运行 D0/D1/D2、远端模型、aggregate 或 PASS rate。
 
@@ -42,7 +42,7 @@ WO-DS-03 在 STR-04 fixture 制作前的同日污染复扫发现：公开 RAGAS 
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
-- Starlette schema pilot 已独立接受，但不是正式数据集 freeze 或 D2 效果证据。DS-03 当前 gate-closed 候选仍需独立 QA；STR-04 与 STR-02/03/11/12/15 均因公开 evaluation/benchmark 复用不再适合作为未污染盲评，STR-05 又按机械规则属于 long。后续是否改污染定义、改样本设计或放弃“未污染”定位，必须重新预注册，不能自动替换。
+- Starlette schema pilot 已独立接受，但不是正式数据集 freeze 或 D2 效果证据。DS-03 正在继续 STR-04 long/open canary；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 当前只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。任何更严格污染定义仍须重新预注册并统一重扫，不能只追溯处理单个不利命中。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

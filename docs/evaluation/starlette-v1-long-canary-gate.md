@@ -2,7 +2,7 @@
 
 日期：2026-08-23
 
-结论：**GATE CLOSED — 在 fixture 制作前发现预注册规则下的 confirmed contamination。**
+结论：**首轮 Builder 判断已被独立 QA 否决；STR-04 恢复为有限的 `no_public_hit_found`，canary 继续。**
 
 本报告只回答 STR-04 是否仍有资格充当未污染 canary。它不是 Context Compiler 效果证据，也没有运行 D0/D1/D2、远端模型、aggregate 或 PASS rate。
 
@@ -49,3 +49,9 @@ Issue #685 的另一命中是普通 telemetry workaround；PR #1286 的命中是
 - 只更新 contamination 记录及其 `pilot_not_frozen` hash；hash 仍只证明文件字节一致，不证明绝对无污染。
 
 下一步不是继续制作数据，而是先由独立 data QA 复核：该文件是否确为 LLM/RAGAS evaluation artifact、#2349 是否确实进入 contexts、以及现有预注册规则是否必然导出 `confirmed`。QA 接受后，STR-04 canary 和原六案路径保持关闭；任何新样本或规则都需新的预注册决策。
+
+## 独立 QA 结论与处置
+
+独立 QA 固定 Builder 候选 `57279d1` 后确认前三项外部事实，但进一步读取同一固定提交的 `evaluation/benchmark.py`：该题属于 `ambiguous`，`ground_truth_ref` 为 FastAPI PR #15745；CSV 生成答案也没有使用 #2349。故 #2349 只是 context-only retrieval noise，不是 STR-04 issue/fix 被作为 evaluation task、Gold 或 patch 复用。
+
+QA 判定 Builder 把既有规则扩大成“任何 lineage source 进入 LLM context 都 confirmed”，因此首轮 gate-closed 为 FAIL。主控接受退回：`contamination-scan.json` 改回 `no_public_hit_found`，保留命中与排除理由，继续原 canary。上文保留为被证伪的 Builder 判断记录，不再代表当前门禁状态。

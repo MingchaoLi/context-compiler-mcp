@@ -3,7 +3,7 @@
   "status": "pilot_not_frozen",
   "algorithm": "sha256",
   "files": [
-    {"path": "contamination-scan.json", "sha256": "b1d5ba1a71c03c2c7bf4b5464d13aafc34164c9938a6f36e6d0c499b003bcddd"},
+    {"path": "contamination-scan.json", "sha256": "4397c5d7c0d9ea5cd729d1131c12960167f951619d1caf623bab988a0746a87f"},
     {"path": "pilot/STR-02/manifest.json", "sha256": "c43010be5ea0f7eccd5277ef6db7ad41d943e70aec03cf7114e339cdf99f1a10"},
     {"path": "pilot/STR-02/events.json", "sha256": "56030c38de8fc22cf5ea60203a511458aafa09cc4524f63ccd568686c2c39869"},
     {"path": "pilot/STR-02/tasks.json", "sha256": "2d489b2f9f9ec2863ff37f35058abe7bde60ae04e6566108f80db9ec1c472c47"},
