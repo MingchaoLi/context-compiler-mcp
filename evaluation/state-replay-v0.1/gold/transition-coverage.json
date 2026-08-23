@@ -15,7 +15,7 @@
       "SUPERSEDES": 6,
       "RESOLVED_BY": 3,
       "REJECTS": 3,
-      "DEPENDS_ON": 8
+      "DEPENDS_ON": 4
     },
     "stale_revision_fail_closed_mutations": 1
   },
@@ -23,7 +23,8 @@
     "constraint_supersession",
     "goal_supersession",
     "open_question_defer",
-    "semantic_reactivation_operation"
+    "semantic_reactivation_operation",
+    "same_event_new_item_dependency:STR-07/E6:path-converter-to-uri-template"
   ],
   "notes": [
     "Tracker close/reopen is intentionally not mapped to semantic resolution/reactivation without supporting evidence.",
