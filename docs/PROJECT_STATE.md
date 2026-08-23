@@ -42,6 +42,8 @@ DS-08 接受后的关键节点对抗审查记录为 `docs/adversarial-reviews/AR
 
 WO-DS-09 已在独立 Data QA 于 2026-08-23 接受为六案 canonical-data freeze candidate，固定 Builder candidate 为 `4b974538d76d0e0d8a5ac17c5662533b714ef00e`。六案 75 slices / 588 projected turns 先通过不落盘真实 evaluator v2 parser preflight；STR-06/07/01 的 21 个 accepted 文件随后逐字节复制，使 promotion 共 42 个固定副本。四个固定 Data-QA candidate 的 42 项 accepted-source path/order/SHA 已独立重建，并经协调改写攻击复验；新的 full contamination snapshot 追加而不覆盖旧 snapshot，来源 ledger 明示没有把继承 QA 冒充本次 live re-audit。实际分布为 1 short / **0 medium** / 5 long（slice 为 4/0/71）；collection 仍为 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`。本接受不是正式 freeze、Probe、D0/D1/D2 或模型运行授权。
 
+DS-09 后关键节点对抗审查 `docs/adversarial-reviews/AR-2026-08-23-post-ds09-protocol.md` 结论为 `Agree with reservations`。主控接受其更小路径并建立 WO-DS-10：只制作不超过 12 slices 的预注册 protocol canary，同时生成 83 facts / 75 slices 的完整资格清单；context Probe 与 answer required/forbidden/Critical-Miss checklist 必须同冻。现有 resolved context 尺子固定为 diagnostic/not-evaluable，overall `passed` 不作决策。本工单禁止 evaluator/model 运行、core 修改与正式 freeze。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
