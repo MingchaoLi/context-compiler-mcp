@@ -117,4 +117,12 @@ describe("Starlette no-model wiring smoke", () => {
     expect(summary).not.toHaveProperty("aggregate");
     expect(summary).not.toHaveProperty("threshold_failures");
   });
+
+  it("does not accept a no-op callback as the strict evaluator parser", async () => {
+    const wiring = await buildWiringSmoke(ROOT);
+    await expect(validateWiringSmoke(ROOT, wiring, {
+      parseSuite: (value: unknown) => value,
+      evaluatorReportVersion: EVALUATION_REPORT_VERSION_V2,
+    })).rejects.toThrow(/did not enforce evaluator v2 strict input/);
+  });
 });

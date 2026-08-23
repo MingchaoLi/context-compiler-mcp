@@ -33,7 +33,7 @@
 }
 ```
 
-构造函数本身不返回 `wiring_compatible`；该状态只在 collection plan、accepted fixture/hash、确定性映射、evaluator v2 版本和严格 parser 全部核对后产生。
+构造函数本身不返回 `wiring_compatible`；该状态只在 collection plan、accepted fixture/hash、确定性映射、evaluator v2 版本和严格 parser 全部核对后产生。接线校验还会先向 parser 注入一个未知字段反例；只有收到 `INVALID_INPUT` 且有效 suite 原样解析，才接受该回调，普通 no-op/宽松 parser 不能制造兼容状态。
 
 ## 映射边界
 
@@ -51,6 +51,7 @@ Fact Gold、Decision Reference、Outcome Anchor、GitHub source/node/database id
 - 删除早期 slice 中间 event，使 exact prefix 不再匹配；
 - 把 Oracle `source_refs` 指向当前 slice 不可见的 event；
 - evaluator v2 报告版本不再是 `2`。
+- parser 回调是 no-op 或接受未知字段。
 
 测试同时逐项确认 raw content 恰好只有六个投影字段，结构摘要不含 `passed`、`aggregate` 或 `threshold_failures`。
 

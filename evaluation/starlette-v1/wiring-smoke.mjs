@@ -201,6 +201,16 @@ export async function validateWiringSmoke(root, value, { parseSuite, evaluatorRe
   const expected = await assembleWiringSmoke(root);
   if (!isDeepStrictEqual(value?.plan, expected.plan)) fail("collection plan mapping changed");
   if (!isDeepStrictEqual(value?.suite, expected.suite)) fail("slice-to-evaluator mapping changed");
-  parseSuite(value.suite);
+  const invalidControl = clone(value.suite);
+  invalidControl.unregistered_wiring_field = true;
+  let strictRejection = false;
+  try {
+    parseSuite(invalidControl);
+  } catch (error) {
+    strictRejection = error?.code === "INVALID_INPUT";
+  }
+  if (!strictRejection) fail("parser callback did not enforce evaluator v2 strict input");
+  const parsed = parseSuite(value.suite);
+  if (!isDeepStrictEqual(parsed, value.suite)) fail("parser callback changed evaluator input");
   return clone(createStructuralSummary(expected.plan, expected.suite));
 }
