@@ -519,11 +519,20 @@ function validateSuiteReferencesV2(suite: EvaluationSuiteV2): void {
     const probes = allProbesV2(evaluationCase.probes);
     assertUnique(probes.map(({ id }) => id));
     const rawIds = new Set(evaluationCase.raw_events.map(({ id }) => id));
-    const itemIds = new Set(evaluationCase.context_items.map(({ id }) => id));
+    const itemsById = new Map(evaluationCase.context_items.map((item) => [item.id, item]));
     for (const probe of probes) {
       assertUnique(probe.provenance.map(({ kind, id }) => `${kind}\u0000${id}`));
       for (const source of probe.provenance) {
-        if (source.kind === "raw_event" ? !rawIds.has(source.id) : !itemIds.has(source.id)) {
+        if (source.kind === "raw_event") {
+          if (!rawIds.has(source.id)) throw invalidInput();
+          continue;
+        }
+        const item = itemsById.get(source.id);
+        if (
+          item === undefined ||
+          item.source_refs.length === 0 ||
+          item.source_refs.some((sourceRef) => !rawIds.has(sourceRef))
+        ) {
           throw invalidInput();
         }
       }
@@ -1138,7 +1147,9 @@ function assertPlainEvaluationData(value: unknown, ancestors = new Set<object>()
     for (const key of Reflect.ownKeys(value)) {
       if (typeof key !== "string") throw invalidInput();
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (descriptor === undefined || !("value" in descriptor)) throw invalidInput();
+      if (descriptor === undefined || !("value" in descriptor) || !descriptor.enumerable) {
+        throw invalidInput();
+      }
       assertPlainEvaluationData(descriptor.value, ancestors);
     }
   } finally {

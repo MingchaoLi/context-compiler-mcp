@@ -402,6 +402,34 @@ describe("evaluation v2 validity calibration", () => {
     );
   });
 
+  it("rejects probe context-item provenance without a raw evidence source", () => {
+    const input = suiteV2();
+    input.cases[0]!.context_items.find(({ id }) => id === "constraint-1")!.source_refs = [];
+    expect(() => parseEvaluationSuiteV2(input)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT", message: "Evaluation input is invalid" })
+    );
+  });
+
+  it("rejects non-enumerable data fields without reading their values", () => {
+    const input = suiteV2() as any;
+    const privateValue = { secret: "PRIVATE-EVIDENCE-DO-NOT-ECHO" };
+    Object.defineProperty(input, "hidden_unknown", {
+      value: privateValue,
+      enumerable: false,
+    });
+
+    let caught: unknown;
+    try {
+      parseEvaluationSuiteV2(input);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toEqual(expect.objectContaining({
+      code: "INVALID_INPUT", message: "Evaluation input is invalid",
+    }));
+    expect(JSON.stringify(caught)).not.toContain(privateValue.secret);
+  });
+
   it("handles a zero D1 denominator without inventing a ratio", () => {
     expect(compareEvaluationTokenCostV2(0, 7)).toEqual({
       status: "not_evaluable",

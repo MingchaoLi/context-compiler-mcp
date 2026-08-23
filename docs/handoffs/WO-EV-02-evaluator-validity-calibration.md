@@ -52,3 +52,9 @@ CLI 根据根级 `version` 分派 v1/v2；未知版本继续返回稳定 `INVALI
 - 新增代码的 provider/network/credential/host/UI 扫描与 `git diff --check`：PASS。
 
 实现者不批准自己的交付。独立 QA 必须从精确提交候选重新验证严格输入、历史投影、聚合、package/production-only 行为和九工具边界，并写入 `docs/qa/WO-EV-02-evaluator-validity-calibration.md`。
+
+## QA 返回后的追加修复
+
+首次独立 QA 返回两个阻断项：Probe 可以引用 `source_refs: []` 的 `context_item`，以及 version 2 公共 parser 可接受非枚举 data property。追加修复将 Probe 指向的 `context_item` 约束为至少含一个、且全部指向当前 case raw event 的 `source_refs`；plain-data 预检同时拒绝普通对象上的非枚举 data property，仍不读取 accessor 或泄漏属性值。两条聚焦回归已加入 evaluator 测试。
+
+追加修复后 evaluator 聚焦测试为 32/32，完整单元测试为 242/242，协议测试为 8/8，build、依赖树、两条 QA 精确复现和 `git diff --check` 均通过。首次失败报告保留在 `docs/qa/WO-EV-02-evaluator-validity-calibration.md`；接受状态仍需同一独立 QA 复验后决定。
