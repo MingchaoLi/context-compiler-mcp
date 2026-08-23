@@ -1,0 +1,78 @@
+{
+  "schema_version": "state_replay_st01_report/v1",
+  "status": "st01_reducer_conformance_passed_pending_independent_qa",
+  "scope": "standardized_real_event_summary_to_gold_delta_reducer_conformance",
+  "baseline": {
+    "feasibility_01": "sealed_oracle_state_feasibility_only",
+    "answer_semantic_gain": "not_evaluated",
+    "official_artifact_rerun_count": 0,
+    "official_artifact_modified": false
+  },
+  "gate0": {
+    "status": "passed_with_declared_representation_limits",
+    "event_count": 30,
+    "strict_expressible_count": 30,
+    "same_step_reference_limit_count": 5,
+    "input_representation": "independently_accepted_standardized_real_event_summary_with_source_hash"
+  },
+  "counts": {
+    "case_count": 3,
+    "event_step_count": 30,
+    "non_empty_delta_count": 28,
+    "empty_delta_true_negative_count": 2,
+    "strict_delta_valid_count": 30,
+    "checkpoint_match_count": 30,
+    "deterministic_fresh_replay_count": 2,
+    "created_item_count": 35,
+    "lifecycle_transition_with_current_provenance_count": 16,
+    "stale_revision_fail_closed_count": 1,
+    "model_call_count": 0,
+    "provider_call_count": 0,
+    "network_call_count": 0,
+    "evaluator_run_count": 0
+  },
+  "relation_counts": {
+    "DERIVED_FROM": 53,
+    "SUPERSEDES": 6,
+    "RESOLVED_BY": 3,
+    "REJECTS": 3,
+    "DEPENDS_ON": 8
+  },
+  "final_status_counts": {
+    "completed_goals": 3,
+    "superseded_decisions": 6,
+    "resolved_questions": 7,
+    "rejected_alternatives": 4
+  },
+  "invariants": {
+    "strict_schema": { "eligible": 30, "passed": 30, "status": "passed" },
+    "expected_state_checkpoint": { "eligible": 30, "passed": 30, "status": "passed" },
+    "deterministic_replay": { "eligible": 1, "passed": 1, "status": "passed" },
+    "empty_delta_no_mutation": { "eligible": 2, "passed": 2, "status": "passed" },
+    "stale_revision_fail_closed": { "eligible": 1, "passed": 1, "status": "passed" },
+    "relation_types": {
+      "DERIVED_FROM": { "eligible": 53, "passed": 53, "status": "passed" },
+      "SUPERSEDES": { "eligible": 6, "passed": 6, "status": "passed" },
+      "RESOLVED_BY": { "eligible": 3, "passed": 3, "status": "passed" },
+      "REJECTS": { "eligible": 3, "passed": 3, "status": "passed" },
+      "DEPENDS_ON": { "eligible": 8, "passed": 8, "status": "passed" }
+    },
+    "excluded_zero_denominators": [
+      "constraint_supersession",
+      "goal_supersession",
+      "open_question_defer",
+      "semantic_reactivation_operation"
+    ]
+  },
+  "canonical_replay_sha256": "045b2fd7b7dbdcf2dab04387627de37c7f17d03b47bd15e6de3ca1cde31a5521",
+  "st02_authorized": false,
+  "next_gate": "independent_st01_qa",
+  "claims_not_made": [
+    "verbatim_raw_github_body_extraction",
+    "extractor_correctness",
+    "context_reduction",
+    "answer_quality",
+    "architecture_winner",
+    "PACE_or_evidence_paging"
+  ]
+}
