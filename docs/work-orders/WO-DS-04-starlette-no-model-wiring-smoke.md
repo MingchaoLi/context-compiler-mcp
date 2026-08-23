@@ -1,8 +1,8 @@
 # WO-DS-04 — Starlette 无模型接线冒烟
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT QA
+状态：ACCEPTED — WIRING SMOKE GATE ONLY
 
-Builder candidate 已完成 31 个 slice / 226 个 projected history turn 的 parser-only 接线；实现结果见 `docs/evaluation/starlette-v1-wiring-smoke.md`，独立 QA 前仍不得进入 promotion/freeze。
+独立 re-QA 已在固定候选 `c727b68bac28b158a3d6a045adfb00b552c22723` 接受 31 个 slice / 226 个 projected history turn 的 parser-only 接线；实现结果及首轮 P0/修复记录见 `docs/qa/WO-DS-04-starlette-no-model-wiring-smoke.md`。本接受只关闭 wiring smoke gate，仍不得进入 promotion/freeze、D0/D1/D2、远端模型或效果解释。
 
 ## 背景与对抗审查处置
 
@@ -107,7 +107,7 @@ validator 必须拒绝 case id、顺序、冒烟子集、状态或替换规则�
 
 ## Gate
 
-只有独立 QA PASS，才允许另开正式 promotion/freeze 工单。冒烟失败时只修接线或合同，不得换案例、修改 Gold 或运行模型来规避失败。
+独立 QA 已 PASS，本工单仅接受 wiring smoke gate；任何正式 promotion/freeze、D0/D1/D2 或模型/效果工作仍须新的有界工单和独立 QA。冒烟失败时只修接线或合同，不得换案例、修改 Gold 或运行模型来规避失败。
 
 ## 明确不做
 

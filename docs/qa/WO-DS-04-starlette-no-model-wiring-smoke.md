@@ -56,3 +56,32 @@ await validateWiringSmoke(root, wiring, {
 - `git diff --check fe2a3bb..fe3c5cc`：通过。
 
 这些回归只能证明当前测试覆盖的 no-op/改写 callback 及正常路径；它们未覆盖本报告的 lookalike parser，因此不能转化为 acceptance。
+
+## Re-QA（候选 `c727b68bac28b158a3d6a045adfb00b552c22723`）
+
+日期：2026-08-23
+
+结论：**PASS — 仅接受 WO-DS-04 的无模型 wiring smoke gate。** 不接受数据集 promotion/freeze、D0/D1/D2、远端模型、模型回答、aggregate、PASS rate 或任何效果解释；`planned_not_frozen`、`pilot_not_frozen`、`canary_not_frozen` 全部保持。
+
+### 固定候选、修复范围与首轮 P0
+
+- 开始时 `main` HEAD 为 `c727b68bac28b158a3d6a045adfb00b552c22723`，父提交正是首轮 QA `1ca6f389383b28b34f5bd4a8faa170685bdd6f7f`，开始和结束时工作树 clean。追加差异仅涉及接线工具、聚焦测试和 DS-04 说明；没有改动 `src/`、package/lockfile、core、provider、host、MCP 或 runtime。
+- 首轮的完整 `fe2a3bb..fe3c5cc` 审计背景与 P0 结论保留在本报告上半部分；修复是 append-only 的 `c727b68`，没有改写该历史。
+- 原样复验首轮 lookalike：以只拒绝 `unregistered_wiring_field`、其余 `structuredClone` 返回的 callback 调用 `validateWiringSmoke(root, wiring, { parseSuite: lookalike, evaluatorReportVersion: 2 })`，结果为 `parser injection is not supported`。额外传入 `undefined`、多个额外参数也同样拒绝；零额外参数才返回 `wiring_compatible`。
+
+### 修复核查
+
+- `wiring-smoke.mjs` 现在只构造并返回 `{ plan, suite }`，不含 `validateWiringSmoke`、parser callback、report-version 注入或 `wiring_compatible` summary。
+- 新的非发布 `evaluation/starlette-v1/validate-wiring-smoke.ts` 直接静态导入仓库内 `parseEvaluationSuiteV2` 与 `EVALUATION_REPORT_VERSION_V2`；它先重建确定性 mapping，再以真实 parser 解析 suite，并要求 parser 返回值与原 suite deep-equal 后才生成结构摘要。第三及之后的任何参数均明确拒绝，生产调用面没有 parser/version 注入路径。
+- 没有把测试框架可全局 mock 任意模块的能力当成生产缺陷；这里验证的是普通生产导入图与实际函数参数边界。静态搜索确认没有 `runEvaluationSuiteV2`、SQLite/tempdir、provider、网络、credential 或宿主导入/调用。运行后没有 `/private/tmp/context-compiler-evaluation*` 目录。
+- 新 `.ts` 位于 `evaluation/`；`tsconfig` 只 include `src`，故 build 不会把它写入 `dist`。`package.json` 仅发布 `dist`/README，`npm pack --dry-run` 的 50 个发布文件也不含任何 `wiring-smoke` 或 `validate-wiring-smoke` 文件。
+- 首轮已核对的 STR-04/05/08 fixture、pilot/canary hash 与 contamination 记录相对 `fe2a3bb` 继续逐字节不变；31 个 unique slice（STR-08/05/04 = 4/9/18）和 226 projected history turns 的 exact-prefix/六字段/Oracle provenance 证据仍由未改的纯构造器和真实 parser 覆盖。
+
+### 执行记录
+
+- `npx vitest run test/starlette-wiring-smoke.test.ts`：8/8 通过，含首轮 lookalike 注入反例。
+- `npm test`：13 files、283 tests 通过；`npm run test:protocol`：8/8 通过；`npm run build`：通过。
+- `git diff --check 1ca6f38..c727b68` 通过；修复范围与 fixture/hash、`src`、package 保护路径的 `git diff --exit-code` 通过。
+- `npm pack --dry-run`：通过，确认 production package 不含新的 evaluation TypeScript 验证工具。
+
+本次 PASS 只关闭“已接受 fixture 可确定性进入 evaluator v2 严格 parser”的接线风险。任何 promotion/freeze 或模型/效果工作仍须新的有界工单与独立 QA。
