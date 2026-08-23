@@ -62,5 +62,5 @@ Compare D0 full context, D1 recent-window baseline, and D2 compiled context. Rep
 - Optional provider-neutral local extractor transport: implemented and independently accepted in ST-03; no provider is selected by core.
 - Formal host compiler mode: still deferred.
 - Append-only Experience Ledger: implemented as research data plane; no Experience abstraction/promotion.
-- Bounded operational Context policy: Checkpoint C Builder candidate，等待独立 QA；不构成 PACE 或效果先进性证据。
+- Bounded operational Context policy: 已经独立 QA 接受并随 WO-V0-15 冻结；Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估，也不构成 PACE 或效果先进性证据。
 - PACE / multi-granularity Evidence Paging / Experience Formation: excluded after infrastructure freeze.
