@@ -36,6 +36,8 @@ WO-DS-04 已在独立 re-QA 于 2026-08-23 接受，固定候选为 `c727b68bac2
 
 DS-03 接受后的第二次关键节点对抗审查记录为 `docs/adversarial-reviews/AR-2026-08-23-post-ds03-canary.md`，结论为有限 `Challenge`。主控接受其更小路径：先做 DS-04 三案无模型接线冒烟，再按共同 cutoff promotion audit；未制作案例优先处理 STR-06，且所有最终案例必须逐案人工语义审计。长度/组件/outcome 混杂不阻止制作，但阻止无分层 aggregate 的一般化解释。
 
+DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-reviews/AR-2026-08-23-post-ds04-wiring.md`，结论为 `Challenge`。主控接受拆单：WO-DS-05 只固定全六案 evidence cutoff 并 promotion audit 已接受的 STR-04/05/08；STR-06 source/Gold checkpoint 另开 WO-DS-06。空 Probe/Gold→Probe 与答案评价缺口阻塞首次效果运行，但不阻塞 canonical source-data promotion。
+
 ## Current behavior
 
 `compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes remain explicit: callers may perform prepare/extract/apply themselves or use the accepted ST-03 library coordinator with an explicitly supplied local adapter process. The core selects no model/provider and performs no network request. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
@@ -48,6 +50,7 @@ DS-03 接受后的第二次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
 - Starlette schema pilot 与 DS-03 long/open canary 已独立接受，但均不是正式数据集 freeze 或 D2 效果证据。`pilot_not_frozen`、`canary_not_frozen` 保持；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。剩余样本必须重新预注册实际分层，不能沿用旧 2/2/2 或直接运行模型。
 - WO-DS-04 接线冒烟已独立 re-QA 接受，但这不构成正式 promotion/freeze、D0/D1/D2、远端模型或效果解释授权；这些步骤仍需新的有界工单和独立 QA。
+- WO-DS-05 三案 promotion audit 已登记但未实现；全六案共享 evidence cutoff 预注册为 `2026-08-23T03:00:00Z`，扫描观察时间必须独立版本化。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.
