@@ -65,3 +65,32 @@ Builder 必须在新的 append-only 实现提交中完成以下最小修正，�
 5. 在新候选上重新执行官方 16-source audit、两个 patch/merge/file-list audit、increment/tier、future-leakage、Gold/Oracle 与上述 hash/协调重写边界审查，以及 focused、npm test、protocol、build、git diff --check、16-slice static parser 和隔离 npm pack。
 
 结束时本仓库仅有本 QA docs 文件待提交；本报告提交后工作树必须恢复 clean。
+
+## Re-QA（候选 f4931ad35cc7e4a844bb40ceb397aaf07842616d）
+
+日期：2026-08-23
+
+结论：**PASS — 只接受 STR-06 source/Gold checkpoint/schema gate。** 此结论关闭首轮 P0，不接受 promotion/freeze、六案完整、Probe/answer rubric、D0/D1/D2、远端模型、aggregate 或任何效果结论。checkpoint 仍为 checkpoint_not_frozen，case 仍为 canary_not_frozen，promotion_authorized:false、evaluation_ready:false、model_run_authorized:false。
+
+### 固定候选、来源与补丁复验
+
+- 开始时 main HEAD 精确为 f4931ad35cc7e4a844bb40ceb397aaf07842616d，父提交为首轮 QA docs commit 9ceb68176f92164e4fe4093ae6236bbdd1303e98，工作树 clean。8-file 修复差异仅限 DS-06 data/validator/聚焦测试和 Builder 文档；没有 src、package/lockfile、promotion/旧 fixture/hash、runner/provider/model/host/MCP 改动。
+- 原样读取 GitHub REST：PR #1366 的 updated_at 为 2021-12-17T13:02:34Z、current body SHA-256 为 c55947b12c1a8966322d5133ca71e127ec71b2116462b927caa247be2d7529ce，现与 E6 一致。E7/E13/E16 的 commit_id 全为 null，canonical SHA-256 分别为 e833bb040fa00a72c1c579e28d382d340301cbfb2d896db9560ff31448413b73、2f0a0eb72975129ab3613762832ad1cbc0bc63b26eb1fe4079cf4c0aaef4e66c、db911a1b28a53c264e5fc2451f0284aa0bf14b68cec7e52ad0117eeb40a3ef5f，events、Decision Reference 与 validator 固定值均一致。
+- 从头复核 16/16 登记 source：Issue E1、十条纳入 comment、两条 PR body 与三条 state 的 database/node id、actor、发生/更新时刻和 body/canonical SHA 均匹配官方 REST。#1366 initial/final commit 分别为 04a69953c9afe3e80d77507001f1bb02dc942118 / 7a050f4097c21b6b2a0e2948f56d0c6f1a81c17a，merge 为 0aef1724cfafbe23f846979d427a5a173667f6b7；#1410 为 8d213b9e9a3d088346c88a2f6861e207fa19dd83 / 0a73d6039336cac9463b6af2def15b9693f232f7，merge 为 7d79ad96d5aaee71f16ac9f4e41072e81d18ab86。两个 PR file list 分别为 _compat.py/responses.py 与仅 _compat.py，均无 test file。merge SHA 只作为独立 Outcome Anchor 的 source commit；没有从 close state 推导 behavior verified。
+
+### 语义、隔离与攻击
+
+- 16 个 retained event 均为事实、约束、决策、实现、tracker 状态、验证状态或有限结果的新增信息；机械重算为 16 >= 9 → long，单一连续 lineage 成立。
+- 16 个 task 都是严格 E1…Ei 前缀；共 136 projected history turns，每 turn 严格只有 id、role、event_type、occurred_at、actor、summary。人工审查 Current Task 未发现未来失败/reopen/#1410/有限成功/merge SHA/Gold/Outcome 的语义复述；四类非输入 artifact 未投影。
+- Gold/Oracle 正确保留 E11 的真实 FIPS failure、E15 的单环境有限成功、无 repository regression test、无 Builder/QA FIPS replay、current-master/跨环境不确定性。T7 与 T16 是 DEFERRED，没有 resolved_issue Gold 或将 merge/close 夸大为行为已验证。
+- 新增 E7/E16 merge-SHA 注入反例 2/2 被拒绝；独立在临时副本中同步注入 merge SHA、重算 state SHA 与八项 checkpoint hash 后仍被固定 null canonical contract 拒绝。内容、path/order、status/cutoff/snapshot、漏项、重复、unknown field、symlink 也均被拒绝。
+- 同步修改普通 checkpoint payload 并重算同一份 hash manifest 仍会通过，这是待 QA candidate 的预期可变-hash 边界，不能宣传为协调重写防护；本次固定 Git candidate/独立 source audit 是接受锚点。未来 promotion 仍必须把本 QA 接受提交中的七文件 path/order/SHA 固定在不可与 fixture 共同改写的代码合同中。
+
+### 运行复验
+
+- node evaluation/starlette-v1/validate-str06-checkpoint.mjs：16 events / 16 increments / 16 slices / 136 projected turns，hash verified；
+- npx vitest run test/starlette-str06-checkpoint.test.ts：12/12；npm test：15 files / 306 tests；npm run test:protocol：8/8；npm run build 与完整 candidate git diff --check 均通过；
+- 使用真实 dist/evaluation.js 的 parseEvaluationSuiteV2 静态解析 16 cases / 136 history turns 成功；没有调用 evaluator runner，model_call_count=0、evaluation_run_count=0；
+- 独立 /private/tmp npm cache 的 npm pack --dry-run --json 为 50 files、shasum f20e56e75c6b6aa9d7362627101771a6c2ca4510，不含 evaluation、checkpoint、docs 或 Starlette fixture。
+
+下一步只能由新的有界工单决定 STR-06 promotion 或 STR-01/07 制作顺序；不得把本 checkpoint/schema gate 接受自动扩展成 collection freeze、evaluation-ready 或模型运行授权。

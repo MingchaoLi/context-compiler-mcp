@@ -1,6 +1,6 @@
 # WO-DS-06 — Starlette STR-06 source/Gold checkpoint
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
+状态：ACCEPTED — CHECKPOINT/SCHEMA GATE ONLY
 
 ## 背景与单一结果
 
@@ -149,3 +149,9 @@ Decision Reference 只记录真实后续动作且明确答案不唯一。Outcome
 首轮独立 QA 在 `a03564aa29c129415e6d00bf6ce17d6389f5aed3` 发现并拒绝来源 P0：E6 的 PR current-body 变化探测值不准确，E7/E16 又把独立 merge SHA 写入官方 REST 为 `null` 的 issue-state `commit_id`。后续 Builder 修复已纠正 E6，并把三个 state 的 `commit_id` 全部固定为 `null`；merge SHA 只保留在独立 merge/Outcome 证据，新增 merge-SHA 注入反例。
 
 修复候选自检已通过 checkpoint validator、聚焦 12/12、全量 306、protocol 8/8、build 与 diff check。实现者不接受本工单；必须由新的独立 Data QA 固定修复 candidate，原样复验首轮返回条件并重新访问 16 个 source 后决定 PASS/FAIL。
+
+## 独立 re-QA 接受
+
+2026-08-23，独立 Data QA 在固定 source candidate f4931ad35cc7e4a844bb40ceb397aaf07842616d 上原样重放首轮 P0，并重新核对 16 个登记 source、两个 PR 的 initial/final patch 与 file list、16 个增量/严格前缀、Gold/Oracle、哈希攻击、真实 parser、全量测试和 production pack。E6 的 current-body digest/updated_at 与 GitHub REST 一致；E7/E13/E16 都是 commit_id:null 的 REST canonical subset，merge SHA 只保留于独立 merge/Outcome evidence；merge-SHA 注入 null state event 被拒绝。
+
+本工单由此只接受 STR-06 source/Gold checkpoint/schema gate。它不接受该案 promotion/freeze、六案完整性、Probe/answer rubric、D0/D1/D2、远端模型、aggregate 或效果解释。checkpoint 继续为 checkpoint_not_frozen，case 继续为 canary_not_frozen，并保持 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false。后续必须另开有界工单，不能依据本接受擅自扩大范围。

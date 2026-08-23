@@ -30,7 +30,7 @@ WO-DS-04 已在独立 re-QA 于 2026-08-23 接受，固定候选为 `c727b68bac2
 
 WO-DS-05 已在独立 re-QA 于 2026-08-23 接受，固定候选为 `fb85572031711bc8337121fb307b5ffae81086f3`。全六案共同 `evidence_cutoff_at` 固定为 `2026-08-23T03:00:00Z`；STR-08/05/04 的 21 个 accepted 文件以 byte-identical relocation 进入独立 promotion 目录，31 个登记来源轻量复核没有要求语义改动。版本化污染 snapshot 覆盖固定六案，但因 GitHub code search 认证限制，`no_public_hit_found` 只是一项有限的 as-of 结论。首轮 QA 退回的协调重写 P1 已由代码内固定 21 个 accepted 路径/顺序/SHA 合同关闭。collection 仍是 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`；这不是完整六案 freeze 或模型运行授权，下一步仅允许另开 STR-06 source/Gold checkpoint。
 
-WO-DS-06 已完成 Builder candidate，等待新的独立 Data QA。STR-06（Issue #1365、PR #1366/#1410）经公开时间线审计保留 16 个真实 information increment/slice，机械分层为 long，纠正 survey 的预计 medium。checkpoint 分离两次 patch/merge、tracker close/reopen、真实 FIPS 失败、有限单环境成功与残余跨环境不确定性；两个 PR 均没有 repository regression test，Builder/QA 也没有本地 FIPS replay。状态仍为 `checkpoint_not_frozen`，没有进入 promotion collection，未授权 D0/D1/D2 或远端模型。
+WO-DS-06 已在独立 re-QA 于 2026-08-23 接受，固定 source candidate 为 f4931ad35cc7e4a844bb40ceb397aaf07842616d。首轮 QA 发现的 E6 current-body digest/updated_at 与 E7/E16 REST null-commit canonical P0 已被 append-only 修正，并由官方 REST 逐项重验。STR-06 保留 16 个真实 information increment/slice，机械分层为 long；checkpoint 分离两次 patch/merge、tracker close/reopen、真实 FIPS 失败、有限单环境成功与残余跨环境不确定性。两个 PR 均没有 repository regression test，Builder/QA 也没有本地 FIPS replay。此次只接受 checkpoint/schema gate：状态仍为 checkpoint_not_frozen，没有进入 promotion collection，promotion_authorized:false、evaluation_ready:false、model_run_authorized:false，未授权 D0/D1/D2 或远端模型。
 
 ## 最新对抗审查
 
@@ -55,7 +55,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - Starlette schema pilot 与 DS-03 long/open canary 已独立接受，但均不是正式数据集 freeze 或 D2 效果证据。`pilot_not_frozen`、`canary_not_frozen` 保持；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。剩余样本必须重新预注册实际分层，不能沿用旧 2/2/2 或直接运行模型。
 - WO-DS-04 接线冒烟已独立 re-QA 接受，但这不构成正式 promotion/freeze、D0/D1/D2、远端模型或效果解释授权；这些步骤仍需新的有界工单和独立 QA。
 - WO-DS-05 三案 promotion audit 已独立 re-QA 接受；全六案共享 evidence cutoff 为 `2026-08-23T03:00:00Z`，扫描观察时间独立版本化。接受仍不是六案 freeze、`evaluation_ready` 或模型运行授权；只允许下一步另开 STR-06 source/Gold checkpoint。
-- WO-DS-06 STR-06 source/Gold checkpoint 已实现并等待独立 Data QA；16 个增量机械归为 long。该候选没有 repository regression test、本地 FIPS replay 或跨环境证明，merge/close 只表示 repository/tracker acceptance；独立 QA PASS 前不得接受，PASS 后也不自动 promotion/freeze 或授权模型。
+- WO-DS-06 STR-06 source/Gold checkpoint 已独立 re-QA 接受为 checkpoint/schema gate；16 个增量机械归为 long。它没有 repository regression test、本地 FIPS replay 或跨环境证明，merge/close 只表示 repository/tracker acceptance。接受仍保持 checkpoint_not_frozen，未进入 promotion/freeze，且 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false；下一步不得擅自扩大，必须另开有界工单决定 promotion 或剩余 STR-01/07 的制作顺序。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.
