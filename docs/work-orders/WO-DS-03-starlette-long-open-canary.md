@@ -50,7 +50,18 @@ WO-DS-02 只接受了 short/medium schema pilot。随后独立对抗审查 `AR-2
 - medium：5–8；
 - long：至少 9。
 
-单 segment manifest 的顶层 tier 必须与 segment classification 一致；`boundary_audit` 只允许多 segment pilot。现有 STR-08、STR-05、STR-02A/B 必须补齐该字段并保持原分类可解释，不能按事件总数机械改层。
+单 segment manifest 的顶层 tier 必须与 segment classification 一致；`boundary_audit` 只允许多 segment pilot。现有 STR-08、STR-05、STR-02A/B 必须补齐该字段；若逐事件审计证明原分类与机械规则冲突，必须透明改层并撤回旧分层声明，不得通过漏计真实增量维持配额。
+
+## 预检修订（2026-08-23，实施前）
+
+在开始修改 schema 前，对现有 pilot 逐项应用上述机械规则，发现 `STR-05` 的 9 个事件分别引入：问题、首个实现、暂时解决、回退重开、第二次实现、安全约束、opt-in 设计、评审风险问题、作者接受设计。没有可诚实排除的纯同步事件，因此 `STR-05` 必须从 `medium` 改为 `long`。
+
+该发现推翻了原“正式最小集 2 short / 2 medium / 2 long”的分层声明，但不推翻已接受的 schema pilot；pilot 的作用是验证文件隔离和时间边界，不是固定样本配额。本工单据此增加以下约束：
+
+- 不为维持 2/2/2 而少计 `STR-05`，也不自动从 reserve 替换案例；
+- DS-03 仍可检验 long canary、增量合同和模型投影；
+- 即使 STR-04 canary 通过，进入其余五案前也必须重新预注册分层，不能沿用旧 2/2/2；
+- 后续效果报告必须按实际 tier、component 与 outcome 分开披露，不把配额平衡误写为代表性。
 
 ## 字段级模型输入 projection
 
@@ -106,7 +117,7 @@ validator 只可被描述为结构、时间前缀、provenance 和规范化字�
 
 - STR-04 至少 9 个真实信息增量节点，long/open 状态可由 provenance 重建；
 - #1649/#2349 只作为 partial capability / Outcome Anchor，不把 #685 误标 resolved；
-- manifest 的 tier/increment 规则机械可验，现有 pilot 分类仍成立；
+- manifest 的 tier/increment 规则机械可验；现有 pilot 按同一规则透明补齐增量 id，`STR-05` 改为 long，旧 2/2/2 声明撤回；
 - projection 的正例只含允许字段，反例证明 audit metadata、Gold/Oracle/Decision/Outcome 不可进入；
 - Current Task 不字面或语义复述未来答案；人工审计必须列出至少一个 validator 会放行但人工拒绝的同义泄漏反例；
 - contamination 同日复扫完成且结论有限定；
