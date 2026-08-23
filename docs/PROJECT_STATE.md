@@ -54,7 +54,9 @@ WO-DS-12 已在独立 re-QA 于 2026-08-23 接受为 **unscored capture integrit
 
 2026-08-23 架构同步进一步冻结 v0 边界：当前核心是 State Compilation，authoritative Active State 不参与普通 semantic relevance competition；Evidence Paging（含 PACE 类多粒度语义调页）与 Experience abstraction 仅为 Research Backlog / Extension Point。验证顺序固定为 Correctness → Context Reduction → Operational Stability；除非当前测试失败直接要求，不得把 PACE 相关机制加入 v0。该结论是 scope clarification，不是扩展实现请求。
 
-WO-DS-13 已在独立 Data / Result QA 于 2026-08-23 接受为 **automatic diagnostic + blank blind-review bundle only**，固定 Builder candidate 为 `259b19246bc46a93c4b10dcaa09360a86b7937fb`。固定 `f721fd1159e6802d29132939c8114377f3faefa4` official artifact 记录 evaluator run 1、model call 0、semantic score 0；自动结果为 D0/D1/D2 tokens `7767/2911/4578`、D2-vs-D1 `+1667/1.572655`、8 exact lexical Probes 为 D0/D2 8/8、D1 0/8。36-item public/internal 物理隔离盲评包及 A/B/adjudication 空白表均已 mechanical QA；没有人类判断、解盲或 answer semantic score。三项 Gate 仍为 semantic correctness pending human review、context reduction pending correctness gate、operational stability not evaluated；下一外部 blocker 是两名真实、condition-blind 人类 reviewer。此接受不支持 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
+WO-DS-13 已在独立 Data / Result QA 于 2026-08-23 接受为 **automatic diagnostic + blank blind-review bundle only**，固定 Builder candidate 为 `259b19246bc46a93c4b10dcaa09360a86b7937fb`。固定 `f721fd1159e6802d29132939c8114377f3faefa4` official artifact 记录 evaluator run 1、model call 0、semantic score 0；自动结果为 D0/D1/D2 tokens `7767/2911/4578`、D2-vs-D1 `+1667/1.572655`、8 exact lexical Probes 为 D0/D2 8/8、D1 0/8。36-item public/internal 物理隔离盲评包及 A/B/adjudication 空白表均已 mechanical QA；没有人类判断、解盲或 answer semantic score。该 `feasibility-01` 已由 WO-DS-14 直接封存为 Oracle-State feasibility baseline，不再等待或填写双真人盲评；answer semantic gain 永久保持 `not_evaluated`。此 baseline 不支持 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
+
+WO-DS-14 / ST-01 已在首次独立 QA 返回后，于 2026-08-23 在固定修复候选 `826eb4760fe8df557a2aa7d07225bc1986579281` 通过独立 re-QA。修复后的 data Git object 为 `79da83d95aeac7162c95714f4f6f5eff1f9e0608`：30 个 Starlette standardized event summary 对应 30 个 strict Gold Delta / checkpoint，28 non-empty 与 2 empty true negative；两次 fresh SQLite replay 确定一致，4 条保留 dependency 均经 current-event justification 与人工 source/target 审计。首次 QA 发现的 delayed dependency P1 已通过删除无依据关系、显式 `not_evaluable` 和 append-only anchor 关闭。此次只接受 reducer conformance；ST-02 run contract、packet/capture 与模型调用均尚未创建或授权。
 
 DS-13 前关键节点对抗审查结论为 `Agree with reservations`：自动诊断与 blind bundle 合并仍是最小路径，但 public reviewer export 必须与 internal key/provenance/report 物理隔离；8 Probe 只覆盖 3/12 slices，只称 lexical diagnostic；official run、QA deterministic replay 与本机 latency observation 分离。三项 v0 Gate 继续 pending，未发现 PACE scope creep。
 
@@ -87,7 +89,8 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 - WO-DS-11 仅冻结首次 feasibility 输入与运行合同；单次 repetition、0 medium、人工 Oracle-State upper-bound、GitHub code-search 不可用与尚缺两名 condition-blind 人类评分仍限制后续解释。即使独立 QA PASS，也不能据此声明 D2 优于 D1、稳健性或一般化。
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
-- WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但三项 v0 Gate 仍 pending；8 lexical Probes 只覆盖 3/12 slices，且两名真实 condition-blind 人类评分是下一外部 blocker。0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
+- WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但已由 WO-DS-14 封存为 Oracle-State feasibility baseline；不再等待双真人评分，answer semantic gain 保持 `not_evaluated`。8 lexical Probes 只覆盖 3/12 slices；0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
+- WO-DS-14 / ST-01 reducer conformance 已通过独立 re-QA；这只证明冻结 Gold Delta 经现有 reducer 的 schema、provenance、lifecycle、relation、empty/stale 与 deterministic replay invariant。ST-02 run contract 尚未冻结，Extractor correctness、原始错误分布与任何模型结果仍未评估。
 - PACE / Evidence Paging / semantic relevance、多级摘要、glimpse/page-fault 与 Experience Layer 明确不在 v0；它们不能成为当前 correctness/reduction/stability Gate 的前置 blocker。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

@@ -2,7 +2,48 @@
 
 日期：2026-08-23
 
-结论：**FAIL — RETURN TO BUILDER；ST-02 仍未授权**
+最终结论：**PASS — ST-01 仅此 Gate 已接受；ST-02 run contract 尚未冻结，模型仍未授权**
+
+固定 re-QA Builder candidate：`826eb4760fe8df557a2aa7d07225bc1986579281`
+
+固定修正后 data commit：`79da83d95aeac7162c95714f4f6f5eff1f9e0608`
+
+首次 QA docs commit：`aeed861b3e3c538fbf6aa1393a5745fb4d61490b`
+
+## 独立 re-QA 接受记录
+
+首次 P1 已由两个 append-only 提交关闭。修正后的 Gold 不再把同一步新 item ID 限制伪装成后续事件的 dependency：STR-07/S7、STR-06/S8、STR-06/S16 中三条无当前事件依据的 `DEPENDS_ON` 已删除；Builder 额外删除 STR-06/S12 的 question → non-security relation 也是合理收缩，因为 E12 只确认 probe 错误与修改承诺，并不足以建立该依赖。
+
+当前只保留四条 `DEPENDS_ON`。QA 独立将其 step/event、source/target 语义与 Current Raw Event 对齐，结果如下：
+
+- STR-08/S3：lifespan question → same-loop constraint；E3 的 `blocking portal` 与 `client loop` 直接把启动/关闭方式连接到应用 loop 约束。
+- STR-06/S6：FIPS-fix question → non-security ETag constraint；前态明确 ETag 不要求 security-grade hash，E6 当前 PR 又直接以 `usedforsecurity` + `hashlib.md5` 实现 compatibility path，二者共同支持该依赖。
+- STR-06/S10：cross-environment question → explicit target test constraint；E10 明示 requested verification 仍 unavailable，直接支持该依赖继续成立。
+- STR-06/S16：limited-scope decision → limited-evidence constraint；E16 明示 limited reporter evidence 且 `does not prove` current master / every FIPS environment。
+
+四条 justification 与 Gold 关系一一对应、没有重复或漏项，所有预注册 anchors 均存在于同一步当前事件。独立攻击确认 wrong/delayed event、无依据 anchor、justification omission、duplicate 与 unknown field 全部拒绝；Gold/checkpoint/anchor 的协调字节改写仍会先在固定 Git-object boundary fail-closed。lexical anchor 只能防止时间错位，不能自行证明关系语义，因此本次接受仍依赖上述独立人工 source/target 审计，不能把 validator 当语义 oracle。
+
+### re-QA 工程证据
+
+- 身份：`main`、HEAD `826eb476…`、直接父 `79da83d…`、首次 QA `aeed861…` 在父链；开始及提交前工作树干净。
+- Git objects：从修正后 data commit 独立重算 9 个固定 blob；SHA-256 与 runner 常量、当前 bytes 全部一致。三个 promotion `events.json` 仍锚定 `4b974538…`，SHA-256 为 STR-08 `63ddd24b…`、STR-07 `3997eb86…`、STR-06 `5c6987c0…`。
+- 独立 ledger：30/30 created/status/source-ref/relation/revision 增量零差异；最终 revision 为 STR-08 = 4、STR-07 = 10、STR-06 = 14。28 个 non-empty 与 STR-06/E7、E13 两个 empty true negative 保持不变。
+- reducer：30/30 strict Delta、30/30 checkpoint；2 次 fresh SQLite canonical replay 一致，SHA-256 `9ba9f5c94c33d2a48a92478d907e4ba0bc455357ed4bc8f3fcd94c02bb0a1910`。
+- coverage：35 items；DERIVED_FROM 53、SUPERSEDES 6、RESOLVED_BY 3、REJECTS 3、DEPENDS_ON 4；3 completed goals、6 superseded decisions、7 resolved questions、4 rejected alternatives。
+- lifecycle：E16 的 cross-environment question 保持 OPEN；E13 没有把已负向解决的 first-probe question 重新激活。same-event path-converter dependency 与四个其他零分母类别明确为 `not_evaluable`，不进入成功分子。
+- stale revision：1/1 在 callback/mutation 前 fail-closed；state/revision 不变。
+- focused：7/7 PASS；全量：390 PASS / 1 个既有 opt-in official runner SKIP；protocol：8/8 PASS；build 与 `git diff --check` PASS。
+- 隔离真实 pack：50 files，SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，不包含 `evaluation/`、`docs/` 或 `test/`。
+- `feasibility-01` result/run 相对 DS-13 accepted commit 无字节差异；没有运行 official evaluator。model/provider/network/evaluator 调用均为 0。
+- 环境：Darwin 25.5.0 arm64，Node.js 25.6.1，npm 11.9.0；Windows 与 exact Node.js 24 仍未单独复跑。
+
+### 接受边界与下一步
+
+本结论只接受 ST-01 的 standardized-event-summary + Gold Delta reducer conformance。它不接受 Extractor correctness、Context Reduction、Operational Stability、最终回答质量或架构胜负，也不证明 verbatim GitHub raw-body extraction。
+
+ST-02 仍没有 run contract、packet、capture 或模型授权。下一步只能由后续 Builder 另行冻结 ST-02 run contract；QA 本轮没有创建 `st02/`、没有调用模型，也没有提前进入 PACE、Evidence Paging 或 Experience。
+
+## 首次 QA 返回记录（保留）
 
 固定 Builder candidate：`d3550bae18f7b2f1822c1c8bd6c1a78fe8fd1ea6`
 
