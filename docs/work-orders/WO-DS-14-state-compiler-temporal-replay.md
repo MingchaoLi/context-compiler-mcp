@@ -1,6 +1,16 @@
 # WO-DS-14 — State Compiler v0.1 时间状态回放
 
-状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 OFFICIAL CAPTURED UNSCORED — SCORER PENDING
+状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 SCORED — PENDING INDEPENDENT QA
+
+## 当前 ST-02 Scoring checkpoint
+
+主控在 Run-Gate re-QA 后明确授权并完成了唯一一次固定 30-step `gpt-5.6-terra` / medium / fresh capture，capture candidate 为 `bcce004f63b446d4bea4036f0ebfac771aff3137`。其 30 个 packet / response / metadata、session ledger、manifest 与 source-only replay 保持原样，没有重跑、修补或追加模型会话。
+
+对抗审查 `AR-2026-08-23-pre-ds14-st02-scorer.md` 发现三条 Predicted State 全程为空，通用 semantic matcher 没有 official 执行机会。主控采纳更小路径：先在独立 data-only commit `00a71dd55ab3fafb844fb44dfb584f1d8f7008f8` 冻结 empty-state scoring contract，再实现只读零模型 scorer。当前 Builder 结果按 30 step 互斥分类为 12 个 parse/schema failure + empty fallback、16 个 strict-valid empty on Gold-nonempty、2 个 strict-valid empty true negative；unique recall 为 general `0/35`、critical `0/29`，general / critical precision 均因 predicted denominator 为 0 而 `not_evaluable`。
+
+Gold 结果层面的 supersession / resolution 为 `0/6` 与 `0/7`；但两类 capability eligibility 均为 0，因为前置 predicted endpoint 从未建立，只能记为 `inherited_precondition_absent` 的下游结果，不能重复添加 13 个 primary Extractor errors。stale activation、wrong reactivation、dependency inconsistency、provenance failure 同样为 incident 0 / eligible 0 / `not_evaluable`；`STR-06/E13` 只算 empty true negative，不算 wrong-reactivation avoidance 成功。
+
+该 scoring checkpoint 状态仅为 **PENDING INDEPENDENT QA**。它没有 threshold、aggregate、winner 或通用 matcher，也不接受 Extractor correctness、Operational Stability、Context Reduction 或架构胜负；独立 QA 必须复验 Git object/current bytes、fresh 零模型 replay、逐 step/case 算术及协调改写攻击后，才能决定 ST-02 是否接受。
 
 ## 当前 ST-02 Run-Gate checkpoint
 

@@ -1,0 +1,2368 @@
+{
+  "schema_version": "state_replay_st02_empty_state_report/v1",
+  "status": "official_st02_scored_pending_independent_qa",
+  "scope": "standardized_event_summary_to_delta_empty_state_outcome_only",
+  "trust_roots": {
+    "scoring_contract": {
+      "commit": "00a71dd55ab3fafb844fb44dfb584f1d8f7008f8",
+      "parent": "4415f4bafb6d76fecde26ddef1e0060c6a666f84",
+      "blob": "c461cad2fd310e044dce844c15cd481c3ac7d346",
+      "sha256": "b406bd5198801d9968fb9c78597f60489e73efc84866151cd2a61be1d72be9c9",
+      "validated_before_parse": true
+    },
+    "capture": {
+      "commit": "bcce004f63b446d4bea4036f0ebfac771aff3137",
+      "parent": "9229eef89e0cddaf2d75f4a4a6ff7da633bb3591",
+      "packets_tree": "f911a4ee5d59b95f6cfbf029581637ac9668ed87",
+      "capture_tree": "4d5337f40846b05f6f566efd065abb1c82964ca3",
+      "closed_path_and_current_bytes_validated_before_parse": true,
+      "runtime_current_bytes_match_capture_commit": true
+    },
+    "gold": {
+      "accepted_data_commit": "79da83d95aeac7162c95714f4f6f5eff1f9e0608",
+      "parent": "aeed861b3e3c538fbf6aa1393a5745fb4d61490b",
+      "gold_tree": "7224a2b46d083e3f651ca3666778934af9b19f71",
+      "accepted_st01_qa_commit": "daa012c4d6f09919e798edc3771cf090bd5dd188",
+      "closed_path_and_current_bytes_validated_before_parse": true
+    }
+  },
+  "execution_boundaries": {
+    "scoring_run_count": 1,
+    "model_call_count": 0,
+    "provider_call_count": 0,
+    "network_call_count": 0,
+    "evaluator_run_count": 0,
+    "new_remote_session_count": 0,
+    "matcher_run_count": 0,
+    "generic_semantic_matcher_implemented": false,
+    "feasibility_artifact_read_or_write_count": 0,
+    "core_source_change_count": 0,
+    "aggregate_score": null,
+    "threshold": null,
+    "architecture_winner": null
+  },
+  "capture_replay": {
+    "processed_response_count": 30,
+    "strict_parse_accepted": 18,
+    "strict_parse_failed": 12,
+    "error_code_counts": {
+      "INVALID_JSON": 0,
+      "INVALID_SCHEMA": 12,
+      "INVALID_REFERENCE": 0
+    },
+    "empty_delta_fallback_count": 12,
+    "reducer_rejection_count": 0,
+    "revision_increment_count": 0,
+    "predicted_item_count": 0,
+    "predicted_relation_count": 0,
+    "interpretation": "0 reducer rejection is an observation after empty fallback/empty Delta, not operational proof"
+  },
+  "primary_outcomes": {
+    "mutually_exclusive": true,
+    "total": 30,
+    "counts": {
+      "parse_failure_with_empty_fallback": 12,
+      "strict_valid_empty_on_gold_nonempty": 16,
+      "strict_valid_empty_true_negative": 2
+    },
+    "sum_equals_total": true
+  },
+  "state_metrics": {
+    "unique_recall": {
+      "general": {
+        "numerator": 0,
+        "denominator": 35,
+        "rate": 0
+      },
+      "critical": {
+        "numerator": 0,
+        "denominator": 29,
+        "rate": 0
+      }
+    },
+    "checkpoint_weighted_recall": {
+      "general": {
+        "numerator": 0,
+        "denominator": 253,
+        "rate": 0
+      },
+      "critical": {
+        "numerator": 0,
+        "denominator": 192,
+        "rate": 0
+      },
+      "interpretation": "raw repeated checkpoint exposure only; not an aggregate score"
+    },
+    "precision": {
+      "general": {
+        "status": "not_evaluable_zero_predicted_items",
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "critical": {
+        "status": "not_evaluable_zero_predicted_items",
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null,
+        "note": "unmatched predicted items have no preregistered criticality definition"
+      }
+    },
+    "matcher": {
+      "status": "short_circuited_empty_left_set",
+      "opportunity_count": 0,
+      "unmatched_predicted_count": 0,
+      "ambiguous_match_count": 0,
+      "interpretation": "raw zero counts are absence of candidates, not matcher PASS"
+    }
+  },
+  "downstream_outcomes": {
+    "supersession": {
+      "gold_result_realized": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0
+      },
+      "capability_eligible_count": 0,
+      "capability_status": "not_evaluable_precondition_absent",
+      "causal_attribution": "inherited_precondition_absent",
+      "additional_primary_extractor_error_count": 0
+    },
+    "resolution": {
+      "gold_result_realized": {
+        "numerator": 0,
+        "denominator": 7,
+        "rate": 0
+      },
+      "capability_eligible_count": 0,
+      "capability_status": "not_evaluable_precondition_absent",
+      "causal_attribution": "inherited_precondition_absent",
+      "additional_primary_extractor_error_count": 0
+    },
+    "stale_activation": {
+      "incident_count": 0,
+      "eligible_count": 0,
+      "status": "not_evaluable"
+    },
+    "wrong_reactivation": {
+      "incident_count": 0,
+      "eligible_count": 0,
+      "status": "not_evaluable",
+      "e13_interpretation": "strict_valid_empty_true_negative_only"
+    },
+    "dependency_inconsistency": {
+      "incident_count": 0,
+      "gold_dependency_count": 4,
+      "eligible_count": 0,
+      "status": "not_evaluable_precondition_absent"
+    },
+    "provenance_failure": {
+      "incident_count": 0,
+      "gold_derived_from_count": 53,
+      "eligible_count": 0,
+      "status": "not_evaluable_no_predicted_item_or_relation"
+    }
+  },
+  "critical_misses": {
+    "unique_count": 29,
+    "unique_keys": [
+      "s08_goal_lifespan",
+      "s08_q_lifespan",
+      "s08_constraint_same_loop",
+      "s08_decision_context_manager",
+      "s08_rejected_manual_portal",
+      "s07_goal_route_compat",
+      "s07_q_route_variants",
+      "s07_constraint_regex_escape",
+      "s07_decision_canonical_redirect",
+      "s07_rejected_optional_regex",
+      "s07_q_wildcard",
+      "s07_constraint_uri_templates",
+      "s07_decision_path_converter",
+      "s07_constraint_redirect_cors",
+      "s07_q_redirect_equivalence",
+      "s07_q_release_docs",
+      "s07_decision_dual_route",
+      "s06_goal_fips",
+      "s06_q_fips_fix",
+      "s06_constraint_nonsecurity",
+      "s06_rejected_security_hash",
+      "s06_q_validate_first",
+      "s06_q_cross_environment",
+      "s06_constraint_explicit_test",
+      "s06_rejected_merge_proof",
+      "s06_q_probe_fix",
+      "s06_decision_second_probe",
+      "s06_constraint_limited_evidence",
+      "s06_decision_limit_scope"
+    ],
+    "interpretation": "all critical accepted-Gold keys are absent from the empty Predicted State; repeated checkpoint misses are reported separately and not averaged into a score"
+  },
+  "raw_error_distribution": {
+    "parse_failure_steps": [
+      {
+        "case_id": "STR-08",
+        "event_id": "STR-08/E1",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-08",
+        "event_id": "STR-08/E3",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-07",
+        "event_id": "STR-07/E4",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-07",
+        "event_id": "STR-07/E6",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-07",
+        "event_id": "STR-07/E9",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E2",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E4",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E5",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E9",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E11",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E12",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      },
+      {
+        "case_id": "STR-06",
+        "event_id": "STR-06/E14",
+        "error_codes": [
+          "INVALID_SCHEMA"
+        ]
+      }
+    ],
+    "reducer_rejection_steps": [],
+    "unmatched_predicted_count": 0,
+    "ambiguous_match_count": 0
+  },
+  "context_cost_secondary": {
+    "estimator": "UTF-16 JavaScript string characters / 4, rounded up per step",
+    "total_extractor_input_characters": 25328,
+    "total_extractor_input_token_estimate": 6343,
+    "predicted_state_item_count_each_step": 0,
+    "interpretation": "raw extractor-input observation only; no D0/D1/D2 comparison or reduction claim"
+  },
+  "cases": [
+    {
+      "case_id": "STR-08",
+      "step_count": 4,
+      "primary_outcomes": {
+        "parse_failure_with_empty_fallback": 2,
+        "strict_valid_empty_on_gold_nonempty": 2,
+        "strict_valid_empty_true_negative": 0
+      },
+      "unique_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 6,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 5,
+          "rate": 0
+        }
+      },
+      "checkpoint_weighted_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 15,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 13,
+          "rate": 0
+        }
+      },
+      "gold_transition_results": {
+        "supersession": {
+          "realized": 0,
+          "gold": 1,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "resolution": {
+          "realized": 0,
+          "gold": 1,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "dependency": {
+          "incident_count": 0,
+          "gold": 1,
+          "eligible_count": 0,
+          "status": "not_evaluable"
+        }
+      },
+      "critical_missed_keys": [
+        "s08_goal_lifespan",
+        "s08_q_lifespan",
+        "s08_constraint_same_loop",
+        "s08_decision_context_manager",
+        "s08_rejected_manual_portal"
+      ],
+      "extractor_input_cost_secondary": {
+        "total_characters": 3389,
+        "total_token_estimate_characters_divided_by_4": 849
+      },
+      "steps": [
+        {
+          "ordinal": 1,
+          "case_id": "STR-08",
+          "step_id": "STR-08/S1",
+          "event_id": "STR-08/E1",
+          "packet_id": "pkt_0aaac79f6e5179a3b24d3b18",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s08_goal_lifespan",
+              "s08_q_lifespan"
+            ],
+            "critical_created_keys": [
+              "s08_goal_lifespan",
+              "s08_q_lifespan"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 816,
+            "token_estimate_characters_divided_by_4": 204,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 2,
+          "case_id": "STR-08",
+          "step_id": "STR-08/S2",
+          "event_id": "STR-08/E2",
+          "packet_id": "pkt_8fee64925d157dec59a26047",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s08_constraint_same_loop"
+            ],
+            "critical_created_keys": [
+              "s08_constraint_same_loop"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 865,
+            "token_estimate_characters_divided_by_4": 217,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 3,
+          "case_id": "STR-08",
+          "step_id": "STR-08/S3",
+          "event_id": "STR-08/E3",
+          "packet_id": "pkt_d6afbeea18e82db8c40ec4a5",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s08_decision_manual_portal"
+            ],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 1,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 4,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": {
+              "incident_count": 0,
+              "gold": 1,
+              "eligible_count": 0,
+              "status": "not_evaluable_precondition_absent"
+            },
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 842,
+            "token_estimate_characters_divided_by_4": 211,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 4,
+          "case_id": "STR-08",
+          "step_id": "STR-08/S4",
+          "event_id": "STR-08/E4",
+          "packet_id": "pkt_c07ee4ae5cf087a55d2889fb",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s08_decision_context_manager",
+              "s08_rejected_manual_portal"
+            ],
+            "critical_created_keys": [
+              "s08_decision_context_manager",
+              "s08_rejected_manual_portal"
+            ],
+            "supersession_count": 1,
+            "resolution_count": 1,
+            "completed_goal_count": 1,
+            "dependency_count": 0,
+            "derived_from_count": 5
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 6,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 5,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 866,
+            "token_estimate_characters_divided_by_4": 217,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "STR-07",
+      "step_count": 10,
+      "primary_outcomes": {
+        "parse_failure_with_empty_fallback": 3,
+        "strict_valid_empty_on_gold_nonempty": 7,
+        "strict_valid_empty_true_negative": 0
+      },
+      "unique_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 13,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 12,
+          "rate": 0
+        }
+      },
+      "checkpoint_weighted_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 79,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 71,
+          "rate": 0
+        }
+      },
+      "gold_transition_results": {
+        "supersession": {
+          "realized": 0,
+          "gold": 1,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "resolution": {
+          "realized": 0,
+          "gold": 3,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "dependency": {
+          "incident_count": 0,
+          "gold": 0,
+          "eligible_count": 0,
+          "status": "not_evaluable"
+        }
+      },
+      "critical_missed_keys": [
+        "s07_goal_route_compat",
+        "s07_q_route_variants",
+        "s07_constraint_regex_escape",
+        "s07_decision_canonical_redirect",
+        "s07_rejected_optional_regex",
+        "s07_q_wildcard",
+        "s07_constraint_uri_templates",
+        "s07_decision_path_converter",
+        "s07_constraint_redirect_cors",
+        "s07_q_redirect_equivalence",
+        "s07_q_release_docs",
+        "s07_decision_dual_route"
+      ],
+      "extractor_input_cost_secondary": {
+        "total_characters": 8532,
+        "total_token_estimate_characters_divided_by_4": 2135
+      },
+      "steps": [
+        {
+          "ordinal": 5,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S1",
+          "event_id": "STR-07/E1",
+          "packet_id": "pkt_c2b9606638e3689ff1073c53",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_goal_route_compat",
+              "s07_q_route_variants"
+            ],
+            "critical_created_keys": [
+              "s07_goal_route_compat",
+              "s07_q_route_variants"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 803,
+            "token_estimate_characters_divided_by_4": 201,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 6,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S2",
+          "event_id": "STR-07/E2",
+          "packet_id": "pkt_8aa8c20df9b560b88e6eab19",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_constraint_regex_escape"
+            ],
+            "critical_created_keys": [
+              "s07_constraint_regex_escape"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 851,
+            "token_estimate_characters_divided_by_4": 213,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 7,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S3",
+          "event_id": "STR-07/E3",
+          "packet_id": "pkt_5c90013fc58db0c62facd938",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_decision_regex_patch"
+            ],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 4,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 848,
+            "token_estimate_characters_divided_by_4": 212,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 8,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S4",
+          "event_id": "STR-07/E4",
+          "packet_id": "pkt_fe5b0b69b46154340fb5496e",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_decision_canonical_redirect",
+              "s07_rejected_optional_regex"
+            ],
+            "critical_created_keys": [
+              "s07_decision_canonical_redirect",
+              "s07_rejected_optional_regex"
+            ],
+            "supersession_count": 1,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 3
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 6,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 5,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 856,
+            "token_estimate_characters_divided_by_4": 214,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 9,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S5",
+          "event_id": "STR-07/E5",
+          "packet_id": "pkt_e9811667a13d1ccb6b047316",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_q_wildcard"
+            ],
+            "critical_created_keys": [
+              "s07_q_wildcard"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 7,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 6,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 835,
+            "token_estimate_characters_divided_by_4": 209,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 10,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S6",
+          "event_id": "STR-07/E6",
+          "packet_id": "pkt_7d30c24a5ed995c55556a8e2",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_constraint_uri_templates",
+              "s07_decision_path_converter"
+            ],
+            "critical_created_keys": [
+              "s07_constraint_uri_templates",
+              "s07_decision_path_converter"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 9,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 8,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 895,
+            "token_estimate_characters_divided_by_4": 224,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 11,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S7",
+          "event_id": "STR-07/E7",
+          "packet_id": "pkt_c481e2a54668b4dc60dda30e",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_constraint_redirect_cors",
+              "s07_q_redirect_equivalence"
+            ],
+            "critical_created_keys": [
+              "s07_constraint_redirect_cors",
+              "s07_q_redirect_equivalence"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 11,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 10,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 896,
+            "token_estimate_characters_divided_by_4": 224,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 12,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S8",
+          "event_id": "STR-07/E8",
+          "packet_id": "pkt_e2753dbe55c17b98de4fc5fe",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_q_release_docs"
+            ],
+            "critical_created_keys": [
+              "s07_q_release_docs"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 12,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 11,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 885,
+            "token_estimate_characters_divided_by_4": 222,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 13,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S9",
+          "event_id": "STR-07/E9",
+          "packet_id": "pkt_8b451379cf0191e35418d3b2",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 1,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 12,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 11,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 803,
+            "token_estimate_characters_divided_by_4": 201,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 14,
+          "case_id": "STR-07",
+          "step_id": "STR-07/S10",
+          "event_id": "STR-07/E10",
+          "packet_id": "pkt_3e259ddd8d2d600a8611c4b6",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s07_decision_dual_route"
+            ],
+            "critical_created_keys": [
+              "s07_decision_dual_route"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 2,
+            "completed_goal_count": 1,
+            "dependency_count": 0,
+            "derived_from_count": 4
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 13,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 12,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": {
+              "realized": 0,
+              "gold": 2,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 860,
+            "token_estimate_characters_divided_by_4": 215,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "STR-06",
+      "step_count": 16,
+      "primary_outcomes": {
+        "parse_failure_with_empty_fallback": 7,
+        "strict_valid_empty_on_gold_nonempty": 7,
+        "strict_valid_empty_true_negative": 2
+      },
+      "unique_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 16,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 12,
+          "rate": 0
+        }
+      },
+      "checkpoint_weighted_state_recall": {
+        "general": {
+          "numerator": 0,
+          "denominator": 159,
+          "rate": 0
+        },
+        "critical": {
+          "numerator": 0,
+          "denominator": 108,
+          "rate": 0
+        }
+      },
+      "gold_transition_results": {
+        "supersession": {
+          "realized": 0,
+          "gold": 4,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "resolution": {
+          "realized": 0,
+          "gold": 3,
+          "causal_attribution": "inherited_precondition_absent"
+        },
+        "dependency": {
+          "incident_count": 0,
+          "gold": 3,
+          "eligible_count": 0,
+          "status": "not_evaluable"
+        }
+      },
+      "critical_missed_keys": [
+        "s06_goal_fips",
+        "s06_q_fips_fix",
+        "s06_constraint_nonsecurity",
+        "s06_rejected_security_hash",
+        "s06_q_validate_first",
+        "s06_q_cross_environment",
+        "s06_constraint_explicit_test",
+        "s06_rejected_merge_proof",
+        "s06_q_probe_fix",
+        "s06_decision_second_probe",
+        "s06_constraint_limited_evidence",
+        "s06_decision_limit_scope"
+      ],
+      "extractor_input_cost_secondary": {
+        "total_characters": 13407,
+        "total_token_estimate_characters_divided_by_4": 3359
+      },
+      "steps": [
+        {
+          "ordinal": 15,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S1",
+          "event_id": "STR-06/E1",
+          "packet_id": "pkt_01745cda126867ea21f6e95c",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_goal_fips",
+              "s06_q_fips_fix"
+            ],
+            "critical_created_keys": [
+              "s06_goal_fips",
+              "s06_q_fips_fix"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 809,
+            "token_estimate_characters_divided_by_4": 203,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 16,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S2",
+          "event_id": "STR-06/E2",
+          "packet_id": "pkt_e2342e0faf774f97fa7a30a1",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_decision_review_compat"
+            ],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 2,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 853,
+            "token_estimate_characters_divided_by_4": 214,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 17,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S3",
+          "event_id": "STR-06/E3",
+          "packet_id": "pkt_4db7933588695707bbdc1cb2",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_constraint_nonsecurity"
+            ],
+            "critical_created_keys": [
+              "s06_constraint_nonsecurity"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 4,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 3,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 841,
+            "token_estimate_characters_divided_by_4": 211,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 18,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S4",
+          "event_id": "STR-06/E4",
+          "packet_id": "pkt_db8623a28ec42bbb91946a81",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_decision_wrapper",
+              "s06_rejected_security_hash"
+            ],
+            "critical_created_keys": [
+              "s06_rejected_security_hash"
+            ],
+            "supersession_count": 1,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 3
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 6,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 4,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 828,
+            "token_estimate_characters_divided_by_4": 207,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 19,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S5",
+          "event_id": "STR-06/E5",
+          "packet_id": "pkt_94dc9ccc7d0f416a16119aa8",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_decision_usedfalse_candidate"
+            ],
+            "critical_created_keys": [],
+            "supersession_count": 1,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 7,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 4,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 820,
+            "token_estimate_characters_divided_by_4": 205,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 20,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S6",
+          "event_id": "STR-06/E6",
+          "packet_id": "pkt_d3d99dee3005af07920a85f0",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_decision_first_probe",
+              "s06_q_validate_first"
+            ],
+            "critical_created_keys": [
+              "s06_q_validate_first"
+            ],
+            "supersession_count": 1,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 1,
+            "derived_from_count": 3
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 9,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 5,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": null,
+            "dependency": {
+              "incident_count": 0,
+              "gold": 1,
+              "eligible_count": 0,
+              "status": "not_evaluable_precondition_absent"
+            },
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 838,
+            "token_estimate_characters_divided_by_4": 210,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 21,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S7",
+          "event_id": "STR-06/E7",
+          "packet_id": "pkt_16f4044af43f1626356498a2",
+          "primary_outcome": "strict_valid_empty_true_negative",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": false,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 0
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 9,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 5,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 809,
+            "token_estimate_characters_divided_by_4": 203,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 22,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S8",
+          "event_id": "STR-06/E8",
+          "packet_id": "pkt_25acca5a7c27bdea29b77d40",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_q_cross_environment"
+            ],
+            "critical_created_keys": [
+              "s06_q_cross_environment"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 10,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 6,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 879,
+            "token_estimate_characters_divided_by_4": 220,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 23,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S9",
+          "event_id": "STR-06/E9",
+          "packet_id": "pkt_6469d9faf13f97822291d786",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_constraint_explicit_test"
+            ],
+            "critical_created_keys": [
+              "s06_constraint_explicit_test"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 11,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 7,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 822,
+            "token_estimate_characters_divided_by_4": 206,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 24,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S10",
+          "event_id": "STR-06/E10",
+          "packet_id": "pkt_6c4fbf1f0ceee4019bf5bc26",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 1,
+            "derived_from_count": 0
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 11,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 7,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": {
+              "incident_count": 0,
+              "gold": 1,
+              "eligible_count": 0,
+              "status": "not_evaluable_precondition_absent"
+            },
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 803,
+            "token_estimate_characters_divided_by_4": 201,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 25,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S11",
+          "event_id": "STR-06/E11",
+          "packet_id": "pkt_d02f6ea09afc6bec6c9be8c7",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_q_probe_fix",
+              "s06_rejected_merge_proof"
+            ],
+            "critical_created_keys": [
+              "s06_q_probe_fix",
+              "s06_rejected_merge_proof"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 1,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 3
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 13,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 9,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 888,
+            "token_estimate_characters_divided_by_4": 222,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 26,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S12",
+          "event_id": "STR-06/E12",
+          "packet_id": "pkt_1a2f65ef60b3d4853a49b6d5",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_decision_second_probe"
+            ],
+            "critical_created_keys": [
+              "s06_decision_second_probe"
+            ],
+            "supersession_count": 1,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 14,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 10,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": {
+              "realized": 0,
+              "gold": 1,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 865,
+            "token_estimate_characters_divided_by_4": 217,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 27,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S13",
+          "event_id": "STR-06/E13",
+          "packet_id": "pkt_8647b053e6082f7f0550c927",
+          "primary_outcome": "strict_valid_empty_true_negative",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": false,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 0
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 14,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 10,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": {
+              "incident_count": 0,
+              "eligible_count": 0,
+              "status": "not_evaluable_no_predicted_tombstone",
+              "interpretation": "empty_true_negative_only"
+            }
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 778,
+            "token_estimate_characters_divided_by_4": 195,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 28,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S14",
+          "event_id": "STR-06/E14",
+          "packet_id": "pkt_a79450f7788d7b36d7a15f69",
+          "primary_outcome": "parse_failure_with_empty_fallback",
+          "strict_parse": {
+            "accepted": false,
+            "fallback_used": true,
+            "error_codes": [
+              "INVALID_SCHEMA"
+            ]
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 1
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 14,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 10,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 822,
+            "token_estimate_characters_divided_by_4": 206,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 29,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S15",
+          "event_id": "STR-06/E15",
+          "packet_id": "pkt_0511bc9b6434c45d8f83e9cc",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [
+              "s06_constraint_limited_evidence",
+              "s06_decision_limit_scope"
+            ],
+            "critical_created_keys": [
+              "s06_constraint_limited_evidence",
+              "s06_decision_limit_scope"
+            ],
+            "supersession_count": 0,
+            "resolution_count": 0,
+            "completed_goal_count": 0,
+            "dependency_count": 0,
+            "derived_from_count": 2
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 16,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 12,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": null,
+            "dependency": null,
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 909,
+            "token_estimate_characters_divided_by_4": 228,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        },
+        {
+          "ordinal": 30,
+          "case_id": "STR-06",
+          "step_id": "STR-06/S16",
+          "event_id": "STR-06/E16",
+          "packet_id": "pkt_67495d51a33bb715475b94ea",
+          "primary_outcome": "strict_valid_empty_on_gold_nonempty",
+          "strict_parse": {
+            "accepted": true,
+            "fallback_used": false,
+            "error_codes": []
+          },
+          "gold_delta": {
+            "non_empty": true,
+            "created_keys": [],
+            "critical_created_keys": [],
+            "supersession_count": 0,
+            "resolution_count": 2,
+            "completed_goal_count": 1,
+            "dependency_count": 1,
+            "derived_from_count": 4
+          },
+          "predicted_state": {
+            "prior_item_count": 0,
+            "prior_relation_count": 0,
+            "previous_revision": 0,
+            "next_revision": 0,
+            "reducer_rejected": false
+          },
+          "checkpoint_recall": {
+            "general": {
+              "numerator": 0,
+              "denominator": 16,
+              "rate": 0
+            },
+            "critical": {
+              "numerator": 0,
+              "denominator": 12,
+              "rate": 0
+            }
+          },
+          "downstream_gold_outcome": {
+            "supersession": null,
+            "resolution": {
+              "realized": 0,
+              "gold": 2,
+              "capability_status": "not_evaluable_precondition_absent",
+              "causal_attribution": "inherited_precondition_absent"
+            },
+            "dependency": {
+              "incident_count": 0,
+              "gold": 1,
+              "eligible_count": 0,
+              "status": "not_evaluable_precondition_absent"
+            },
+            "wrong_reactivation": null
+          },
+          "extractor_input_cost_secondary": {
+            "characters": 843,
+            "token_estimate_characters_divided_by_4": 211,
+            "state_item_count": 0,
+            "state_relation_count": 0
+          }
+        }
+      ]
+    }
+  ],
+  "test_design_challenges": [
+    {
+      "kind": "vacuous_pass",
+      "finding": "precision, matcher, transition capability, stale/reactivation/dependency/provenance all have zero eligibility and remain structured not_evaluable"
+    },
+    {
+      "kind": "gold_leakage",
+      "finding": "capture was generated source-only; scoring begins only after the fixed capture tree is anchored, but Gold remains an accepted standardized-summary human scale rather than an external semantic oracle"
+    },
+    {
+      "kind": "definition_ambiguity",
+      "finding": "the preregistered lexical matcher is not exercised because the predicted left set is empty; critical precision also lacks a definition for unmatched predicted-item criticality"
+    },
+    {
+      "kind": "evaluator_self_attestation",
+      "finding": "capture, Gold, and scoring contract are anchored to three prior Git objects and current closed trees/bytes; independent QA must still attack coordinated rewrites"
+    },
+    {
+      "kind": "selection_bias",
+      "finding": "three selected Starlette trajectories and one model/prompt capture do not establish generality; short-history representation is limited and there is no provider comparison"
+    }
+  ],
+  "claims_not_made": [
+    "D2 is better or worse than D1",
+    "the reducer has operational stability because rejection count is zero",
+    "the exact-anchor matcher passed",
+    "wrong reactivation, dependency, stale activation, or provenance capability passed",
+    "this result generalizes beyond the accepted standardized Starlette event summaries, fixed prompt contract, and one GPT-5.6-terra capture"
+  ]
+}
