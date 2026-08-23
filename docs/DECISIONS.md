@@ -51,3 +51,11 @@ The optional runtime transport spawns one explicitly supplied local executable w
 ## D-013 — 评估尺子版本化且历史保留不由当前输入证明
 
 ST-02 evaluator version 1 保留原始语义用于历史复现。测量有效性修正进入独立 version 2：Probe 必须带来源，空分母显式为 `not_evaluable`，历史连续性只在排除 `current_input` 的历史投影中检查。完整模型输入仍用于 token 和 latency 统计。Version 2 额外报告 D2 相对 D1 的原始 token delta/ratio，但在真实数据形成前不新增加权分数或决策门。
+
+## D-014 — State should be compiled; historical evidence may be paged later
+
+v0 的唯一核心职责是 State Compilation：把 Raw Events 编译为带 lifecycle、relation 与 provenance 的 authoritative active state，再由 dependency-aware assembler 生成工作上下文。ACTIVE Constraint、Decision 与 OpenQuestion 不参与普通 semantic relevance competition，不能因与当前输入相似度低而被淘汰。
+
+长期架构将 State、Evidence、Experience 分层：Evidence Paging（包括 PACE 类语义相关性、多粒度摘要、pressure-adaptive selection 与按需恢复）和 Experience abstraction 都是未来 Research Backlog / Extension Point，不属于 v0。现有 headline/recall 是显式恢复原语，不授权新增运行时 History Pager。
+
+执行顺序固定为 Correctness → Context Reduction → Operational Stability。三个 Gate 未通过前，不实现 PACE/Evidence Paging/Experience。Unless a current test failure directly requires it, do not introduce PACE-related mechanisms into the v0 implementation. Treat this decision as a scope-freeze clarification, not a request for architectural expansion.

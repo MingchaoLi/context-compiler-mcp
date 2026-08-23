@@ -52,6 +52,8 @@ WO-DS-11 已在独立 Data / Run-Gate QA 于 2026-08-23 接受 atomic data+proto
 
 WO-DS-12 已在独立 re-QA 于 2026-08-23 接受为 **unscored capture integrity only**，固定 Builder fix candidate 为 `3c172bb62e5e640d00d513e31ede6249ac9d5cba`。首轮 QA 的 raw/run/hash/validator 协调自举 P1 已由 append-only 修复关闭：无 shell Git object anchor 直接读取 capture source commit `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 的固定父链、path、blob/SHA，并在 current JSON 解析前要求 raw/run bytes 相同；capture-hashes 不再自证 validator，manifest authorization-absence 与所有未评分 boundaries 严格固定。raw/run bytes 没有改变，因此没有新模型 session、retry 或回答。36 条 artifacts 仍只是 36 valid / 0 invalid 的未评分 capture；未运行 evaluator、自动 context/cost 或语义评分。下一工单才可做自动结果和 condition-blind review bundle，且仍缺两名真实人类评分。0 medium、单次 repetition、人工 Oracle-State upper bound 与公开索引限制继续阻止 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
 
+2026-08-23 架构同步进一步冻结 v0 边界：当前核心是 State Compilation，authoritative Active State 不参与普通 semantic relevance competition；Evidence Paging（含 PACE 类多粒度语义调页）与 Experience abstraction 仅为 Research Backlog / Extension Point。验证顺序固定为 Correctness → Context Reduction → Operational Stability；除非当前测试失败直接要求，不得把 PACE 相关机制加入 v0。该结论是 scope clarification，不是扩展实现请求。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
@@ -81,5 +83,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 - WO-DS-11 仅冻结首次 feasibility 输入与运行合同；单次 repetition、0 medium、人工 Oracle-State upper-bound、GitHub code-search 不可用与尚缺两名 condition-blind 人类评分仍限制后续解释。即使独立 QA PASS，也不能据此声明 D2 优于 D1、稳健性或一般化。
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
+- PACE / Evidence Paging / semantic relevance、多级摘要、glimpse/page-fault 与 Experience Layer 明确不在 v0；它们不能成为当前 correctness/reduction/stability Gate 的前置 blocker。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.
