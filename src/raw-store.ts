@@ -2,6 +2,11 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import {
+  appendRawEventMirrorInsideTransaction,
+  assertRawEventMirrorInsideTransaction,
+  migrateExperienceLedger,
+} from "./experience-ledger.js";
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject;
 export interface JsonObject {
@@ -68,6 +73,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
     this.database.exec("PRAGMA synchronous = FULL;");
     if (databasePath !== ":memory:") this.database.exec("PRAGMA journal_mode = WAL;");
     migrate(this.database);
+    migrateExperienceLedger(this.database);
   }
 
   ingest(input: RawEventInput): RawEvent {
@@ -95,6 +101,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
           .get(input.session_id, sourceEventId) as DatabaseRow | undefined;
         if (existing) {
           assertCompatibleRetry(existing, input, eventType, metadataJson);
+          assertRawEventMirrorInsideTransaction(this.database, rowToEvent(existing));
           this.database.exec("COMMIT;");
           return rowToEvent(existing);
         }
@@ -126,9 +133,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
           tokenCount,
           metadataJson
         );
-      this.database.exec("COMMIT;");
-
-      return {
+      const event: RawEvent = {
         id,
         session_id: input.session_id,
         seq: sequence.next_seq,
@@ -140,6 +145,9 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
         metadata,
         ...(sourceEventId === null ? {} : { source_event_id: sourceEventId }),
       };
+      appendRawEventMirrorInsideTransaction(this.database, event, false);
+      this.database.exec("COMMIT;");
+      return event;
     } catch (error) {
       rollback(this.database);
       throw error;

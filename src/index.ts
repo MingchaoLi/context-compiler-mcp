@@ -9,6 +9,17 @@ export {
   type RawHistoryStore,
 } from "./raw-store.js";
 
+export {
+  EXPERIENCE_LEDGER_KINDS,
+  ExperienceLedgerError,
+  SqliteExperienceLedgerStore,
+  type ExperienceLedgerErrorCode,
+  type ExperienceLedgerInput,
+  type ExperienceLedgerKind,
+  type ExperienceLedgerRecord,
+  type ExperienceLedgerStore,
+} from "./experience-ledger.js";
+
 export { StateReducer, type ReducerResult } from "./reducer.js";
 export {
   SqliteContextStateStore,

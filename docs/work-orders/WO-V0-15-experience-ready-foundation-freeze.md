@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：IN PROGRESS — CHECKPOINT A COMPLETE / CHECKPOINT B PENDING
+状态：IN PROGRESS — CHECKPOINT A + B COMPLETE / CHECKPOINT C PENDING
 
 ## 背景校准
 
@@ -16,7 +16,9 @@
 
 每个 checkpoint 都必须在进入下一个前通过 focused 与全量回归；最终统一交给独立 QA。审查记录见 `docs/adversarial-reviews/AR-2026-08-24-pre-v0-15-foundation-freeze.md`。
 
-Checkpoint A 已完成代码与本地回归：新增 current-event provenance contract v2，并由明确命名的 `CurrentEventStateExtractor` 和现行 `RuntimeStateUpdater` 固定使用，结果与错误显式暴露合同版本；原 `parseStrictStateDelta` / `parseStrictStateDeltaPayload`、未带版本的历史 `StrictStateExtractor` 与 `apply_state_delta` 保持 v1 语义。WO-DS-14 pinned runtime、official capture、Gold 与评分结果均未修改，历史 replay 仍逐字节复现。独立 QA 尚未开始；Checkpoint B 仍为 pending。
+Checkpoint A 已完成代码与本地回归：新增 current-event provenance contract v2，并由明确命名的 `CurrentEventStateExtractor` 和现行 `RuntimeStateUpdater` 固定使用，结果与错误显式暴露合同版本；原 `parseStrictStateDelta` / `parseStrictStateDeltaPayload`、未带版本的历史 `StrictStateExtractor` 与 `apply_state_delta` 保持 v1 语义。WO-DS-14 pinned runtime、official capture、Gold 与评分结果均未修改，历史 replay 仍逐字节复现。
+
+Checkpoint B 已完成代码与本地回归：新增独立 append-only `experience_ledger` 关系表与稳定 library store，冻结七类最小记录、session-local sequence / source-key 幂等、严格 JSON payload、同 session 已存在 raw/parent provenance 与外部连接 update/delete trigger。新 raw event 与确定性 `EVENT` mirror 由 `SqliteRawHistoryStore` 在同一 `BEGIN IMMEDIATE` transaction 中共同提交或回滚；旧库只按 raw session/sequence 确定性回填 `migration_backfill:true` 的 EVENT observation，不补造 ACTION / OUTCOME 等语义。Checkpoint B 未让 compile 写 trace，也未接入 retrieval / dormant / recovery；这些仍只属于 Checkpoint C。A/B 尚待本工单最终统一独立 QA，Checkpoint C 仍为 pending。
 
 ## 单一结果
 
