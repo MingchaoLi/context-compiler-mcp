@@ -330,3 +330,66 @@ QA 没有用内部 helper 代替 public path，而是分别通过真实九工具
 本轮用真实 public v1 mutation、独立 state fingerprint、连续 snapshot 尾部和 14/15 边界关闭了终局 AR 的最强反例；现有证据足以恢复 WO-V0-15 的 `ACCEPTED / FROZEN`。该结论只接受 correctness、兼容、迁移、并发、可回放和打包合同，不声明 Dense 有收益，也不声明 Experience 已形成或有效。
 
 下一阶段只允许通过真实长期使用积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据。Context / State 基础设施默认冻结；除非出现新的可复现 correctness 缺陷或另立明确工单，不再开发 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation。
+
+---
+
+## 第五个 telemetry-completeness fix 独立 re-QA（2026-08-24）
+
+结论：**FAIL — 返回 Builder；WO-V0-15 继续保持 FROZEN REOPENED / PENDING INDEPENDENT RE-QA。** 单实例 pre-origin gap 与 provenance 双门的静态反例已经关闭，但独立 QA 发现一个可由两个真实服务实例触发的新 P1：首个 operation-id compile 的“检查尚无 telemetry”与 `CONTEXT_COMPILE` 实际提交之间不是跨实例原子边界，期间另一个实例仍可合法执行无 id 命中。第五个 fix 随后把该 item 当作 origin 后创建、全生命周期 zero-hit，并在第 15 轮错误 dormant。
+
+### 固定候选与边界
+
+- 分支：`main`
+- 固定 source candidate：`cdd1d79446453b3593f5486570a1f7c031af8ddb`
+- 固定父提交：`c016813ea26134dedbd1ce09bfdcd6a1d73ea848`
+- re-QA 开始时 branch / HEAD / parent 精确匹配且工作树 clean；`git diff --check HEAD^..HEAD` 通过，`evaluation/` 相对父提交零差异。
+- 候选只修改 global-origin dormant 判定、两份 focused tests、中文 handoff 及 reopened 状态文档；没有修改 ledger schema、MCP 工具、retrieval 权重、Gold、official artifact 或 Experience 范围。
+- 本次没有调用模型或网络，没有修改 source、tests、Gold、artifact、WO、PROJECT_STATE 或 ROADMAP；QA 只追加本中文失败记录。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### 已关闭的原反例与正向边界
+
+QA 使用独立脚本而非照抄 Builder test，通过真实 `ContextCompilerMcpService` 公共路径复得以下结果：
+
+- origin 前用 public v1 `prepare_state_update / apply_state_delta` 创建两个 ACTIVE Goal，再执行一次无 `operation_id` 的相关 query；该 query 确实选中两个 Goal，ledger 中仍为零条 compile/hit。随后写入首个可信 origin 并增加 15 个完整用户轮次，两个 Goal 均保持 active。
+- 对其中一个 pre-origin Goal 再做 public v1 source-less content update；新 snapshot 首 compile `dormancy_enabled:false`，再跨 15 轮两个 Goal 仍保持 active，authoritative 内容与 `ACTIVE` status 正确。
+- 空状态 global origin 后，以真实 `RuntimeStateUpdater` contract v2 创建带 current-event provenance 的 Goal；creation ref 严格晚于 origin。新 snapshot 首 compile 只建 baseline，中间 compile 不重置年龄，第 14 轮仍 active、第 15 轮 dormant，State Store status 始终为 `ACTIVE`。
+- 独立纯函数反例确认：多个 creation refs 全部可解析且均晚于 origin 时可进入正向分母；无 creation relation、后补但时间不等于 item creation 的 `DERIVED_FROM`、ref 位于 origin 边界或一组 refs 混入 origin 前证据时均 fail-open。现有输入/StateStore 校验继续拒绝跨 session 或悬空 raw ref。
+- 上一轮 public v1 content/status/relation late-update、Constraint、prior hit、query reactivation、dependency rescue、坏 telemetry、revision/hash mismatch 与 14/15 snapshot 边界均通过 focused/full 回归。
+
+这些结果足以接受第五个 fix 的单实例判定方向，但不足以证明 global origin 在并发下是一个真实的全局 observation boundary。
+
+### P1：origin trace 提交前仍允许另一个实例产生不可观测命中
+
+QA 用同一 SQLite 文件、两个独立 `ContextCompilerMcpService` 和 `SharedArrayBuffer + Atomics` 只控制调度，不改写产品输入或返回值，稳定复现两种 interleaving。更强且最小的一种是：
+
+1. session 先只有 raw seq 1、空 state、空 compile telemetry。
+2. 实例 A 发起首个带 `operation_id` 的 `compile_context`，完成 state/raw/ledger 读取与 context/trace 计算；QA 只在内部 append-only trace 真正提交前暂停 A。此时 A 的待写 payload 为 `state_revision:0`、`raw_boundary_max_seq:1`、`selected_state_ids:[]`。
+3. 实例 B 在同一数据库 ingest raw seq 2，通过真实 public v1 prepare/apply 创建一个带 seq 2 creation provenance 的 ACTIVE Goal。
+4. 因 A 尚未提交任何 `CONTEXT_COMPILE`，B 的无 `operation_id` 相关 compile 通过 `hasTrustedContextCompileBaseline` 检查，真实选中该 Goal，但按兼容合同不写 trace/hit。
+5. A 恢复并提交首条 trace。第五个 fix 将它作为 global origin：Goal 不在 origin selected ids，creation ref seq 2 严格大于 origin raw boundary 1，因此被判为 origin 后可完整观测。
+6. 再为 current revision/state 写一次 snapshot baseline，增加 15 个完整用户轮次并用无关 query compile。实际输出为 `dormancy_enabled:true`、`dormant_state_ids:[goal]`、`active_goals:[]`，而 `get_state` 仍返回该 Goal 为 `ACTIVE`。
+
+第二种调度在 A 读取 raw boundary 后、读取最新 revision 前插入相同的 B 操作，也得到同一错误结果；但上述第一种已经证明即使 origin payload 自身是完全一致的 revision 0 snapshot，问题仍成立。因此只检测“同 revision 异 state hash”、只在下一 snapshot rebaseline，或继续收紧 creation ref，都不能关闭该竞态。
+
+根因是 global origin 以**首条已提交 trace**定义，服务却在该 trace 提交前没有数据库可见的 telemetry-start reservation。`hasTrustedContextCompileBaseline` 的检查、context 读取/计算和 trace append 分离；另一个进程/服务可以在 time-of-check 与 commit 之间完成合法 no-id hit。结果再次违反“整个生命周期 zero-hit”和“telemetry 不完整必须 fail-open”，严重度为 P1。
+
+### 精确返回条件
+
+Builder 只需继续做一个 bounded correctness fix，不扩大算法或 Experience 范围：
+
+1. 在首个 operation-id compile 开始建立 telemetry 时，先创建同 session、数据库可见、可重试且不可伪造的 reservation / origin marker，或提供等价的跨实例原子协议。任何与其竞争的无 id compile 必须稳定拒绝，或者永久把该 session/item 标为 coverage incomplete；不能等最终 trace 提交后才切换规则。
+2. reservation、最终 trace、失败回滚和 operation-id retry 必须有明确事务语义：失败不得遗留会永久锁死 session 的半状态，相同 operation 重试不得重复 origin/trace，不同 operation 并发不得产生两个相互矛盾的 origin。
+3. 新增两个独立服务的同步 barrier 回归，至少固定“实例 A 已完成首 operation 计算但尚未写 trace；实例 B create + no-id related compile；A commit；current snapshot + 15 turns”这条序列。可接受结果只有：B 被拒绝/被记录，或该 Goal永久 fail-open；不得 dormant。
+4. 保留本轮已通过的单实例 pre-origin public v1、post-origin strict v2 creation、source-less late update、snapshot 中间 compile、14/15、provenance 歧义与全部旧并发/幂等回归。仅增加 revision/hash 事后检查不满足返回条件。
+
+### 回归与非阻塞事实
+
+- focused 10 文件：176/176 PASS；Builder handoff 中 `156/156` 与当前独立实际计数不一致，但不是本次 P1 的依据。
+- 全量 `npm test`：473 PASS / 1 个既有 opt-in official runner SKIP。
+- `npm run test:protocol`：11/11 PASS；fresh/legacy Raw/Service/双 stdio、same-source/same-operation、真实 `npm pack`、production-only 隔离安装、精确九工具与进程关闭均通过。
+- `npm run build`、candidate diff-check：PASS。
+- DS-13 fixed-object validator：PASS；没有重跑模型或 official artifact。
+- DS-14 定向固定回放：30/30 PASS。
+
+除上述 concurrency origin P1 外，本轮没有发现新的 P0/P1/P2。Dense retrieval、Context 语义效果与 Experience Formation 效果仍为 **未评估**。在返回条件关闭前不得恢复 `ACCEPTED / FROZEN` 或进入真实使用数据积累；也不得借此引入 PACE、Graph DB、ontology、retrieval 调参、provider/model 或 Experience Formation。
