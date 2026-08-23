@@ -16,13 +16,13 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
-WO-V0-15 曾于 2026-08-24 在固定 source candidate `76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e` 通过第三次 append-only fix 的独立 re-QA；该接受范围与证据继续作为历史保留。随后冻结后终局对抗审查发现公开 v1 source-less late state update 可被 dormant 误判的 P1；第四个 append-only fix 已在固定 source candidate `7567ac1219db65886bdc157af969c51a379a9fb9` 通过独立 re-QA 并关闭该反例，当前状态恢复为 **ACCEPTED / FROZEN**。真实 public v1 content/status/relation mutation、state revision/hash 绑定、snapshot 新 baseline、连续尾部和 14/15 turn 边界均已动态验证，没有新的 P0/P1/P2。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval 效果与 Experience Formation 效果都未评估。
+WO-V0-15 的第三、第四次 append-only fix 独立接受证据继续作为历史保留；冻结返回最终复核随后发现 pre-baseline 无 id 命中不可观测，却可能被后续 snapshot baseline 错当成生命周期 zero-hit 的 P1。当前状态为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。第五个 append-only fix 只补 global telemetry origin + current snapshot baseline 双门：global origin 前已存在或创建证据不足的 item 保守 fail-open，origin 后可证明创建的 item 才能进入 snapshot 14/15 门。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval 效果与 Experience Formation 效果都未评估。
 
 WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a`. The accepted evaluator v2 preserves version 1 reproduction, rejects non-plain or untraceable Probe inputs before execution, represents empty rates explicitly as `not_evaluable`, excludes `current_input` from historical matching while retaining it in cost/latency inputs, and reports raw D2-vs-D1 token cost without adding a gate. The first QA return and append-only fix are retained in the QA report. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
 
 ## Current foundation status
 
-WO-V0-15 保留 A/B/C 三个 append-only checkpoint、三次 QA 返回、历史接受记录与冻结后重开记录；终局 dormant correctness P1 已由 state-snapshot telemetry 基线修复并通过独立 re-QA。A 的 versioned extractor、B 的 append-only ledger/raw mirror 与 C 的 operational policy 现统一恢复冻结。
+WO-V0-15 保留 A/B/C checkpoint、全部 QA/对抗返回和历史接受记录；state-snapshot late-update 反例已经关闭，但 global telemetry origin 完整性 P1 使冻结再次重开。A、B 不重开，C 也只允许第五个 telemetry completeness fix，等待独立 re-QA。
 
 首轮 telemetry、特殊 JSON、Dense 极值、persisted-row 错误分类和 Runtime v2 错误合同，以及后续 fresh DB 初始化与 legacy raw ALTER 两项竞争，均已在独立动态反例中关闭。完整证据与返回链保留在 `docs/qa/WO-V0-15-experience-ready-foundation-freeze.md`。
 
@@ -101,6 +101,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
 - WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但已由 WO-DS-14 封存为 Oracle-State feasibility baseline；不再等待双真人评分，answer semantic gain 保持 `not_evaluated`。8 lexical Probes 只覆盖 3/12 slices；0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
 - WO-DS-14 已完成并经独立 QA 接受其 reducer conformance 与 ST-02 capture/raw-scoring 完整性；ST-02 Extractor correctness 实验结果为失败。结果仅相对 accepted standardized-event-summary Gold：Predicted State 全空，unique recall 为 general `0/35`、critical `0/29`，其余 zero-eligibility capability 不可评价。它不能证明 reducer Operational Stability、其他模型/prompt、真实 raw-body 或 State Compiler 架构的一般表现；下一阶段未授权。
-- WO-V0-15 的 public v1 late update dormant P1 已通过第四个 append-only fix 的独立 re-QA，Context / State 基础设施恢复冻结。Dense retrieval 与 Experience Formation 效果仍未评估；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。下一阶段只通过真实使用积累可回放的 Event–Action–Outcome / Feedback 数据。
+- WO-V0-15 因 pre-baseline telemetry gap P1 再次 `FROZEN REOPENED` 并等待独立 re-QA；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。只有 telemetry completeness correctness fix 被授权，通过后才可恢复冻结并进入真实使用数据积累。
 
-WO-ST-01 through WO-ST-03、WO-EV-02 与 WO-V0-15 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED / FROZEN**。下一阶段只是真实使用与 Event–Action–Outcome / Feedback 数据积累；Formal Host Mode 仍不在范围内且未开始。
+WO-ST-01 through WO-ST-03 与 WO-EV-02 已完成并经独立 QA 接受；WO-V0-15 当前为 **FROZEN REOPENED — PENDING INDEPENDENT RE-QA**。真实使用数据积累等待该 re-QA；Formal Host Mode 仍不在范围内且未开始。

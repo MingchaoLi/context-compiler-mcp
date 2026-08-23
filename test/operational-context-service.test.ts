@@ -7,6 +7,7 @@ import {
   ContextCompilerMcpService,
   createEmptyStateDelta,
   ExperienceLedgerError,
+  RuntimeStateUpdater,
   StateReducer,
   SqliteContextStateStore,
   SqliteExperienceLedgerStore,
@@ -192,6 +193,197 @@ describe("operational compile MCP integration", () => {
         .get("telemetry-gap"),
     }).toEqual(before);
     audit.close();
+    service.close();
+  });
+
+  it("keeps pre-origin public v1 items active despite an unobserved no-id hit and later update", () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    const sessionId = "pre-origin-v1";
+    const createdAt = unwrap(service.call("ingest_event", {
+      session_id: sessionId, role: "user", content: "create state before telemetry",
+    })) as { id: string };
+    applyPublicV1Delta(service, sessionId, createdAt.id, {
+      ...createEmptyStateDelta(),
+      new_goals: [
+        { content: "prebaseline alpha objective", source_refs: [createdAt.id] },
+        { content: "prebaseline beta objective", source_refs: [createdAt.id] },
+      ],
+    });
+    const createdState = unwrap(service.call("get_state", {
+      session_id: sessionId,
+    })) as { items: Array<{ id: string; content: string; status: string }> };
+    const [alphaId, betaId] = createdState.items.map(({ id }) => id);
+
+    const unobservedHit = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "prebaseline alpha beta objective",
+      recent_raw_window_turns: 1,
+    })) as any;
+    expect(new Set(unobservedHit.context.active_goals.map(({ id }: { id: string }) => id)))
+      .toEqual(new Set([alphaId, betaId]));
+    const ledgerBeforeOrigin = new SqliteExperienceLedgerStore(database);
+    expect(ledgerBeforeOrigin.getSessionRecords(sessionId)
+      .filter(({ kind }) => kind === "CONTEXT_COMPILE" || kind === "RETRIEVAL_HIT"))
+      .toEqual([]);
+    ledgerBeforeOrigin.close();
+
+    const origin = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "pre-origin-baseline",
+    })) as any;
+    expect(origin.context.dormant_state_ids).toEqual([]);
+
+    let latestEventId = createdAt.id;
+    for (let index = 2; index <= 16; index += 1) {
+      latestEventId = (unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: `timeline ${index}`,
+      })) as { id: string }).id;
+    }
+    const atOriginThreshold = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "pre-origin-at-threshold",
+    })) as any;
+    expect(atOriginThreshold.context.operational_debug.dormancy_enabled).toBe(true);
+    expect(atOriginThreshold.context.dormant_state_ids).toEqual([]);
+    expect(new Set(atOriginThreshold.context.active_goals.map(({ id }: { id: string }) => id)))
+      .toEqual(new Set([alphaId, betaId]));
+
+    applyPublicV1Delta(service, sessionId, latestEventId, {
+      ...createEmptyStateDelta(),
+      updated_goals: [{ id: betaId!, content: "late source-less beta revision" }],
+    });
+    const updatedBaseline = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "pre-origin-updated-baseline",
+    })) as any;
+    expect(updatedBaseline.context.operational_debug.dormancy_enabled).toBe(false);
+    expect(updatedBaseline.context.dormant_state_ids).toEqual([]);
+
+    for (let index = 17; index <= 31; index += 1) {
+      unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: `timeline ${index}`,
+      }));
+    }
+    const afterUpdateThreshold = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "pre-origin-updated-at-threshold",
+    })) as any;
+    expect(afterUpdateThreshold.context.operational_debug.dormancy_enabled).toBe(true);
+    expect(afterUpdateThreshold.context.dormant_state_ids).toEqual([]);
+    expect(new Set(afterUpdateThreshold.context.active_goals.map(({ id }: { id: string }) => id)))
+      .toEqual(new Set([alphaId, betaId]));
+    const finalState = unwrap(service.call("get_state", {
+      session_id: sessionId,
+    })) as { items: Array<{ id: string; content: string; status: string }> };
+    expect(finalState.items.find(({ id }) => id === betaId)).toMatchObject({
+      content: "late source-less beta revision", status: "ACTIVE",
+    });
+    service.close();
+  });
+
+  it("allows a post-origin v2-created zero-hit item to dormant only after its snapshot threshold", async () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    const sessionId = "post-origin-v2";
+    unwrap(service.call("ingest_event", {
+      session_id: sessionId, role: "user", content: "telemetry origin",
+    }));
+    unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "v2-origin",
+    }));
+    const creationEvent = unwrap(service.call("ingest_event", {
+      session_id: sessionId, role: "user", content: "strict v2 creation evidence",
+    })) as { id: string };
+    const stateStore = new SqliteContextStateStore(database);
+    try {
+      const updater = new RuntimeStateUpdater(stateStore, {
+        async complete() {
+          return JSON.stringify({
+            ...createEmptyStateDelta(),
+            new_goals: [{
+              content: "v2 post-origin dormant candidate",
+              source_refs: [creationEvent.id],
+            }],
+          });
+        },
+      });
+      await expect(updater.updateState({
+        session_id: sessionId,
+        newest_event_ids: [creationEvent.id],
+      })).resolves.toMatchObject({
+        extraction: { contract_version: 2 },
+        application: { changed: true, revision: 1 },
+      });
+    } finally {
+      stateStore.close();
+    }
+    const createdState = unwrap(service.call("get_state", {
+      session_id: sessionId,
+    })) as { items: Array<{ id: string; status: string }> };
+    const goalId = createdState.items[0]!.id;
+    const snapshotBaseline = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "v2-snapshot-baseline",
+    })) as any;
+    expect(snapshotBaseline.context.operational_debug.dormancy_enabled).toBe(false);
+    expect(snapshotBaseline.context.dormant_state_ids).toEqual([]);
+
+    for (let index = 3; index <= 9; index += 1) {
+      unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: `timeline ${index}`,
+      }));
+    }
+    const middle = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "v2-middle-compile",
+    })) as any;
+    expect(middle.context.dormant_state_ids).toEqual([]);
+
+    for (let index = 10; index <= 16; index += 1) {
+      unwrap(service.call("ingest_event", {
+        session_id: sessionId, role: "user", content: `timeline ${index}`,
+      }));
+    }
+    const belowThreshold = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "v2-below-threshold",
+    })) as any;
+    expect(belowThreshold.context.dormant_state_ids).toEqual([]);
+    expect(belowThreshold.context.active_goals.map(({ id }: { id: string }) => id))
+      .toEqual([goalId]);
+
+    unwrap(service.call("ingest_event", {
+      session_id: sessionId, role: "user", content: "timeline 17",
+    }));
+    const atThreshold = unwrap(service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "v2-at-threshold",
+    })) as any;
+    expect(atThreshold.context.dormant_state_ids).toEqual([goalId]);
+    expect(atThreshold.context.active_goals).toEqual([]);
+    expect(unwrap(service.call("get_state", { session_id: sessionId }))).toMatchObject({
+      items: [{ id: goalId, status: "ACTIVE" }],
+    });
     service.close();
   });
 

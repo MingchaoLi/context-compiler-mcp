@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：ACCEPTED / FROZEN
+状态：FROZEN REOPENED — PENDING INDEPENDENT RE-QA
 
 ## 背景校准
 
@@ -31,6 +31,8 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 2026-08-24 冻结后终局对抗审查在 `docs/adversarial-reviews/AR-2026-08-24-post-v0-15-freeze.md` 给出 `Challenge`：公开 v1 `prepare_state_update / apply_state_delta` 允许 source-less late mutation，但原 dormant telemetry 没有把新的 authoritative state snapshot 视为新的观测基线，因而可把刚更新的 ACTIVE item 错误移出前台。本冻结只为该 correctness P1 重开；第四个 append-only fix 已实现，等待独立 re-QA。此前接受事实保留为历史，不代表该反例已经关闭，也不授权 Context 算法或 Experience 范围扩张。
 
 2026-08-24 独立 re-QA 已在固定 source candidate `7567ac1219db65886bdc157af969c51a379a9fb9` 关闭该终局 P1。QA 通过真实 public v1 content/status/relation late mutation 独立确认：authoritative state revision/hash 变化后旧 trace 不再建立 dormancy baseline，首个新 snapshot operation 全量 fail-open 并写入新 baseline；同 snapshot 中间 compile 不重置连续尾部首 baseline，14 个用户轮次不 dormant、第 15 个才允许 dormant。旧 trace、伪 hash、revision/hash 不一致、坏 telemetry、retry/并发及此前全部反例均通过，未发现新的 P0/P1/P2。本工单恢复 `ACCEPTED / FROZEN`；Dense retrieval 与 Experience Formation 效果仍未评估，下一阶段只进入真实使用数据积累。
+
+2026-08-24 冻结返回最终复核 `docs/adversarial-reviews/AR-2026-08-24-post-v0-15-freeze-recheck.md` 再次给出 `Challenge`：snapshot baseline 只能证明最近 mutation 后的年龄，不能证明首个可信 telemetry 前 item 整个生命周期没有发生过无 id 命中。冻结因此只为 telemetry completeness P1 再次重开；第五个 append-only fix 同时保留 session global telemetry origin 与 current snapshot baseline 两道门，等待独立 re-QA。历史第四次接受继续保留，但不再代表 never-hit 合同完整关闭。
 
 ## 单一结果
 
@@ -140,4 +142,4 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 - 不实现 PACE、多级摘要、glimpse/page fault、Graph DB、复杂 ontology、learned retrieval/compression。
 - 不接入 embedding/provider SDK，不联网，不调权重，不做 PACE/mem0 benchmark。
 - 不增加 MCP tool，不做 Formal Host Mode，不修改宿主仓库。
-- Context / State 基础设施已在终局 P1 独立 re-QA 后恢复冻结；下一阶段只转向真实使用与 Event–Action–Outcome / Feedback 数据积累，不由本工单隐式授权 Experience Formation 实现。
+- Context / State 冻结当前只因 telemetry completeness P1 重开并等待独立 re-QA；通过后才可恢复冻结并转向真实使用与 Event–Action–Outcome / Feedback 数据积累，不由本工单隐式授权 Experience Formation 实现。

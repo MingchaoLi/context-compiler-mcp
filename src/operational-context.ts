@@ -509,15 +509,24 @@ function placeDormantState(input: {
   const turnByRawId = userTurnOrdinals(input.rawEvents);
   const totalTurns = Math.max(0, ...turnByRawId.values());
   const relationRefs = new Map<string, string[]>();
+  const creationRefs = new Map<string, string[]>();
+  const itemById = new Map(input.items.map((item) => [item.id, item]));
   for (const relation of input.relations) {
     if (relation.relation_type !== "DERIVED_FROM") continue;
     const refs = relationRefs.get(relation.source_id) ?? [];
     refs.push(relation.target_id);
     relationRefs.set(relation.source_id, refs);
+    const source = itemById.get(relation.source_id);
+    if (source !== undefined && relation.created_at === source.created_at) {
+      const initialRefs = creationRefs.get(relation.source_id) ?? [];
+      initialRefs.push(relation.target_id);
+      creationRefs.set(relation.source_id, initialRefs);
+    }
   }
   const rawById = new Map(input.rawEvents.map((event) => [event.id, event]));
   const matched = new Set(queryMatchedIds);
   const threshold = input.recentTurns * input.multiplier;
+  const originRawSeq = telemetry.origin!.rawSeq;
   const baselineTurn = Math.max(
     0,
     ...input.rawEvents
@@ -528,6 +537,18 @@ function placeDormantState(input: {
   const reactivatedIds: string[] = [];
   for (const item of input.items.filter(isActiveRoot)) {
     if (item.type === "CONSTRAINT") continue;
+    // StateStore writes creation provenance relations in the same transaction
+    // with the item's exact created_at. Later DERIVED_FROM updates must not be
+    // allowed to manufacture post-origin creation evidence.
+    const creationRefIds = uniqueSorted(creationRefs.get(item.id) ?? [])
+      .filter((id) => item.source_refs.includes(id));
+    const creationEvents = creationRefIds
+      .map((id) => rawById.get(id))
+      .filter((event): event is RawEvent => event !== undefined);
+    const observedSinceTelemetryOrigin = !telemetry.origin!.selectedStateIds.has(item.id) &&
+      creationRefIds.length > 0 &&
+      creationEvents.length === creationRefIds.length &&
+      Math.min(...creationEvents.map((event) => event.seq)) > originRawSeq;
     const provenanceIds = uniqueSorted([...(item.source_refs ?? []), ...(relationRefs.get(item.id) ?? [])]);
     const provenanceEvents = provenanceIds.map((id) => rawById.get(id)).filter((event): event is RawEvent => event !== undefined);
     const lastProvenanceSeq = Math.max(0, ...provenanceEvents.map((event) => event.seq));
@@ -537,7 +558,7 @@ function placeDormantState(input: {
     const recencyTurn = Math.max(lastTurn, baselineTurn);
     const oldEnough = recencyTurn > 0 && totalTurns - recencyTurn >= threshold;
     const neverHit = !telemetry.hitStateIds.has(item.id);
-    if (!observedInSnapshot || !oldEnough || !neverHit) continue;
+    if (!observedSinceTelemetryOrigin || !observedInSnapshot || !oldEnough || !neverHit) continue;
     if (matched.has(item.id)) reactivatedIds.push(item.id);
     else requestedDormantIds.push(item.id);
   }
@@ -561,19 +582,26 @@ function parseTelemetry(
   stateFingerprint: string
 ): {
   complete: boolean;
+  origin?: { seq: number; rawSeq: number; selectedStateIds: Set<string> };
   baseline?: { seq: number; rawSeq: number };
   hitStateIds: Set<string>;
 } {
   const inspected = inspectTelemetry(records, expectedSessionId);
   if (!inspected.complete) return { complete: false, hitStateIds: new Set() };
   if (inspected.compiles.length === 0) return { complete: true, hitStateIds: new Set() };
+  const originRecord = inspected.compiles[0]!;
+  const origin = {
+    seq: originRecord.seq,
+    rawSeq: originRecord.payload.raw_boundary_max_seq as number,
+    selectedStateIds: new Set(originRecord.payload.selected_state_ids as string[]),
+  };
   // State mutation is authoritative even when the v1 compatibility path has no
   // current-event provenance. A new snapshot must first be observed by a
   // trusted compile; later compiles keep the first observation as its age base.
   const latest = inspected.compiles.at(-1)!;
   if (latest.payload.state_revision !== stateRevision ||
       latest.payload.state_sha256 !== stateFingerprint) {
-    return { complete: true, hitStateIds: new Set() };
+    return { complete: true, origin, hitStateIds: new Set() };
   }
   let baselineIndex = inspected.compiles.length - 1;
   while (baselineIndex > 0) {
@@ -591,6 +619,7 @@ function parseTelemetry(
   }
   return {
     complete: true,
+    origin,
     baseline: { seq: baselineRecord.seq, rawSeq: baselineRecord.payload.raw_boundary_max_seq as number },
     hitStateIds,
   };

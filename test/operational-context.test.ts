@@ -156,25 +156,66 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
   const events = Array.from({ length: 17 }, (_, index) => raw(index + 1, `turn ${index + 1}`));
   const oldGoal = item("old", "GOAL", "ACTIVE", "durable plan", ["e2"]);
   const constraint = item("constraint", "CONSTRAINT", "ACTIVE", "must retain", ["e2"]);
-  const baseline = compileRecord(1, 2, [oldGoal]);
+  const oldGoalCreation = creationRelation(oldGoal, "e2");
+  const origin = compileRecord(1, 1);
+  const baseline = compileRecord(2, 2, [oldGoal], [oldGoalCreation]);
+  const trustedTelemetry = [origin, baseline];
 
   it("fails open without a prior telemetry baseline and at the threshold lower boundary", () => {
     const noBaseline = compileOperationalContext(base(events, {
-      context_items: [oldGoal], operation_id: "first", recent_raw_window_turns: 1,
+      context_items: [oldGoal], state_relations: [oldGoalCreation],
+      operation_id: "first", recent_raw_window_turns: 1,
     }));
     expect(noBaseline.context.dormant_state_ids).toEqual([]);
     expect(noBaseline.context.active_goals.map(({ id }) => id)).toEqual(["old"]);
 
     const below = compileOperationalContext(base(events.slice(0, 16), {
-      context_items: [oldGoal], operation_id: "below", ledger_records: [baseline], recent_raw_window_turns: 1,
+      context_items: [oldGoal], state_relations: [oldGoalCreation],
+      operation_id: "below", ledger_records: trustedTelemetry, recent_raw_window_turns: 1,
     }));
     expect(below.context.dormant_state_ids).toEqual([]);
+  });
+
+  it("never treats an item present at the global telemetry origin as lifecycle zero-hit", () => {
+    const preOrigin = item("pre-origin", "GOAL", "ACTIVE", "unknown earlier hits", ["e1"]);
+    const result = compileOperationalContext(base(events.slice(0, 16), {
+      context_items: [preOrigin],
+      operation_id: "pre-origin-threshold",
+      ledger_records: [compileRecord(1, 1, [preOrigin])],
+      recent_raw_window_turns: 1,
+    }));
+    expect(result.context.operational_debug?.telemetry_complete).toBe(true);
+    expect(result.context.operational_debug?.dormancy_enabled).toBe(true);
+    expect(result.context.dormant_state_ids).toEqual([]);
+    expect(result.context.active_goals.map(({ id }) => id)).toEqual(["pre-origin"]);
+  });
+
+  it("does not mistake a later DERIVED_FROM ref for source-less item creation evidence", () => {
+    const ambiguous = item("ambiguous", "GOAL", "ACTIVE", "source-less origin", ["e2"]);
+    const derived: StateRelation = {
+      session_id: SESSION,
+      source_id: ambiguous.id,
+      relation_type: "DERIVED_FROM",
+      target_id: "e2",
+      created_at: iso(3),
+    };
+    const result = compileOperationalContext(base(events, {
+      context_items: [ambiguous],
+      state_relations: [derived],
+      operation_id: "ambiguous-creation-threshold",
+      ledger_records: [origin, compileRecord(2, 2, [ambiguous], [derived])],
+      recent_raw_window_turns: 1,
+    }));
+    expect(result.context.operational_debug?.dormancy_enabled).toBe(true);
+    expect(result.context.dormant_state_ids).toEqual([]);
+    expect(result.context.active_goals.map(({ id }) => id)).toEqual(["ambiguous"]);
   });
 
   it("places an eligible item dormant at age N*15 without mutating status or provenance", () => {
     const before = structuredClone(oldGoal);
     const result = compileOperationalContext(base(events, {
-      context_items: [oldGoal], operation_id: "threshold", ledger_records: [baseline], recent_raw_window_turns: 1,
+      context_items: [oldGoal], state_relations: [oldGoalCreation],
+      operation_id: "threshold", ledger_records: trustedTelemetry, recent_raw_window_turns: 1,
     }));
     expect(result.context.dormant_state_ids).toEqual(["old"]);
     expect(result.context.active_goals).toEqual([]);
@@ -189,7 +230,8 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
     };
     const missing = compileOperationalContext(base(events, {
       context_items: [noProvenance], operation_id: "missing-provenance",
-      recent_raw_window_turns: 1, ledger_records: [compileRecord(1, 2, [noProvenance])],
+      recent_raw_window_turns: 1,
+      ledger_records: [origin, compileRecord(2, 2, [noProvenance])],
     }));
     expect(missing.context.dormant_state_ids).toEqual([]);
     const incomplete = compileOperationalContext(base(events, {
@@ -226,10 +268,18 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
       target_id: "old", created_at: iso(2),
     };
     const contextItems = [oldGoal, constraint, hit, dependent];
-    const hitTelemetry = compileRecordsWithStateHit(hit, contextItems, [relation]);
+    const stateRelations = [
+      creationRelation(oldGoal, "e2"),
+      creationRelation(constraint, "e2"),
+      creationRelation(hit, "e2"),
+      creationRelation(dependent, "e2"),
+      relation,
+    ];
+    const hitTelemetry = compileRecordsWithStateHit(hit, contextItems, stateRelations);
     const result = compileOperationalContext(base(events, {
       context_items: contextItems,
-      state_relations: [relation], operation_id: "rescues", ledger_records: hitTelemetry, recent_raw_window_turns: 1,
+      state_relations: stateRelations,
+      operation_id: "rescues", ledger_records: hitTelemetry, recent_raw_window_turns: 1,
       current_input: "continue new decision",
     }));
     expect(result.context.dormant_state_ids).toEqual([]);
@@ -243,7 +293,9 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
   it("reactivates an otherwise dormant item for a lexical current-query hit", () => {
     const result = compileOperationalContext(base(events, {
       current_input: "continue the durable plan",
-      context_items: [oldGoal], operation_id: "reactivate", ledger_records: [baseline], recent_raw_window_turns: 1,
+      context_items: [oldGoal], operation_id: "reactivate",
+      state_relations: [oldGoalCreation],
+      ledger_records: trustedTelemetry, recent_raw_window_turns: 1,
     }));
     expect(result.context.dormant_state_ids).toEqual([]);
     expect(result.context.reactivated_state_ids).toEqual(["old"]);
@@ -292,6 +344,16 @@ function item(
   };
 }
 
+function creationRelation(stateItem: ContextItem, rawEventId: string): StateRelation {
+  return {
+    session_id: SESSION,
+    source_id: stateItem.id,
+    relation_type: "DERIVED_FROM",
+    target_id: rawEventId,
+    created_at: stateItem.created_at,
+  };
+}
+
 function compileRecord(
   seq: number,
   rawSeq: number,
@@ -330,14 +392,14 @@ function compileRecordsWithStateHit(
     operation_id: operationId, recent_raw_window_turns: 1,
   }));
   const trace: ExperienceLedgerRecord = {
-    id: "hit-trace", session_id: SESSION, seq: 1, kind: "CONTEXT_COMPILE",
-    occurred_at: iso(1), source_key: `context-compile/${operationId}`,
+    id: "hit-trace", session_id: SESSION, seq: 2, kind: "CONTEXT_COMPILE",
+    occurred_at: iso(2), source_key: `context-compile/${operationId}`,
     raw_event_ids: generated.trace_raw_event_ids, parent_ledger_ids: [],
     payload: generated.trace_payload,
   };
-  return [trace, ...generated.hits.map((hit, index): ExperienceLedgerRecord => ({
-    id: `hit-${index}`, session_id: SESSION, seq: index + 2, kind: "RETRIEVAL_HIT",
-    occurred_at: iso(index + 2),
+  return [compileRecord(1, 1), trace, ...generated.hits.map((hit, index): ExperienceLedgerRecord => ({
+    id: `hit-${index}`, session_id: SESSION, seq: index + 3, kind: "RETRIEVAL_HIT",
+    occurred_at: iso(index + 3),
     source_key: `retrieval-hit/${operationId}/${hit.subject_kind}/${encodeURIComponent(hit.subject_id)}/${hit.reason}`,
     raw_event_ids: hit.raw_event_ids ?? [], parent_ledger_ids: [trace.id],
     payload: {
