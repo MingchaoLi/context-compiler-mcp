@@ -1,6 +1,6 @@
 # WO-DS-13 — Starlette 自动 Gate 指标与人工盲评包
 
-状态：PLANNED — no implementation yet
+状态：IMPLEMENTED — PENDING INDEPENDENT QA
 
 ## 背景
 
