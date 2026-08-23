@@ -7,6 +7,7 @@ export {
   type RawEventInput,
   type RawEventRole,
   type RawHistoryStore,
+  type DenseEmbedding,
 } from "./raw-store.js";
 
 export {
@@ -18,6 +19,9 @@ export {
   type ExperienceLedgerKind,
   type ExperienceLedgerRecord,
   type ExperienceLedgerStore,
+  type ContextCompileHitInput,
+  type ContextCompileTraceInput,
+  type ContextCompileTraceResult,
 } from "./experience-ledger.js";
 
 export { StateReducer, type ReducerResult } from "./reducer.js";
@@ -95,7 +99,22 @@ export {
   type ContextDebugManifest,
   type ContextMetrics,
   type DependencyPath,
+  type OperationalAssemblyInput,
 } from "./assembler.js";
+
+export {
+  OPERATIONAL_CONTEXT_POLICY_VERSION,
+  OperationalContextError,
+  compileOperationalContext,
+  resolveContextPolicy,
+  type ContextPolicyInput,
+  type DenseAvailability,
+  type OperationalContextDebug,
+  type OperationalContextInput,
+  type OperationalContextResult,
+  type OperationalRetrievalScore,
+  type ResolvedContextPolicy,
+} from "./operational-context.js";
 
 export {
   HistoryRecallError,

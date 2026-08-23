@@ -1,6 +1,6 @@
 # Project state
 
-Updated: 2026-08-23
+Updated: 2026-08-24
 
 ## Current approved baseline
 
@@ -19,6 +19,10 @@ Updated: 2026-08-23
 WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a`. The accepted evaluator v2 preserves version 1 reproduction, rejects non-plain or untraceable Probe inputs before execution, represents empty rates explicitly as `not_evaluable`, excludes `current_input` from historical matching while retaining it in cost/latency inputs, and reports raw D2-vs-D1 token cost without adding a gate. The first QA return and append-only fix are retained in the QA report. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
 
 ## Current candidate
+
+WO-V0-15 已按计划级对抗审查拆成 A/B/C 三个 append-only checkpoint，并完成 Builder 实现，固定起点为 `main@314d309dff7806633943d5b4796c2804c9cc9ba2`；**整体仍等待独立 QA，不是 accepted baseline**。A 以版本化 current-event contract 修复 DS-14 暴露的 extractor prompt/schema/provenance correctness，同时保留 v1 parser 与 pinned replay。B 加入独立 append-only Experience Ledger、新 raw 的同事务 EVENT mirror 和旧库确定性 migration observation。C 加入 Recent N 原文、窗口外 bounded BM25 + caller-Dense、verified-failure recovery、fail-open dormant placement 及 operation-id compile trace；九工具、provider/network 依赖、历史 evaluator 和 DS-13/14 artifact 均未改变。
+
+Checkpoint C 的 Builder 本地验证为：新 operational focused 14/14、全量 449 PASS / 1 个既有 SKIP、protocol 8/8、build、diff check、真实 npm pack、production-only prune 与 isolated stdio 九工具/operational call PASS。该数字只是 Builder 证据，独立 QA 仍需固定 candidate 后重做 migration、协调改写、并发/重试、跨 session、strict input、真实 pack/protocol 与 artifact reproduction。
 
 WO-DS-02 的 Starlette schema 与三案例 pilot 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `2a65c85b1fc9554b24971e8ed20551eef3b53d39`。交付包含 3 个目录、4 个独立 segment、25 个时间有序 evidence event/slice；Gold、人工 Oracle-State、Decision Reference 与 Outcome Anchor 和输入物理隔离，pilot hash 明确保持 `pilot_not_frozen`。`STR-02` 已按证据拆成两个 medium segment，不再视为单一 long 根因链。
 
@@ -52,7 +56,7 @@ WO-DS-11 已在独立 Data / Run-Gate QA 于 2026-08-23 接受 atomic data+proto
 
 WO-DS-12 已在独立 re-QA 于 2026-08-23 接受为 **unscored capture integrity only**，固定 Builder fix candidate 为 `3c172bb62e5e640d00d513e31ede6249ac9d5cba`。首轮 QA 的 raw/run/hash/validator 协调自举 P1 已由 append-only 修复关闭：无 shell Git object anchor 直接读取 capture source commit `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 的固定父链、path、blob/SHA，并在 current JSON 解析前要求 raw/run bytes 相同；capture-hashes 不再自证 validator，manifest authorization-absence 与所有未评分 boundaries 严格固定。raw/run bytes 没有改变，因此没有新模型 session、retry 或回答。36 条 artifacts 仍只是 36 valid / 0 invalid 的未评分 capture；未运行 evaluator、自动 context/cost 或语义评分。下一工单才可做自动结果和 condition-blind review bundle，且仍缺两名真实人类评分。0 medium、单次 repetition、人工 Oracle-State upper bound 与公开索引限制继续阻止 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
 
-2026-08-23 架构同步进一步冻结 v0 边界：当前核心是 State Compilation，authoritative Active State 不参与普通 semantic relevance competition；Evidence Paging（含 PACE 类多粒度语义调页）与 Experience abstraction 仅为 Research Backlog / Extension Point。验证顺序固定为 Correctness → Context Reduction → Operational Stability；除非当前测试失败直接要求，不得把 PACE 相关机制加入 v0。该结论是 scope clarification，不是扩展实现请求。
+2026-08-23 架构同步当时冻结 v0 边界：核心为 State Compilation，authoritative Active State 不参与普通 semantic relevance competition；Evidence Paging 与 Experience abstraction 后置。2026-08-24 的 D-015 已用用户明确要求的 bounded BM25 + caller-Dense / dormant 收口 supersede 其中“禁止任何 semantic retrieval / 所有 ACTIVE root 永驻前台”的绝对表述，但没有授权 PACE、多级调页、Context 调参研究或 Experience Formation 实现。
 
 WO-DS-13 已在独立 Data / Result QA 于 2026-08-23 接受为 **automatic diagnostic + blank blind-review bundle only**，固定 Builder candidate 为 `259b19246bc46a93c4b10dcaa09360a86b7937fb`。固定 `f721fd1159e6802d29132939c8114377f3faefa4` official artifact 记录 evaluator run 1、model call 0、semantic score 0；自动结果为 D0/D1/D2 tokens `7767/2911/4578`、D2-vs-D1 `+1667/1.572655`、8 exact lexical Probes 为 D0/D2 8/8、D1 0/8。36-item public/internal 物理隔离盲评包及 A/B/adjudication 空白表均已 mechanical QA；没有人类判断、解盲或 answer semantic score。该 `feasibility-01` 已由 WO-DS-14 直接封存为 Oracle-State feasibility baseline，不再等待或填写双真人盲评；answer semantic gain 永久保持 `not_evaluated`。此 baseline 不支持 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
 
@@ -76,7 +80,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 
 ## Current behavior
 
-`compile_context` reads stored evidence and state and returns a compiled snapshot and numeric metrics. It does not invoke an extractor, change state, create headlines, or perform retrieval automatically. State changes remain explicit: callers may perform prepare/extract/apply themselves or use the accepted ST-03 library coordinator with an explicitly supplied local adapter process. The core selects no model/provider and performs no network request. The explicit `CONTEXT_COMPILER_DB_PATH` is the standalone database configuration. `DSH_HOME` is retained only as a legacy compatibility fallback.
+`compile_context` 不调用 extractor/model/provider/network，也不修改 raw/state。它固定保留最近 N 个完整用户轮次，并对窗口外有界候选做 BM25；只有 caller 为 query 与全部候选提供同 space/同维 Dense 时才 hybrid，否则整腿 BM25-only。无 `operation_id` 时仍是 read-only 且 dormant fail-open；有 id 时只向 Experience Ledger 原子追加去正文、可幂等重试的 compile/hit trace。State 变化保持显式 prepare/extract/apply；core 不生成 embedding。`CONTEXT_COMPILER_DB_PATH` 仍为独立数据库配置，`DSH_HOME` 只作 legacy fallback。
 
 ## Known gaps
 
@@ -95,6 +99,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-12 的 36 个单次原始回答 capture 已通过独立 run-integrity re-QA，但仍没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
 - WO-DS-13 的自动 context/cost artifact 与空白盲评包已通过独立 QA，但已由 WO-DS-14 封存为 Oracle-State feasibility baseline；不再等待双真人评分，answer semantic gain 保持 `not_evaluated`。8 lexical Probes 只覆盖 3/12 slices；0 medium、单次 capture、人工 Oracle-State upper bound、受限公开索引与单次本机 latency observation 均禁止 D2 优于 D1、稳健性或一般化结论。
 - WO-DS-14 已完成并经独立 QA 接受其 reducer conformance 与 ST-02 capture/raw-scoring 完整性；ST-02 Extractor correctness 实验结果为失败。结果仅相对 accepted standardized-event-summary Gold：Predicted State 全空，unique recall 为 general `0/35`、critical `0/29`，其余 zero-eligibility capability 不可评价。它不能证明 reducer Operational Stability、其他模型/prompt、真实 raw-body 或 State Compiler 架构的一般表现；下一阶段未授权。
-- PACE / Evidence Paging / semantic relevance、多级摘要、glimpse/page-fault 与 Experience Layer 明确不在 v0；它们不能成为当前 correctness/reduction/stability Gate 的前置 blocker。
+- WO-V0-15 只允许 D-015 冻结的 bounded BM25 + caller-Dense；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。Context / State 在本工单独立 QA 接受后冻结，下一阶段转向真实使用和 Event–Action–Outcome / Feedback 数据积累。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

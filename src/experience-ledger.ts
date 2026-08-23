@@ -58,6 +58,26 @@ export interface ExperienceLedgerStore {
   close(): void;
 }
 
+export interface ContextCompileHitInput {
+  subject_kind: "RAW_EVENT" | "STATE_ITEM";
+  subject_id: string;
+  reason: "RETRIEVED_HISTORY" | "CURRENT_QUERY" | "REACTIVATED" | "DEPENDENCY_RESCUE";
+  raw_event_ids?: string[];
+}
+
+export interface ContextCompileTraceInput {
+  session_id: string;
+  operation_id: string;
+  payload: JsonObject;
+  raw_event_ids?: string[];
+  hits: ContextCompileHitInput[];
+}
+
+export interface ContextCompileTraceResult {
+  trace: ExperienceLedgerRecord;
+  hits: ExperienceLedgerRecord[];
+}
+
 /**
  * Append-only research ledger for replayable Event -> Action -> Outcome / Feedback data.
  * It deliberately performs no Experience extraction, scoring, promotion, or mutation.
@@ -110,6 +130,71 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
     return rows.map(rowToRecord);
   }
 
+  /** Atomically append or repair one idempotent compile trace and all of its hits. */
+  appendContextCompileTrace(input: ContextCompileTraceInput): ContextCompileTraceResult {
+    this.assertOpen();
+    if (!isPlainObject(input)) invalid("compile trace input must be a plain object");
+    assertExactKeys(input, ["session_id", "operation_id", "payload", "hits"], ["raw_event_ids"]);
+    validateNonEmptyString(input.session_id, "session_id");
+    validateNonEmptyString(input.operation_id, "operation_id");
+    if (input.operation_id.length > 500) invalid("operation_id must be at most 500 characters");
+    const rawEventIds = normalizeIdList(input.raw_event_ids, "raw_event_ids");
+    const payload = normalizeJsonObject(input.payload, "payload");
+    if (!Array.isArray(input.hits) || Object.getPrototypeOf(input.hits) !== Array.prototype) {
+      invalid("hits must be a plain array");
+    }
+    const hits: Required<ContextCompileHitInput>[] = [];
+    for (let index = 0; index < input.hits.length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(input.hits, String(index));
+      if (!descriptor?.enumerable || !("value" in descriptor)) invalid("hits must contain data entries only");
+      hits.push(normalizeCompileHit(descriptor.value, index));
+    }
+    for (const key of Reflect.ownKeys(input.hits)) {
+      if (key === "length") continue;
+      if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= input.hits.length) {
+        invalid("hits must not contain extra fields");
+      }
+    }
+    const hitKeys = new Set<string>();
+    for (const hit of hits) {
+      const key = `${hit.subject_kind}\u0000${hit.subject_id}\u0000${hit.reason}`;
+      if (hitKeys.has(key)) invalid("compile hits must not contain duplicate tuples");
+      hitKeys.add(key);
+    }
+    const encodedOperationId = encodeURIComponent(input.operation_id);
+    const traceInput = normalizeInput({
+      session_id: input.session_id,
+      kind: "CONTEXT_COMPILE",
+      source_key: `context-compile/${encodedOperationId}`,
+      payload,
+      raw_event_ids: rawEventIds,
+      parent_ledger_ids: [],
+    });
+
+    this.database.exec("BEGIN IMMEDIATE;");
+    try {
+      const trace = appendExperienceLedgerRecord(this.database, traceInput);
+      const records = hits.map((hit) => appendExperienceLedgerRecord(this.database, normalizeInput({
+        session_id: input.session_id,
+        kind: "RETRIEVAL_HIT",
+        source_key: `retrieval-hit/${encodedOperationId}/${hit.subject_kind}/${encodeURIComponent(hit.subject_id)}/${hit.reason}`,
+        raw_event_ids: hit.raw_event_ids,
+        parent_ledger_ids: [trace.id],
+        payload: {
+          operation_id: input.operation_id,
+          subject_kind: hit.subject_kind,
+          subject_id: hit.subject_id,
+          reason: hit.reason,
+        },
+      })));
+      this.database.exec("COMMIT;");
+      return { trace, hits: records };
+    } catch (error) {
+      rollback(this.database);
+      throw error;
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.database.close();
@@ -119,6 +204,25 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
   private assertOpen(): void {
     if (this.closed) throw new ExperienceLedgerError("CLOSED", "Experience ledger is closed");
   }
+}
+
+function normalizeCompileHit(input: unknown, index: number): Required<ContextCompileHitInput> {
+  if (!isPlainObject(input)) invalid(`hits[${index}] must be a plain object`);
+  assertExactKeys(input, ["subject_kind", "subject_id", "reason"], ["raw_event_ids"]);
+  if (input.subject_kind !== "RAW_EVENT" && input.subject_kind !== "STATE_ITEM") {
+    invalid(`hits[${index}].subject_kind is invalid`);
+  }
+  validateNonEmptyString(input.subject_id, `hits[${index}].subject_id`);
+  const reasons = ["RETRIEVED_HISTORY", "CURRENT_QUERY", "REACTIVATED", "DEPENDENCY_RESCUE"] as const;
+  if (typeof input.reason !== "string" || !reasons.includes(input.reason as typeof reasons[number])) {
+    invalid(`hits[${index}].reason is invalid`);
+  }
+  return {
+    subject_kind: input.subject_kind,
+    subject_id: input.subject_id,
+    reason: input.reason as typeof reasons[number],
+    raw_event_ids: normalizeIdList(input.raw_event_ids as string[] | undefined, `hits[${index}].raw_event_ids`),
+  };
 }
 
 interface NormalizedLedgerInput {
@@ -155,6 +259,7 @@ interface RawEventRow extends Record<string, unknown> {
   created_at: string;
   token_count: number;
   metadata_json: string;
+  dense_embedding_json?: string | null;
 }
 
 const RAW_EVENT_SOURCE_PREFIX = "raw-event/";
@@ -494,6 +599,14 @@ function rawMirrorPayload(event: RawEvent, migrationBackfill: boolean): JsonObje
       token_count: event.token_count,
       metadata: event.metadata,
       ...(event.source_event_id === undefined ? {} : { source_event_id: event.source_event_id }),
+      ...(event.dense_embedding === undefined
+        ? {}
+        : {
+            dense_embedding: {
+              vector_space_id: event.dense_embedding.vector_space_id,
+              values: [...event.dense_embedding.values],
+            },
+          }),
     },
   }, "raw mirror payload");
 }
@@ -545,7 +658,26 @@ function rawRowToEvent(row: RawEventRow): RawEvent {
     token_count: row.token_count,
     metadata: parsePayload(row.metadata_json),
     ...(row.source_event_id === null ? {} : { source_event_id: row.source_event_id }),
+    ...(row.dense_embedding_json === undefined || row.dense_embedding_json === null
+      ? {}
+      : { dense_embedding: parsePersistedDenseEmbedding(row.dense_embedding_json) }),
   };
+}
+
+function parsePersistedDenseEmbedding(json: string): { vector_space_id: string; values: number[] } {
+  const parsed: unknown = JSON.parse(json);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Persisted raw dense embedding is invalid");
+  }
+  const record = parsed as Record<string, unknown>;
+  if (typeof record.vector_space_id !== "string" || !Array.isArray(record.values)) {
+    throw new Error("Persisted raw dense embedding is invalid");
+  }
+  if (record.vector_space_id.trim().length === 0 || record.values.length < 1 || record.values.length > 4096 ||
+      record.values.some((value) => typeof value !== "number" || !Number.isFinite(value) || Object.is(value, -0))) {
+    throw new Error("Persisted raw dense embedding is invalid");
+  }
+  return { vector_space_id: record.vector_space_id, values: [...record.values] as number[] };
 }
 
 function parseStringArray(json: string, label: string): string[] {

@@ -23,9 +23,11 @@ apply_state_delta
   -> apply all deterministic reducer transitions or none
 
 compile_context
-  -> active state + dependency closure
-  -> recent raw window + current input
+  -> mandatory recent N complete user turns
+  -> bounded BM25 + caller-Dense window-out recall
+  -> lifecycle-preserving dormant placement + dependency closure
   -> compiled snapshot + metrics
+  -> optional append-only trace when operation_id is present
 
 create_headline / recall_*
   -> immutable headline index
@@ -45,7 +47,16 @@ explicit optional runtime update
   -> atomic apply
 ```
 
-## v0 职责：State Compilation
+## 项目主目标与 v0 基础设施职责
+
+长期研究目标是理解真实经历如何由 `Event -> Action -> Outcome / Feedback` 形成 Candidate Experience，并进一步影响 Agent 的未来判断与行动。Context / State Compiler 是支撑长期运行与可信数据积累的基础设施，不再是下一阶段的主要研究对象，也不以 PACE、mem0 等成熟方案为比较对象。
+
+v0 采用双轨：
+
+- **前台 Context 轨**：Recent Raw 原文、typed state、bounded retrieval、dormant placement 与 targeted recovery，只要求长期运行“够用即可”；
+- **后台 Research Data 轨**：append-only Raw Event / Experience Ledger 完整保留 provenance 与 replay，不因前台 suppress/compact 丢失事件。
+
+State Compilation 仍回答：
 
 v0 回答的问题是：
 
@@ -63,9 +74,9 @@ Raw Event Store
   -> Compiled Context
 ```
 
-`Goal`、`Constraint`、`Decision`、`OpenQuestion`、`RejectedAlternative` 及其 lifecycle / relation 构成 authoritative state。仍为 ACTIVE 的约束、决策和开放问题不参与普通 semantic relevance competition；即使与当前输入词面或语义相似度很低，只要依赖闭包要求，assembler 也必须可靠纳入。
+`Goal`、`Constraint`、`Decision`、`OpenQuestion`、`RejectedAlternative` 及其 lifecycle / relation 仍构成 authoritative state。所有 ACTIVE Constraint 强制进入前台；supersede / resolve / reject 等 lifecycle 只由 reducer 改写。非 Constraint 的长期未闭合 item 可以在严格 telemetry/provenance 条件下变为 dormant placement，但 authoritative status、revision、relations 与 source refs 不变；当前命中或 dependency closure 会在本次 compile 重新纳入。
 
-## 长期分层，不是当前实现范围
+## 长期分层与冻结边界
 
 ```text
                    Raw History
@@ -78,12 +89,12 @@ Raw Event Store
 ```
 
 - **State**：现在什么仍然成立；deterministic、correctness-oriented，属于当前 v0。
-- **Evidence**：过去什么现在可能重新有用；probabilistic、relevance-oriented，属于未来 Historical Evidence Layer。
-- **Experience**：长期历史说明了什么规律；abstraction、slow-evolving，属于未来研究。
+- **Evidence**：前台只保留 bounded BM25 + caller-supplied Dense 的最小窗口外召回；PACE 式 pager、多级摘要、page fault 仍不实现。
+- **Experience**：后台 ledger 为未来研究保存数据；Experience abstraction、promotion、学习或决策影响仍未实现。
 
-PACE 类 Context Compression / Long-horizon Agent 方案可作为未来 Evidence Paging 的强 baseline 或 Extension Point，但不改变 v0 的 State Compiler 边界。当前显式 headline、exact/keyword recall 仍只是调用方主动使用的证据恢复原语，不等于运行时 semantic paging。
+PACE 类方案不再是 v0 需要证明先进性或互补性的对象。当前 operational retrieval 只是收口所需的 bounded policy，不授权多粒度表示、pressure-adaptive paging 或 retrieval 调参研究。
 
-除非当前测试失败直接要求，否则 v0 禁止引入 SemanticRetriever、ContextScorer、embedding 历史重激活、PACE 式多粒度摘要、Full/Detailed/Brief/Placeholder 表示、pressure-adaptive selection、glimpse/page-fault、Experience abstraction 或 learned compression policy。
+除已冻结的 BM25 + caller-Dense 小窗口外，禁止继续引入新的 Context 算法、ContextScorer、core-side embedding、多粒度摘要、Full/Detailed/Brief/Placeholder、pressure-adaptive selection、glimpse/page-fault、Graph DB、Experience abstraction 或 learned compression policy。
 
 ## v0 验证 Gate
 
@@ -91,11 +102,13 @@ PACE 类 Context Compression / Long-horizon Agent 方案可作为未来 Evidence
 2. **Context Reduction**：Correctness 成立后，再比较真实开发轨迹中的上下文成本。
 3. **Operational Stability**：extractor 连续运行、reducer deterministic、replay 一致、provenance 可追踪，mismatch / extraction error 可诊断。
 
-三个 Gate 未通过前，不启动 Evidence Paging、PACE 或 Experience Layer 实现。
+WO-V0-15 独立 QA 接受后，Context / State 基础设施冻结；后续默认只允许 correctness 修复。下一阶段转向真实使用与 Event–Action–Outcome / Feedback 数据积累，而不是继续开发 Context 算法。
 
 ## Modules
 
 - `raw-store.ts`: durable raw evidence and token estimator.
+- `experience-ledger.ts`: append-only EVENT/ACTION/OUTCOME/FEEDBACK/CANDIDATE_EXPERIENCE/CONTEXT_COMPILE/RETRIEVAL_HIT data plane.
+- `operational-context.ts`: bounded BM25/caller-Dense recall, targeted recovery, fail-open dormant placement, and trace fingerprints.
 - `state-types.ts`, `state-store.ts`, `reducer.ts`: explicit typed state and code-owned transitions.
 - `state-update.ts`: durable preparation snapshots and revision-guarded atomic State Delta application.
 - `extractor.ts`: provider-neutral transport interface and strict delta validation. No runtime provider is configured.
@@ -112,8 +125,11 @@ PACE 类 Context Compression / Long-horizon Agent 方案可作为未来 Evidence
 - Raw evidence is append-only; suppression never deletes it.
 - A model may propose a delta, but code validates and owns the transition.
 - Preparation identities are immutable; raw events may be appended after preparation, but prepared evidence and the expected state revision must still validate at apply time.
-- Active constraints are assembled from known-active state, not guessed from pruning.
-- Authoritative active state is not ranked against historical evidence by semantic relevance.
+- Active constraints are assembled from known-active state and never ranked away.
+- Dormant is placement only; it never rewrites authoritative lifecycle/state.
+- Recent Raw and retrieved history are physically separate and deduplicated.
+- Dense is all-or-nothing per candidate set; partial/mismatched coverage never produces mixed rankings.
+- A compile trace contains hashes/ids/policy, never current-input or raw-event正文。
 - Compact representations retain provenance and exact evidence remains recoverable.
 - Compiler failure must be containable by an external host; this package never controls a host's fallback policy.
 - The core performs no network requests and contains no UI or application-host imports.

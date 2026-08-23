@@ -31,6 +31,13 @@ export interface ContextAssemblerInput {
   current_input: string;
   token_budget?: number;
   recent_raw_window_turns?: number;
+  operational?: OperationalAssemblyInput;
+}
+
+export interface OperationalAssemblyInput {
+  retrieved_raw_event_ids: string[];
+  dormant_state_ids: string[];
+  reactivated_state_ids: string[];
 }
 
 export interface CompactHistoricalNote {
@@ -86,6 +93,11 @@ export interface CompiledContext {
   dependency_items: ContextItem[];
   compact_historical_notes: CompactHistoricalNote[];
   recent_conversation: RawEvent[];
+  /** Present only for the explicitly selected operational assembly path. */
+  retrieved_history?: RawEvent[];
+  dormant_state_ids?: string[];
+  reactivated_state_ids?: string[];
+  operational_debug?: JsonObject;
   rendered_context: string;
   budget_exceeded: boolean;
   budget_overage: number;
@@ -110,15 +122,24 @@ interface ValidatedInput {
   currentInput: string;
   tokenBudget: number | undefined;
   recentTurns: number;
+  operational: {
+    retrievedIds: string[];
+    dormantIds: string[];
+    reactivatedIds: string[];
+  } | undefined;
 }
 
 export function assembleContext(input: ContextAssemblerInput): CompiledContext {
   const validated = validateInput(input);
   const itemsById = new Map(validated.items.map((item) => [item.id, item]));
-  const activeGoals = selectItems(validated.items, "GOAL", "ACTIVE");
+  const requestedDormant = new Set(validated.operational?.dormantIds ?? []);
+  const activeGoals = selectItems(validated.items, "GOAL", "ACTIVE")
+    .filter((item) => !requestedDormant.has(item.id));
   const activeConstraints = selectItems(validated.items, "CONSTRAINT", "ACTIVE");
-  const activeDecisions = selectItems(validated.items, "DECISION", "ACTIVE");
-  const openQuestions = selectItems(validated.items, "OPEN_QUESTION", "OPEN");
+  const activeDecisions = selectItems(validated.items, "DECISION", "ACTIVE")
+    .filter((item) => !requestedDormant.has(item.id));
+  const openQuestions = selectItems(validated.items, "OPEN_QUESTION", "OPEN")
+    .filter((item) => !requestedDormant.has(item.id));
   const roots = [...activeGoals, ...activeConstraints, ...activeDecisions, ...openQuestions];
   const closure = dependencyClosure(roots, validated.relations, itemsById);
   const rootIds = new Set(roots.map((item) => item.id));
@@ -127,6 +148,15 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     .map((id) => itemsById.get(id)!)
     .sort(compareItems);
   const recentConversation = selectRecentTurns(validated.rawEvents, validated.recentTurns);
+  const recentIds = new Set(recentConversation.map((event) => event.id));
+  const rawById = new Map(validated.rawEvents.map((event) => [event.id, event]));
+  const retrievedHistory = (validated.operational?.retrievedIds ?? [])
+    .filter((id) => !recentIds.has(id))
+    .map((id) => rawById.get(id)!)
+    .map(cloneRawEvent);
+  const actualDormantIds = [...requestedDormant]
+    .filter((id) => !closure.ids.has(id))
+    .sort(compareText);
 
   const mandatory: RenderableContext = {
     activeGoals,
@@ -136,6 +166,8 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     dependencyItems,
     historicalNotes: [],
     recentConversation,
+    retrievedHistory,
+    operational: validated.operational !== undefined,
     currentInput: validated.currentInput,
   };
   const optionalCandidates = validated.items
@@ -215,7 +247,10 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     debug_manifest: {
       kept_state_ids: [...keptStateIds],
       suppressed_state_ids: suppressedStateIds,
-      kept_raw_event_ids: recentConversation.map((event) => event.id),
+      kept_raw_event_ids: [
+        ...recentConversation.map((event) => event.id),
+        ...retrievedHistory.map((event) => event.id),
+      ],
       dependency_edges: closure.edges.map((edge) => ({ ...edge })),
       dependency_paths: closure.paths.map((path) => ({
         item_id: path.item_id,
@@ -242,6 +277,13 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
       d2_reduction_ratio: reductionRatio(d0Tokens, d2Tokens),
       token_estimator: "character_count_divided_by_four",
     },
+    ...(validated.operational === undefined
+      ? {}
+      : {
+          retrieved_history: retrievedHistory,
+          dormant_state_ids: actualDormantIds,
+          reactivated_state_ids: [...validated.operational.reactivatedIds],
+        }),
   };
 }
 
@@ -253,6 +295,8 @@ interface RenderableContext {
   dependencyItems: ContextItem[];
   historicalNotes: CompactHistoricalNote[];
   recentConversation: RawEvent[];
+  retrievedHistory: RawEvent[];
+  operational: boolean;
   currentInput: string;
 }
 
@@ -265,21 +309,32 @@ export function renderCompiledContext(context: CompiledContext): string {
     dependencyItems: context.dependency_items,
     historicalNotes: context.compact_historical_notes,
     recentConversation: context.recent_conversation,
+    retrievedHistory: context.retrieved_history ?? [],
+    operational: context.retrieved_history !== undefined,
     currentInput: context.current_input,
   });
 }
 
 function renderSections(context: RenderableContext): string {
-  return [
+  const sections = [
     renderItemSection("Current Goal", context.activeGoals),
     renderItemSection("Active Constraints", context.activeConstraints),
     renderItemSection("Active Decisions", context.activeDecisions),
     renderItemSection("Open Questions", context.openQuestions),
     renderItemSection("Dependency Context", context.dependencyItems),
     renderNoteSection(context.historicalNotes),
+    ...(context.operational ? [renderRetrievedHistory(context.retrievedHistory)] : []),
     renderConversation(context.recentConversation),
     `## Current User Input\n${context.currentInput}`,
-  ].join("\n\n");
+  ];
+  return sections.join("\n\n");
+}
+
+function renderRetrievedHistory(events: RawEvent[]): string {
+  const body = events.length === 0
+    ? "[none]"
+    : events.map((event) => `- [seq:${event.seq} ${event.role}] ${event.content}`).join("\n");
+  return `## Retrieved History\n${body}`;
 }
 
 function renderItemSection(title: string, items: ContextItem[]): string {
@@ -440,6 +495,7 @@ function validateInput(input: ContextAssemblerInput): ValidatedInput {
     "current_input",
     "token_budget",
     "recent_raw_window_turns",
+    "operational",
   ], "input");
   const sessionId = nonBlankString(input.session_id, "session_id");
   const currentInput = nonBlankString(input.current_input, "current_input");
@@ -479,7 +535,42 @@ function validateInput(input: ContextAssemblerInput): ValidatedInput {
     compareText(left.target_id, right.target_id) ||
     compareText(left.created_at, right.created_at)
   );
-  return { sessionId, items, relations, rawEvents, currentInput, tokenBudget, recentTurns };
+  const operational = input.operational === undefined
+    ? undefined
+    : validateOperational(input.operational, itemIds, rawIds, items);
+  return { sessionId, items, relations, rawEvents, currentInput, tokenBudget, recentTurns, operational };
+}
+
+function validateOperational(
+  value: unknown,
+  itemIds: Map<string, ContextItem>,
+  rawIds: Map<string, RawEvent>,
+  items: ContextItem[]
+): ValidatedInput["operational"] {
+  if (!isPlainObject(value)) invalid("operational must be a plain object");
+  assertExactKeys(value, ["retrieved_raw_event_ids", "dormant_state_ids", "reactivated_state_ids"], "operational");
+  const retrievedIds = validateIdArray(value.retrieved_raw_event_ids, "operational.retrieved_raw_event_ids");
+  const dormantIds = validateIdArray(value.dormant_state_ids, "operational.dormant_state_ids");
+  const reactivatedIds = validateIdArray(value.reactivated_state_ids, "operational.reactivated_state_ids");
+  for (const id of retrievedIds) if (!rawIds.has(id)) invalid("operational retrieved raw event is missing");
+  const activeIds = new Set(items
+    .filter((item) => item.status === "ACTIVE" || item.status === "OPEN")
+    .map((item) => item.id));
+  for (const id of [...dormantIds, ...reactivatedIds]) {
+    if (!itemIds.has(id) || !activeIds.has(id)) invalid("operational state placement item is not active");
+  }
+  for (const id of dormantIds) {
+    if (itemIds.get(id)!.type === "CONSTRAINT") invalid("active constraints cannot be dormant");
+    if (reactivatedIds.includes(id)) invalid("dormant and reactivated state ids must be disjoint");
+  }
+  return { retrievedIds, dormantIds, reactivatedIds };
+}
+
+function validateIdArray(value: unknown, path: string): string[] {
+  if (!Array.isArray(value)) invalid(`${path} must be an array`);
+  const ids = strictArrayValues(value, path).map((id, index) => nonBlankString(id, `${path}[${index}]`));
+  uniqueMap(ids, (id) => id, path);
+  return ids;
 }
 
 function validateContextItem(
@@ -533,6 +624,7 @@ function validateRawEvent(value: unknown, sessionId: string, index: number): Raw
   assertExactKeys(value, [
     "id", "session_id", "seq", "role", "content", "event_type", "created_at",
     "token_count", "metadata", "source_event_id",
+    "dense_embedding",
   ], path);
   if (value.session_id !== sessionId) invalid(`${path} belongs to another session`);
   if (!Number.isSafeInteger(value.seq) || (value.seq as number) < 1) invalid(`${path}.seq is invalid`);
@@ -543,6 +635,9 @@ function validateRawEvent(value: unknown, sessionId: string, index: number): Raw
   const sourceEventId = value.source_event_id === undefined
     ? undefined
     : nonBlankString(value.source_event_id, `${path}.source_event_id`);
+  const denseEmbedding = value.dense_embedding === undefined
+    ? undefined
+    : validateDenseEmbedding(value.dense_embedding, `${path}.dense_embedding`);
   return {
     id: nonBlankString(value.id, `${path}.id`),
     session_id: sessionId,
@@ -554,7 +649,24 @@ function validateRawEvent(value: unknown, sessionId: string, index: number): Raw
     token_count: value.token_count as number,
     metadata: cloneJson(value.metadata as JsonObject),
     ...(sourceEventId === undefined ? {} : { source_event_id: sourceEventId }),
+    ...(denseEmbedding === undefined ? {} : { dense_embedding: denseEmbedding }),
   };
+}
+
+function validateDenseEmbedding(value: unknown, path: string): { vector_space_id: string; values: number[] } {
+  if (!isPlainObject(value)) invalid(`${path} must be a plain object`);
+  assertExactKeys(value, ["vector_space_id", "values"], path);
+  const vectorSpaceId = nonBlankString(value.vector_space_id, `${path}.vector_space_id`);
+  if (!Array.isArray(value.values)) invalid(`${path}.values must be an array`);
+  const entries = strictArrayValues(value.values, `${path}.values`);
+  if (entries.length < 1 || entries.length > 4096) invalid(`${path}.values length is invalid`);
+  const values = entries.map((entry, index) => {
+    if (typeof entry !== "number" || !Number.isFinite(entry) || Object.is(entry, -0)) {
+      invalid(`${path}.values[${index}] is invalid`);
+    }
+    return entry;
+  });
+  return { vector_space_id: vectorSpaceId, values };
 }
 
 function validateRelation(
@@ -715,7 +827,18 @@ function cloneItems(items: ContextItem[]): ContextItem[] {
 }
 
 function cloneRawEvent(event: RawEvent): RawEvent {
-  return { ...event, metadata: cloneJson(event.metadata) };
+  return {
+    ...event,
+    metadata: cloneJson(event.metadata),
+    ...(event.dense_embedding === undefined
+      ? {}
+      : {
+          dense_embedding: {
+            vector_space_id: event.dense_embedding.vector_space_id,
+            values: [...event.dense_embedding.values],
+          },
+        }),
+  };
 }
 
 function cloneNote(note: CompactHistoricalNote): CompactHistoricalNote {

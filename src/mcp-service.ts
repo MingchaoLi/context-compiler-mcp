@@ -2,9 +2,17 @@ import { dirname, join } from "node:path";
 import { performance } from "node:perf_hooks";
 import {
   ContextAssemblerValidationError,
-  assembleContext,
   type CompiledContext,
 } from "./assembler.js";
+import {
+  ExperienceLedgerError,
+  SqliteExperienceLedgerStore,
+} from "./experience-ledger.js";
+import {
+  OperationalContextError,
+  compileOperationalContext,
+  type ContextPolicyInput,
+} from "./operational-context.js";
 import {
   HistoryRecallError,
   SqliteHistoryRecallStore,
@@ -15,6 +23,8 @@ import {
 import {
   SqliteRawHistoryStore,
   estimateTokens,
+  normalizeDenseEmbedding,
+  type DenseEmbedding,
   type RawEventInput,
 } from "./raw-store.js";
 import { SqliteContextStateStore } from "./state-store.js";
@@ -58,7 +68,7 @@ export interface CompileContextMetrics {
   compiled_context_tokens: number;
   recent_window_tokens: number;
   active_state_tokens: number;
-  retrieved_tokens: 0;
+  retrieved_tokens: number;
   compile_latency_ms: number;
   extractor_latency_ms: 0;
   active_state_items: number;
@@ -94,6 +104,7 @@ export class ContextCompilerMcpService {
   private readonly stateStore: SqliteContextStateStore;
   private readonly stateUpdate: StateUpdateCoordinator;
   private readonly recallStore: SqliteHistoryRecallStore;
+  private readonly ledgerStore: SqliteExperienceLedgerStore;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -105,12 +116,15 @@ export class ContextCompilerMcpService {
     let rawStore: SqliteRawHistoryStore | undefined;
     let stateStore: SqliteContextStateStore | undefined;
     let recallStore: SqliteHistoryRecallStore | undefined;
+    let ledgerStore: SqliteExperienceLedgerStore | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
       recallStore = new SqliteHistoryRecallStore(databasePath);
+      ledgerStore = new SqliteExperienceLedgerStore(databasePath);
     } catch {
       try { recallStore?.close(); } catch { /* preserve stable startup failure */ }
+      try { ledgerStore?.close(); } catch { /* preserve stable startup failure */ }
       try { stateStore?.close(); } catch { /* preserve stable startup failure */ }
       try { rawStore?.close(); } catch { /* preserve stable startup failure */ }
       throw new ContextCompilerServiceError("STORAGE_FAILURE");
@@ -119,6 +133,7 @@ export class ContextCompilerMcpService {
     this.stateStore = stateStore;
     this.stateUpdate = new StateUpdateCoordinator(stateStore);
     this.recallStore = recallStore;
+    this.ledgerStore = ledgerStore;
   }
 
   call(tool: ContextCompilerToolName, input: unknown): ContextCompilerToolResponse {
@@ -159,7 +174,7 @@ export class ContextCompilerMcpService {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
-    for (const store of [this.recallStore, this.stateStore, this.rawStore]) {
+    for (const store of [this.ledgerStore, this.recallStore, this.stateStore, this.rawStore]) {
       try {
         store.close();
       } catch {
@@ -171,7 +186,7 @@ export class ContextCompilerMcpService {
 
   private ingest(value: unknown): unknown {
     const input = readObject(value, ["session_id", "role", "content"], [
-      "event_type", "created_at", "token_count", "metadata", "source_event_id",
+      "event_type", "created_at", "token_count", "metadata", "source_event_id", "dense_embedding",
     ]);
     requireNonEmptyString(input.session_id);
     requireEnum(input.role, ["system", "user", "assistant", "tool"]);
@@ -181,6 +196,13 @@ export class ContextCompilerMcpService {
     optionalNonNegativeSafeInteger(input.token_count);
     optionalNonEmptyString(input.source_event_id);
     if (input.metadata !== undefined) requirePlainObject(input.metadata);
+    if (input.dense_embedding !== undefined) {
+      try {
+        normalizeDenseEmbedding(input.dense_embedding, "dense_embedding");
+      } catch {
+        invalid();
+      }
+    }
     try {
       return this.rawStore.ingest(input as unknown as RawEventInput);
     } catch (error) {
@@ -193,30 +215,71 @@ export class ContextCompilerMcpService {
 
   private compile(value: unknown): CompileContextResult {
     const input = readObject(value, ["session_id", "current_input"], [
-      "token_budget", "recent_raw_window_turns",
+      "token_budget", "recent_raw_window_turns", "operation_id", "dense_query", "context_policy",
     ]);
     const sessionId = requireNonEmptyString(input.session_id);
     const currentInput = requireNonBlankString(input.current_input);
     optionalIntegerInRange(input.token_budget, 0, Number.MAX_SAFE_INTEGER);
     optionalIntegerInRange(input.recent_raw_window_turns, 1, 100);
+    optionalNonBlankString(input.operation_id);
+    if (input.context_policy !== undefined) requirePlainObject(input.context_policy);
+    let denseQuery: DenseEmbedding | undefined;
+    if (input.dense_query !== undefined) {
+      try {
+        denseQuery = normalizeDenseEmbedding(input.dense_query, "dense_query");
+      } catch {
+        invalid();
+      }
+    }
 
     const startedAt = performance.now();
     const assemblerSessionId = sessionId.trim().length === 0 ? "__context_compiler_whitespace_session__" : sessionId;
     let context: CompiledContext;
     try {
-      context = assembleContext({
+      const items = this.stateStore.getItems(sessionId)
+        .map((item) => ({ ...item, session_id: assemblerSessionId }));
+      const relations = this.stateStore.getSessionRelations(sessionId)
+        .map((relation) => ({ ...relation, session_id: assemblerSessionId }));
+      const rawEvents = this.rawStore.getSessionEvents(sessionId)
+        .map((event) => ({ ...event, session_id: assemblerSessionId }));
+      const operational = compileOperationalContext({
         session_id: assemblerSessionId,
-        context_items: this.stateStore.getItems(sessionId).map((item) => ({ ...item, session_id: assemblerSessionId })),
-        state_relations: this.stateStore.getSessionRelations(sessionId).map((relation) => ({ ...relation, session_id: assemblerSessionId })),
-        raw_events: this.rawStore.getSessionEvents(sessionId).map((event) => ({ ...event, session_id: assemblerSessionId })),
+        context_items: items,
+        state_relations: relations,
+        raw_events: rawEvents,
         current_input: currentInput,
+        state_revision: this.stateStore.getRevision(sessionId),
         ...(input.token_budget === undefined ? {} : { token_budget: input.token_budget as number }),
         ...(input.recent_raw_window_turns === undefined
           ? {}
           : { recent_raw_window_turns: input.recent_raw_window_turns as number }),
+        ...(input.context_policy === undefined
+          ? {}
+          : { context_policy: input.context_policy as unknown as ContextPolicyInput }),
+        ...(denseQuery === undefined ? {} : { dense_query: denseQuery }),
+        ...(input.operation_id === undefined ? {} : { operation_id: input.operation_id as string }),
+        ledger_records: this.ledgerStore.getSessionRecords(sessionId),
       });
+      context = operational.context;
+      if (input.operation_id !== undefined) {
+        const trace = this.ledgerStore.appendContextCompileTrace({
+          session_id: sessionId,
+          operation_id: input.operation_id as string,
+          payload: operational.trace_payload,
+          raw_event_ids: operational.trace_raw_event_ids,
+          hits: operational.hits,
+        });
+        context.operational_debug = {
+          ...context.operational_debug,
+          compile_trace_id: trace.trace.id,
+          compile_trace_seq: trace.trace.seq,
+          retrieval_hit_ledger_ids: trace.hits.map((record) => record.id),
+        };
+      }
     } catch (error) {
-      if (error instanceof ContextAssemblerValidationError) throw error;
+      if (error instanceof ContextAssemblerValidationError ||
+          error instanceof OperationalContextError ||
+          error instanceof ExperienceLedgerError) throw error;
       throw new ContextCompilerServiceError("STORAGE_FAILURE");
     }
     if (assemblerSessionId !== sessionId) restoreCompiledContextSessionId(context, sessionId);
@@ -235,7 +298,9 @@ export class ContextCompilerMcpService {
         compiled_context_tokens: context.metrics.d2_compiled_tokens,
         recent_window_tokens: context.metrics.d1_recent_tokens,
         active_state_tokens: estimateTokens(activeItems.map((item) => item.content).join("\n")),
-        retrieved_tokens: 0,
+        retrieved_tokens: estimateTokens(
+          (context.retrieved_history ?? []).map((event) => event.content).join("\n")
+        ),
         compile_latency_ms: Number.isFinite(compileLatency) ? compileLatency : 0,
         extractor_latency_ms: 0,
         active_state_items: activeItems.length,
@@ -334,6 +399,12 @@ function mapStateUpdateError(error: unknown): ContextCompilerServiceError {
 function classifyError(error: unknown): ContextCompilerErrorCode {
   if (error instanceof ContextCompilerServiceError) return error.code;
   if (error instanceof ContextAssemblerValidationError) return "INVALID_INPUT";
+  if (error instanceof OperationalContextError) return "INVALID_INPUT";
+  if (error instanceof ExperienceLedgerError) {
+    if (error.code === "CONFLICT") return "CONFLICT";
+    if (error.code === "INVALID_INPUT" || error.code === "NOT_FOUND") return "INVALID_INPUT";
+    return "STORAGE_FAILURE";
+  }
   return "INTERNAL_FAILURE";
 }
 
@@ -414,6 +485,9 @@ function optionalString(value: unknown): void {
 function optionalNonEmptyString(value: unknown): void {
   if (value !== undefined) requireNonEmptyString(value);
 }
+function optionalNonBlankString(value: unknown): void {
+  if (value !== undefined && (typeof value !== "string" || value.trim().length === 0 || value.length > 500)) invalid();
+}
 function optionalNonNegativeSafeInteger(value: unknown): void {
   if (value !== undefined && (!Number.isSafeInteger(value) || (value as number) < 0)) invalid();
 }
@@ -439,4 +513,5 @@ function restoreCompiledContextSessionId(context: CompiledContext, original: str
     for (const item of items) item.session_id = original;
   }
   for (const event of context.recent_conversation) event.session_id = original;
+  for (const event of context.retrieved_history ?? []) event.session_id = original;
 }

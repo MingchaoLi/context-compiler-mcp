@@ -35,6 +35,23 @@ const identifierArray = {
   uniqueItems: true,
   items: identifier,
 } as const;
+const denseEmbeddingSchema = objectSchema({
+  vector_space_id: nonBlank,
+  values: {
+    type: "array", minItems: 1, maxItems: 4096,
+    items: { type: "number" },
+  },
+}, ["vector_space_id", "values"]);
+const contextPolicySchema = objectSchema({
+  candidate_turn_multiplier: { type: "integer", minimum: 1, maximum: 100 },
+  recovery_candidate_turn_multiplier: { type: "integer", minimum: 1, maximum: 100 },
+  dormancy_turn_multiplier: { type: "integer", minimum: 1, maximum: 100 },
+  retrieval_limit: { type: "integer", minimum: 1, maximum: 100 },
+  recovery_retrieval_limit: { type: "integer", minimum: 1, maximum: 100 },
+  bm25_weight: { type: "number", minimum: 0, maximum: 1 },
+  dense_weight: { type: "number", minimum: 0, maximum: 1 },
+  recovery_failure_event_id: identifier,
+}, []);
 
 const newItemDeltaSchema = objectSchema({
   content: nonBlank,
@@ -118,12 +135,16 @@ const TOOLS: Tool[] = [
     token_count: { type: "integer", minimum: 0 },
     metadata: { type: "object" },
     source_event_id: { type: "string", minLength: 1 },
+    dense_embedding: denseEmbeddingSchema,
   }, ["session_id", "role", "content"])),
-  tool("compile_context", "Compile a read-only bounded context snapshot", objectSchema({
+  tool("compile_context", "Compile a bounded context snapshot; operation_id enables append-only trace", objectSchema({
     session_id: sessionId,
     current_input: nonBlank,
     token_budget: { type: "integer", minimum: 0 },
     recent_raw_window_turns: { type: "integer", minimum: 1, maximum: 100 },
+    operation_id: identifier,
+    dense_query: denseEmbeddingSchema,
+    context_policy: contextPolicySchema,
   }, ["session_id", "current_input"])),
   tool("get_state", "Read session state and revision", objectSchema({ session_id: sessionId }, ["session_id"])),
   tool("prepare_state_update", "Prepare a bounded immutable extractor snapshot", objectSchema({

@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：IN PROGRESS — CHECKPOINT A + B COMPLETE / CHECKPOINT C PENDING
+状态：BUILDER COMPLETE — CHECKPOINT A + B + C IMPLEMENTED / FINAL INDEPENDENT QA PENDING
 
 ## 背景校准
 
@@ -18,7 +18,9 @@
 
 Checkpoint A 已完成代码与本地回归：新增 current-event provenance contract v2，并由明确命名的 `CurrentEventStateExtractor` 和现行 `RuntimeStateUpdater` 固定使用，结果与错误显式暴露合同版本；原 `parseStrictStateDelta` / `parseStrictStateDeltaPayload`、未带版本的历史 `StrictStateExtractor` 与 `apply_state_delta` 保持 v1 语义。WO-DS-14 pinned runtime、official capture、Gold 与评分结果均未修改，历史 replay 仍逐字节复现。
 
-Checkpoint B 已完成代码与本地回归：新增独立 append-only `experience_ledger` 关系表与稳定 library store，冻结七类最小记录、session-local sequence / source-key 幂等、严格 JSON payload、同 session 已存在 raw/parent provenance 与外部连接 update/delete trigger。新 raw event 与确定性 `EVENT` mirror 由 `SqliteRawHistoryStore` 在同一 `BEGIN IMMEDIATE` transaction 中共同提交或回滚；旧库只按 raw session/sequence 确定性回填 `migration_backfill:true` 的 EVENT observation，不补造 ACTION / OUTCOME 等语义。Checkpoint B 未让 compile 写 trace，也未接入 retrieval / dormant / recovery；这些仍只属于 Checkpoint C。A/B 尚待本工单最终统一独立 QA，Checkpoint C 仍为 pending。
+Checkpoint B 已完成代码与本地回归：新增独立 append-only `experience_ledger` 关系表与稳定 library store，冻结七类最小记录、session-local sequence / source-key 幂等、严格 JSON payload、同 session 已存在 raw/parent provenance 与外部连接 update/delete trigger。新 raw event 与确定性 `EVENT` mirror 由 `SqliteRawHistoryStore` 在同一 `BEGIN IMMEDIATE` transaction 中共同提交或回滚；旧库只按 raw session/sequence 确定性回填 `migration_backfill:true` 的 EVENT observation，不补造 ACTION / OUTCOME 等语义。Checkpoint B 本身未让 compile 写 trace，也未接入 retrieval / dormant / recovery；这些只由后续 Checkpoint C 实现。A/B/C 统一等待本工单最终独立 QA。
+
+Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 缺省路径保持原输出/渲染/token 语义；MCP `compile_context` 通过 optional `context_policy` / `dense_query` / `operation_id` 进入 bounded operational path。Recent N 完整用户轮次与 retrieved history 物理分区；BM25 可独立复算，Dense 仅全候选同 space/同维/可算 norm 时启用，否则整腿 fail-closed 到 BM25。Verified failure 才可 recovery；dormant 仅在 baseline 后 provenance、age、zero state-hit 与完整 telemetry 条件同时成立时启用，Constraint 强制且 dependency closure 可救援。operation-id trace/hits 单事务追加，重试按原 trace seq 截断 telemetry 并保持幂等，不同输入冲突；payload 只含 hash、policy 和 selected ids，不含 current/raw 正文。C 及 A/B 仍待统一独立 QA，本状态不是自批准。
 
 ## 单一结果
 

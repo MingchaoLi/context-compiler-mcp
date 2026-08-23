@@ -4,9 +4,9 @@ This file is the default requirements entry point. The full historical brief is 
 
 ## Objective
 
-Keep remote-model working context bounded as conversation history grows, while preserving correctness, provenance, and exact recovery. Correctness and recoverability take priority over maximum token reduction.
+长期目标是研究 Experience 如何由真实经历形成并影响未来行动。v0 只提供可冻结的双轨基础设施：前台 Context 随历史增长保持有界且够用，后台 Raw Event / Experience Ledger 完整、可追溯、可回放。Correctness、provenance 与 recoverability 优先于最大 token reduction。
 
-v0 的产品职责是 State Compilation：从持续增长的 Raw Events 中稳定、低成本地维护正确的 Current Active State，并以 dependency-aware assembly 保留仍有效的 Constraint、Decision 与 OpenQuestion。它不负责预测哪些旧证据下一步可能重新有用，也不负责从历史抽象长期 Experience。
+State Compilation 继续维护 authoritative lifecycle；operational Context 额外提供 Recent Raw、bounded window-out recall、fail-open dormant placement 与 verified-failure recovery。Experience Ledger 只保存未来研究所需的 Event–Action–Outcome / Feedback 数据，不执行 Experience 抽象。
 
 ## Required design
 
@@ -18,19 +18,24 @@ v0 的产品职责是 State Compilation：从持续增长的 Raw Events 中稳�
 - Support immutable headlines, literal-safe search, and exact raw recall.
 - Keep the model interface replaceable; another expensive remote reasoning pass must not be required by context management.
 - Keep compiler failure recoverable by a host-selected safe fallback.
+- Recent Raw 始终保留最近 N 个完整用户轮次原文，不参与排名、摘要或压缩。
+- 窗口外召回只允许有界 BM25 + caller-supplied Dense；partial/mismatched Dense 整腿降级，core 不生成 embedding。
+- ACTIVE Constraint 强制进入；dormant 仅为其他未闭合 item 的 fail-open placement，不得改 authoritative lifecycle。
+- Raw Event 与 Experience Ledger append-only；前台 suppress/compact 不得删除或重写后台研究数据。
+- `operation_id` compile trace 必须去正文、原子、幂等；无 id compile 保持 read-only 且不启用 dormant。
 
 ## v0 exclusions
 
-Do not implement experience extraction, intuition, autonomous long-term memory, graph databases, provider training/distillation, semantic retrieval, a background autonomous agent, or broad host-framework rewrites.
+Do not implement Experience formation/promotion, intuition, autonomous long-term memory, graph databases, provider training/distillation, a background autonomous agent, or broad host-framework rewrites.
 
 PACE / Evidence Paging 属于 Research Backlog，不是 v0 实现请求。禁止顺手增加：
 
-- `SemanticRetriever`、`ContextScorer` 或 embedding-based historical reactivation；
+- 新的 `ContextScorer`、core-side embedding 或超过 D-015 bounded policy 的 historical paging；
 - PACE 式 Full / Detailed / Brief / Placeholder 多粒度表示；
 - pressure-adaptive context selection 或 `glimpse()` / page-fault 恢复机制；
 - Experience abstraction 或 learned compression policy。
 
-除非当前测试失败直接要求，不得以“未来最终需要”为理由把这些机制加入 v0。
+除非 correctness failure 直接要求，不得以“未来最终需要”为理由继续增加 Context 算法或 retrieval 调参。D-015 的 bounded BM25 + caller-Dense 是唯一收口例外，不等同于 PACE 实现。
 
 ## Required evaluation
 
@@ -55,4 +60,6 @@ Compare D0 full context, D1 recent-window baseline, and D2 compiled context. Rep
 - Evaluation runner and evaluator-v2 validity calibration: implemented and independently accepted in ST-02 / EV-02.
 - Optional provider-neutral local extractor transport: implemented and independently accepted in ST-03; no provider is selected by core.
 - Formal host compiler mode: still deferred.
-- Evidence Paging / PACE / Experience Layer: research-only extension points, not v0.
+- Append-only Experience Ledger: implemented as research data plane; no Experience abstraction/promotion.
+- Bounded operational Context policy: Checkpoint C Builder candidate，等待独立 QA；不构成 PACE 或效果先进性证据。
+- PACE / multi-granularity Evidence Paging / Experience Formation: excluded after infrastructure freeze.

@@ -1,6 +1,6 @@
 # Context Compiler MCP
 
-Context Compiler MCP is a local, model-independent service for durable conversation evidence, explicit context state, deterministic context assembly, and exact history recall. It stores data in SQLite and exposes a stable stdio MCP boundary.
+Context Compiler MCP 是一个本地、模型无关的长期运行基础设施：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 完整保存可回放的研究数据。项目的长期研究目标是 Experience Formation；本包只负责“够用即可”的前台上下文与可信 Event–Action–Outcome / Feedback 数据面，不以证明自身优于 PACE、mem0 等方案为目标。
 
 The current server exposes exactly nine tools:
 
@@ -14,7 +14,18 @@ The current server exposes exactly nine tools:
 - `recall_exact`
 - `recall_keyword`
 
-`compile_context` remains read-only: it assembles known state and recent raw evidence but does not call a model or mutate state. State evolution is an explicit two-step operation. `prepare_state_update` returns a bounded, fingerprinted extractor snapshot; an external caller may obtain a candidate State Delta elsewhere and pass it to `apply_state_delta`, which strictly validates and atomically applies it against the prepared state revision. The package does not select a model or provider. Automatic extraction from MCP/compile and automatic headline generation are not runtime features.
+`compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。缺少 `operation_id` 时它保持历史 read-only 行为；提供 `operation_id` 时，只会把去正文的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
+
+Operational compile 固定以下小边界：
+
+- `recent_raw_window_turns=N` 始终保留最近 N 个完整用户轮次原文，不排名、不摘要、不压缩；
+- 窗口外只在最近 `N × multiplier` 个用户轮次内用可复算 BM25 召回；调用方可为 raw event 与 query 提供同一 `vector_space_id` 的 Dense 向量，只有全候选覆盖、同 space、同维度且 norm 可算时才整批进入 hybrid，否则整条 Dense leg 降级为 BM25-only；
+- `candidate_turn_multiplier=5`、targeted recovery multiplier `=8`、dormancy multiplier `=15` 等只是严格有界、可配置的实验参数，不是理论规则；
+- recovery 只接受同 session 已存在的 `event_type="verified_failure"` reference；默认仍使用较小上下文；
+- dormant/cold 只是前台 placement，不改 authoritative lifecycle。ACTIVE Constraint 永不 dormant，dependency closure 可救援 target；旧库、缺 provenance、缺 operation-id baseline 或 telemetry 不完整时一律 fail-open；
+- foreground suppress/compact 永不更新或删除 `raw_events` / `experience_ledger`。
+
+`ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy` 与 `operation_id`。MCP 工具仍精确为九个。
 
 ## Requirements and setup
 

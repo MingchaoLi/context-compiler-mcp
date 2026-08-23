@@ -22,7 +22,7 @@ The core defines `ExtractorTransport` but does not select, call, or bundle a mod
 
 ## D-006 — Standalone MCP boundary
 
-The package is `context-compiler-mcp`, uses the official MCP SDK over stdio, and exposes exactly seven approved tools in this baseline. Application adapters remain outside this repository.
+The package is `context-compiler-mcp`, uses the official MCP SDK over stdio, and exposes exactly nine approved tools in this baseline. Application adapters remain outside this repository.
 
 ## D-007 — Compatibility without host dependency
 
@@ -59,3 +59,17 @@ v0 的唯一核心职责是 State Compilation：把 Raw Events 编译为带 life
 长期架构将 State、Evidence、Experience 分层：Evidence Paging（包括 PACE 类语义相关性、多粒度摘要、pressure-adaptive selection 与按需恢复）和 Experience abstraction 都是未来 Research Backlog / Extension Point，不属于 v0。现有 headline/recall 是显式恢复原语，不授权新增运行时 History Pager。
 
 执行顺序固定为 Correctness → Context Reduction → Operational Stability。三个 Gate 未通过前，不实现 PACE/Evidence Paging/Experience。Unless a current test failure directly requires it, do not introduce PACE-related mechanisms into the v0 implementation. Treat this decision as a scope-freeze clarification, not a request for architectural expansion.
+
+## D-015 — Experience 是研究目标；Context / State 在 bounded operational closure 后冻结
+
+本决定 supersede D-014 中“所有 ACTIVE Decision / OpenQuestion 永远作为前台 root、v0 禁止任何 semantic retrieval”的绝对表述，但不改写五类 authoritative state、reducer lifecycle 或 ACTIVE Constraint 强制语义。
+
+项目长期目标是研究 Experience 如何由真实 `Event -> Action -> Outcome / Feedback` 形成并影响未来行动。Context / State 只是双轨基础设施：前台 Context 够用即可，后台 Raw Event / Experience Ledger append-only 保存完整 provenance 与 replay。前台 suppress/compact 不能损伤后台记录。
+
+收口允许且只允许以下 operational policy：Recent Raw 保留最近 N 个完整用户轮次原文；窗口外在 `N × configurable multiplier` 内使用可复算 BM25 与 caller-supplied Dense；Dense 必须 query/candidate 全覆盖、同 vector space、同维、非零 norm，否则整腿降级；verified failure 才能扩大 recovery window/limit。默认 5/8/15 与 weights/limit 是实验参数，不是理论规则，也不授权调参研究。
+
+Dormant/cold 是 placement，不是 lifecycle。ACTIVE Constraint 永不 dormant；其他未闭合 item 只有在 operation-id telemetry baseline、可计算 current-event provenance、baseline 后更新、达到 age、生命周期 state hit 为零、当前 query 未命中且不被 dependency closure 需要时才可退出 root。缺证据一律 fail-open；命中或 closure 只在本次 compile 重激活，不修改 state revision/status/source refs。
+
+`compile_context` 仍有零 model/provider/network/extractor。无 `operation_id` 时 read-only 且不启用 dormant；有 id 时只原子追加去正文的 `CONTEXT_COMPILE` / `RETRIEVAL_HIT`，相同 id/固定输入幂等，不同输入冲突。九工具、历史 assembler/evaluator/DS-13/14 artifact 不变。
+
+WO-V0-15 经独立 QA 接受后冻结 Context / State 基础设施。后续默认只做 correctness 修复，不新增 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation 实现；下一阶段先真实使用并积累研究数据。

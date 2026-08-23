@@ -15,6 +15,11 @@ export interface JsonObject {
 
 export type RawEventRole = "system" | "user" | "assistant" | "tool";
 
+export interface DenseEmbedding {
+  vector_space_id: string;
+  values: number[];
+}
+
 export interface RawEventInput {
   session_id: string;
   role: RawEventRole;
@@ -25,6 +30,8 @@ export interface RawEventInput {
   metadata?: JsonObject;
   /** Stable event id supplied by the event source, when available. */
   source_event_id?: string;
+  /** Optional caller-produced vector. The core never generates embeddings. */
+  dense_embedding?: DenseEmbedding;
 }
 
 export interface RawEvent {
@@ -38,6 +45,7 @@ export interface RawEvent {
   token_count: number;
   metadata: JsonObject;
   source_event_id?: string;
+  dense_embedding?: DenseEmbedding;
 }
 
 export interface RawHistoryStore {
@@ -88,6 +96,10 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
     const createdAt = input.created_at ?? new Date().toISOString();
     const tokenCount = input.token_count ?? estimateTokens(input.content);
     const sourceEventId = input.source_event_id ?? null;
+    const denseEmbedding = input.dense_embedding === undefined
+      ? undefined
+      : normalizeDenseEmbedding(input.dense_embedding, "dense_embedding");
+    const denseEmbeddingJson = denseEmbedding === undefined ? null : JSON.stringify(denseEmbedding);
 
     this.database.exec("BEGIN IMMEDIATE;");
     try {
@@ -100,7 +112,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
           .prepare("SELECT * FROM raw_events WHERE session_id = ? AND source_event_id = ?")
           .get(input.session_id, sourceEventId) as DatabaseRow | undefined;
         if (existing) {
-          assertCompatibleRetry(existing, input, eventType, metadataJson);
+          assertCompatibleRetry(existing, input, eventType, metadataJson, denseEmbeddingJson);
           assertRawEventMirrorInsideTransaction(this.database, rowToEvent(existing));
           this.database.exec("COMMIT;");
           return rowToEvent(existing);
@@ -118,8 +130,8 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
         .prepare(
           `INSERT INTO raw_events (
              id, session_id, seq, source_event_id, role, content,
-             event_type, created_at, token_count, metadata_json
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+             event_type, created_at, token_count, metadata_json, dense_embedding_json
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .run(
           id,
@@ -131,7 +143,8 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
           eventType,
           createdAt,
           tokenCount,
-          metadataJson
+          metadataJson,
+          denseEmbeddingJson
         );
       const event: RawEvent = {
         id,
@@ -144,6 +157,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
         token_count: tokenCount,
         metadata,
         ...(sourceEventId === null ? {} : { source_event_id: sourceEventId }),
+        ...(denseEmbedding === undefined ? {} : { dense_embedding: denseEmbedding }),
       };
       appendRawEventMirrorInsideTransaction(this.database, event, false);
       this.database.exec("COMMIT;");
@@ -192,6 +206,7 @@ interface DatabaseRow extends Record<string, unknown> {
   created_at: string;
   token_count: number;
   metadata_json: string;
+  dense_embedding_json: string | null;
 }
 
 function migrate(database: DatabaseSync): void {
@@ -212,6 +227,7 @@ function migrate(database: DatabaseSync): void {
       created_at TEXT NOT NULL,
       token_count INTEGER NOT NULL CHECK (token_count >= 0),
       metadata_json TEXT NOT NULL DEFAULT '{}',
+      dense_embedding_json TEXT,
       UNIQUE (session_id, seq),
       UNIQUE (session_id, source_event_id)
     );
@@ -231,6 +247,10 @@ function migrate(database: DatabaseSync): void {
       SELECT RAISE(ABORT, 'raw_events is append-only');
     END;
   `);
+  const columns = database.prepare("PRAGMA table_info(raw_events)").all() as Array<{ name: string }>;
+  if (!columns.some((column) => column.name === "dense_embedding_json")) {
+    database.exec("ALTER TABLE raw_events ADD COLUMN dense_embedding_json TEXT;");
+  }
 }
 
 function validateInput(input: RawEventInput): void {
@@ -240,6 +260,9 @@ function validateInput(input: RawEventInput): void {
   }
   if (input.source_event_id !== undefined && input.source_event_id.length === 0) {
     throw new Error("source_event_id must not be empty");
+  }
+  if (input.dense_embedding !== undefined) {
+    normalizeDenseEmbedding(input.dense_embedding, "dense_embedding");
   }
   if (
     input.token_count !== undefined &&
@@ -316,13 +339,15 @@ function assertCompatibleRetry(
   existing: DatabaseRow,
   input: RawEventInput,
   eventType: string,
-  metadataJson: string
+  metadataJson: string,
+  denseEmbeddingJson: string | null
 ): void {
   if (
     existing.role !== input.role ||
     existing.content !== input.content ||
     existing.event_type !== eventType ||
     existing.metadata_json !== metadataJson ||
+    existing.dense_embedding_json !== denseEmbeddingJson ||
     (input.created_at !== undefined && existing.created_at !== input.created_at) ||
     (input.token_count !== undefined && existing.token_count !== input.token_count)
   ) {
@@ -344,7 +369,68 @@ function rowToEvent(row: DatabaseRow): RawEvent {
     token_count: row.token_count,
     metadata: parseMetadata(row.metadata_json),
     ...(row.source_event_id === null ? {} : { source_event_id: row.source_event_id }),
+    ...(row.dense_embedding_json === null
+      ? {}
+      : { dense_embedding: parseDenseEmbedding(row.dense_embedding_json, "persisted dense_embedding") }),
   };
+}
+
+export function normalizeDenseEmbedding(value: unknown, path: string): DenseEmbedding {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`${path} must be a plain object`);
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new Error(`${path} must be a plain object`);
+  }
+  const record = value as Record<string, unknown>;
+  const keys = Reflect.ownKeys(record);
+  if (keys.length !== 2 || !keys.includes("vector_space_id") || !keys.includes("values")) {
+    throw new Error(`${path} must contain exactly vector_space_id and values`);
+  }
+  for (const key of keys) {
+    if (typeof key !== "string") throw new Error(`${path} must not contain symbol keys`);
+    const descriptor = Object.getOwnPropertyDescriptor(record, key);
+    if (!descriptor?.enumerable || !("value" in descriptor)) {
+      throw new Error(`${path}.${key} must be an enumerable data property`);
+    }
+  }
+  const vectorSpaceId = record.vector_space_id;
+  if (typeof vectorSpaceId !== "string" || vectorSpaceId.trim().length === 0) {
+    throw new Error(`${path}.vector_space_id must be non-blank`);
+  }
+  const values = record.values;
+  if (!Array.isArray(values) || Object.getPrototypeOf(values) !== Array.prototype ||
+      values.length < 1 || values.length > 4096) {
+    throw new Error(`${path}.values must be a plain dense array with 1 to 4096 entries`);
+  }
+  const normalized: number[] = [];
+  for (let index = 0; index < values.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(values, String(index));
+    if (!descriptor?.enumerable || !("value" in descriptor)) {
+      throw new Error(`${path}.values must not be sparse or contain accessors`);
+    }
+    const number = descriptor.value;
+    if (typeof number !== "number" || !Number.isFinite(number) || Object.is(number, -0)) {
+      throw new Error(`${path}.values[${index}] must be a finite lossless number`);
+    }
+    normalized.push(number);
+  }
+  for (const key of Reflect.ownKeys(values)) {
+    if (key === "length") continue;
+    if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= values.length) {
+      throw new Error(`${path}.values must not contain extra fields`);
+    }
+  }
+  return { vector_space_id: vectorSpaceId, values: normalized };
+}
+
+function parseDenseEmbedding(json: string, path: string): DenseEmbedding {
+  try {
+    return normalizeDenseEmbedding(JSON.parse(json), path);
+  } catch (error) {
+    throw new Error(`${path} is invalid`, { cause: error });
+  }
 }
 
 function parseMetadata(value: string): JsonObject {
