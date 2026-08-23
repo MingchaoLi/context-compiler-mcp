@@ -1,6 +1,6 @@
 # WO-DS-14 — State Compiler v0.1 时间状态回放
 
-状态：ST-01 ACCEPTED BY INDEPENDENT RE-QA; ST-02 SCORED — PENDING INDEPENDENT QA
+状态：**ACCEPTED / COMPLETE — ST-01 与 ST-02 均已经独立 QA；ST-02 Extractor correctness 实验结果为失败**
 
 ## 当前 ST-02 Scoring checkpoint
 
@@ -10,7 +10,9 @@
 
 Gold 结果层面的 supersession / resolution 为 `0/6` 与 `0/7`；但两类 capability eligibility 均为 0，因为前置 predicted endpoint 从未建立，只能记为 `inherited_precondition_absent` 的下游结果，不能重复添加 13 个 primary Extractor errors。stale activation、wrong reactivation、dependency inconsistency、provenance failure 同样为 incident 0 / eligible 0 / `not_evaluable`；`STR-06/E13` 只算 empty true negative，不算 wrong-reactivation avoidance 成功。
 
-该 scoring checkpoint 状态仅为 **PENDING INDEPENDENT QA**。它没有 threshold、aggregate、winner 或通用 matcher，也不接受 Extractor correctness、Operational Stability、Context Reduction 或架构胜负；独立 QA 必须复验 Git object/current bytes、fresh 零模型 replay、逐 step/case 算术及协调改写攻击后，才能决定 ST-02 是否接受。
+独立 Data / Result QA 已于 2026-08-23 在固定 Builder candidate `423ae7cbe777c01b31dd0ec5629b1eb3255048c0` 上通过。QA 独立复得 Git trust root/current bytes、30-step fresh 零模型 replay、12/16/2 互斥 primary outcome、`0/35` / `0/29` unique recall 和 `0/253` / `0/192` checkpoint exposure，并重放了协调改写、闭合路径、symlink 与 Unicode 攻击。完整记录见 `docs/qa/WO-DS-14-st02-scoring.md`。
+
+本接受只表示 standardized-summary temporal replay 与 raw scoring 完整、可复算。ST-02 Extractor correctness 实验结果是明确失败：Predicted State 全空，35 个 Gold item 与 29 个 critical Gold item 全部遗漏。precision、matcher、transition capability、stale/reactivation/dependency/provenance 因 eligibility 为 0 而不可评；QA PASS 不是 Extractor 效果 PASS。本工单按预定停止，不自动进入下一阶段。
 
 ## 当前 ST-02 Run-Gate checkpoint
 
