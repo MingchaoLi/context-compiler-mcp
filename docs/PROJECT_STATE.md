@@ -54,6 +54,8 @@ WO-DS-12 已在独立 re-QA 于 2026-08-23 接受为 **unscored capture integrit
 
 2026-08-23 架构同步进一步冻结 v0 边界：当前核心是 State Compilation，authoritative Active State 不参与普通 semantic relevance competition；Evidence Paging（含 PACE 类多粒度语义调页）与 Experience abstraction 仅为 Research Backlog / Extension Point。验证顺序固定为 Correctness → Context Reduction → Operational Stability；除非当前测试失败直接要求，不得把 PACE 相关机制加入 v0。该结论是 scope clarification，不是扩展实现请求。
 
+当前唯一计划工单为 WO-DS-13：不再调用模型，只对 frozen 12-slice suite 运行一次 evaluator v2，输出 provenance-bound lexical correctness 与 context cost 原始结果；同时把 36 个已接受 raw answers 生成 condition-blind 人类 review bundle、两份空白评分表与内部解盲 key。独立 QA 只能接受自动结果/盲化完整性，不能替代两名真实人类或给出 D2 优于 D1 结论。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
