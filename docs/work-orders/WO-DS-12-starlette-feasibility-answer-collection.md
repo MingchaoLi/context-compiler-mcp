@@ -1,6 +1,6 @@
 # WO-DS-12 — Starlette 首次 GPT-5.6-terra feasibility 回答收集
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT QA
+状态：ACCEPTED — UNSCORED CAPTURE INTEGRITY ONLY
 
 ## 背景
 
@@ -97,3 +97,9 @@ QA 只审核运行完整性，不评价回答语义，不知道条件也不代�
 修复以已提交 capture source Git object `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 为 mutable raw/run/hash/validator 集合之外的 trust anchor。validator 在任何当前 JSON 解析或状态计算前，使用参数化、无 shell 的 `execFile` 调用 `git cat-file`/`rev-list`，固定 source commit、父提交和两个 path，独立读取 raw/run blobs 并要求 current bytes 相同；只允许调用者提供含同一固定 commit 的只读 `anchor_repository_root`，不能注入替代 commit 或 bytes。`capture-hashes.json` 移除 validator 自证，改为明确 accepted Git-source contract、current payload hashes 与 self-attestation exclusions；run manifest 的所有顶层/nested 字段严格固定，额外 `authorization` 字段明确禁止，未评分/未授权 boundaries 保持 false/zero。
 
 聚焦测试新增两个真正隔离的协调攻击：同时修改 raw output、record response SHA、raw SHA、validator 常量与 capture hashes；以及同时修改 run purpose/status、新增 authorization、放宽 boundaries、修改 validator 常量与 capture hashes。两者均在 Git-object anchor、任何后续 JSON parse/status 之前拒绝。另独立验证固定 source lineage/blobs、validator 暴露的 code identity，以及替代 anchor repo/bytes 注入拒绝。当前仍为 implemented pending independent re-QA，不授权自动指标、人类 review bundle 或任何效果结论。
+
+## 独立 re-QA 接受（2026-08-23）
+
+独立 re-QA 在 fixed Builder candidate `3c172bb62e5e640d00d513e31ede6249ac9d5cba`（父 `f261af2ce14a4dbce361bec22c7e51174d9bace7`）通过。直接以无 shell Git object reader 重建固定 `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 的父链和 raw/run blobs；current 与 fix candidate bytes 均相同，未生成新 session 或 retry。首轮 P1 的 raw/run 全协调改写、anchor commit/path/hash、unknown、symlink、option/root 和 Git unavailable 均在 current JSON parse 前 fail-closed；capture-hashes 不再自证 validator。
+
+本接受只表示 **36 条 unscored capture 的 run integrity** 可进入下一有界步骤。下一工单才可做自动 context/cost 与 condition-blind review bundle，且仍缺两名真实人类评分；不得声明 D2 优于 D1、效果、稳健性、一般化或 provider comparison。

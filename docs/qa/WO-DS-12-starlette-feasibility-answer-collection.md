@@ -61,3 +61,30 @@ pre-run snapshot 保持 `starlette-contamination-rule/v1`、六案 source/cutoff
 - P2：1 项，handoff 最大词数为 173 的记录不准确，正确值为 176，不影响 `<=250`。
 
 本次失败不改变 WO-DS-12、PROJECT_STATE 或 ROADMAP 的 pending 状态，也不授权自动 context/cost、两名人类 blind review、任何评分或 D2-vs-D1 结论。
+
+## 独立 re-QA（首轮 P1 修复）
+
+日期：2026-08-23
+结论：**PASS — 接受 WO-DS-12 的 unscored capture run-integrity 修复。** 此接受仅覆盖 36 条已存在原始回答的固定未评分完整性；不评价任何回答，不表示已运行自动 context/cost、已完成两名 condition-blind 人类评分，或可声明 D2 优于 D1。
+
+### 固定锚点与不变 capture
+
+- Builder fix candidate：`3c172bb62e5e640d00d513e31ede6249ac9d5cba`；父提交：`f261af2ce14a4dbce361bec22c7e51174d9bace7`。开始时 `main`、HEAD、父链匹配且工作树 clean。
+- 修复 diff 只含 DS-12 文档、README、capture hash/validator 与 focused test；没有 raw/run、frozen data/protocol/input、`src/`、core、retrieval、assembler、PACE、provider、host、MCP 或 package runtime 改动。
+- 我用 Node `execFile("git", args, { shell:false })` 直接读取固定 `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` object，其唯一父为 `b99bb4fefe0284f26f00271b3c32839b0cddfd43`。raw 的 Git blob/SHA-256 为 `4964f3232de24a6e815c0068be3b7dd469a6c7e7` / `1b574d4c1843a283d088cc641523855e78135516545a264c4fe48d5e059a4910`；run-manifest 为 `442530c86e31acfe443f4871edd03cd392b0d065` / `674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0`。两文件在 18a、fix candidate 和当前 bytes 三方相同，无新 session、retry、follow-up 或第 37 条 record。
+
+### 首轮 P1 的独立回放
+
+我没有只依赖 Builder focused test。在独立临时副本中，原样协调修改 raw output、该 record response SHA、raw/current/capture SHA 及 validator raw constant/status，首先得到 `accepted_git_source.raw_responses.sha256: fixed value changed`。协调修改 run purpose/status、authorization、collection boundaries、run/current/capture SHA 及 validator constants/keys，首先得到 `accepted_git_source.run_manifest.sha256: fixed value changed`。
+
+两次失败均在 `validateAcceptedGitSource()` 读取 18a Git blob 时发生，位于任何 current JSON/JSONL parse、status 计算或评分逻辑之前。`capture-hashes.json` 已明确排除自身和 validator，不再将 validator 列为自证 hash；现行 validator code identity 由 fix candidate 和本次独立 QA 共同固定。
+
+另攻击 anchor commit、path、hash、capture-hashes unknown key、current raw symlink、`anchor_bytes` option、缺少 18a 的 anchor root 和无 `git` PATH：全部 fail-closed。无 Git 时明确报 `spawn git ENOENT`，不会退回替代 parser 或可注入 bytes。
+
+### 当前原件、检查与边界
+
+- 独立重算仍为 36 records / 36 packets / 36 recorded sessions；order、prompt/response SHA、attempt=1、`gpt-5.6-terra` non-sol / medium / `fork_turns:none`、严格 JSON/status、external observation false、unavailable metadata 全部相符；最大并发 2，最长 execution 33 为 176 词，0 Unicode format/control character。run manifest 顶层/nested identity、transport、execution/count、status、metadata、boundaries、limits 均 exact；`authorization` 显式禁止。
+- validator：PASS（`accepted_git_source_commit:18a332…`、`git_object_anchor_verified:true`）；focused 8/8 PASS；`npm test` 21 files / 376 tests PASS；`npm run test:protocol` 8/8 PASS；build、diff check PASS。
+- 隔离 npm cache 的 `npm pack --dry-run --json --ignore-scripts`：50 files，SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，包内无 `evaluation/`、`docs/`、`test/`。
+
+re-QA 新增 P0/P1/P2：**均无**；首轮 P1 已关闭，首轮 P2 的 176 词勘误保持有效。接受范围仅为 unscored capture integrity。下一工单才可运行自动 context/cost 并生成 review bundle，此后仍须 **两名真实 condition-blind 人类 reviewer** 完成评分。0 medium、单次 repetition、人工 Oracle-State upper bound 和受限公开索引继续阻止 D2 优于 D1、稳健性、一般化或 provider comparison 结论。
