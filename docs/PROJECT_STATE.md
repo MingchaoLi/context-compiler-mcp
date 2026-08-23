@@ -38,6 +38,8 @@ WO-DS-07 已在独立 Data QA 于 2026-08-23 接受，固定 source candidate �
 
 WO-DS-08 已在独立 Data QA 于 2026-08-23 接受，固定 source candidate 为 `454565b863cf7e9470e7ac8079febf2a5c0d42d9`。STR-01（Issue #495、closed-unmerged PR #500、merged PR #1692）的 18 个真实增量/slice 经 GitHub 官方 REST、PR commit/files 与 timeline 重审，机械为 long，使已审计分布为 1 short / 0 medium / 5 long。checkpoint 严格分离宽 scope-body 缓存被搁置、streaming 约束、body/form 差异、receive hang、`call_next` 窄化、endpoint-first 非目标、multi-chunk review bug、补测修正、approval、merge 与 Issue close。此次只接受 checkpoint/schema gate：仍为 checkpoint_not_frozen，未 promotion STR-06/07/01，未创建 Probe，且 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false；未授权 D0/D1/D2 或远端模型。下一步只能另开一次性 promotion STR-06/07/01 工单并申请关键节点独立对抗审查。
 
+DS-08 接受后的关键节点对抗审查记录为 `docs/adversarial-reviews/AR-2026-08-23-post-ds08-checkpoint.md`，结论为 `Agree with reservations`。主控接受其最小路径并已建立 WO-DS-09：先做六案 75 slices / 588 turns 不落盘静态 preflight，再一次性将 STR-06/07/01 以 byte-identical relocation 纳入 promotion。该工单的目标仅是 `promotion_candidate_not_frozen` 的 canonical-data freeze candidate，不是 frozen、Probe/evaluation ready 或模型运行授权。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
