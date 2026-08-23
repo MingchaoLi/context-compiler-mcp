@@ -81,3 +81,7 @@
 - 运行 validator、focused、全量、protocol、build、diff check 与隔离 production pack。
 
 即使独立 QA PASS，也只表示 36 个未评分回答的运行完整性可接受；下一工单才可生成自动 context/cost 结果和人类盲评包。两名真实人类完成 condition-blind review 前，不能给出 D2 是否优于 D1 的语义结论。
+
+## QA 勘误（2026-08-23）
+
+独立 QA 按 `validate-capture.mjs` 的实际规则（先 JSON parse，再对 `answer.trim().split(/\s+/u)` 计数）复算：最长回答为 execution 33 的 **176** 个词，而非上文 Builder 自检段的 173。176 仍不超过 `<=250` 合同；上文历史自检没有被重写，本节仅保留勘误留痕。
