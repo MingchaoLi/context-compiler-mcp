@@ -63,6 +63,37 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
+  it("atomically upgrades legacy raw schemas across independent stores, services, and stdio", async () => {
+    for (let index = 0; index < 10; index += 1) {
+      const legacyRaw = join(temporaryRoot, `legacy-raw-${index}.db`);
+      const fixtureId = `legacy-raw-${index}`;
+      createLegacyRawDatabase(legacyRaw, fixtureId);
+      expect(await runFreshDatabaseBarrier("raw_open", legacyRaw)).toEqual([
+        { type: "result", ok: true },
+        { type: "result", ok: true },
+      ]);
+      assertLegacyMigration(legacyRaw, fixtureId);
+
+      const legacyService = join(temporaryRoot, `legacy-service-${index}.db`);
+      const serviceFixtureId = `legacy-service-${index}`;
+      createLegacyRawDatabase(legacyService, serviceFixtureId);
+      const serviceResults = await runFreshDatabaseBarrier("service_health", legacyService);
+      expect(serviceResults.every((result) => result.ok &&
+        result.response?.ok && result.response.result?.ready === true)).toBe(true);
+      assertLegacyMigration(legacyService, serviceFixtureId);
+    }
+
+    for (let index = 0; index < 5; index += 1) {
+      const legacyStdio = join(temporaryRoot, `legacy-stdio-${index}.db`);
+      const fixtureId = `legacy-stdio-${index}`;
+      createLegacyRawDatabase(legacyStdio, fixtureId);
+      const stdioResults = await runFreshDatabaseBarrier("stdio_health", legacyStdio);
+      expect(stdioResults.every((result) => result.ok &&
+        result.response?.ok && result.response.result?.ready === true)).toBe(true);
+      assertLegacyMigration(legacyStdio, fixtureId);
+    }
+  });
+
   it("preserves preinitialized same-source and same-operation concurrency", async () => {
     const rawDatabase = join(temporaryRoot, "preinitialized-raw-concurrency.db");
     await runFreshDatabaseBarrier("raw_open", rawDatabase);
@@ -704,7 +735,12 @@ describe("Context Compiler stdio MCP protocol", () => {
 
 });
 
-type FreshWorkerKind = "raw_open" | "service_health" | "raw_ingest" | "service_compile";
+type FreshWorkerKind =
+  | "raw_open"
+  | "service_health"
+  | "raw_ingest"
+  | "service_compile"
+  | "stdio_health";
 
 interface FreshWorkerResult {
   type: "result";
@@ -751,6 +787,105 @@ async function runFreshDatabaseBarrier(
   const results = await Promise.all(tasks.map(({ result }) => result));
   await Promise.all(tasks.map(({ exited }) => exited));
   return results;
+}
+
+function createLegacyRawDatabase(database: string, fixtureId: string): void {
+  const direct = new DatabaseSync(database);
+  try {
+    direct.exec(`
+      CREATE TABLE sessions (
+        id TEXT PRIMARY KEY,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE raw_events (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL REFERENCES sessions(id),
+        seq INTEGER NOT NULL,
+        source_event_id TEXT,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        token_count INTEGER NOT NULL,
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        UNIQUE (session_id, seq),
+        UNIQUE (session_id, source_event_id)
+      );
+    `);
+    direct.prepare("INSERT INTO sessions (id, created_at) VALUES (?, ?)")
+      .run(fixtureId, "2026-08-24T00:00:00.000Z");
+    direct.prepare(`
+      INSERT INTO raw_events (
+        id, session_id, seq, source_event_id, role, content,
+        event_type, created_at, token_count, metadata_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      `${fixtureId}-event`, fixtureId, 1, `${fixtureId}-source`, "user", "preserve bytes",
+      "message", "2026-08-24T00:00:00.000Z", 3, '{"legacy":true}'
+    );
+  } finally {
+    direct.close();
+  }
+}
+
+function assertLegacyMigration(database: string, fixtureId: string): void {
+  const audit = new DatabaseSync(database);
+  try {
+    const columns = audit.prepare("PRAGMA table_info(raw_events)").all() as Array<{
+      cid: number;
+      name: string;
+      type: string;
+      notnull: number;
+      dflt_value: string | null;
+      pk: number;
+    }>;
+    expect(columns.filter(({ name }) => name === "dense_embedding_json")).toEqual([{
+      cid: 10,
+      name: "dense_embedding_json",
+      type: "TEXT",
+      notnull: 0,
+      dflt_value: null,
+      pk: 0,
+    }]);
+    expect(audit.prepare(`
+      SELECT id, session_id, seq, source_event_id, role, content,
+             event_type, created_at, token_count, metadata_json, dense_embedding_json
+      FROM raw_events
+    `).all()).toEqual([{
+      id: `${fixtureId}-event`,
+      session_id: fixtureId,
+      seq: 1,
+      source_event_id: `${fixtureId}-source`,
+      role: "user",
+      content: "preserve bytes",
+      event_type: "message",
+      created_at: "2026-08-24T00:00:00.000Z",
+      token_count: 3,
+      metadata_json: '{"legacy":true}',
+      dense_embedding_json: null,
+    }]);
+    expect(audit.prepare(`
+      SELECT name FROM sqlite_master
+      WHERE type = 'trigger' AND tbl_name = 'raw_events'
+      ORDER BY name
+    `).all()).toEqual([
+      { name: "raw_events_prevent_delete" },
+      { name: "raw_events_prevent_update" },
+    ]);
+    expect(audit.prepare(`
+      SELECT session_id, seq, kind, source_key, raw_event_ids_json
+      FROM experience_ledger
+      ORDER BY seq
+    `).all()).toEqual([{
+      session_id: fixtureId,
+      seq: 1,
+      kind: "EVENT",
+      source_key: `raw-event/${fixtureId}-event`,
+      raw_event_ids_json: `["${fixtureId}-event"]`,
+    }]);
+  } finally {
+    audit.close();
+  }
 }
 
 function emptyDelta() {

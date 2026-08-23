@@ -7,6 +7,7 @@ parentPort.postMessage({ type: "ready" });
 Atomics.wait(barrier, 0, 0);
 
 let store;
+let client;
 try {
   const library = await import(pathToFileURL(join(workerData.root, "dist", "index.js")).href);
   if (workerData.kind === "raw_open") {
@@ -40,6 +41,30 @@ try {
         operation_id: "same-operation",
       }),
     });
+  } else if (workerData.kind === "stdio_health") {
+    const [{ Client }, { StdioClientTransport }] = await Promise.all([
+      import("@modelcontextprotocol/sdk/client/index.js"),
+      import("@modelcontextprotocol/sdk/client/stdio.js"),
+    ]);
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [join(workerData.root, "dist", "mcp-server.js")],
+      cwd: workerData.root,
+      env: { CONTEXT_COMPILER_DB_PATH: workerData.database },
+      stderr: "pipe",
+    });
+    client = new Client({ name: "legacy-startup-worker", version: "1.0.0" });
+    await client.connect(transport);
+    const response = await client.callTool({ name: "health", arguments: {} });
+    const content = response.content;
+    if (!Array.isArray(content) || content.length !== 1 || content[0]?.type !== "text") {
+      throw new Error("Expected one JSON text content item");
+    }
+    parentPort.postMessage({
+      type: "result",
+      ok: true,
+      response: JSON.parse(content[0].text),
+    });
   } else {
     throw new Error(`Unknown worker kind ${workerData.kind}`);
   }
@@ -54,6 +79,11 @@ try {
     },
   });
 } finally {
+  try {
+    await client?.close();
+  } catch {
+    // The result already records the constructor/operation outcome.
+  }
   try {
     store?.close();
   } catch {

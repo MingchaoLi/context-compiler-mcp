@@ -215,46 +215,53 @@ interface DatabaseRow extends Record<string, unknown> {
 }
 
 function migrate(database: DatabaseSync): void {
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      id TEXT PRIMARY KEY CHECK (length(id) > 0),
-      created_at TEXT NOT NULL
-    );
+  database.exec("BEGIN IMMEDIATE;");
+  try {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY CHECK (length(id) > 0),
+        created_at TEXT NOT NULL
+      );
 
-    CREATE TABLE IF NOT EXISTS raw_events (
-      id TEXT PRIMARY KEY,
-      session_id TEXT NOT NULL REFERENCES sessions(id),
-      seq INTEGER NOT NULL CHECK (seq > 0),
-      source_event_id TEXT,
-      role TEXT NOT NULL CHECK (role IN ('system', 'user', 'assistant', 'tool')),
-      content TEXT NOT NULL,
-      event_type TEXT NOT NULL CHECK (length(event_type) > 0),
-      created_at TEXT NOT NULL,
-      token_count INTEGER NOT NULL CHECK (token_count >= 0),
-      metadata_json TEXT NOT NULL DEFAULT '{}',
-      dense_embedding_json TEXT,
-      UNIQUE (session_id, seq),
-      UNIQUE (session_id, source_event_id)
-    );
+      CREATE TABLE IF NOT EXISTS raw_events (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL REFERENCES sessions(id),
+        seq INTEGER NOT NULL CHECK (seq > 0),
+        source_event_id TEXT,
+        role TEXT NOT NULL CHECK (role IN ('system', 'user', 'assistant', 'tool')),
+        content TEXT NOT NULL,
+        event_type TEXT NOT NULL CHECK (length(event_type) > 0),
+        created_at TEXT NOT NULL,
+        token_count INTEGER NOT NULL CHECK (token_count >= 0),
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        dense_embedding_json TEXT,
+        UNIQUE (session_id, seq),
+        UNIQUE (session_id, source_event_id)
+      );
 
-    CREATE INDEX IF NOT EXISTS idx_raw_events_session_seq
-      ON raw_events(session_id, seq);
+      CREATE INDEX IF NOT EXISTS idx_raw_events_session_seq
+        ON raw_events(session_id, seq);
 
-    CREATE TRIGGER IF NOT EXISTS raw_events_prevent_update
-    BEFORE UPDATE ON raw_events
-    BEGIN
-      SELECT RAISE(ABORT, 'raw_events is append-only');
-    END;
+      CREATE TRIGGER IF NOT EXISTS raw_events_prevent_update
+      BEFORE UPDATE ON raw_events
+      BEGIN
+        SELECT RAISE(ABORT, 'raw_events is append-only');
+      END;
 
-    CREATE TRIGGER IF NOT EXISTS raw_events_prevent_delete
-    BEFORE DELETE ON raw_events
-    BEGIN
-      SELECT RAISE(ABORT, 'raw_events is append-only');
-    END;
-  `);
-  const columns = database.prepare("PRAGMA table_info(raw_events)").all() as Array<{ name: string }>;
-  if (!columns.some((column) => column.name === "dense_embedding_json")) {
-    database.exec("ALTER TABLE raw_events ADD COLUMN dense_embedding_json TEXT;");
+      CREATE TRIGGER IF NOT EXISTS raw_events_prevent_delete
+      BEFORE DELETE ON raw_events
+      BEGIN
+        SELECT RAISE(ABORT, 'raw_events is append-only');
+      END;
+    `);
+    const columns = database.prepare("PRAGMA table_info(raw_events)").all() as Array<{ name: string }>;
+    if (!columns.some((column) => column.name === "dense_embedding_json")) {
+      database.exec("ALTER TABLE raw_events ADD COLUMN dense_embedding_json TEXT;");
+    }
+    database.exec("COMMIT;");
+  } catch (error) {
+    rollback(database);
+    throw error;
   }
 }
 
