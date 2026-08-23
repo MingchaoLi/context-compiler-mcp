@@ -1,0 +1,38 @@
+{
+  "schema_version": "starlette-source-reaudit/v1",
+  "repository": "Kludex/starlette",
+  "evidence_cutoff_at": "2026-08-23T03:00:00Z",
+  "observed_at": "2026-08-23T04:20:54Z",
+  "checks": ["database_id", "node_id", "actor", "occurred_at", "content_sha256"],
+  "cases": [
+    {
+      "case_id": "STR-08",
+      "event_ids_verified": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "review_submitted_at_event_ids": [],
+      "state_canonical_hash_event_ids": [],
+      "semantic_payload_change_required": false
+    },
+    {
+      "case_id": "STR-05",
+      "event_ids_verified": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"],
+      "review_submitted_at_event_ids": ["STR-05/E8"],
+      "state_canonical_hash_event_ids": [],
+      "semantic_payload_change_required": false
+    },
+    {
+      "case_id": "STR-04",
+      "event_ids_verified": ["STR-04/E1", "STR-04/E2", "STR-04/E3", "STR-04/E4", "STR-04/E5", "STR-04/E6", "STR-04/E7", "STR-04/E8", "STR-04/E9", "STR-04/E10", "STR-04/E11", "STR-04/E12", "STR-04/E13", "STR-04/E14", "STR-04/E15", "STR-04/E16", "STR-04/E17", "STR-04/E18"],
+      "review_submitted_at_event_ids": ["STR-04/E6", "STR-04/E12"],
+      "state_canonical_hash_event_ids": ["STR-04/E9", "STR-04/E13", "STR-04/E15"],
+      "semantic_payload_change_required": false
+    }
+  ],
+  "summary": {
+    "source_count": 31,
+    "exact_match_count": 31,
+    "review_updated_at_unavailable_count": 3,
+    "state_canonical_hash_count": 3,
+    "semantic_payload_change_count": 0
+  },
+  "limitations": "GitHub REST review objects do not expose updated_at. For the three review events, submitted_at, database_id, node_id, actor, and body SHA-256 matched; accepted source_updated_at already equals submitted_at. Mutable Issue/PR bodies also matched their accepted observed body hash and updated_at, but those bodies remain current observations rather than immutable creation-time snapshots."
+}

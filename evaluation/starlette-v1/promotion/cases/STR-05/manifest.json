@@ -1,0 +1,55 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-05",
+  "title": "StaticFiles symlink support: merge, security reversal, and opt-in redesign",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "long",
+  "pilot_status": "pilot_not_frozen",
+  "segments": [
+    {
+      "id": "STR-05",
+      "classification": "long",
+      "boundary": "independent",
+      "event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"],
+      "information_increment_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"],
+      "slice_ids": ["STR-05/T1", "STR-05/T2", "STR-05/T3", "STR-05/T4", "STR-05/T5", "STR-05/T6", "STR-05/T7", "STR-05/T8", "STR-05/T9"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "The second pull request explicitly follows the reverted first attempt, while issue comments preserve the same user need and add the security constraint that changes the accepted design to opt-in.",
+    "falsification": "Split the case if the first reversion is shown to be unrelated to following symlinks outside the configured directory."
+  },
+  "included_source_ids": [
+    "gh:issue:1083",
+    "gh:pr:1377",
+    "gh:issue-comment:1140290440",
+    "gh:issue-comment:1151958979",
+    "gh:pr:1683",
+    "gh:issue-comment:1197342293",
+    "gh:issue-comment:1346141751",
+    "gh:pr-review:1213285678",
+    "gh:pr-comment:1416742982"
+  ],
+  "excluded_sources": [
+    {
+      "source_id": "gh:issue-comment:761749976",
+      "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-761749976",
+      "reason": "The long-lived subclass workaround was edited after later security discussion; its current body cannot be assigned safely to its original timestamp."
+    },
+    {
+      "source_id": "gh:issue-comment:1152179332",
+      "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-1152179332",
+      "reason": "This comment only links an incident report; the durable security constraint is represented by a later direct maintainer statement."
+    },
+    {
+      "source_id": "gh:issue-comments:2023-bazel-workarounds",
+      "url": "https://github.com/Kludex/starlette/issues/1083",
+      "reason": "Bazel confirmations strengthen demand but do not change the design state or the opt-in constraint."
+    }
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "PR bodies are mutable and GitHub's standard API does not expose their full historical text. Summaries use stable purpose statements and are cross-checked against immutable merge commits kept only as Outcome Anchors."
+}

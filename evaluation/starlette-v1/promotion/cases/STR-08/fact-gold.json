@@ -1,0 +1,66 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "facts": [
+    {
+      "id": "STR-08/F1",
+      "segment_id": "STR-08",
+      "category": "open_question",
+      "statement": "How TestClient should activate application lifespan for request tests is still unknown.",
+      "first_known_at_event_id": "STR-08/E1",
+      "superseded_at_event_id": "STR-08/E4",
+      "provenance_event_ids": ["STR-08/E1"]
+    },
+    {
+      "id": "STR-08/F2",
+      "segment_id": "STR-08",
+      "category": "constraint",
+      "statement": "Async resources used by the app must be initialized on the same event loop as the TestClient application.",
+      "first_known_at_event_id": "STR-08/E2",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": ["STR-08/E2"]
+    },
+    {
+      "id": "STR-08/F3",
+      "segment_id": "STR-08",
+      "category": "decision",
+      "statement": "A manual blocking-portal lifespan dispatch is the current prototype under investigation.",
+      "first_known_at_event_id": "STR-08/E3",
+      "superseded_at_event_id": "STR-08/E4",
+      "provenance_event_ids": ["STR-08/E3"]
+    },
+    {
+      "id": "STR-08/F4",
+      "segment_id": "STR-08",
+      "category": "decision",
+      "statement": "Use TestClient as a context manager to activate startup and shutdown.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": ["STR-08/E4"]
+    },
+    {
+      "id": "STR-08/F5",
+      "segment_id": "STR-08",
+      "category": "rejected_alternative",
+      "statement": "Adding manual lifespan dispatch to TestClient internals is unnecessary for this use case.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": ["STR-08/E3", "STR-08/E4"]
+    },
+    {
+      "id": "STR-08/F6",
+      "segment_id": "STR-08",
+      "category": "resolved_issue",
+      "statement": "The reported lifespan need is resolved by existing behavior rather than a new patch.",
+      "first_known_at_event_id": "STR-08/E4",
+      "superseded_at_event_id": null,
+      "provenance_event_ids": ["STR-08/E4"]
+    }
+  ],
+  "slices": [
+    {"slice_id": "STR-08/T1", "fact_ids": ["STR-08/F1"]},
+    {"slice_id": "STR-08/T2", "fact_ids": ["STR-08/F1", "STR-08/F2"]},
+    {"slice_id": "STR-08/T3", "fact_ids": ["STR-08/F1", "STR-08/F2", "STR-08/F3"]},
+    {"slice_id": "STR-08/T4", "fact_ids": ["STR-08/F2", "STR-08/F4", "STR-08/F5", "STR-08/F6"]}
+  ]
+}

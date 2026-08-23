@@ -152,10 +152,10 @@ async function loadAcceptedSmokeCases(root) {
   return byId;
 }
 
-async function assembleWiringSmoke(root) {
+async function assembleWiringSmoke(root, verifiedBundles) {
   const targetRoot = resolve(root);
   const plan = validateCollectionPlan(await readJson(join(targetRoot, "collection-plan.json")));
-  const bundles = await loadAcceptedSmokeCases(targetRoot);
+  const bundles = verifiedBundles ?? await loadAcceptedSmokeCases(targetRoot);
   const cases = [];
   for (const caseId of plan.smoke_case_ids) {
     const bundle = bundles.get(caseId);
@@ -172,4 +172,13 @@ async function assembleWiringSmoke(root) {
 
 export async function buildWiringSmoke(root) {
   return assembleWiringSmoke(root);
+}
+
+export async function buildWiringSmokeFromVerifiedBundles(root, bundles) {
+  if (!(bundles instanceof Map)) fail("verified bundles must be a Map");
+  const keys = [...bundles.keys()];
+  if (!isDeepStrictEqual(keys, EXPECTED_COLLECTION_PLAN.smoke_case_ids)) {
+    fail("verified bundle order differs from the smoke case contract");
+  }
+  return assembleWiringSmoke(root, bundles);
 }

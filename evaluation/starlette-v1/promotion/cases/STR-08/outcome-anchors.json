@@ -1,0 +1,16 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "anchors": [
+    {
+      "id": "STR-08/O1",
+      "segment_id": "STR-08",
+      "kind": "issue_closed",
+      "source": {"source_id": "gh:issue-close:1298", "kind": "issue_state_event", "repository": "Kludex/starlette", "number": 1298, "database_id": null, "node_id": "CE_lADOCELT_M48f_eQzwAAAAFCm5lt", "url": "https://github.com/Kludex/starlette/issues/1298", "commit_sha": null},
+      "occurred_at": "2021-10-05T17:54:40Z",
+      "summary": "The reporter closed the issue after confirming the existing TestClient context-manager behavior.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/issues/1298#issuecomment-934634591"],
+      "limitations": "There is no new patch or regression test; this anchor supports a no-change design resolution only."
+    }
+  ]
+}

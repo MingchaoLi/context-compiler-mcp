@@ -45,3 +45,16 @@ node evaluation/starlette-v1/validate-pilot.mjs --canary
 `collection-plan.json` 预注册正式六案 STR-07/08/05/06/01/04，禁止按任何试运行结果换案；其中的 tier 只是预计或已审计但未冻结状态，不是配额。`wiring-smoke.mjs` 只使用已接受的 STR-08/05/04，把 31 个 slice 映射成 evaluator v2 parser 可消费的内存输入；`validate-wiring-smoke.ts` 直接静态导入真实 evaluator v2 parser 和版本常量，不允许调用方注入替代 parser。
 
 冒烟不会调用 `runEvaluationSuiteV2` 或远端模型，也不会输出 token、retention、latency、aggregate 或 PASS rate。它只验证集合索引、字段白名单、时间前缀、Oracle provenance 和既有 evaluator v2 版本合同；不能作为正式 freeze 或 D2 效果证据。
+
+## DS-05 三案 promotion audit
+
+`promotion/` 固定全六案共同 `evidence_cutoff_at=2026-08-23T03:00:00Z`，并将已接受的 STR-08/05/04 共 21 个文件以 byte-identical relocation 复制为 promotion candidate。旧 pilot/canary 文件与 hash 保持不变；新 collection 只表达 `promotion_candidate_not_frozen` / `promoted_not_frozen`，并明确禁止 evaluation/model run。
+
+版本化 contamination snapshot 使用同一规则覆盖六案全部 source number，`scan_observed_at` 与 evidence cutoff 独立；GitHub code search 的认证限制被保留，因此 `no_public_hit_found` 不是 absence proof。source re-audit 复核三案 31 个来源，3 个 PR review 只能以 `submitted_at` 与内容 hash 代替不可用的 `updated_at`，没有发现需要修改语义 payload 的反证。
+
+```bash
+node evaluation/starlette-v1/validate-promotion.mjs
+npx vitest run test/starlette-promotion.test.ts
+```
+
+promotion 接线仍为 31 slices / 226 projected turns，并由真实 evaluator v2 parser 验证。独立 QA PASS 前该候选不接受；即使通过，也不表示六案 frozen、Probe/答案评价完成或可运行远端模型。

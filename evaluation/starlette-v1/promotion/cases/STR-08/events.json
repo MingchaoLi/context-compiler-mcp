@@ -1,0 +1,94 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "events": [
+    {
+      "id": "STR-08/E1",
+      "segment_id": "STR-08",
+      "ordinal": 1,
+      "role": "user",
+      "event_type": "issue_body",
+      "source": {
+        "source_id": "gh:issue:1298",
+        "kind": "issue",
+        "repository": "Kludex/starlette",
+        "number": 1298,
+        "database_id": "1015019408",
+        "node_id": "I_kwDOCELT_M48f_eQ",
+        "url": "https://github.com/Kludex/starlette/issues/1298",
+        "commit_sha": null
+      },
+      "occurred_at": "2021-10-04T10:48:05Z",
+      "source_updated_at": "2021-12-18T10:22:53Z",
+      "actor": "Kolumbs",
+      "summary": "The issue opens with the report that TestClient does not trigger startup or shutdown events; its later-edited body is not treated as a creation-time snapshot.",
+      "source_content_sha256": "a07cb71516117f53fc386bcdb6d8a04466acc31399f76d4eda364cc73d7db5be"
+    },
+    {
+      "id": "STR-08/E2",
+      "segment_id": "STR-08",
+      "ordinal": 2,
+      "role": "user",
+      "event_type": "issue_comment",
+      "source": {
+        "source_id": "gh:issue-comment:933533925",
+        "kind": "issue_comment",
+        "repository": "Kludex/starlette",
+        "number": 1298,
+        "database_id": "933533925",
+        "node_id": "IC_kwDOCELT_M43pJjl",
+        "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-933533925",
+        "commit_sha": null
+      },
+      "occurred_at": "2021-10-04T14:18:58Z",
+      "source_updated_at": "2021-10-04T14:18:58Z",
+      "actor": "Kolumbs",
+      "summary": "The reporter confirms that async setup executed outside TestClient uses a different event loop, so a fixture alone does not make resources share the application's loop.",
+      "source_content_sha256": "84e4512bd37a5a964aad078d07b40ab33c86c85a4647384ee408a76771431da5"
+    },
+    {
+      "id": "STR-08/E3",
+      "segment_id": "STR-08",
+      "ordinal": 3,
+      "role": "user",
+      "event_type": "issue_comment",
+      "source": {
+        "source_id": "gh:issue-comment:934095314",
+        "kind": "issue_comment",
+        "repository": "Kludex/starlette",
+        "number": 1298,
+        "database_id": "934095314",
+        "node_id": "IC_kwDOCELT_M43rSnS",
+        "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934095314",
+        "commit_sha": null
+      },
+      "occurred_at": "2021-10-05T06:06:45Z",
+      "source_updated_at": "2021-10-05T06:06:45Z",
+      "actor": "Kolumbs",
+      "summary": "The reporter prototypes manually sending lifespan messages through TestClient's blocking portal to force startup and shutdown in the client loop.",
+      "source_content_sha256": "be433d73ca8efb32ed161b3f4f96194e6ab1351953a413ec052476e3e0b7cb89"
+    },
+    {
+      "id": "STR-08/E4",
+      "segment_id": "STR-08",
+      "ordinal": 4,
+      "role": "user",
+      "event_type": "issue_comment",
+      "source": {
+        "source_id": "gh:issue-comment:934634591",
+        "kind": "issue_comment",
+        "repository": "Kludex/starlette",
+        "number": 1298,
+        "database_id": "934634591",
+        "node_id": "IC_kwDOCELT_M43tWRf",
+        "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934634591",
+        "commit_sha": null
+      },
+      "occurred_at": "2021-10-05T17:54:40Z",
+      "source_updated_at": "2021-10-05T17:54:40Z",
+      "actor": "Kolumbs",
+      "summary": "After reading TestClient, the reporter finds that using it as a context manager already runs startup and shutdown and therefore closes the request without a code change.",
+      "source_content_sha256": "81aea6341efffa69b93ed0b3fd0aee39a957820bf7e8305312b6f0c4376c2554"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "starlette-promotion/v1",
+  "collection_id": "starlette-v1",
+  "status": "promotion_candidate_not_frozen",
+  "evidence_cutoff_at": "2026-08-23T03:00:00Z",
+  "registered_case_ids": ["STR-07", "STR-08", "STR-05", "STR-06", "STR-01", "STR-04"],
+  "promoted_case_ids": ["STR-08", "STR-05", "STR-04"],
+  "remaining_case_ids": ["STR-07", "STR-06", "STR-01"],
+  "contamination_rule_version": "starlette-contamination-rule/v1",
+  "contamination_snapshot": {
+    "path": "promotion/contamination-snapshot.json",
+    "sha256": "02361a573d0bcab37c0e617ddc4e5feb0cb44b93174d6ea029ae94c622527eb1"
+  },
+  "source_reaudit": {
+    "path": "promotion/source-reaudit.json",
+    "sha256": "4565223f779839a6240bb3f1497e911090ff2aa0f285f96133facd08271b09d4"
+  },
+  "promotion_diff": {
+    "path": "promotion/promotion-diff.json",
+    "sha256": "297dd49b77553aa52bf8661fd1093f90fa1ef9aa4d1da1ac9c3803f1b1727bf9"
+  },
+  "cases": [
+    {
+      "case_id": "STR-08",
+      "accepted_path": "pilot/STR-08",
+      "accepted_status": "pilot_not_frozen",
+      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+      "promotion_path": "promotion/cases/STR-08",
+      "promotion_status": "promoted_not_frozen"
+    },
+    {
+      "case_id": "STR-05",
+      "accepted_path": "pilot/STR-05",
+      "accepted_status": "pilot_not_frozen",
+      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+      "promotion_path": "promotion/cases/STR-05",
+      "promotion_status": "promoted_not_frozen"
+    },
+    {
+      "case_id": "STR-04",
+      "accepted_path": "canary/STR-04",
+      "accepted_status": "canary_not_frozen",
+      "accepted_candidate_commit": "32600eb6b7caf3fbe339e1103d3293f0b7e33103",
+      "promotion_path": "promotion/cases/STR-04",
+      "promotion_status": "promoted_not_frozen"
+    }
+  ],
+  "evaluation_ready": false,
+  "model_run_authorized": false
+}

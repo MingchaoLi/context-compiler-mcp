@@ -1,0 +1,27 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-04",
+  "anchors": [
+    {
+      "id": "STR-04/O1", "segment_id": "STR-04", "kind": "regression_test",
+      "source": {"source_id": "gh:commit:aec580f8491cd87fde4d02614d0e9893df07796e", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 1649, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/aec580f8491cd87fde4d02614d0e9893df07796e", "commit_sha": "aec580f8491cd87fde4d02614d0e9893df07796e"},
+      "occurred_at": "2022-09-03T17:44:42Z", "summary": "A dedicated test commit documents the behavior of Mount middleware.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/1649", "https://github.com/Kludex/starlette/commit/aec580f8491cd87fde4d02614d0e9893df07796e"],
+      "limitations": "This test anchors the narrower Mount capability and its behavior; it does not prove the global APM route-name requirement is solved."
+    },
+    {
+      "id": "STR-04/O2", "segment_id": "STR-04", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:1649", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 1649, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/ef34ece46e0572852e63a76b32b11cd4aed457de", "commit_sha": "ef34ece46e0572852e63a76b32b11cd4aed457de"},
+      "occurred_at": "2022-09-21T19:02:41Z", "summary": "Mount middleware is merged into Starlette.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/1649", "https://github.com/Kludex/starlette/commit/ef34ece46e0572852e63a76b32b11cd4aed457de"],
+      "limitations": "The subsequent scope challenge and reopen show that this merge is partial capability, not final resolution of issue 685."
+    },
+    {
+      "id": "STR-04/O3", "segment_id": "STR-04", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:2349", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 2349, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/164b35021654107cea51ce0a66191f7691855cbe", "commit_sha": "164b35021654107cea51ce0a66191f7691855cbe"},
+      "occurred_at": "2023-12-01T10:35:15Z", "summary": "Middleware support for Route and WebSocketRoute is merged.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/2349", "https://github.com/Kludex/starlette/commit/164b35021654107cea51ce0a66191f7691855cbe"],
+      "limitations": "Issue 685 remained open at the 2026-08-23 source audit. This merge is an outcome anchor for another partial capability, not evidence that the original global low-touch instrumentation need was resolved."
+    }
+  ]
+}

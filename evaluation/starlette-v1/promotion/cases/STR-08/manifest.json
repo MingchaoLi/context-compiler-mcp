@@ -1,0 +1,50 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "title": "TestClient lifespan: an existing context-manager path supersedes a manual lifecycle hack",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "short",
+  "pilot_status": "pilot_not_frozen",
+  "segments": [
+    {
+      "id": "STR-08",
+      "classification": "short",
+      "boundary": "independent",
+      "event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "information_increment_event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "slice_ids": ["STR-08/T1", "STR-08/T2", "STR-08/T3", "STR-08/T4"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "All four increments concern how the same TestClient instance should activate lifespan for request tests, ending when the reporter finds the existing context-manager behavior.",
+    "falsification": "Split the case if an audited source shows that the manual portal prototype addressed a different lifecycle problem than the context-manager discovery."
+  },
+  "included_source_ids": [
+    "gh:issue:1298",
+    "gh:issue-comment:933533925",
+    "gh:issue-comment:934095314",
+    "gh:issue-comment:934634591"
+  ],
+  "excluded_sources": [
+    {
+      "source_id": "gh:issue-comment:933374835",
+      "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-933374835",
+      "reason": "A maintainer asks about fixture scope but adds no durable fact; the next included reporter comment answers the relevant loop constraint."
+    },
+    {
+      "source_id": "gh:issue-comment:934771305",
+      "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934771305",
+      "reason": "Acknowledgement after closure adds no task-relevant evidence."
+    },
+    {
+      "source_id": "gh:issue-comments:post-2021-10-05",
+      "url": "https://github.com/Kludex/starlette/issues/1298",
+      "reason": "Later documentation discussion is outside the narrowly registered lifespan-context-manager task."
+    }
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "GitHub does not expose a complete immutable edit history for issue comments through the normal API; each included body is identified by the SHA-256 observed on 2026-08-23 and its source_updated_at value."
+}

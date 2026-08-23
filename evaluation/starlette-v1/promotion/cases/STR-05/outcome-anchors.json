@@ -1,0 +1,20 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-05",
+  "anchors": [
+    {
+      "id": "STR-05/O1", "segment_id": "STR-05", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:1377", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 1377, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/d3dccdc477652b6de5a7b6b14a2bf3fa2f94be2c", "commit_sha": "d3dccdc477652b6de5a7b6b14a2bf3fa2f94be2c"},
+      "occurred_at": "2022-05-28T14:17:54Z", "summary": "The first patch merged with StaticFiles implementation and test changes.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/1377", "https://github.com/Kludex/starlette/commit/d3dccdc477652b6de5a7b6b14a2bf3fa2f94be2c"],
+      "limitations": "This anchor is intentionally not treated as final success because the change was later reverted."
+    },
+    {
+      "id": "STR-05/O2", "segment_id": "STR-05", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:1683", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 1683, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/ea2e7942fcee8ed0f94ba4e12ca368f91ac8f798", "commit_sha": "ea2e7942fcee8ed0f94ba4e12ca368f91ac8f798"},
+      "occurred_at": "2023-02-04T17:22:36Z", "summary": "The redesigned opt-in behavior merged with documentation, implementation, and StaticFiles tests.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/1683", "https://github.com/Kludex/starlette/commit/ea2e7942fcee8ed0f94ba4e12ca368f91ac8f798"],
+      "limitations": "The anchor proves repository acceptance and regression coverage, not safety under every deployment's upload policy."
+    }
+  ]
+}

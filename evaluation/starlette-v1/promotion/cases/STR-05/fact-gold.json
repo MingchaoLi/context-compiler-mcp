@@ -1,0 +1,27 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-05",
+  "facts": [
+    {"id": "STR-05/F1", "segment_id": "STR-05", "category": "open_question", "statement": "Whether StaticFiles should follow symlinks remains open.", "first_known_at_event_id": "STR-05/E1", "superseded_at_event_id": "STR-05/E3", "provenance_event_ids": ["STR-05/E1"]},
+    {"id": "STR-05/F2", "segment_id": "STR-05", "category": "decision", "statement": "The first pull request attempts support for following symlinks outside the static directory.", "first_known_at_event_id": "STR-05/E2", "superseded_at_event_id": "STR-05/E4", "provenance_event_ids": ["STR-05/E2"]},
+    {"id": "STR-05/F3", "segment_id": "STR-05", "category": "resolved_issue", "statement": "Maintainers currently consider the symlink request fixed by the first merged change.", "first_known_at_event_id": "STR-05/E3", "superseded_at_event_id": "STR-05/E4", "provenance_event_ids": ["STR-05/E3"]},
+    {"id": "STR-05/F4", "segment_id": "STR-05", "category": "evidence", "statement": "The first merged fix was reverted, so its resolved status is no longer valid.", "first_known_at_event_id": "STR-05/E4", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E3", "STR-05/E4"]},
+    {"id": "STR-05/F5", "segment_id": "STR-05", "category": "open_question", "statement": "A safe replacement for the reverted symlink behavior is unresolved.", "first_known_at_event_id": "STR-05/E4", "superseded_at_event_id": "STR-05/E9", "provenance_event_ids": ["STR-05/E4"]},
+    {"id": "STR-05/F6", "segment_id": "STR-05", "category": "decision", "statement": "A second pull request is the active implementation attempt after the revert.", "first_known_at_event_id": "STR-05/E5", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E5"]},
+    {"id": "STR-05/F7", "segment_id": "STR-05", "category": "constraint", "statement": "The design must not make exposure through user-controlled symlinks an implicit default.", "first_known_at_event_id": "STR-05/E6", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E6"]},
+    {"id": "STR-05/F8", "segment_id": "STR-05", "category": "decision", "statement": "The preferred boundary is an explicit follow_symlink option whose default is false.", "first_known_at_event_id": "STR-05/E7", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E7"]},
+    {"id": "STR-05/F9", "segment_id": "STR-05", "category": "open_question", "statement": "Reviewers still require a risk and alternatives justification before accepting the second attempt.", "first_known_at_event_id": "STR-05/E8", "superseded_at_event_id": "STR-05/E9", "provenance_event_ids": ["STR-05/E8"]},
+    {"id": "STR-05/F10", "segment_id": "STR-05", "category": "rejected_alternative", "statement": "Restoring unconditional external symlink following is rejected for this redesign.", "first_known_at_event_id": "STR-05/E9", "superseded_at_event_id": null, "provenance_event_ids": ["STR-05/E6", "STR-05/E7", "STR-05/E9"]}
+  ],
+  "slices": [
+    {"slice_id": "STR-05/T1", "fact_ids": ["STR-05/F1"]},
+    {"slice_id": "STR-05/T2", "fact_ids": ["STR-05/F1", "STR-05/F2"]},
+    {"slice_id": "STR-05/T3", "fact_ids": ["STR-05/F2", "STR-05/F3"]},
+    {"slice_id": "STR-05/T4", "fact_ids": ["STR-05/F4", "STR-05/F5"]},
+    {"slice_id": "STR-05/T5", "fact_ids": ["STR-05/F4", "STR-05/F5", "STR-05/F6"]},
+    {"slice_id": "STR-05/T6", "fact_ids": ["STR-05/F4", "STR-05/F5", "STR-05/F6", "STR-05/F7"]},
+    {"slice_id": "STR-05/T7", "fact_ids": ["STR-05/F4", "STR-05/F5", "STR-05/F6", "STR-05/F7", "STR-05/F8"]},
+    {"slice_id": "STR-05/T8", "fact_ids": ["STR-05/F4", "STR-05/F5", "STR-05/F6", "STR-05/F7", "STR-05/F8", "STR-05/F9"]},
+    {"slice_id": "STR-05/T9", "fact_ids": ["STR-05/F4", "STR-05/F6", "STR-05/F7", "STR-05/F8", "STR-05/F10"]}
+  ]
+}

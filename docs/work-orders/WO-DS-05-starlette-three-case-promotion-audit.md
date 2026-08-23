@@ -1,6 +1,6 @@
 # WO-DS-05 — Starlette 三案 promotion audit 与共同 evidence cutoff
 
-状态：PLANNED — NOT IMPLEMENTED
+状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
 
 ## 背景与对抗审查处置
 
@@ -132,6 +132,12 @@ collection manifest、contamination snapshot、promotion diff 和 promotion hash
 ## Gate
 
 只有独立 QA PASS，三案 promotion audit 才接受；接受后也只允许另开 STR-06 source/Gold checkpoint，不表示全六案 frozen 或 evaluation ready。
+
+## Builder 实现结果
+
+2026-08-23 已完成待验收候选：固定共同 evidence cutoff；建立覆盖固定六案的版本化污染 snapshot；轻量复核 STR-08/05/04 共 31 个来源且未发现需要修改语义 payload 的反证；将三案 21 个 accepted 文件逐字节复制到 promotion 目录并生成可重建 diff/hash；以真实 evaluator v2 parser 复验 31 slices / 226 turns。collection 仍为 `promotion_candidate_not_frozen`，`evaluation_ready` 与 `model_run_authorized` 均为 false。
+
+Builder 自检通过 promotion 10/10、全量 293、protocol 8/8、build、diff check 和真实 50-entry npm pack 隔离。完整证据见 `docs/evaluation/starlette-v1-three-case-promotion.md` 与 `docs/handoffs/WO-DS-05-starlette-three-case-promotion-audit.md`。本结果不自行批准；等待新的独立 data QA。
 
 ## 明确不做
 
