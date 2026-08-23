@@ -1,0 +1,25 @@
+{
+  "schema_version": "state_replay_baseline_seal/v1",
+  "status": "sealed_oracle_state_feasibility_baseline_semantics_not_evaluated",
+  "sealed_at": "2026-08-23",
+  "ds13_qa_commit": "86a56fdf09e258b0dd40aaffd0f489ba3618f363",
+  "official_artifact_commit": "f721fd1159e6802d29132939c8114377f3faefa4",
+  "official_runner_commit": "a0889f0597aed9053dcc9b84026644ed94e2ed0f",
+  "result_root": "evaluation/starlette-v1/results/feasibility-01",
+  "run_root": "evaluation/starlette-v1/runs/feasibility-01",
+  "interpretation": {
+    "baseline_role": "oracle_state_feasibility_only",
+    "answer_semantic_gain": "not_evaluated",
+    "d2_superiority_claim": false,
+    "human_review_required": false,
+    "human_review_abandoned_by_user_direction": true
+  },
+  "prohibited_actions": [
+    "rerun_official_evaluator",
+    "modify_official_artifact",
+    "modify_official_capture",
+    "fill_blank_human_review_forms",
+    "wait_for_two_human_reviewers",
+    "reuse_as_state_replay_gold"
+  ]
+}

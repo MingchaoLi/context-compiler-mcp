@@ -16,15 +16,28 @@ WO-DS-13 的 `feasibility-01` 从本工单开始直接封存，只保留为 **Or
 
 > 以冻结 Starlette 真实事件子流建立最小且严格的 Gold Delta 与 Gold State Checkpoint；先在零模型调用下证明 reducer conformance，再用同一 reducer 做逐事件 Extractor replay，并只报告原始错误分布。
 
+## Gate-0 — 表达能力与选择审计
+
+任何 ST-01 实现前，先用零模型矩阵审计三个完整轨迹的 30 个事件，逐项记录：
+
+- 输入是经独立 Data QA 接受的标准化真实事件摘要，不冒充 GitHub 原始正文；
+- 事件是否产生 state change，或应为 empty-delta true negative；
+- lifecycle / provenance / relation 预期；
+- strict delta 能否表达，以及同一事件新建 item 不能立即被其他 operation 引用的限制；
+- Gold 操作由哪一句当前事件摘要支持；
+- 可能的 summary-to-Gold 近似、定义歧义与 selection bias。
+
+如果某个必要转换不能由当前 strict delta 表达，不得用 checkpoint 配合错误 Delta 来制造 100% conformance；应缩小声明、记录 `not_expressible`，或在本工单边界内先修正 Strict Delta 合同并重新走 Gate-0。
+
 ## 固定来源与事件选择
 
 来源仅使用已接受 promotion 中的三个 Starlette 轨迹；原始 `events.json` 必须与固定 Git object 一致。复制到本工单的数据只是字段受限的时间投影，不得回写 canonical promotion。
 
-- STR-08：E1、E2、E3、E4；
-- STR-07：E1、E3、E4、E6、E7、E10；
-- STR-06：E1、E4、E6、E11、E12、E15、E16。
+- STR-08：E1–E4；
+- STR-07：E1–E10；
+- STR-06：E1–E16。
 
-共 3 条轨迹、17 个按各自真实时间顺序排列的事件。跳过的原事件必须在 selection manifest 中显式记录；不得伪称这是完整历史。每个被选事件必须对应一个非空、可判定的 Gold Delta，避免用空 step 形成 vacuous pass。
+共 3 条完整轨迹、30 个按各自真实时间顺序排列的标准化事件。允许且要求预注册 empty Gold Delta：tracker close/reopen 或证据强化不必强行制造语义 state change。empty true negative 单独计数，并验证 reducer 不增加 revision、不修改 state；不得把空类别计作 state-transition 成功。
 
 ## 数据合同
 
@@ -48,8 +61,8 @@ ST-01 完全不调用模型。对每个步骤执行：
 
 并与独立冻结的 Expected State Checkpoint 精确比较。至少验证：
 
-- 17/17 Gold Delta 经现有 strict parser/schema 接受；
-- 17/17 reducer 输出与 Gold State Checkpoint 一致；
+- 30/30 Gold Delta（含预注册 empty true negative）经现有 strict parser/schema 接受；
+- 30/30 reducer 输出与 Gold State Checkpoint 一致；
 - 两次全新数据库 replay 的 canonical 输出逐字节一致；
 - 所有 runtime state 均满足 schema、唯一性、合法 lifecycle 与无 dangling relation；
 - 新建及 lifecycle transition provenance 完整，且只引用当时可用事件；
@@ -112,7 +125,7 @@ Context Reduction 只允许附带报告每步 extractor input 的原始字符/to
 
 1. Builder 提交工单、source selection、Gold、ST-01 runner/report/tests 与中文 handoff；
 2. 独立 QA 只审 ST-01。FAIL 则返回 Builder 修复，不得启动 ST-02；
-3. ST-01 QA PASS 后冻结 ST-02 run contract，再执行一次 17-step remote capture 与本地 replay；
+3. ST-01 QA PASS 后冻结 ST-02 run contract，再执行一次 30-step remote capture 与本地 replay；
 4. Builder 提交 ST-02 原始结果与中文 handoff；
 5. 独立 QA 复核 provenance、隔离、归因、算术、capture integrity、协调改写和完整回归；
 6. 关键节点对抗审查挑战 vacuous pass、gold leakage、定义歧义、evaluator 自证及是否把 extractor error 误记为 reducer error；

@@ -1,0 +1,33 @@
+{
+  "schema_version": "state_replay_transition_coverage/v1",
+  "status": "preregistered_non_vacuous_conformance_denominators",
+  "expected_counts": {
+    "event_steps": 30,
+    "non_empty_deltas": 28,
+    "empty_delta_true_negatives": 2,
+    "created_items": 35,
+    "completed_goals": 3,
+    "superseded_decisions": 6,
+    "resolved_questions": 7,
+    "rejected_alternatives": 4,
+    "relations": {
+      "DERIVED_FROM": 53,
+      "SUPERSEDES": 6,
+      "RESOLVED_BY": 3,
+      "REJECTS": 3,
+      "DEPENDS_ON": 8
+    },
+    "stale_revision_fail_closed_mutations": 1
+  },
+  "not_evaluable_as_success": [
+    "constraint_supersession",
+    "goal_supersession",
+    "open_question_defer",
+    "semantic_reactivation_operation"
+  ],
+  "notes": [
+    "Tracker close/reopen is intentionally not mapped to semantic resolution/reactivation without supporting evidence.",
+    "Wrong-reactivation evaluation has a negative-control opportunity at STR-06/E13 but the strict schema has no direct reactivation operation.",
+    "All zero-denominator categories remain not_evaluable and are excluded from the ST-01 success numerator."
+  ]
+}

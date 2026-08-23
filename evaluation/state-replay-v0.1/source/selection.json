@@ -1,0 +1,56 @@
+{
+  "schema_version": "state_replay_selection/v1",
+  "status": "preregistered_complete_three_trajectory_stream",
+  "source_git": {
+    "commit": "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
+    "parent": "f4f18b77a3bf55bc91d1958463bde2ed97aa1257",
+    "files": [
+      {
+        "path": "evaluation/starlette-v1/promotion/cases/STR-08/events.json",
+        "sha256": "63ddd24b005790b0d8d9236580a685a8bde0572d3702668e7a255b70906e2831"
+      },
+      {
+        "path": "evaluation/starlette-v1/promotion/cases/STR-07/events.json",
+        "sha256": "3997eb8605f3b666eb0bc722e15279b0e680b5ea9130fb41a244d2bcbba30111"
+      },
+      {
+        "path": "evaluation/starlette-v1/promotion/cases/STR-06/events.json",
+        "sha256": "5c6987c02ec7e22e819ca7f856a041866439bb217b734c6252a92cc367002efd"
+      }
+    ]
+  },
+  "case_order": ["STR-08", "STR-07", "STR-06"],
+  "cases": [
+    {
+      "case_id": "STR-08",
+      "selected_event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "omitted_event_ids": [],
+      "selection_reason": "完整四步短轨迹，覆盖 constraint、dependency、supersession、rejection、resolution 和 completed goal。"
+    },
+    {
+      "case_id": "STR-07",
+      "selected_event_ids": ["STR-07/E1", "STR-07/E2", "STR-07/E3", "STR-07/E4", "STR-07/E5", "STR-07/E6", "STR-07/E7", "STR-07/E8", "STR-07/E9", "STR-07/E10"],
+      "omitted_event_ids": [],
+      "selection_reason": "完整十步轨迹，保留根因调查、被否决 patch、wildcard 分支、release/docs 未决项与 dual-route 终局。"
+    },
+    {
+      "case_id": "STR-06",
+      "selected_event_ids": ["STR-06/E1", "STR-06/E2", "STR-06/E3", "STR-06/E4", "STR-06/E5", "STR-06/E6", "STR-06/E7", "STR-06/E8", "STR-06/E9", "STR-06/E10", "STR-06/E11", "STR-06/E12", "STR-06/E13", "STR-06/E14", "STR-06/E15", "STR-06/E16"],
+      "omitted_event_ids": [],
+      "selection_reason": "完整十六步非单调轨迹，明确保留首次 close、真实失败、reopen、第二次 patch 与有限验证。"
+    }
+  ],
+  "counts": {
+    "case_count": 3,
+    "selected_event_count": 30,
+    "gold_delta_count": 30,
+    "gold_checkpoint_count": 30,
+    "empty_gold_delta_count": 2,
+    "model_call_count_before_st02": 0
+  },
+  "limitations": [
+    "这不是完整 Starlette 历史或随机样本。",
+    "三个案例仍是 transition-rich 目的性样本，不能外推发生率。",
+    "旧 Oracle-State 不作为 reducer Gold；本工单 Gold 只包含 strict delta 可表达且由所选事件支持的状态。"
+  ]
+}
