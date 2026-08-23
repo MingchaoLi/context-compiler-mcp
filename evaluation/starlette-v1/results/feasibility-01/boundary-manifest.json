@@ -1,0 +1,40 @@
+{
+  "schema_version": "starlette_feasibility_result_boundary/v1",
+  "status": "automatic_diagnostic_and_blank_review_bundle_pending_independent_qa",
+  "official_run_observed_at": "2026-08-23T10:52:17.435Z",
+  "official_evaluation_run_count": 1,
+  "model_call_count": 0,
+  "semantic_score_count": 0,
+  "roots": {
+    "public_review": "public-review",
+    "internal_audit": "internal-audit"
+  },
+  "reviewer_exports": {
+    "reviewer_a": [
+      "public-review/shared",
+      "public-review/reviewer-a"
+    ],
+    "reviewer_b": [
+      "public-review/shared",
+      "public-review/reviewer-b"
+    ],
+    "adjudicator": [
+      "public-review/shared",
+      "public-review/adjudicator"
+    ]
+  },
+  "threat_model": {
+    "reviewer_repository_access_allowed": false,
+    "reviewer_raw_capture_access_allowed": false,
+    "reviewer_internal_audit_access_allowed": false,
+    "reviewer_automatic_report_access_allowed": false,
+    "reviewer_other_form_access_allowed": false,
+    "whole_public_review_directory_is_a_reviewer_export": false
+  },
+  "gates": {
+    "lexical_diagnostic_coverage": "3/12 slices, 8 probes",
+    "semantic_correctness_gate": "pending_human_review",
+    "context_reduction_interpretation": "pending_correctness_gate",
+    "operational_stability_gate": "not_evaluated_by_this_work_order"
+  }
+}

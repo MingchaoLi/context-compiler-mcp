@@ -1,0 +1,27 @@
+{
+  "schema_version": "starlette_feasibility_internal_hashes/v1",
+  "status": "internal_do_not_export_to_reviewers",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "internal-audit/review-key.json",
+      "sha256": "ccd0e48c9981a58ebdbbd1ed1069a0cecc2e7d90216a1e516c7861aca968ab41"
+    },
+    {
+      "path": "internal-audit/canonical-criteria.jsonl",
+      "sha256": "d8ace7df3005aa8a79aba4904c3b5726e273757a6fa9c7a670b5f2335aaa726d"
+    },
+    {
+      "path": "internal-audit/automatic-report.json",
+      "sha256": "e574ceb0b7d6e9bca401b34e3da26a9462e6fe3731f16ad427ece04956b7e420"
+    },
+    {
+      "path": "internal-audit/automatic-summary.json",
+      "sha256": "0d9b8bbbeca6e0ee8f4f7d0a3ba2b340756f6376fb68a867f877a38fac40635f"
+    },
+    {
+      "path": "internal-audit/latency-observation.json",
+      "sha256": "788e702120dadd47dc8578e79c9bff0a6e0cb222a21f46a16eb344e98d9fb00f"
+    }
+  ]
+}

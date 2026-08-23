@@ -60,7 +60,7 @@ Probe 只分布在 3/12 slices（STR-07/T10=3、STR-01/T18=4、STR-04/T4=1），
 
 在 `evaluation/starlette-v1/results/feasibility-01/` 生成物理隔离的两个边界：
 
-- `public-review/`：`review-items.jsonl`、`reviewer-form-a.jsonl`、`reviewer-form-b.jsonl`、`adjudication-template.jsonl`、独立 public hash 与 reviewer README；
+- `public-review/`：按 `shared/`、`reviewer-a/`、`reviewer-b/`、`adjudicator/` 四个目录物理分开；`shared/` 保存 `review-items.jsonl` 与 reviewer README，两名 reviewer 各自目录只保存自己的空白 form，adjudicator 目录只保存空白 adjudication template；另保存独立 public hash；
 - `internal-audit/`：`review-key.json`、canonical rubric/provenance mapping、`automatic-report.json`、`automatic-summary.json`、latency environment/observation 与内部 hash；
 - 根目录只放边界 manifest、validator、focused tests 与中文 README，不把 public 与 internal 复制到同一 export。
 
@@ -75,6 +75,8 @@ Probe 只分布在 3/12 slices（STR-07/T10=3、STR-01/T18=4、STR-04/T4=1），
 公开 reviewer bundle 禁止出现 `d0` / `d1` / `d2`、condition、packet id、canonical case/slice/rubric/fact/provenance id、context token、assembler/state/raw-window 等可推断条件的元数据。review order 由预注册 SHA-256 blinding domain 排序，不按答案或条件调整；reviewer 不查看 D0/D1/D2 context。
 
 Reviewer access threat model 固定为：两名 reviewer 只收到 `public-review/` 的独立导出，不具备本仓库、raw capture、packet manifest、automatic report、internal key/provenance 或另一 reviewer 表单的访问权。如果实际 reviewer 无法满足该边界，不能开始人工评分，也不能声称 condition blind。
+
+独立导出边界固定为：reviewer A 只收到 `shared/ + reviewer-a/`，reviewer B 只收到 `shared/ + reviewer-b/`，adjudicator 在两份评分返回前不收到任何解盲材料。仓库中的 `public-review/` 是生成源，不得把整个目录直接发送给任一 reviewer。
 
 ## 人工判定合同
 

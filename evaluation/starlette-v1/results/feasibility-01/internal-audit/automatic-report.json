@@ -1,0 +1,1552 @@
+{
+  "version": 2,
+  "token_estimator": "character_count_divided_by_four",
+  "case_count": 12,
+  "cases": [
+    {
+      "id": "STR-07/T4",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 340,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.041333
+        },
+        "d1": {
+          "estimated_tokens": 268,
+          "token_reduction_ratio": 0.211765,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.010125
+        },
+        "d2": {
+          "estimated_tokens": 395,
+          "token_reduction_ratio": -0.161765,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.081459
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 268,
+        "d2_estimated_tokens": 395,
+        "delta": 127,
+        "ratio": 1.473881
+      }
+    },
+    {
+      "id": "STR-07/T10",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 798,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 2,
+            "total": 2,
+            "rate": 1
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.006
+        },
+        "d1": {
+          "estimated_tokens": 251,
+          "token_reduction_ratio": 0.685464,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 0,
+            "total": 2,
+            "rate": 0
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 0,
+            "total": 1,
+            "rate": 0
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.002666
+        },
+        "d2": {
+          "estimated_tokens": 441,
+          "token_reduction_ratio": 0.447368,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 2,
+            "total": 2,
+            "rate": 1
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.249875
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 251,
+        "d2_estimated_tokens": 441,
+        "delta": 190,
+        "ratio": 1.756972
+      }
+    },
+    {
+      "id": "STR-08/T3",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 253,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.004292
+        },
+        "d1": {
+          "estimated_tokens": 179,
+          "token_reduction_ratio": 0.29249,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.002417
+        },
+        "d2": {
+          "estimated_tokens": 288,
+          "token_reduction_ratio": -0.13834,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.057333
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 179,
+        "d2_estimated_tokens": 288,
+        "delta": 109,
+        "ratio": 1.608939
+      }
+    },
+    {
+      "id": "STR-08/T4",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 327,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.003125
+        },
+        "d1": {
+          "estimated_tokens": 174,
+          "token_reduction_ratio": 0.46789,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.002417
+        },
+        "d2": {
+          "estimated_tokens": 288,
+          "token_reduction_ratio": 0.119266,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.062708
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 174,
+        "d2_estimated_tokens": 288,
+        "delta": 114,
+        "ratio": 1.655172
+      }
+    },
+    {
+      "id": "STR-05/T7",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 538,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.005333
+        },
+        "d1": {
+          "estimated_tokens": 263,
+          "token_reduction_ratio": 0.511152,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.006333
+        },
+        "d2": {
+          "estimated_tokens": 377,
+          "token_reduction_ratio": 0.299257,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.051458
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 263,
+        "d2_estimated_tokens": 377,
+        "delta": 114,
+        "ratio": 1.43346
+      }
+    },
+    {
+      "id": "STR-05/T9",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 672,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.005125
+        },
+        "d1": {
+          "estimated_tokens": 234,
+          "token_reduction_ratio": 0.651786,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.002084
+        },
+        "d2": {
+          "estimated_tokens": 356,
+          "token_reduction_ratio": 0.470238,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.062667
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 234,
+        "d2_estimated_tokens": 356,
+        "delta": 122,
+        "ratio": 1.521368
+      }
+    },
+    {
+      "id": "STR-06/T4",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 317,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.002167
+        },
+        "d1": {
+          "estimated_tokens": 244,
+          "token_reduction_ratio": 0.230284,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001334
+        },
+        "d2": {
+          "estimated_tokens": 354,
+          "token_reduction_ratio": -0.116719,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.033916
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 244,
+        "d2_estimated_tokens": 354,
+        "delta": 110,
+        "ratio": 1.45082
+      }
+    },
+    {
+      "id": "STR-06/T16",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 1197,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.005083
+        },
+        "d1": {
+          "estimated_tokens": 270,
+          "token_reduction_ratio": 0.774436,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001666
+        },
+        "d2": {
+          "estimated_tokens": 344,
+          "token_reduction_ratio": 0.712615,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.056417
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 270,
+        "d2_estimated_tokens": 344,
+        "delta": 74,
+        "ratio": 1.274074
+      }
+    },
+    {
+      "id": "STR-01/T4",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 336,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.00175
+        },
+        "d1": {
+          "estimated_tokens": 267,
+          "token_reduction_ratio": 0.205357,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001292
+        },
+        "d2": {
+          "estimated_tokens": 452,
+          "token_reduction_ratio": -0.345238,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.058209
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 267,
+        "d2_estimated_tokens": 452,
+        "delta": 185,
+        "ratio": 1.692884
+      }
+    },
+    {
+      "id": "STR-01/T18",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 1472,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 3,
+            "total": 3,
+            "rate": 1
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.004375
+        },
+        "d1": {
+          "estimated_tokens": 256,
+          "token_reduction_ratio": 0.826087,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 0,
+            "total": 3,
+            "rate": 0
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 0,
+            "total": 1,
+            "rate": 0
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001459
+        },
+        "d2": {
+          "estimated_tokens": 559,
+          "token_reduction_ratio": 0.620245,
+          "constraint_retention": {
+            "status": "evaluable",
+            "matched": 3,
+            "total": 3,
+            "rate": 1
+          },
+          "decision_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.108291
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 256,
+        "d2_estimated_tokens": 559,
+        "delta": 303,
+        "ratio": 2.183594
+      }
+    },
+    {
+      "id": "STR-04/T4",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 311,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001833
+        },
+        "d1": {
+          "estimated_tokens": 257,
+          "token_reduction_ratio": 0.173633,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "evaluable",
+            "matched": 0,
+            "total": 1,
+            "rate": 0
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001292
+        },
+        "d2": {
+          "estimated_tokens": 357,
+          "token_reduction_ratio": -0.14791,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "evaluable",
+            "matched": 1,
+            "total": 1,
+            "rate": 1
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.035459
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 257,
+        "d2_estimated_tokens": 357,
+        "delta": 100,
+        "ratio": 1.389105
+      }
+    },
+    {
+      "id": "STR-04/T18",
+      "dimensions": {
+        "d0": {
+          "estimated_tokens": 1206,
+          "token_reduction_ratio": 0,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.004542
+        },
+        "d1": {
+          "estimated_tokens": 248,
+          "token_reduction_ratio": 0.794362,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.001291
+        },
+        "d2": {
+          "estimated_tokens": 367,
+          "token_reduction_ratio": 0.695688,
+          "constraint_retention": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "decision_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "resolved_issue_reopening": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "open_question_continuity": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "recall_recovery": {
+            "status": "not_evaluable",
+            "matched": 0,
+            "total": 0,
+            "rate": null
+          },
+          "latency_ms": 0.071333
+        }
+      },
+      "d2_vs_d1_tokens": {
+        "status": "evaluable",
+        "d1_estimated_tokens": 248,
+        "d2_estimated_tokens": 367,
+        "delta": 119,
+        "ratio": 1.479839
+      }
+    }
+  ],
+  "aggregate": {
+    "d0": {
+      "estimated_tokens_total": 7767,
+      "token_reduction_ratio": 0,
+      "constraint_retention": {
+        "status": "evaluable",
+        "matched": 5,
+        "total": 5,
+        "rate": 1
+      },
+      "decision_continuity": {
+        "status": "evaluable",
+        "matched": 2,
+        "total": 2,
+        "rate": 1
+      },
+      "resolved_issue_reopening": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "open_question_continuity": {
+        "status": "evaluable",
+        "matched": 1,
+        "total": 1,
+        "rate": 1
+      },
+      "recall_recovery": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "total": 0.084958,
+        "mean": 0.00708,
+        "maximum": 0.041333
+      }
+    },
+    "d1": {
+      "estimated_tokens_total": 2911,
+      "token_reduction_ratio": 0.625209,
+      "constraint_retention": {
+        "status": "evaluable",
+        "matched": 0,
+        "total": 5,
+        "rate": 0
+      },
+      "decision_continuity": {
+        "status": "evaluable",
+        "matched": 0,
+        "total": 2,
+        "rate": 0
+      },
+      "resolved_issue_reopening": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "open_question_continuity": {
+        "status": "evaluable",
+        "matched": 0,
+        "total": 1,
+        "rate": 0
+      },
+      "recall_recovery": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "total": 0.034376,
+        "mean": 0.002865,
+        "maximum": 0.010125
+      }
+    },
+    "d2": {
+      "estimated_tokens_total": 4578,
+      "token_reduction_ratio": 0.410583,
+      "constraint_retention": {
+        "status": "evaluable",
+        "matched": 5,
+        "total": 5,
+        "rate": 1
+      },
+      "decision_continuity": {
+        "status": "evaluable",
+        "matched": 2,
+        "total": 2,
+        "rate": 1
+      },
+      "resolved_issue_reopening": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "open_question_continuity": {
+        "status": "evaluable",
+        "matched": 1,
+        "total": 1,
+        "rate": 1
+      },
+      "recall_recovery": {
+        "status": "not_evaluable",
+        "matched": 0,
+        "total": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "total": 0.929125,
+        "mean": 0.077427,
+        "maximum": 0.249875
+      }
+    }
+  },
+  "d2_vs_d1_tokens": {
+    "status": "evaluable",
+    "d1_estimated_tokens": 2911,
+    "d2_estimated_tokens": 4578,
+    "delta": 1667,
+    "ratio": 1.572655
+  },
+  "thresholds": {
+    "minimum_d2_token_reduction_ratio": 0,
+    "minimum_d2_constraint_retention": 0,
+    "minimum_d2_decision_continuity": 0,
+    "maximum_d2_resolved_issue_reopening": 0,
+    "minimum_d2_open_question_continuity": 0,
+    "minimum_d2_recall_recovery": 0,
+    "maximum_d2_mean_latency_ms": 0
+  },
+  "threshold_failures": [
+    "D2_RESOLVED_ISSUE_REOPENING_NOT_EVALUABLE",
+    "D2_RECALL_RECOVERY_NOT_EVALUABLE",
+    "D2_MEAN_LATENCY"
+  ],
+  "passed": false
+}

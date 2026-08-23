@@ -1,0 +1,1211 @@
+{
+  "schema_version": "starlette_feasibility_review_key/v1",
+  "status": "internal_do_not_export_to_reviewers",
+  "blinding_domains": {
+    "review_id": "starlette-v1-feasibility-review-id/v1|fixed-pre-registered-domain",
+    "review_order": "starlette-v1-feasibility-review-order/v1|fixed-pre-registered-domain",
+    "criterion_id": "starlette-v1-feasibility-criterion-id/v1|fixed-pre-registered-domain"
+  },
+  "entries": [
+    {
+      "review_id": "review_d5231519deeeaab69e63",
+      "review_order_key": "0209bebb2ca175ea943867fceb4101c5705bdc5be105d0e081dd08e0c1a84995",
+      "execution_index": 6,
+      "packet_id": "pkt_7be9a7a948e4a647d443",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T4",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "9787805a7fbbbff1c8a229474f537dc3fd3caf2284a62d37d02a48fcf5bb2af5",
+      "response_sha256": "40b61a33940a11c6cbef6c3d4f50613c3e3a713f9611c3deef0cb22a3f51146f",
+      "criteria": [
+        {
+          "criterion_id": "criterion_03745c55540d7dba",
+          "canonical_criterion_id": "STR-07/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_288eb762c6f247d9",
+          "canonical_criterion_id": "STR-07/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_71765abeda14672f",
+          "canonical_criterion_id": "STR-07/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_85ea13464649a9763ea1",
+      "review_order_key": "06cf0154d4eda81a88a34e5adafe353aa547f977a00a070e4d64f1949293404d",
+      "execution_index": 35,
+      "packet_id": "pkt_e9356d85911ac6ad95c8",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T7",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "8d28d53efc055ef927c3728ad68accf5d4e719a5f81d0dfe4d76861cc7b24c70",
+      "response_sha256": "6ec2fdf5182bdf29a697f9bf26ab5335780127e00e399e02fe0b2688c11be99a",
+      "criteria": [
+        {
+          "criterion_id": "criterion_74955335d049b7d9",
+          "canonical_criterion_id": "STR-05/T7/R1"
+        },
+        {
+          "criterion_id": "criterion_e91b44462fd0aa93",
+          "canonical_criterion_id": "STR-05/T7/R2"
+        },
+        {
+          "criterion_id": "criterion_7f851578f3e529a5",
+          "canonical_criterion_id": "STR-05/T7/R3"
+        },
+        {
+          "criterion_id": "criterion_ee71f70eaee4ab15",
+          "canonical_criterion_id": "STR-05/T7/R4"
+        },
+        {
+          "criterion_id": "criterion_e2c174f248509ce2",
+          "canonical_criterion_id": "STR-05/T7/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_df0b4f400f1458c165b3",
+      "review_order_key": "23ad5e56587f969ad54840580e7a0d4a6ea9cab1aad3f873ad946551be509ddb",
+      "execution_index": 32,
+      "packet_id": "pkt_1c4250af6c11cb19f9ea",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T4",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "3586911f059e8619fa0b39d5c1ae187291194ad85c8bee2d55c5475039f2a29e",
+      "response_sha256": "a28c79cbe4d4f857b9af01fbc4899bd3f9429f351ad73b8c293491d21be7d979",
+      "criteria": [
+        {
+          "criterion_id": "criterion_b32f53f1128062cb",
+          "canonical_criterion_id": "STR-06/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_df50fae04a9d7f6c",
+          "canonical_criterion_id": "STR-06/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_5a5758cb5504f87f",
+          "canonical_criterion_id": "STR-06/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_ecc568e9ee374d68a1ac",
+      "review_order_key": "29ee0cf6db10445dad87f7be85932fa88e7b176792acbc29f724971b6d3fbf3a",
+      "execution_index": 30,
+      "packet_id": "pkt_bace2ea12666dcd6f44a",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T18",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "e813cf55c4776ca7181e82ad113c2548189a37bcb5b04aa38f37024809fdfb36",
+      "response_sha256": "07cfc9ba80353c5991405a1823e643c196383c08bba530c17d72d0eb9bfdc650",
+      "criteria": [
+        {
+          "criterion_id": "criterion_73ec5e79814569fb",
+          "canonical_criterion_id": "STR-01/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_f7e466a29767e9a9",
+          "canonical_criterion_id": "STR-01/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_3d99462b28d52de1",
+          "canonical_criterion_id": "STR-01/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_623d3fc822aca79a",
+          "canonical_criterion_id": "STR-01/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_c6e392c2ee940ce1",
+          "canonical_criterion_id": "STR-01/T18/R5"
+        },
+        {
+          "criterion_id": "criterion_019816d68fbc6c76",
+          "canonical_criterion_id": "STR-01/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_ad1a5b4c886e6cd6",
+          "canonical_criterion_id": "STR-01/T18/X2"
+        },
+        {
+          "criterion_id": "criterion_8e4223dea9768817",
+          "canonical_criterion_id": "STR-01/T18/X3"
+        }
+      ]
+    },
+    {
+      "review_id": "review_18be3aa8867803dff28f",
+      "review_order_key": "32702f38d14008c88534c93e18af8e49cad69a0cd6481a615006139d83d776d4",
+      "execution_index": 21,
+      "packet_id": "pkt_6af2f689182996a6981e",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T9",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "cb25b9511e44bc2eb623ecdce55e4b33a49c52dc697c0d56c7c5002957ee5deb",
+      "response_sha256": "564aa46eafb0aaed032f28f0f29de2928f59721d57f3ffac0ae0d35035954c37",
+      "criteria": [
+        {
+          "criterion_id": "criterion_9c01d0b079ff0766",
+          "canonical_criterion_id": "STR-05/T9/R1"
+        },
+        {
+          "criterion_id": "criterion_0a9e9a54883fe9fa",
+          "canonical_criterion_id": "STR-05/T9/R2"
+        },
+        {
+          "criterion_id": "criterion_fd21f809b25ab581",
+          "canonical_criterion_id": "STR-05/T9/R3"
+        },
+        {
+          "criterion_id": "criterion_b6e9879db3c9d27d",
+          "canonical_criterion_id": "STR-05/T9/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_6666fac70715a4327e93",
+      "review_order_key": "374ea4d9ce405af871bf30dcd61b42a0d5d7a6e021b41f2f807c4b253c9090dc",
+      "execution_index": 8,
+      "packet_id": "pkt_6be75622df758137b784",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T3",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "e5e896f69e979e679a5deed1fc5c98b24621c6e0fede8814cd1d6336b19e061b",
+      "response_sha256": "48bd7c626330cfb9c963e2902d7c7554c0ef4ad88edaff5e428f5fb8572924b9",
+      "criteria": [
+        {
+          "criterion_id": "criterion_e05b323a2145b4a7",
+          "canonical_criterion_id": "STR-08/T3/R1"
+        },
+        {
+          "criterion_id": "criterion_48909417d54d578b",
+          "canonical_criterion_id": "STR-08/T3/R2"
+        },
+        {
+          "criterion_id": "criterion_965092d04baebcc5",
+          "canonical_criterion_id": "STR-08/T3/R3"
+        },
+        {
+          "criterion_id": "criterion_91b7af1fa66425f1",
+          "canonical_criterion_id": "STR-08/T3/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_31e2c4328f3172d23390",
+      "review_order_key": "386a18d4e97a9c62556a253bcf7d346dd3c79eb3a154b88682ed072ec8178224",
+      "execution_index": 12,
+      "packet_id": "pkt_432bd7ad5dad1c79657f",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T7",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "12aedeefdeb9db9108c1faecc325a4e318be282aec339f25c00509d4398cf14c",
+      "response_sha256": "d9f508db66b98dbe94d92b89f65e7c76c148d052209a7fcf0cba1db221bae69f",
+      "criteria": [
+        {
+          "criterion_id": "criterion_978f9f2b1d567997",
+          "canonical_criterion_id": "STR-05/T7/R1"
+        },
+        {
+          "criterion_id": "criterion_9f48d5dbdf7d28d5",
+          "canonical_criterion_id": "STR-05/T7/R2"
+        },
+        {
+          "criterion_id": "criterion_4dde40cce022773c",
+          "canonical_criterion_id": "STR-05/T7/R3"
+        },
+        {
+          "criterion_id": "criterion_c5e31afb1dd162b6",
+          "canonical_criterion_id": "STR-05/T7/R4"
+        },
+        {
+          "criterion_id": "criterion_0daee83ec5852baa",
+          "canonical_criterion_id": "STR-05/T7/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_8f4725930b940a372df4",
+      "review_order_key": "38f5543894da6ef416d2d4c3a252d2fab4ded64a560482646ff563b059e5f7bd",
+      "execution_index": 19,
+      "packet_id": "pkt_bf9128a46f10c2fc8b10",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T16",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "53c0522e08d73f9450d4ed3efd0da83935e8d844c44cb78cd6ccc311a37a09f0",
+      "response_sha256": "48044d0ecc8f619474d76dd154331e5c08eaa663488e03567be396e595b9b5a1",
+      "criteria": [
+        {
+          "criterion_id": "criterion_e987788df68ff160",
+          "canonical_criterion_id": "STR-06/T16/R1"
+        },
+        {
+          "criterion_id": "criterion_6de3eca7433e0ff4",
+          "canonical_criterion_id": "STR-06/T16/R2"
+        },
+        {
+          "criterion_id": "criterion_4805642023870e8d",
+          "canonical_criterion_id": "STR-06/T16/R3"
+        },
+        {
+          "criterion_id": "criterion_0ac21bbbdfc95348",
+          "canonical_criterion_id": "STR-06/T16/R4"
+        },
+        {
+          "criterion_id": "criterion_f92d83798d17cf21",
+          "canonical_criterion_id": "STR-06/T16/X1"
+        },
+        {
+          "criterion_id": "criterion_f597d72b59202b76",
+          "canonical_criterion_id": "STR-06/T16/X2"
+        }
+      ]
+    },
+    {
+      "review_id": "review_2b8b75773e4af906c5bf",
+      "review_order_key": "3f4d7102530f3cc9a44ad88434568e75c85030231cd77f39ef5daf3882330424",
+      "execution_index": 25,
+      "packet_id": "pkt_992e1e9f5a7c44491518",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T9",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "e7360913e12f8f3dc0e968fac9166af1ab52e67381ece903f2b301ac869c3bda",
+      "response_sha256": "1131c314fb98c6d71ab4b7638e6968e39b32b61e44483b5f2b008d8031b4c525",
+      "criteria": [
+        {
+          "criterion_id": "criterion_0b88e20124580f6b",
+          "canonical_criterion_id": "STR-05/T9/R1"
+        },
+        {
+          "criterion_id": "criterion_4801a1372abdd3b6",
+          "canonical_criterion_id": "STR-05/T9/R2"
+        },
+        {
+          "criterion_id": "criterion_c2f3c4a4273b7c72",
+          "canonical_criterion_id": "STR-05/T9/R3"
+        },
+        {
+          "criterion_id": "criterion_18b0d0af77b1c626",
+          "canonical_criterion_id": "STR-05/T9/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_04e1938081fe73a4c8ff",
+      "review_order_key": "4055a68d2976764ebeea0535d24b7db44f960594bc51f0b9ae6d89493011e551",
+      "execution_index": 33,
+      "packet_id": "pkt_487bb908d20641572afe",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T10",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "2acc96079e2a8019f9b3b88cb716a77e9cecaad41db85ac96eaada121a7066b9",
+      "response_sha256": "2a266d3e56528146b99257c60b531f732e885e8cc89f0a47974b9ccdd35ac9a4",
+      "criteria": [
+        {
+          "criterion_id": "criterion_2a088fa95f6c2341",
+          "canonical_criterion_id": "STR-07/T10/R1"
+        },
+        {
+          "criterion_id": "criterion_e622b71b22e6a27b",
+          "canonical_criterion_id": "STR-07/T10/R2"
+        },
+        {
+          "criterion_id": "criterion_3df1283a2134e615",
+          "canonical_criterion_id": "STR-07/T10/R3"
+        },
+        {
+          "criterion_id": "criterion_b7adbb2a4a702e91",
+          "canonical_criterion_id": "STR-07/T10/R4"
+        },
+        {
+          "criterion_id": "criterion_5ef6eb95d42436a3",
+          "canonical_criterion_id": "STR-07/T10/R5"
+        },
+        {
+          "criterion_id": "criterion_a87c6116f8bd9aeb",
+          "canonical_criterion_id": "STR-07/T10/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_4ce71da07eb8511c31f0",
+      "review_order_key": "43e9d9f5cd43580f2996f99bf0c91e5bc30c450b35af69c955cfb9ad2abb4cfc",
+      "execution_index": 4,
+      "packet_id": "pkt_2ca03e5e75d1c27439d4",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T4",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "5163234940fcf2df8958914feca6d49cdfe8f450d84603cb5135efe9803e99b3",
+      "response_sha256": "89b60fb99f82ee0babb9a662dada1ef9d41040be1c99c8b442d9658fecf670ee",
+      "criteria": [
+        {
+          "criterion_id": "criterion_5c4fceecf7d3bcb5",
+          "canonical_criterion_id": "STR-08/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_f89f3331c29ce14e",
+          "canonical_criterion_id": "STR-08/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_d193648b55f38f81",
+          "canonical_criterion_id": "STR-08/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_aa51b4b8de06d3ff",
+          "canonical_criterion_id": "STR-08/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_72080a073fffef426b66",
+      "review_order_key": "45f1475cf426ecc88b5fe29d82523b836f6ca3d69b759cf2d723bf843b1b7ff5",
+      "execution_index": 22,
+      "packet_id": "pkt_7757b4d55a56ba3a8b38",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T4",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "066e8fb667fe82c48d7dba3aa77e06aca36e626ae0ae4db95e4cb276e185d484",
+      "response_sha256": "069afc0c3f590935175792cc4ef89c4d621df73ea7c587cd2daeabf81cfd4131",
+      "criteria": [
+        {
+          "criterion_id": "criterion_d224bd6f5c789d18",
+          "canonical_criterion_id": "STR-08/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_760e56578c31eece",
+          "canonical_criterion_id": "STR-08/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_1582d180d4e4e9e8",
+          "canonical_criterion_id": "STR-08/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_c30a355b0ff84dcd",
+          "canonical_criterion_id": "STR-08/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_0d8ecd7a5020f1b25350",
+      "review_order_key": "4a1eafa42346537b87bf8ecb5f2ddd34abaf017e0b638586780d4a226dd44260",
+      "execution_index": 23,
+      "packet_id": "pkt_9b9a270fc18fbd181bc7",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T3",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "9c3e984eaf271ef858dd5d0b6d3db0eff9b5b620ce059114b0e4497e9d1c7adb",
+      "response_sha256": "763d14b7c099a8cf124f09461c08c16dae0f36faf63b08c4fcd0714ce465c55e",
+      "criteria": [
+        {
+          "criterion_id": "criterion_2525bcd5c84152c7",
+          "canonical_criterion_id": "STR-08/T3/R1"
+        },
+        {
+          "criterion_id": "criterion_56ae62e37d5a6c1a",
+          "canonical_criterion_id": "STR-08/T3/R2"
+        },
+        {
+          "criterion_id": "criterion_22a07315dd584e60",
+          "canonical_criterion_id": "STR-08/T3/R3"
+        },
+        {
+          "criterion_id": "criterion_7b5894c6bc25316c",
+          "canonical_criterion_id": "STR-08/T3/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_b598db0900ef51044940",
+      "review_order_key": "5c73abe59565b94001e691d725c2c3bf61feffe85f41075f483fb9399b212767",
+      "execution_index": 2,
+      "packet_id": "pkt_3455825acce5478084c2",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T16",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "ebf45a0902a122d0b6188478b562fc17ceed0948f15e9cb3b787d02e438dc2a8",
+      "response_sha256": "ea5e02187a6036443ccc1bdaf2d45116d60e3910f721d435d932dc409fc759f3",
+      "criteria": [
+        {
+          "criterion_id": "criterion_b2b677591b98ac63",
+          "canonical_criterion_id": "STR-06/T16/R1"
+        },
+        {
+          "criterion_id": "criterion_9f3279388d2e0690",
+          "canonical_criterion_id": "STR-06/T16/R2"
+        },
+        {
+          "criterion_id": "criterion_3b23fffeabcb58c7",
+          "canonical_criterion_id": "STR-06/T16/R3"
+        },
+        {
+          "criterion_id": "criterion_75b39efb993ab425",
+          "canonical_criterion_id": "STR-06/T16/R4"
+        },
+        {
+          "criterion_id": "criterion_b817be5aacd788bd",
+          "canonical_criterion_id": "STR-06/T16/X1"
+        },
+        {
+          "criterion_id": "criterion_0ae78a68c5ed2285",
+          "canonical_criterion_id": "STR-06/T16/X2"
+        }
+      ]
+    },
+    {
+      "review_id": "review_9b7a58448abef5565d36",
+      "review_order_key": "67bad013eb559e9181b12c9f216f173855c59effc5096b97611473d82e46b9dc",
+      "execution_index": 14,
+      "packet_id": "pkt_d057c1bb2ce4b36a131a",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T10",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "4b918ae3b81d04a1eb5001f0a1563aaa313ad4100d364e09aaa1630f09da89af",
+      "response_sha256": "635bdd042e959599bf06d63f12a6480bb64a19732ca71e4dfaa2257cfc4bb485",
+      "criteria": [
+        {
+          "criterion_id": "criterion_1be03dd01cb7b1eb",
+          "canonical_criterion_id": "STR-07/T10/R1"
+        },
+        {
+          "criterion_id": "criterion_71e7ce6d3e531f03",
+          "canonical_criterion_id": "STR-07/T10/R2"
+        },
+        {
+          "criterion_id": "criterion_8a3b2bd46089987e",
+          "canonical_criterion_id": "STR-07/T10/R3"
+        },
+        {
+          "criterion_id": "criterion_89358b2dc4a86a42",
+          "canonical_criterion_id": "STR-07/T10/R4"
+        },
+        {
+          "criterion_id": "criterion_2e1f4e8fd3564ea2",
+          "canonical_criterion_id": "STR-07/T10/R5"
+        },
+        {
+          "criterion_id": "criterion_9dcd019eda39cde7",
+          "canonical_criterion_id": "STR-07/T10/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_d9e47e6abf4c68489a05",
+      "review_order_key": "682ace6a2911e178449e2673901e336db9f87a4d29eaa3d6dead37a3b905f386",
+      "execution_index": 15,
+      "packet_id": "pkt_ff9d2f5c1f8a9cdf8258",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T18",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "89f3cb828eccba975042c6b4fb095139a3145e640853837a6f8b512b15d56837",
+      "response_sha256": "689428df6467d1e706dc7d87fc6d0d1070bfef256d63183f229b85c44d2bc508",
+      "criteria": [
+        {
+          "criterion_id": "criterion_5338e3bb90efe795",
+          "canonical_criterion_id": "STR-04/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_d97cbbdd952e2ae3",
+          "canonical_criterion_id": "STR-04/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_e41e80c69c3af691",
+          "canonical_criterion_id": "STR-04/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_2e8341230e84f873",
+          "canonical_criterion_id": "STR-04/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_b5b0850b18c6d4be",
+          "canonical_criterion_id": "STR-04/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_63324644de6e7b47",
+          "canonical_criterion_id": "STR-04/T18/X2"
+        }
+      ]
+    },
+    {
+      "review_id": "review_ea8762dfe2e929c2efb0",
+      "review_order_key": "747b775ae3fd2e5ca0d6cd4d35853d89a01ce912979dc40f59a225f50d34f795",
+      "execution_index": 31,
+      "packet_id": "pkt_82842570a005cf52c306",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T7",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "dd3ed97fc7ddb81c87e67226e5903f2473ef4197ac2a7a97a6955215bb92e4ae",
+      "response_sha256": "89ab5ad87e0cffc6fcf66f6681acd88bcbaced255a33e7798f5712f3b03acf7f",
+      "criteria": [
+        {
+          "criterion_id": "criterion_d48369537db2a95e",
+          "canonical_criterion_id": "STR-05/T7/R1"
+        },
+        {
+          "criterion_id": "criterion_05f9c179827d50ad",
+          "canonical_criterion_id": "STR-05/T7/R2"
+        },
+        {
+          "criterion_id": "criterion_dbd130ec64dd8923",
+          "canonical_criterion_id": "STR-05/T7/R3"
+        },
+        {
+          "criterion_id": "criterion_733146f3563769ac",
+          "canonical_criterion_id": "STR-05/T7/R4"
+        },
+        {
+          "criterion_id": "criterion_2dc6f23bdb040fa1",
+          "canonical_criterion_id": "STR-05/T7/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_9428dbc670b38b176867",
+      "review_order_key": "8cb26f4b631c8dc3c56e9c284f9fb4d7c10442755fec8b36983c28e02ee7f401",
+      "execution_index": 34,
+      "packet_id": "pkt_df19deec4fbe7c07382d",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T10",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "785e93a028cb0211c486d53cb491034c9655cee8a449e1dc85f106badc6349fe",
+      "response_sha256": "64a3fe951eaa27f01bdbf8ac74bcce7d333d74de59f45381282830ad9f53c4dd",
+      "criteria": [
+        {
+          "criterion_id": "criterion_e3fd5c3e186983e8",
+          "canonical_criterion_id": "STR-07/T10/R1"
+        },
+        {
+          "criterion_id": "criterion_eb4553ff25960074",
+          "canonical_criterion_id": "STR-07/T10/R2"
+        },
+        {
+          "criterion_id": "criterion_6ad955fe733c69a2",
+          "canonical_criterion_id": "STR-07/T10/R3"
+        },
+        {
+          "criterion_id": "criterion_eff2d09868a4a7f2",
+          "canonical_criterion_id": "STR-07/T10/R4"
+        },
+        {
+          "criterion_id": "criterion_28688053f8b670bc",
+          "canonical_criterion_id": "STR-07/T10/R5"
+        },
+        {
+          "criterion_id": "criterion_30e9e7b1e4df1380",
+          "canonical_criterion_id": "STR-07/T10/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_79585f5debe8d2e4b3f6",
+      "review_order_key": "937f491c1c34461f41ed56b0f61b8099dde7adac6c3d3ad088da5294cc7f56da",
+      "execution_index": 11,
+      "packet_id": "pkt_d7974e3c612f603fff80",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T4",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "75a5c61a4c7586dc10f9305cc691f6a4189564a9d46456c1d5de31f1d2d26c57",
+      "response_sha256": "4c8b86782f0d2974f3d583d0e2e932d1cc874a9762df36c0b740af7eecedc448",
+      "criteria": [
+        {
+          "criterion_id": "criterion_ab0536e2e11a7267",
+          "canonical_criterion_id": "STR-06/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_f108f51a6bffee48",
+          "canonical_criterion_id": "STR-06/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_548ed28445304aa1",
+          "canonical_criterion_id": "STR-06/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_94e12434e988c1fe8b25",
+      "review_order_key": "9462de15bb9a4e6c878fe08570b8f470d752db75a49773020d74ae4d26c08f78",
+      "execution_index": 36,
+      "packet_id": "pkt_bdd68819576011ff6bd8",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T3",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "e9a28e60410bc85d12f3d5e703e9a53d510c12fca115806456977a2d6ee98f14",
+      "response_sha256": "77f28b5cd3cd66c26148c2e75e1de36893f9712c61ce97536d43ec074de7507b",
+      "criteria": [
+        {
+          "criterion_id": "criterion_7c2696ae112168d9",
+          "canonical_criterion_id": "STR-08/T3/R1"
+        },
+        {
+          "criterion_id": "criterion_9b7bd3102a843df9",
+          "canonical_criterion_id": "STR-08/T3/R2"
+        },
+        {
+          "criterion_id": "criterion_4899722589fd9487",
+          "canonical_criterion_id": "STR-08/T3/R3"
+        },
+        {
+          "criterion_id": "criterion_57ea13b088011727",
+          "canonical_criterion_id": "STR-08/T3/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_dbb99db076b7428894df",
+      "review_order_key": "94b9fa5964698050076e1071c31fc886e9bf83e846dac71af43e4454bac20a13",
+      "execution_index": 3,
+      "packet_id": "pkt_a36ebb08f4f80e8a24c5",
+      "case_id": "STR-05",
+      "slice_id": "STR-05/T9",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "68795dc6d214eda268818536c3ad3a5581c89318b85596663ed1a526d772e479",
+      "response_sha256": "4b3515ca20d72a3ef848d42d3b430cef677611da14c2cdcc0add111a7e3cd69d",
+      "criteria": [
+        {
+          "criterion_id": "criterion_b6bcc3fc5ac0429c",
+          "canonical_criterion_id": "STR-05/T9/R1"
+        },
+        {
+          "criterion_id": "criterion_194dcff3cfb357fd",
+          "canonical_criterion_id": "STR-05/T9/R2"
+        },
+        {
+          "criterion_id": "criterion_c6855d214b2dbfc0",
+          "canonical_criterion_id": "STR-05/T9/R3"
+        },
+        {
+          "criterion_id": "criterion_338e2d2521c831fb",
+          "canonical_criterion_id": "STR-05/T9/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_38bedb955e3581078ce8",
+      "review_order_key": "95b25edf259efadb8ae9a5f20df49c67a879c042b96e1a413859e5cc5f434379",
+      "execution_index": 28,
+      "packet_id": "pkt_7326572b1d7457ad88aa",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T4",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "f3d86a3ca0e49c0da26cf85df1f2913821458fd7d9c48b03e487405895fb70c0",
+      "response_sha256": "f821c2fecdfca569c04139263375b132c6ff109a9a69f18b69a0ef16176e74d3",
+      "criteria": [
+        {
+          "criterion_id": "criterion_bb98cd59d31f5ead",
+          "canonical_criterion_id": "STR-01/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_3984948493a9337d",
+          "canonical_criterion_id": "STR-01/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_b5089c4a7a7c5909",
+          "canonical_criterion_id": "STR-01/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_fb83b96d58e9a635",
+          "canonical_criterion_id": "STR-01/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_e50316ea784acc0434d4",
+      "review_order_key": "a749f42392066191fc355eb0e2eb82eebbf583e2bb18cf8f095620b325f55b44",
+      "execution_index": 7,
+      "packet_id": "pkt_a42b7b00f63a5d17b629",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T18",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "bd344ccffaf211cdb7e1b92e3b09fca1257b11425dc4587833236f04a4111102",
+      "response_sha256": "19b7f512b9173a398417a5bc2a7a4c8d0d66ab2df6388bc54490b269ffb6fe54",
+      "criteria": [
+        {
+          "criterion_id": "criterion_4e64891779557899",
+          "canonical_criterion_id": "STR-01/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_b22b4427f58ecbfb",
+          "canonical_criterion_id": "STR-01/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_7197c578334f0c7b",
+          "canonical_criterion_id": "STR-01/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_28e4f9e2021adf1a",
+          "canonical_criterion_id": "STR-01/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_ecf2c664d2fdbbb7",
+          "canonical_criterion_id": "STR-01/T18/R5"
+        },
+        {
+          "criterion_id": "criterion_61bb1c068c1d516d",
+          "canonical_criterion_id": "STR-01/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_8ba3a54d1c4bf263",
+          "canonical_criterion_id": "STR-01/T18/X2"
+        },
+        {
+          "criterion_id": "criterion_70a2b43b46874212",
+          "canonical_criterion_id": "STR-01/T18/X3"
+        }
+      ]
+    },
+    {
+      "review_id": "review_b2e1ba2c398678460c24",
+      "review_order_key": "acf60ef9097f84de116689a15f232546de1bdc6d6c9abe07339b348d49d9d0ea",
+      "execution_index": 17,
+      "packet_id": "pkt_ca8415f53b823ee1c6ff",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T4",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "f11168e7fc5ad8d27d1d566ebf2f0ffe074ea2fa34d7ea00b5241ef9cb87a0da",
+      "response_sha256": "08a8fcc485e009f296978289df227f9e46bdd0f62ce666f3ddf7534fbf718d73",
+      "criteria": [
+        {
+          "criterion_id": "criterion_379e203f7057d864",
+          "canonical_criterion_id": "STR-06/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_1a095649785a1aa3",
+          "canonical_criterion_id": "STR-06/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_d77288b26067bd10",
+          "canonical_criterion_id": "STR-06/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_397a96fc3caa3b4d6b83",
+      "review_order_key": "ad69817776e74876094ff63cdc21eef4366ccfe08e91597583f129dd3bdeab76",
+      "execution_index": 9,
+      "packet_id": "pkt_5309a16ebf11ac3236d9",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T4",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "d779d15f0ced62df3d7c773c4375f746bbece91823b58b6ad4afee9ff32b6013",
+      "response_sha256": "c5ef4daa20ba3c7a4bb5abe4ee5afcfe0e5d71c09b4ffb8241bc095f3b5ef4e7",
+      "criteria": [
+        {
+          "criterion_id": "criterion_906b7c81af98c446",
+          "canonical_criterion_id": "STR-07/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_0fbce1b3a042cfab",
+          "canonical_criterion_id": "STR-07/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_87b85edba1c2b4c1",
+          "canonical_criterion_id": "STR-07/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_75e60bca525adfe89527",
+      "review_order_key": "ae1e94972f5cc5b16b25ec96d6b64975f15cba719428d99e59a891b78b294385",
+      "execution_index": 20,
+      "packet_id": "pkt_ad3f3767ea96533c2128",
+      "case_id": "STR-07",
+      "slice_id": "STR-07/T4",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "d2f53f46d753d8404d9f376bb6eaa54a8e33a5c52d0f05d591d5e0682cf8640e",
+      "response_sha256": "bbce7483b0e13a875bfe37bd359a7d83bb9058839da6ce553474b17d7e68d45d",
+      "criteria": [
+        {
+          "criterion_id": "criterion_f9aab2d1852723b6",
+          "canonical_criterion_id": "STR-07/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_39c9c949c74b8365",
+          "canonical_criterion_id": "STR-07/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_097136429270de81",
+          "canonical_criterion_id": "STR-07/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_d072088e1c50bbd27f7c",
+      "review_order_key": "b34ef1446579a816bd4ff850825621a37ffc1f8be7af6e47efe1d4c61ee4acf7",
+      "execution_index": 1,
+      "packet_id": "pkt_b9bb19293a1e014442d0",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T18",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "aa430c7a461827331cc798df559ee5c94b1882cb126ba5aeb60b8f18fb57622f",
+      "response_sha256": "f15d4c9539961cf48f27369bbad61fa9c1afe1b54aa5cc690d49c918a531dc39",
+      "criteria": [
+        {
+          "criterion_id": "criterion_331b8b73b3427b72",
+          "canonical_criterion_id": "STR-04/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_0dadc0b950aca972",
+          "canonical_criterion_id": "STR-04/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_65c016fa465be284",
+          "canonical_criterion_id": "STR-04/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_47f86a2223683a4a",
+          "canonical_criterion_id": "STR-04/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_422308e17aa4f2d1",
+          "canonical_criterion_id": "STR-04/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_aac46e789df43417",
+          "canonical_criterion_id": "STR-04/T18/X2"
+        }
+      ]
+    },
+    {
+      "review_id": "review_dcecd0ea5ecd73fb2a5e",
+      "review_order_key": "b5451eff9a8d6074fcdaf10c78a3d905e4c6ec07561a4ddf6372836be40d8b48",
+      "execution_index": 29,
+      "packet_id": "pkt_c511b76cf72d23d54fba",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T4",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "48035bfcc62ac5d2a6e137746b8756ea12eb2d65b7852df5270b7f096a9fc00e",
+      "response_sha256": "0735a766be7763fd8cdc58c55eefc3687f7d200fba8a74c8328584edad335f00",
+      "criteria": [
+        {
+          "criterion_id": "criterion_7c4e18222de82bdf",
+          "canonical_criterion_id": "STR-04/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_7d4b2b1cce6fa737",
+          "canonical_criterion_id": "STR-04/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_d5999b14419a87e2",
+          "canonical_criterion_id": "STR-04/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_d1e29a4efb05bd23",
+          "canonical_criterion_id": "STR-04/T4/R4"
+        },
+        {
+          "criterion_id": "criterion_11dec0412c50b478",
+          "canonical_criterion_id": "STR-04/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_2c01f1a435dc3e0315ca",
+      "review_order_key": "c2860e16dfda8e3d185c9a395ad2554ea7907081da7eb7008282df0e14d1086f",
+      "execution_index": 27,
+      "packet_id": "pkt_e8b2b335ed63c1ac2aee",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T4",
+      "condition": "d2",
+      "repetition": 1,
+      "prompt_sha256": "5d3d1ea666322f45fe8da4690f076750bd831d859912ad7178577691982550c1",
+      "response_sha256": "9ee8dd2c6442968554dbba11f574cd8a40447fac5bbaaff0d03743c3dd9ba513",
+      "criteria": [
+        {
+          "criterion_id": "criterion_374db787bb455919",
+          "canonical_criterion_id": "STR-04/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_c48341762100a204",
+          "canonical_criterion_id": "STR-04/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_a6a293f5c9f8f8dd",
+          "canonical_criterion_id": "STR-04/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_ef7835d87336ffff",
+          "canonical_criterion_id": "STR-04/T4/R4"
+        },
+        {
+          "criterion_id": "criterion_6301e65296413389",
+          "canonical_criterion_id": "STR-04/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_d91d3f388b6e17553f0d",
+      "review_order_key": "c69261fc8855541b09a5cad7d73232b6fc89547773e976231c690c07e5f527bc",
+      "execution_index": 16,
+      "packet_id": "pkt_f533c878bf84987a5465",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T4",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "48313e006ccdfc752467274bc15e03d1b6c556bffd686fcdd456d08d13d99030",
+      "response_sha256": "65c57f10a3ed374dc9223d143906559d3f1f48007b0e9dfcb9c016a9ed2986a4",
+      "criteria": [
+        {
+          "criterion_id": "criterion_7478cf17566232bf",
+          "canonical_criterion_id": "STR-01/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_9e566ca81e5e6eef",
+          "canonical_criterion_id": "STR-01/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_b94624b1333f358f",
+          "canonical_criterion_id": "STR-01/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_6981aba4469c404f",
+          "canonical_criterion_id": "STR-01/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_4865c7d25a77b433259e",
+      "review_order_key": "cf85c810d3f61d07c83c92dc4a72e7bd8b89f898426739ab70c7585825e8d425",
+      "execution_index": 10,
+      "packet_id": "pkt_6aca4681acc4244746ec",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T4",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "ae5371cff44cd0a0a9799fa79ae4d284e5e56ab195736b21125ede8ac398826b",
+      "response_sha256": "46a74d8a49a9f916da972a389780a0681498eb9cc973e05a5bf5611fa599121e",
+      "criteria": [
+        {
+          "criterion_id": "criterion_4dfc8ab5a9a3feb7",
+          "canonical_criterion_id": "STR-04/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_0c69abd2025e9dee",
+          "canonical_criterion_id": "STR-04/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_fdba4f2625438fc3",
+          "canonical_criterion_id": "STR-04/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_f8e9682f2b4c5c15",
+          "canonical_criterion_id": "STR-04/T4/R4"
+        },
+        {
+          "criterion_id": "criterion_e8b24661f5ecb52b",
+          "canonical_criterion_id": "STR-04/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_4e46d1c0b94fe3807405",
+      "review_order_key": "de3c4e87d9ae92a94ecda058c3be1cd44605d9418a086c861003f3ac8529bf42",
+      "execution_index": 5,
+      "packet_id": "pkt_44265609bc326abba597",
+      "case_id": "STR-08",
+      "slice_id": "STR-08/T4",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "7b09cf6cfc19a557fa6ca0a570f767c16d5a64eeb2c910bd6346108428a0ee1f",
+      "response_sha256": "cd058049336ae961b1dab87bcd137997a375f93e6de10864dd293e1f15359886",
+      "criteria": [
+        {
+          "criterion_id": "criterion_af157808163833b5",
+          "canonical_criterion_id": "STR-08/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_6b3cc1aa1ff1d578",
+          "canonical_criterion_id": "STR-08/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_c5c4ceed88ab0861",
+          "canonical_criterion_id": "STR-08/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_946362daa5873988",
+          "canonical_criterion_id": "STR-08/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_69460582a943482c8723",
+      "review_order_key": "e6febfb33a480560e8a7b5e3db100b731c8b7b9923fdafdc4f8fd8397628e083",
+      "execution_index": 13,
+      "packet_id": "pkt_90d400c552d2c01fe57d",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T4",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "c9379c0f6d21bdd0334c8bb73e4105e23d4ce0a6248cbd4eaf5059eb5a02ff70",
+      "response_sha256": "6626a0a0643c5651be5090717d9c205e677264985bbf06e1cca30691d22bfc1f",
+      "criteria": [
+        {
+          "criterion_id": "criterion_15813ef15980a075",
+          "canonical_criterion_id": "STR-01/T4/R1"
+        },
+        {
+          "criterion_id": "criterion_4e85acafe56a987b",
+          "canonical_criterion_id": "STR-01/T4/R2"
+        },
+        {
+          "criterion_id": "criterion_efe0f8de6f146dcb",
+          "canonical_criterion_id": "STR-01/T4/R3"
+        },
+        {
+          "criterion_id": "criterion_2f08834acebedc97",
+          "canonical_criterion_id": "STR-01/T4/X1"
+        }
+      ]
+    },
+    {
+      "review_id": "review_ccd48ac6eb279179333e",
+      "review_order_key": "f1500e67ce8e12b19bfdd653eff90b1a6b31de580f403ea9e1f0e30d68fdd3ff",
+      "execution_index": 24,
+      "packet_id": "pkt_01427fad5a3ed3312aec",
+      "case_id": "STR-01",
+      "slice_id": "STR-01/T18",
+      "condition": "d1",
+      "repetition": 1,
+      "prompt_sha256": "8828fd7acd3ca174909559d0c0f04f407e84e10e6cd0cc1abbe349434d8cb844",
+      "response_sha256": "dbd80083535d477480e0672161714951c6f612508eb8e7dbb127504bae953ace",
+      "criteria": [
+        {
+          "criterion_id": "criterion_1052e17110d1e1a1",
+          "canonical_criterion_id": "STR-01/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_154e6ec72b890ae3",
+          "canonical_criterion_id": "STR-01/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_3f9bda7a71828e1f",
+          "canonical_criterion_id": "STR-01/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_103a2c1737565e43",
+          "canonical_criterion_id": "STR-01/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_e3028f78b45f72d5",
+          "canonical_criterion_id": "STR-01/T18/R5"
+        },
+        {
+          "criterion_id": "criterion_1868a94dec1cd05f",
+          "canonical_criterion_id": "STR-01/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_68fafc76d6833ea1",
+          "canonical_criterion_id": "STR-01/T18/X2"
+        },
+        {
+          "criterion_id": "criterion_e4b7530a7ca4fa6a",
+          "canonical_criterion_id": "STR-01/T18/X3"
+        }
+      ]
+    },
+    {
+      "review_id": "review_4a79c8310555f2fc5ac2",
+      "review_order_key": "f70971005df52dc5ae0835077205fcb83fbb34a212affa887eeb256941a006e3",
+      "execution_index": 18,
+      "packet_id": "pkt_4dec04f50b8ccc545954",
+      "case_id": "STR-06",
+      "slice_id": "STR-06/T16",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "6d4924730fe547b1d0ae6241c0db5dca42a8ebd89d52f07230aba57340875580",
+      "response_sha256": "1de102882f5772fb4556dc33b6f135aa42ac219d27e2cc32fa0da4ff78443512",
+      "criteria": [
+        {
+          "criterion_id": "criterion_5756c670f460330a",
+          "canonical_criterion_id": "STR-06/T16/R1"
+        },
+        {
+          "criterion_id": "criterion_c3eddd3e1b7d3cc8",
+          "canonical_criterion_id": "STR-06/T16/R2"
+        },
+        {
+          "criterion_id": "criterion_49b9343db4eed00c",
+          "canonical_criterion_id": "STR-06/T16/R3"
+        },
+        {
+          "criterion_id": "criterion_2f24b2e7d96a9f8f",
+          "canonical_criterion_id": "STR-06/T16/R4"
+        },
+        {
+          "criterion_id": "criterion_5b4d794b3cfa29e6",
+          "canonical_criterion_id": "STR-06/T16/X1"
+        },
+        {
+          "criterion_id": "criterion_d43ed5ce2daf59df",
+          "canonical_criterion_id": "STR-06/T16/X2"
+        }
+      ]
+    },
+    {
+      "review_id": "review_13fc8abd55c5b67ca015",
+      "review_order_key": "fcd438833c46e740febc3882cd41e8a6818225b8caec98244650279d85d09c8a",
+      "execution_index": 26,
+      "packet_id": "pkt_7673cc886787a11504d4",
+      "case_id": "STR-04",
+      "slice_id": "STR-04/T18",
+      "condition": "d0",
+      "repetition": 1,
+      "prompt_sha256": "8908cef6c2968064a5c8f0c354c68a4d5a99a6e3de123d488a75eccc2b419767",
+      "response_sha256": "1b8dae242203f581541cce64accb7398af9bcb3245e44696bac49e3add75c97a",
+      "criteria": [
+        {
+          "criterion_id": "criterion_313604a2ba33b3a5",
+          "canonical_criterion_id": "STR-04/T18/R1"
+        },
+        {
+          "criterion_id": "criterion_b54af191e8b5648e",
+          "canonical_criterion_id": "STR-04/T18/R2"
+        },
+        {
+          "criterion_id": "criterion_e7be905ec42b4f46",
+          "canonical_criterion_id": "STR-04/T18/R3"
+        },
+        {
+          "criterion_id": "criterion_69a048e8597909ce",
+          "canonical_criterion_id": "STR-04/T18/R4"
+        },
+        {
+          "criterion_id": "criterion_5075a1b39c911583",
+          "canonical_criterion_id": "STR-04/T18/X1"
+        },
+        {
+          "criterion_id": "criterion_b7fe837a9e990ec9",
+          "canonical_criterion_id": "STR-04/T18/X2"
+        }
+      ]
+    }
+  ]
+}

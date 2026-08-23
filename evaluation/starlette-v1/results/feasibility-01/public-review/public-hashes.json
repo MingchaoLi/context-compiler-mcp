@@ -1,0 +1,39 @@
+{
+  "schema_version": "starlette_feasibility_public_hashes/v1",
+  "status": "blank_group_blind_bundle_pending_independent_qa",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "public-review/shared/review-items.jsonl",
+      "sha256": "6ef794ac55fc8294f55879e33b44466d51f1673c09040e4d994436617067e2fb"
+    },
+    {
+      "path": "public-review/shared/README.md",
+      "sha256": "51320ee2d7dd9b93456f09bd11795c5dad1e542a46ccb4e49cf71f1ff3db1afb"
+    },
+    {
+      "path": "public-review/reviewer-a/reviewer-form.jsonl",
+      "sha256": "80c119505d47bd1364f401324567e87036af69beeeaed474e18e0e14459203ed"
+    },
+    {
+      "path": "public-review/reviewer-a/README.md",
+      "sha256": "1411b3f70815089a7e435d8fab08a8aaa857044b0c8112e166c7a58513dfe13f"
+    },
+    {
+      "path": "public-review/reviewer-b/reviewer-form.jsonl",
+      "sha256": "16a9fa1823634348dca17c83b5fc2612b23c51cb557c41e882639dfab1be3be5"
+    },
+    {
+      "path": "public-review/reviewer-b/README.md",
+      "sha256": "94f27707b28e215b7007921b82a399e1ae06e4a0bbcb916e3a78465ad1730a2b"
+    },
+    {
+      "path": "public-review/adjudicator/adjudication-template.jsonl",
+      "sha256": "6bb2b39afae5e32190d6c862ef5061c196cdbab7adda7e80e2beec6a7e735cd1"
+    },
+    {
+      "path": "public-review/adjudicator/README.md",
+      "sha256": "8cb78ebde22258a20fc26c7f1ba5785cc5d71648d733226bf23938d5b807dcce"
+    }
+  ]
+}

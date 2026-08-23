@@ -1,0 +1,102 @@
+{
+  "schema_version": "starlette_feasibility_latency_observation/v1",
+  "status": "single_machine_observation_not_operational_stability_evidence",
+  "observed_at": "2026-08-23T10:52:17.435Z",
+  "environment": {
+    "node": "v25.6.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os_release": "25.5.0"
+  },
+  "per_case": [
+    {
+      "id": "STR-07/T4",
+      "d0_latency_ms": 0.041333,
+      "d1_latency_ms": 0.010125,
+      "d2_latency_ms": 0.081459
+    },
+    {
+      "id": "STR-07/T10",
+      "d0_latency_ms": 0.006,
+      "d1_latency_ms": 0.002666,
+      "d2_latency_ms": 0.249875
+    },
+    {
+      "id": "STR-08/T3",
+      "d0_latency_ms": 0.004292,
+      "d1_latency_ms": 0.002417,
+      "d2_latency_ms": 0.057333
+    },
+    {
+      "id": "STR-08/T4",
+      "d0_latency_ms": 0.003125,
+      "d1_latency_ms": 0.002417,
+      "d2_latency_ms": 0.062708
+    },
+    {
+      "id": "STR-05/T7",
+      "d0_latency_ms": 0.005333,
+      "d1_latency_ms": 0.006333,
+      "d2_latency_ms": 0.051458
+    },
+    {
+      "id": "STR-05/T9",
+      "d0_latency_ms": 0.005125,
+      "d1_latency_ms": 0.002084,
+      "d2_latency_ms": 0.062667
+    },
+    {
+      "id": "STR-06/T4",
+      "d0_latency_ms": 0.002167,
+      "d1_latency_ms": 0.001334,
+      "d2_latency_ms": 0.033916
+    },
+    {
+      "id": "STR-06/T16",
+      "d0_latency_ms": 0.005083,
+      "d1_latency_ms": 0.001666,
+      "d2_latency_ms": 0.056417
+    },
+    {
+      "id": "STR-01/T4",
+      "d0_latency_ms": 0.00175,
+      "d1_latency_ms": 0.001292,
+      "d2_latency_ms": 0.058209
+    },
+    {
+      "id": "STR-01/T18",
+      "d0_latency_ms": 0.004375,
+      "d1_latency_ms": 0.001459,
+      "d2_latency_ms": 0.108291
+    },
+    {
+      "id": "STR-04/T4",
+      "d0_latency_ms": 0.001833,
+      "d1_latency_ms": 0.001292,
+      "d2_latency_ms": 0.035459
+    },
+    {
+      "id": "STR-04/T18",
+      "d0_latency_ms": 0.004542,
+      "d1_latency_ms": 0.001291,
+      "d2_latency_ms": 0.071333
+    }
+  ],
+  "aggregate": {
+    "d0": {
+      "total": 0.084958,
+      "mean": 0.00708,
+      "maximum": 0.041333
+    },
+    "d1": {
+      "total": 0.034376,
+      "mean": 0.002865,
+      "maximum": 0.010125
+    },
+    "d2": {
+      "total": 0.929125,
+      "mean": 0.077427,
+      "maximum": 0.249875
+    }
+  }
+}

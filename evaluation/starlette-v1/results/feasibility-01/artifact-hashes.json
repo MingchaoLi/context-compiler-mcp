@@ -1,0 +1,71 @@
+{
+  "schema_version": "starlette_feasibility_artifact_hashes/v1",
+  "status": "official_artifact_pending_independent_qa",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "boundary-manifest.json",
+      "sha256": "6eff2b83c1c5c560601f443970efa5a0a657e78f41baf98a617a1ec34ff941d2"
+    },
+    {
+      "path": "public-review/shared/review-items.jsonl",
+      "sha256": "6ef794ac55fc8294f55879e33b44466d51f1673c09040e4d994436617067e2fb"
+    },
+    {
+      "path": "public-review/shared/README.md",
+      "sha256": "51320ee2d7dd9b93456f09bd11795c5dad1e542a46ccb4e49cf71f1ff3db1afb"
+    },
+    {
+      "path": "public-review/reviewer-a/reviewer-form.jsonl",
+      "sha256": "80c119505d47bd1364f401324567e87036af69beeeaed474e18e0e14459203ed"
+    },
+    {
+      "path": "public-review/reviewer-a/README.md",
+      "sha256": "1411b3f70815089a7e435d8fab08a8aaa857044b0c8112e166c7a58513dfe13f"
+    },
+    {
+      "path": "public-review/reviewer-b/reviewer-form.jsonl",
+      "sha256": "16a9fa1823634348dca17c83b5fc2612b23c51cb557c41e882639dfab1be3be5"
+    },
+    {
+      "path": "public-review/reviewer-b/README.md",
+      "sha256": "94f27707b28e215b7007921b82a399e1ae06e4a0bbcb916e3a78465ad1730a2b"
+    },
+    {
+      "path": "public-review/adjudicator/adjudication-template.jsonl",
+      "sha256": "6bb2b39afae5e32190d6c862ef5061c196cdbab7adda7e80e2beec6a7e735cd1"
+    },
+    {
+      "path": "public-review/adjudicator/README.md",
+      "sha256": "8cb78ebde22258a20fc26c7f1ba5785cc5d71648d733226bf23938d5b807dcce"
+    },
+    {
+      "path": "public-review/public-hashes.json",
+      "sha256": "0fa773770395096bff7b1881dfb8f69748061c4695f917d42c4712c87f9ab521"
+    },
+    {
+      "path": "internal-audit/review-key.json",
+      "sha256": "ccd0e48c9981a58ebdbbd1ed1069a0cecc2e7d90216a1e516c7861aca968ab41"
+    },
+    {
+      "path": "internal-audit/canonical-criteria.jsonl",
+      "sha256": "d8ace7df3005aa8a79aba4904c3b5726e273757a6fa9c7a670b5f2335aaa726d"
+    },
+    {
+      "path": "internal-audit/automatic-report.json",
+      "sha256": "e574ceb0b7d6e9bca401b34e3da26a9462e6fe3731f16ad427ece04956b7e420"
+    },
+    {
+      "path": "internal-audit/automatic-summary.json",
+      "sha256": "0d9b8bbbeca6e0ee8f4f7d0a3ba2b340756f6376fb68a867f877a38fac40635f"
+    },
+    {
+      "path": "internal-audit/latency-observation.json",
+      "sha256": "788e702120dadd47dc8578e79c9bff0a6e0cb222a21f46a16eb344e98d9fb00f"
+    },
+    {
+      "path": "internal-audit/internal-hashes.json",
+      "sha256": "30ea9ac93183fa484f075e6e44d039842347cd0652a93c2fbb7bbf7a259cb78d"
+    }
+  ]
+}
