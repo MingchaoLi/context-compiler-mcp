@@ -7,14 +7,18 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 // The pilot validator intentionally remains outside the publishable src/ package.
 // @ts-expect-error JavaScript fixture utility has no declaration file.
-import { loadPilot, validateCaseBundle, validatePilot } from "../evaluation/starlette-v1/validate-pilot.mjs";
+import {
+  loadCanary, loadPilot, projectModelInput, validateCanary, validateCaseBundle, validatePilot,
+} from "../evaluation/starlette-v1/validate-pilot.mjs";
 
 const PILOT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "evaluation", "starlette-v1");
 const temporaryDirectories: string[] = [];
 let loaded: Awaited<ReturnType<typeof loadPilot>>;
+let canary: Awaited<ReturnType<typeof loadCanary>>;
 
 beforeAll(async () => {
   loaded = await loadPilot(PILOT_ROOT);
+  canary = await loadCanary(PILOT_ROOT);
 });
 
 afterEach(async () => {
@@ -160,5 +164,90 @@ describe("Starlette schema pilot", () => {
     const content = await readFile(tasksPath, "utf8");
     await writeFile(tasksPath, `${content}\n`, "utf8");
     await expect(validatePilot(directory)).rejects.toThrow(/pilot content hash mismatch/);
+  });
+
+  it("classifies every pilot segment from explicit information increments", () => {
+    expect(bundle("STR-08").manifest.segments[0]).toMatchObject({ classification: "short" });
+    expect(bundle("STR-05").manifest).toMatchObject({ tier: "long" });
+    expect(bundle("STR-05").manifest.segments[0]).toMatchObject({ classification: "long" });
+    expect(bundle("STR-02").manifest.segments.map((segment: any) => segment.classification)).toEqual(["medium", "medium"]);
+  });
+
+  it("rejects an increment outside the segment event list", () => {
+    const candidate = bundle("STR-08");
+    candidate.manifest.segments[0].information_increment_event_ids[3] = "STR-08/E99";
+    expect(() => validateCaseBundle(candidate, "STR-08")).toThrow(/increment must belong/);
+  });
+
+  it("rejects a classification that disagrees with increment count", () => {
+    const candidate = bundle("STR-05");
+    candidate.manifest.tier = "medium";
+    candidate.manifest.segments[0].classification = "medium";
+    expect(() => validateCaseBundle(candidate, "STR-05")).toThrow(/expected long for 9 increments/);
+  });
+});
+
+describe("Starlette STR-04 canary and model projection", () => {
+  function canaryBundle(): any {
+    return structuredClone(canary.case.bundle);
+  }
+
+  it("accepts one long/open canary with eighteen audited increments and hashes", async () => {
+    await expect(validateCanary(PILOT_ROOT)).resolves.toMatchObject({
+      canary_status: "canary_not_frozen",
+      case_count: 1,
+      segment_count: 1,
+      event_count: 18,
+      slice_count: 18,
+      information_increment_count: 18,
+      hashes_verified: true,
+    });
+  });
+
+  it("projects only the six allowed event fields and a separate Current Task", () => {
+    const projection = projectModelInput(canaryBundle(), "STR-04/T18");
+    expect(Object.keys(projection)).toEqual(["schema_version", "history_turns", "current_task"]);
+    expect(projection.history_turns).toHaveLength(18);
+    for (const turn of projection.history_turns) {
+      expect(Object.keys(turn)).toEqual(["id", "role", "event_type", "occurred_at", "actor", "summary"]);
+    }
+  });
+
+  it("keeps audit metadata and all non-input artifacts out of projection", () => {
+    const candidate = canaryBundle();
+    const projectionText = JSON.stringify(projectModelInput(candidate, "STR-04/T18"));
+    expect(projectionText).not.toContain(candidate.events.events[0].source.node_id);
+    expect(projectionText).not.toContain(candidate.events.events[0].source_content_sha256);
+    expect(projectionText).not.toContain(candidate.factGold.facts[0].statement);
+    expect(projectionText).not.toContain(candidate.oracleState.states[0].items[0].content);
+    expect(projectionText).not.toContain(candidate.decisionReferences.references[0].id);
+    expect(projectionText).not.toContain(candidate.outcomeAnchors.anchors[0].source.commit_sha);
+  });
+
+  it("projects the exact evidence prefix for an early cutoff", () => {
+    const projection = projectModelInput(canaryBundle(), "STR-04/T3");
+    expect(projection.history_turns.map((turn: any) => turn.id)).toEqual(["STR-04/E1", "STR-04/E2", "STR-04/E3"]);
+  });
+
+  it("rejects unregistered audit metadata instead of projecting it", () => {
+    const candidate = canaryBundle();
+    candidate.events.events[0].audit_note = "future curator note";
+    expect(() => projectModelInput(candidate, "STR-04/T1")).toThrow(/expected keys/);
+  });
+
+  it("documents that structural validation does not detect semantic future paraphrases", () => {
+    const candidate = canaryBundle();
+    candidate.tasks.tasks[0].current_task = "Assume later work supplies route-scoped hooks; explain why that still leaves zero-touch instrumentation incomplete.";
+    expect(() => validateCaseBundle(candidate, "STR-04")).not.toThrow();
+  });
+
+  it("rejects canary hash tampering", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "context-compiler-starlette-canary-"));
+    temporaryDirectories.push(directory);
+    await cp(PILOT_ROOT, directory, { recursive: true });
+    const tasksPath = join(directory, "canary", "STR-04", "tasks.json");
+    const content = await readFile(tasksPath, "utf8");
+    await writeFile(tasksPath, `${content}\n`, "utf8");
+    await expect(validateCanary(directory)).rejects.toThrow(/canary content hash mismatch/);
   });
 });

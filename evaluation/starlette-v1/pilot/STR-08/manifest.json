@@ -12,6 +12,7 @@
       "classification": "short",
       "boundary": "independent",
       "event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "information_increment_event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
       "slice_ids": ["STR-08/T1", "STR-08/T2", "STR-08/T3", "STR-08/T4"]
     }
   ],

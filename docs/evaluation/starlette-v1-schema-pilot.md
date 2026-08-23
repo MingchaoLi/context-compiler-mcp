@@ -10,7 +10,7 @@
 
 本工单建立了一把可机械审计的“数据尺子”，没有运行 D0/D1/D2 或远端回答模型，也没有修改 Context Compiler core。
 
-三个 pilot 目录包含 25 个原子 evidence event 与 25 个同 cutoff slice。`STR-08` 为 short，`STR-05` 为 medium；原 `STR-02` 复合候选被拆成两个 medium segment。所有模型可见输入只来自 `events.json` 与 `tasks.json`，Fact Gold、人工 Oracle-State、Decision Reference、Outcome Anchor 均在独立文件中。
+三个 pilot 目录包含 25 个原子 evidence event 与 25 个同 cutoff slice。`STR-08` 为 short；`STR-05` 最初标为 medium，后由 WO-DS-03 按 9 个真实信息增量更正为 long；原 `STR-02` 复合候选被拆成两个 medium segment。所有模型可见输入只来自 `events.json` 与 `tasks.json`，Fact Gold、人工 Oracle-State、Decision Reference、Outcome Anchor 均在独立文件中。
 
 ## D1 映射确认
 

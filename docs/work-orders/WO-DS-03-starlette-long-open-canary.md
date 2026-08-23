@@ -1,6 +1,6 @@
 # WO-DS-03 — Starlette long/open canary 与冻结就绪门
 
-状态：IN PROGRESS — 首轮 QA 退回已接受
+状态：IMPLEMENTED — 等待新的独立 data QA
 
 ## 背景与对抗审查处置
 
@@ -151,3 +151,11 @@ validator 只可被描述为结构、时间前缀、provenance 和规范化字�
 独立 data QA 固定候选 `57279d1` 后复核同仓库 `benchmark.py`，确认“Tell me about router changes.”的 `ground_truth_ref` 是 FastAPI PR #15745，#2349 只是在一次检索中进入 contexts，生成答案也没有使用它。已冻结规则要求同一 issue/fix 被作为 evaluation task 或 patch 复用，不能仅凭 context-only 检索噪声确认污染。
 
 主控接受该 P0：Builder 的 gate-closed 判断扩大了既有规则。STR-04 恢复为有限的 `no_public_hit_found`，notes 保留该交叉引用与排除理由；canary 按原范围继续。若未来要把任意 LLM context 命中都算污染，必须另行预注册并统一重扫全部候选。
+
+## 恢复后的实现结果
+
+STR-04 已规范化为 1 个 long/open canary：18 个 event、18 个 slice、18 个显式信息增量。#1286 关闭、#1649/#2349 部分能力、Issue #685 的关闭→范围反驳→重开均由独立来源表示；两个 merge 与行为测试只在 Outcome Anchor。
+
+validator 已实现 long/tier/increment 一致性和单 segment/multi segment 不变量；`projectModelInput` 仅输出六个允许的 event 字段与独立 Current Task。现有三个 pilot 补齐 increment ids，STR-05 如实改为 long，hash 状态仍为未冻结。聚焦测试还记录了 validator 会接受、人工必须拒绝的语义 future paraphrase，明确没有把字面检查误写成语义证明。
+
+Builder 完成后仍不自行打开批量 freeze gate；必须由新的独立 data QA 复验当前 candidate。

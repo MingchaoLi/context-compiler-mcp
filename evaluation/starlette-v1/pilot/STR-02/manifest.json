@@ -12,6 +12,7 @@
       "classification": "medium",
       "boundary": "split_from_composite",
       "event_ids": ["STR-02A/E1", "STR-02A/E2", "STR-02A/E3", "STR-02A/E4", "STR-02A/E5"],
+      "information_increment_event_ids": ["STR-02A/E1", "STR-02A/E2", "STR-02A/E3", "STR-02A/E4", "STR-02A/E5"],
       "slice_ids": ["STR-02A/T1", "STR-02A/T2", "STR-02A/T3", "STR-02A/T4", "STR-02A/T5"]
     },
     {
@@ -19,6 +20,7 @@
       "classification": "medium",
       "boundary": "split_from_composite",
       "event_ids": ["STR-02B/E1", "STR-02B/E2", "STR-02B/E3", "STR-02B/E4", "STR-02B/E5", "STR-02B/E6", "STR-02B/E7"],
+      "information_increment_event_ids": ["STR-02B/E1", "STR-02B/E2", "STR-02B/E3", "STR-02B/E4", "STR-02B/E5", "STR-02B/E6", "STR-02B/E7"],
       "slice_ids": ["STR-02B/T1", "STR-02B/T2", "STR-02B/T3", "STR-02B/T4", "STR-02B/T5", "STR-02B/T6", "STR-02B/T7"]
     }
   ],

@@ -6,6 +6,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SCHEMA_VERSION = "starlette-pilot/v1";
+const MODEL_INPUT_VERSION = "starlette-model-input/v1";
 const CASE_FILES = [
   "manifest.json",
   "events.json",
@@ -156,23 +157,45 @@ function validateManifest(value, expectedCaseId, path) {
   if (target.repository !== "Kludex/starlette") fail(`${path}.repository`, "expected Kludex/starlette");
   const aliases = uniqueStrings(target.historical_repository_aliases, `${path}.historical_repository_aliases`);
   if (!aliases.includes("encode/starlette")) fail(`${path}.historical_repository_aliases`, "missing encode/starlette");
-  enumValue(target.tier, ["short", "medium", "boundary_audit"], `${path}.tier`);
-  if (target.pilot_status !== "pilot_not_frozen") fail(`${path}.pilot_status`, "pilot must not claim frozen status");
+  enumValue(target.tier, ["short", "medium", "long", "boundary_audit"], `${path}.tier`);
+  enumValue(target.pilot_status, ["pilot_not_frozen", "canary_not_frozen"], `${path}.pilot_status`);
   string(target.source_body_history_limitations, `${path}.source_body_history_limitations`);
   const segmentIds = new Set();
   const segments = array(target.segments, `${path}.segments`).map((entry, index) => {
     const segmentPath = `${path}.segments[${index}]`;
-    const segment = exact(entry, ["id", "classification", "boundary", "event_ids", "slice_ids"], segmentPath);
+    const segment = exact(entry, [
+      "id", "classification", "boundary", "event_ids", "information_increment_event_ids", "slice_ids",
+    ], segmentPath);
     const id = string(segment.id, `${segmentPath}.id`);
     if (segmentIds.has(id)) fail(`${segmentPath}.id`, "duplicate segment id");
     segmentIds.add(id);
     enumValue(segment.classification, ["short", "medium", "long"], `${segmentPath}.classification`);
     enumValue(segment.boundary, ["independent", "split_from_composite"], `${segmentPath}.boundary`);
-    uniqueStrings(segment.event_ids, `${segmentPath}.event_ids`).forEach((eventId) => requirePrefix(eventId, id, `${segmentPath}.event_ids`));
+    const eventIds = uniqueStrings(segment.event_ids, `${segmentPath}.event_ids`);
+    eventIds.forEach((eventId) => requirePrefix(eventId, id, `${segmentPath}.event_ids`));
+    const increments = uniqueStrings(segment.information_increment_event_ids, `${segmentPath}.information_increment_event_ids`);
+    let previousIndex = -1;
+    for (const incrementId of increments) {
+      const eventIndex = eventIds.indexOf(incrementId);
+      if (eventIndex < 0) fail(`${segmentPath}.information_increment_event_ids`, "increment must belong to event_ids");
+      if (eventIndex <= previousIndex) fail(`${segmentPath}.information_increment_event_ids`, "increments must follow event order");
+      previousIndex = eventIndex;
+    }
+    if (increments.length < 3) fail(`${segmentPath}.information_increment_event_ids`, "at least three increments required");
+    const expectedClassification = increments.length <= 4 ? "short" : increments.length <= 8 ? "medium" : "long";
+    if (segment.classification !== expectedClassification) {
+      fail(`${segmentPath}.classification`, `expected ${expectedClassification} for ${increments.length} increments`);
+    }
     uniqueStrings(segment.slice_ids, `${segmentPath}.slice_ids`).forEach((sliceId) => requirePrefix(sliceId, id, `${segmentPath}.slice_ids`));
     return segment;
   });
   if (segments.length === 0) fail(`${path}.segments`, "expected at least one segment");
+  if (segments.length === 1 && target.tier !== segments[0].classification) {
+    fail(`${path}.tier`, "single-segment tier must match segment classification");
+  }
+  if (segments.length > 1 && target.tier !== "boundary_audit") {
+    fail(`${path}.tier`, "multi-segment case must use boundary_audit");
+  }
   const decision = exact(target.boundary_decision, ["status", "rationale", "falsification"], `${path}.boundary_decision`);
   enumValue(decision.status, ["single_case", "split_required"], `${path}.boundary_decision.status`);
   string(decision.rationale, `${path}.boundary_decision.rationale`);
@@ -519,6 +542,28 @@ export function validateCaseBundle(bundle, label = bundle?.manifest?.case_id ?? 
   return { case_id: label, segments: manifestResult.segmentIds.size, events: eventData.events.length, slices: taskData.tasks.length };
 }
 
+export function projectModelInput(bundle, sliceId) {
+  const caseId = bundle?.manifest?.case_id ?? "case";
+  validateCaseBundle(bundle, caseId);
+  const task = bundle.tasks.tasks.find((candidate) => candidate.id === sliceId);
+  if (!task) fail(`${caseId}/projection.slice_id`, "unknown task slice");
+  const visible = new Set(task.available_event_ids);
+  return {
+    schema_version: MODEL_INPUT_VERSION,
+    history_turns: bundle.events.events
+      .filter((event) => event.segment_id === task.segment_id && visible.has(event.id))
+      .map((event) => ({
+        id: event.id,
+        role: event.role,
+        event_type: event.event_type,
+        occurred_at: event.occurred_at,
+        actor: event.actor,
+        summary: event.summary,
+      })),
+    current_task: task.current_task,
+  };
+}
+
 async function readJson(path) {
   try {
     return JSON.parse(await readFile(path, "utf8"));
@@ -589,6 +634,12 @@ export async function computeHashEntries(root) {
   return Promise.all(paths.map(async (path) => ({ path, sha256: await hashFile(join(root, path)) })));
 }
 
+export async function computeCanaryHashEntries(root) {
+  const canaryRoot = resolve(root);
+  const paths = ["contamination-scan.json", ...CASE_FILES.map((name) => `canary/STR-04/${name}`)];
+  return Promise.all(paths.map(async (path) => ({ path, sha256: await hashFile(join(canaryRoot, path)) })));
+}
+
 export async function loadPilot(root) {
   const pilotRoot = resolve(root);
   const caseDirectories = (await readdir(join(pilotRoot, "pilot"), { withFileTypes: true }))
@@ -611,6 +662,9 @@ export async function validatePilot(root, { verifyHashes = true } = {}) {
     fail("pilot", `expected case directories ${expectedCases.join(",")}`);
   }
   const caseResults = loaded.cases.map(({ caseId, bundle }) => validateCaseBundle(bundle, caseId));
+  if (loaded.cases.some(({ bundle }) => bundle.manifest.pilot_status !== "pilot_not_frozen")) {
+    fail("pilot", "pilot case status changed");
+  }
   validateContamination(loaded.contamination, "contamination-scan.json");
   const hashes = exact(loaded.hashes, ["schema_version", "status", "algorithm", "files"], "pilot-hashes.json");
   if (hashes.schema_version !== SCHEMA_VERSION || hashes.status !== "pilot_not_frozen" || hashes.algorithm !== "sha256") {
@@ -638,16 +692,67 @@ export async function validatePilot(root, { verifyHashes = true } = {}) {
   };
 }
 
+export async function loadCanary(root) {
+  const canaryRoot = resolve(root);
+  return {
+    root: canaryRoot,
+    case: await loadCase(join(canaryRoot, "canary", "STR-04")),
+    contamination: await readJson(join(canaryRoot, "contamination-scan.json")),
+    hashes: await readJson(join(canaryRoot, "canary-hashes.json")),
+  };
+}
+
+export async function validateCanary(root, { verifyHashes = true } = {}) {
+  const loaded = await loadCanary(root);
+  if (loaded.case.caseId !== "STR-04") fail("canary", "expected STR-04");
+  const result = validateCaseBundle(loaded.case.bundle, loaded.case.caseId);
+  if (loaded.case.bundle.manifest.pilot_status !== "canary_not_frozen") fail("canary", "canary status changed");
+  validateContamination(loaded.contamination, "contamination-scan.json");
+  const contamination = loaded.contamination.results.find((entry) => entry.candidate_id === "STR-04");
+  if (!contamination || contamination.status !== "no_public_hit_found") fail("canary", "STR-04 contamination gate is not open");
+  const hashes = exact(loaded.hashes, ["schema_version", "status", "algorithm", "files"], "canary-hashes.json");
+  if (hashes.schema_version !== SCHEMA_VERSION || hashes.status !== "canary_not_frozen" || hashes.algorithm !== "sha256") {
+    fail("canary-hashes.json", "invalid canary hash header");
+  }
+  const expectedEntries = await computeCanaryHashEntries(loaded.root);
+  const actualEntries = array(hashes.files, "canary-hashes.json.files").map((entry, index) => {
+    const item = exact(entry, ["path", "sha256"], `canary-hashes.json.files[${index}]`);
+    string(item.path, `canary-hashes.json.files[${index}].path`);
+    sha256(item.sha256, `canary-hashes.json.files[${index}].sha256`);
+    return item;
+  });
+  if (verifyHashes && JSON.stringify(actualEntries) !== JSON.stringify(expectedEntries)) {
+    fail("canary-hashes.json.files", "canary content hash mismatch");
+  }
+  return {
+    schema_version: SCHEMA_VERSION,
+    canary_status: "canary_not_frozen",
+    case_count: 1,
+    segment_count: result.segments,
+    event_count: result.events,
+    slice_count: result.slices,
+    information_increment_count: loaded.case.bundle.manifest.segments[0].information_increment_event_ids.length,
+    hashes_verified: verifyHashes,
+  };
+}
+
 const modulePath = fileURLToPath(import.meta.url);
 if (process.argv[1] && resolve(process.argv[1]) === modulePath) {
   const defaultRoot = dirname(modulePath);
   const args = process.argv.slice(2);
   const printHashes = args.includes("--print-hashes");
+  const printCanaryHashes = args.includes("--print-canary-hashes");
+  const canary = args.includes("--canary");
   const requestedRoot = args.find((arg) => !arg.startsWith("--")) ?? defaultRoot;
   try {
-    if (printHashes) {
+    if (printCanaryHashes) {
+      const files = await computeCanaryHashEntries(requestedRoot);
+      process.stdout.write(`${JSON.stringify({ schema_version: SCHEMA_VERSION, status: "canary_not_frozen", algorithm: "sha256", files }, null, 2)}\n`);
+    } else if (printHashes) {
       const files = await computeHashEntries(requestedRoot);
       process.stdout.write(`${JSON.stringify({ schema_version: SCHEMA_VERSION, status: "pilot_not_frozen", algorithm: "sha256", files }, null, 2)}\n`);
+    } else if (canary) {
+      process.stdout.write(`${JSON.stringify(await validateCanary(requestedRoot))}\n`);
     } else {
       process.stdout.write(`${JSON.stringify(await validatePilot(requestedRoot))}\n`);
     }

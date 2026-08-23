@@ -1,4 +1,4 @@
-# Starlette v1 schema pilot
+# Starlette v1 schema pilot 与 long/open canary
 
 本目录是 `WO-DS-02` 的 schema 校准产物，不是最终冻结评估集，也不是 Context Compiler 效果证据。
 
@@ -18,10 +18,14 @@
 ## Pilot 状态
 
 - `STR-08`：一个 short segment；
-- `STR-05`：一个 medium segment；
+- `STR-05`：最初标为 medium；WO-DS-03 按 9 个真实信息增量机械更正为 long；
 - `STR-02`：经证据审计拆为 `STR-02A` 与 `STR-02B`，任何 slice 都不得跨 segment；
 - `pilot-hashes.json` 只证明 hash/freeze 机制可工作，状态固定为 `pilot_not_frozen`；
 - `contamination-scan.json` 对 15 条候选使用同一规则，`no_public_hit_found` 不代表绝对无污染。
+
+WO-DS-03 另增加 `canary/STR-04`：一个 `canary_not_frozen` 的 long/open 候选，含 18 个 event、18 个 slice 和 18 个显式信息增量。它只用于证明 schema 能否承载 long/open 与部分交付边界，不是正式数据集。
+
+每个 segment 的 `information_increment_event_ids` 必须是 `event_ids` 的有序子集。3–4 个为 short、5–8 个为 medium、9 个及以上为 long；单 segment 顶层 tier 必须与之相同，多 segment 才能使用 `boundary_audit`。
 
 公开 Issue/PR body 可能在创建后被编辑，而 GitHub 常规 API 不提供完整历史正文。事件同时保存 `source_updated_at` 与当前正文 SHA-256；该 digest 只用于发现当前来源继续变化，不代表创建时正文快照。对于 `source_updated_at > occurred_at` 的 body event，summary 仅采用 GitHub timeline 可核对的创建时标题；后续正文、diff、测试和 merge 信息必须等到 timestamped comment、review 或 Outcome Anchor 才能出现。
 
@@ -29,6 +33,9 @@
 
 ```bash
 node evaluation/starlette-v1/validate-pilot.mjs
+node evaluation/starlette-v1/validate-pilot.mjs --canary
 ```
 
 校验器严格拒绝未知字段、重复/跨 segment 引用、`event_type`/`source.kind` 错配、`source_updated_at < occurred_at`、时间逆序、非前缀 evidence、未来 Gold/Oracle provenance、Current Task 规范化包含任意时点 Gold、Outcome 内容/标识或 cutoff 后 Decision Reference，以及 hash 篡改。内容规范化会移除 Unicode format/control 字符，并同时比较保留词边界与压缩词边界的形式，防止零宽字符、WORD JOINER 和 bidi control 绕过。
+
+`projectModelInput(bundle, sliceId)` 是后续 evaluator 的字段级输入投影。输出的每个 history turn 只有 `id`、`role`、`event_type`、`occurred_at`、`actor`、`summary`，Current Task 单独输出；source metadata、hash 和四类非输入文件不会进入投影。该函数与 validator 不能机械判断语义同义泄漏，仍需独立人工审计。

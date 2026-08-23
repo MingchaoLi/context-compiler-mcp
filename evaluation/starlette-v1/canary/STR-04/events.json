@@ -1,0 +1,132 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-04",
+  "events": [
+    {
+      "id": "STR-04/E1", "segment_id": "STR-04", "ordinal": 1, "role": "user", "event_type": "issue_body",
+      "source": {"source_id": "gh:issue:685", "kind": "issue", "repository": "Kludex/starlette", "number": 685, "database_id": "510932339", "node_id": "MDU6SXNzdWU1MTA5MzIzMzk=", "url": "https://github.com/Kludex/starlette/issues/685", "commit_sha": null},
+      "occurred_at": "2019-10-22T21:35:35Z", "source_updated_at": "2023-08-26T09:25:20Z", "actor": "cypai",
+      "summary": "An issue opens under the title 'Include routing information for middleware'.",
+      "source_content_sha256": "a6a991c46330d040f1ab92b6ad1a2bd86938a45578072d8c2d32fe80c2c8f991"
+    },
+    {
+      "id": "STR-04/E2", "segment_id": "STR-04", "ordinal": 2, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:550240999", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "550240999", "node_id": "MDEyOklzc3VlQ29tbWVudDU1MDI0MDk5OQ==", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-550240999", "commit_sha": null},
+      "occurred_at": "2019-11-06T10:11:34Z", "source_updated_at": "2019-11-06T10:11:34Z", "actor": "lovelydinosaur",
+      "summary": "A maintainer explains that routing occurs after middleware and identifies two options: a preemptive routing API with caching, or moving middleware after routing, which they do not favor.",
+      "source_content_sha256": "e60b46a07fb44dfb87fad87af8b35563583f59c4217c2eed3f632a644f69ca2f"
+    },
+    {
+      "id": "STR-04/E3", "segment_id": "STR-04", "ordinal": 3, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:647508712", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "647508712", "node_id": "MDEyOklzc3VlQ29tbWVudDY0NzUwODcxMg==", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-647508712", "commit_sha": null},
+      "occurred_at": "2020-06-22T13:09:20Z", "source_updated_at": "2020-06-22T13:09:20Z", "actor": "frjonsen",
+      "summary": "A user needs response-time metrics per endpoint and notes that the route name is only needed after the response, while preferring middleware over endpoint instrumentation.",
+      "source_content_sha256": "69061afaf3cc850a63703af0e59fb08de7f05b829ff7c61772c17ee5faad0d60"
+    },
+    {
+      "id": "STR-04/E4", "segment_id": "STR-04", "ordinal": 4, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:886086963", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "886086963", "node_id": "IC_kwDOCELT_M400J0z", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-886086963", "commit_sha": null},
+      "occurred_at": "2021-07-24T17:47:55Z", "source_updated_at": "2021-07-24T17:47:55Z", "actor": "adriangb",
+      "summary": "A maintainer proposes middleware attached per Route or Mount so the application need not match or exclude routes separately.",
+      "source_content_sha256": "8a2d6419411d2a34a36ad8e7dfb279a4569c70d02ac7092db428ecfff03fb33f"
+    },
+    {
+      "id": "STR-04/E5", "segment_id": "STR-04", "ordinal": 5, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:1286", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1286, "database_id": "732380748", "node_id": "MDExOlB1bGxSZXF1ZXN0NzMyMzgwNzQ4", "url": "https://github.com/Kludex/starlette/pull/1286", "commit_sha": null},
+      "occurred_at": "2021-09-13T04:47:56Z", "source_updated_at": "2022-04-21T13:26:20Z", "actor": "adriangb",
+      "summary": "A pull request opens under the title 'feat: Add route-level middleware'.",
+      "source_content_sha256": "5741157cbdfb5b3625e990f435b9b9627a4a955723e73bf0c28772e29b2d1712"
+    },
+    {
+      "id": "STR-04/E6", "segment_id": "STR-04", "ordinal": 6, "role": "user", "event_type": "pull_request_review",
+      "source": {"source_id": "gh:pr-review:866940372", "kind": "pull_request_review", "repository": "Kludex/starlette", "number": 1286, "database_id": "866940372", "node_id": "PRR_kwDOCELT_M4zrHXU", "url": "https://github.com/Kludex/starlette/pull/1286#pullrequestreview-866940372", "commit_sha": null},
+      "occurred_at": "2022-01-29T11:55:12Z", "source_updated_at": "2022-01-29T11:55:12Z", "actor": "Kludex",
+      "summary": "A reviewer proposes an application-level Middleware path_prefix option as an alternative to route-level middleware.",
+      "source_content_sha256": "98287eaf6222a0a7bea507a84c6fcf13499e4a553675c609c83fefd95fe93181"
+    },
+    {
+      "id": "STR-04/E7", "segment_id": "STR-04", "ordinal": 7, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:1024976097", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 1286, "database_id": "1024976097", "node_id": "IC_kwDOCELT_M49F-Th", "url": "https://github.com/Kludex/starlette/pull/1286#issuecomment-1024976097", "commit_sha": null},
+      "occurred_at": "2022-01-29T19:53:55Z", "source_updated_at": "2022-01-29T19:53:55Z", "actor": "adriangb",
+      "summary": "The author challenges the path_prefix alternative because its routing semantics and argument conflicts are undefined and it risks reimplementing routing.",
+      "source_content_sha256": "eb9676a51dd04dd936de7f0b5259f09b1adb84557e8b7f92cc0fe4a05c47f5b0"
+    },
+    {
+      "id": "STR-04/E8", "segment_id": "STR-04", "ordinal": 8, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:1027218920", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 1286, "database_id": "1027218920", "node_id": "IC_kwDOCELT_M49Oh3o", "url": "https://github.com/Kludex/starlette/pull/1286#issuecomment-1027218920", "commit_sha": null},
+      "occurred_at": "2022-02-01T19:42:44Z", "source_updated_at": "2022-02-01T19:42:44Z", "actor": "adriangb",
+      "summary": "The author opens PR #1464 and says that direction may solve the problem more elegantly.",
+      "source_content_sha256": "3fb8b1fa2c83b2e83fb222db0365559aa77f7a953f06b8e38991de6f4ace816a"
+    },
+    {
+      "id": "STR-04/E9", "segment_id": "STR-04", "ordinal": 9, "role": "user", "event_type": "issue_state",
+      "source": {"source_id": "gh:issue-event:6471096544", "kind": "issue_state_event", "repository": "Kludex/starlette", "number": 1286, "database_id": "6471096544", "node_id": "CE_lADOCELT_M47RhiNzwAAAAGBtRjg", "url": "https://github.com/Kludex/starlette/pull/1286#event-6471096544", "commit_sha": null},
+      "occurred_at": "2022-04-21T13:26:20Z", "source_updated_at": null, "actor": "adriangb",
+      "summary": "PR #1286 is closed without being merged.",
+      "source_content_sha256": "73b871fe9b04ed3fad9607407a7964bb34ed0ec7a2cdd8ec3321a121ba46243f"
+    },
+    {
+      "id": "STR-04/E10", "segment_id": "STR-04", "ordinal": 10, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:1649", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1649, "database_id": "945496972", "node_id": "PR_kwDOCELT_M44WyOM", "url": "https://github.com/Kludex/starlette/pull/1649", "commit_sha": null},
+      "occurred_at": "2022-05-24T11:21:01Z", "source_updated_at": "2023-01-26T02:00:39Z", "actor": "adriangb",
+      "summary": "A pull request opens under the title 'Add Mount(..., middleware=[...])'.",
+      "source_content_sha256": "28baf589dc26e9327751f80480fddeb6e93719a01a00a04c9ee0736c10603223"
+    },
+    {
+      "id": "STR-04/E11", "segment_id": "STR-04", "ordinal": 11, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:1190280041", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 1649, "database_id": "1190280041", "node_id": "IC_kwDOCELT_M5G8jtp", "url": "https://github.com/Kludex/starlette/pull/1649#issuecomment-1190280041", "commit_sha": null},
+      "occurred_at": "2022-07-20T13:21:14Z", "source_updated_at": "2022-07-20T13:21:14Z", "actor": "adriangb",
+      "summary": "The author notes that route or Mount middleware changes error-response behavior and proposes marking information in scope while leaving centralized I/O to application middleware.",
+      "source_content_sha256": "86a36001f8421bbc55855523996d20938b9a4a4ad7248b081adc1bc2ff5a5a8d"
+    },
+    {
+      "id": "STR-04/E12", "segment_id": "STR-04", "ordinal": 12, "role": "user", "event_type": "pull_request_review",
+      "source": {"source_id": "gh:pr-review:1095494995", "kind": "pull_request_review", "repository": "Kludex/starlette", "number": 1649, "database_id": "1095494995", "node_id": "PRR_kwDOCELT_M5BS-1T", "url": "https://github.com/Kludex/starlette/pull/1649#pullrequestreview-1095494995", "commit_sha": null},
+      "occurred_at": "2022-09-03T11:25:05Z", "source_updated_at": "2022-09-03T11:25:05Z", "actor": "Kludex",
+      "summary": "A reviewer records that #1286 was approved but pushed back and #1464 rejected, considers the Mount approach sensible, and asks for a behavior test.",
+      "source_content_sha256": "84efbb104b25e03fbc974c045414d50a56853d532d4bb96f907014fe864b6ebc"
+    },
+    {
+      "id": "STR-04/E13", "segment_id": "STR-04", "ordinal": 13, "role": "user", "event_type": "issue_state",
+      "source": {"source_id": "gh:issue-event:7433573738", "kind": "issue_state_event", "repository": "Kludex/starlette", "number": 685, "database_id": "7433573738", "node_id": "CE_lADOCELT_M4edDVzzwAAAAG7E1Vq", "url": "https://github.com/Kludex/starlette/issues/685#event-7433573738", "commit_sha": null},
+      "occurred_at": "2022-09-21T19:02:43Z", "source_updated_at": null, "actor": "adriangb",
+      "summary": "Issue #685 is closed.",
+      "source_content_sha256": "46da63e70eaa03af2465f873d3e66010a40ade004dc008cbfad0410e73433ed4"
+    },
+    {
+      "id": "STR-04/E14", "segment_id": "STR-04", "ordinal": 14, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1254245484", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "1254245484", "node_id": "IC_kwDOCELT_M5KwkRs", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-1254245484", "commit_sha": null},
+      "occurred_at": "2022-09-21T21:27:06Z", "source_updated_at": "2022-09-21T21:27:06Z", "actor": "basepi",
+      "summary": "A maintainer says the closure expanded scope: per-Mount middleware does not solve the original global route-name and APM requirement, and asks to reopen the issue.",
+      "source_content_sha256": "fe5f4e79d9e45436dc558d3fd9ecc6922c79d4fb0ac41066b6b88f545d53b184"
+    },
+    {
+      "id": "STR-04/E15", "segment_id": "STR-04", "ordinal": 15, "role": "user", "event_type": "issue_state",
+      "source": {"source_id": "gh:issue-event:7434468059", "kind": "issue_state_event", "repository": "Kludex/starlette", "number": 685, "database_id": "7434468059", "node_id": "REE_lADOCELT_M4edDVzzwAAAAG7IPrb", "url": "https://github.com/Kludex/starlette/issues/685#event-7434468059", "commit_sha": null},
+      "occurred_at": "2022-09-21T21:36:59Z", "source_updated_at": null, "actor": "adriangb",
+      "summary": "Issue #685 is reopened.",
+      "source_content_sha256": "81b66dbb9e72453cf02f2da7ae7314c34fd04c63e93deaa58a80bbc2a0de6217"
+    },
+    {
+      "id": "STR-04/E16", "segment_id": "STR-04", "ordinal": 16, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1254265680", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "1254265680", "node_id": "IC_kwDOCELT_M5KwpNQ", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-1254265680", "commit_sha": null},
+      "occurred_at": "2022-09-21T21:53:17Z", "source_updated_at": "2022-09-21T21:53:17Z", "actor": "basepi",
+      "summary": "The APM use case requires low-touch global instrumentation and cannot require users to add middleware separately to every route or Mount.",
+      "source_content_sha256": "c9004824726405595b18e54e1d6d709948cdcf925568f21c04fa2ffe94dc0034"
+    },
+    {
+      "id": "STR-04/E17", "segment_id": "STR-04", "ordinal": 17, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1254275072", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 685, "database_id": "1254275072", "node_id": "IC_kwDOCELT_M5KwrgA", "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-1254275072", "commit_sha": null},
+      "occurred_at": "2022-09-21T22:03:59Z", "source_updated_at": "2022-09-21T22:05:49Z", "actor": "adriangb",
+      "summary": "A maintainer accepts that per-route setup is burdensome, lists startup wrapping, monkeypatching, or a global registry as alternatives, and says routing information remains a desirable feature.",
+      "source_content_sha256": "0b997fc9ae3ae0c27b7c65df5d8c88360aac461e4b69ec6d394bdda390098b40"
+    },
+    {
+      "id": "STR-04/E18", "segment_id": "STR-04", "ordinal": 18, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:2349", "kind": "pull_request", "repository": "Kludex/starlette", "number": 2349, "database_id": "1617424138", "node_id": "PR_kwDOCELT_M5gZ-8K", "url": "https://github.com/Kludex/starlette/pull/2349", "commit_sha": null},
+      "occurred_at": "2023-11-27T07:23:55Z", "source_updated_at": "2023-12-01T10:35:16Z", "actor": "Kludex",
+      "summary": "A pull request opens under the creation-time title 'Add middleware per route'.",
+      "source_content_sha256": "1bda3f95b6f1cbe4867ca11a0af359ab9e49c556aa428c0abee3641b19ec6ef4"
+    }
+  ]
+}

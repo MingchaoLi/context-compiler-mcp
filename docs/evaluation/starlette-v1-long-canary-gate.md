@@ -1,57 +1,53 @@
-# Starlette v1 STR-04 long/open canary 门禁报告
+# Starlette v1 STR-04 long/open canary 报告
 
 日期：2026-08-23
 
-结论：**首轮 Builder 判断已被独立 QA 否决；STR-04 恢复为有限的 `no_public_hit_found`，canary 继续。**
+结论：**Builder 已完成 canary candidate，等待新的独立 data QA；不是正式 freeze，也不是 D2 效果证据。**
 
-本报告只回答 STR-04 是否仍有资格充当未污染 canary。它不是 Context Compiler 效果证据，也没有运行 D0/D1/D2、远端模型、aggregate 或 PASS rate。
+## 结果概览
 
-## 先验分层校验
+- `STR-04`：1 个 long/open segment，18 个时间有序 evidence event、18 个同 cutoff slice、18 个真实信息增量；
+- 七类文件保持物理分离；只有 `events.json` 与 `tasks.json` 能生成模型输入；
+- #1649 与 #2349 只作为部分能力和 Outcome Anchor，Issue #685 的关闭、范围反驳与重开由独立 timestamped event 表示；
+- `canary-hashes.json` 状态为 `canary_not_frozen`；现有 `pilot-hashes.json` 仍为 `pilot_not_frozen`；
+- 没有运行 D0/D1/D2、远端模型、aggregate 或 PASS rate，也没有修改 Context Compiler core。
 
-把“short 3–4、medium 5–8、long ≥9 个信息增量”机械应用到现有 pilot 后，STR-05 的 9 个事件都引入了新的问题、状态、实现、约束或评审结论，不能诚实排除任一事件来维持 medium。因此 STR-05 应归为 long，原计划的 2 short / 2 medium / 2 long 已失效。该结论在 contamination 结果出现前已追加到工单；没有从 reserve 自动补样。
+## 信息增量与分层
 
-## STR-04 来源预审
+层级按显式 `information_increment_event_ids` 的数量机械计算：short 3–4、medium 5–8、long ≥9。validator 要求这些 id 属于 `event_ids`、保持事件顺序且不重复，并强制单 segment 顶层 tier 与 classification 一致；多 segment 才允许 `boundary_audit`。
 
-Issue #685 与 PR #1286、#1649、#2349 的公开一手来源能够形成超过 9 个真实增量：原始 route-name/APM 需求、middleware 先于 routing 的边界、两类早期替代方向、#1286 的推进与关闭、#1649 的 Mount 能力、#685 的过早关闭和重新打开、低接触 APM 约束，以及 #2349 的 Route/WebSocketRoute 部分能力。Issue #685 在复核时仍为 open。
+STR-04 的 18 个增量依次覆盖：问题创建、routing/middleware 执行顺序、响应后指标需求、per-Route/per-Mount 方向、#1286 实现、path-prefix 替代、对该替代的反驳、转向 #1464、#1286 关闭、#1649 Mount 方向、错误处理边界、对旧分支的评审结论、Issue 关闭、scope-creep 反驳、Issue 重开、低接触 APM 约束、workaround/框架能力分流、#2349 per-route 实现。
 
-因此“证据链不够长”不是此次停止原因。若没有污染，现有来源足以继续做 long/open canary 的人工规范化。
+同一规则应用到 pilot 后，STR-05 的 9 个事件均为真实增量，已从 medium 改为 long。原 2 short / 2 medium / 2 long 配额声明失效；没有少计事件或从 reserve 自动补样。
 
-## 确认污染证据
+## 时间与来源边界
 
-同日对固定 source path 的公开 GitHub 索引复扫发现：
+Issue/PR 创建事件只使用创建时可证明的标题。当前 body 的 SHA-256 只用于发现来源变化，不作为创建时正文快照。稳定 comment/review 使用自身时间戳与 observed body hash。
 
-- 仓库：`Uniyalsumit/CT_PROJECT`；
-- 固定提交：`c11a9ce776b73670789a8757c033ff11b115fa42`，提交时间 `2026-08-09T15:32:29Z`；
-- 文件：`evaluation/results/ragas_results_test.csv`，Git blob `2009a996ff93ed468518f95e98a64ea2577f2448`；
-- 该 CSV 的问题“Tell me about router changes.”所对应 contexts 含 Starlette 0.33.0 release note，其中明确包含 PR #2349 的 per-Route/WebSocketRoute middleware 变更；
-- 同提交的 `evaluation/ragas_dataset.py` 把 RAG 的 question、answer、retrieved documents 组装为数据集；`evaluation/ragas_eval.py` 使用 RAGAS 的 faithfulness 和 answer relevancy 指标评价该数据集。
+三个 `issue_state` 事件的 `source_content_sha256` 对 GitHub event response 的以下规范化 JSON 计算：`id`、`node_id`、`event`、`actor`、`created_at`、`commit_id`，键顺序固定。这样可以复核 close/reopen 事件而不把整个可变 API envelope 当内容。
 
-稳定证据链接：
+最终 Outcome Anchor 保留 #1649 的行为测试提交、#1649 merge 与 #2349 merge。它们不会进入任何 Available Evidence。#685 在 2026-08-23 来源审计时仍为 open；这只支持“原问题未关闭”，不表示两个部分能力没有价值。
 
-- <https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/results/ragas_results_test.csv>
-- <https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/ragas_dataset.py>
-- <https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/ragas_eval.py>
+## 模型输入 projection
 
-Issue #685 的另一命中是普通 telemetry workaround；PR #1286 的命中是普通下游 middleware 源码；PR #1649 的命中主要是 release note、测试或复制源码。这些未单独标为 confirmed。关闭门禁只需要上面的 #2349 evaluation artifact。
+`projectModelInput(bundle, sliceId)` 先运行完整 bundle 校验，再输出：
 
-## 为什么必须按 confirmed 处理
+- `schema_version`；
+- `history_turns`：严格等于该 slice 的 evidence 前缀；
+- `current_task`：独立当前任务。
 
-已冻结规则不是“公开任务必须要求修复同一个缺陷”，而是只要同一 issue 或 fix 被 LLM/evaluation task 显式复用即可确认。PR #2349 是预注册 STR-04 主线和 Outcome Anchor 的固定组成部分，且其内容确实作为 retrieved context 进入公开 LLM/RAGAS 评测；所以满足规则。
+每个 history turn 只有六个字段：`id`、`role`、`event_type`、`occurred_at`、`actor`、`summary`。GitHub source/node/database id、URL、body/hash、`source_updated_at`、审计说明、Fact Gold、Oracle-State、Decision Reference、Outcome Anchor 和 merge SHA 均不在投影中。正反例同时验证早期前缀、未知审计字段拒绝和 canary hash 篡改。
 
-一种较窄解释是：该问答只泛问 router changes，PR #2349 只是检索上下文之一，未必影响答案，因而不应算任务级污染。这个解释在科学上可以讨论，但当前不能采用：它会在看到不利命中后改变纳入规则。若未来要采用，必须另开工单、事先重写统一污染规则，并对全部 15 条候选重新扫描，不能只豁免 STR-04。
+validator 仍只证明结构、时间前缀、provenance 与规范化字面边界，不能证明语义无泄漏。聚焦测试明确构造一个会被 validator 接受、但人工必须拒绝的反例：在 T1 Current Task 中假定“later work supplies route-scoped hooks”，再询问为何 zero-touch instrumentation 仍不完整。它没有复制 future Gold 原文，却把后期能力和结论改写进早期任务；因此独立人工 source audit 仍是 gate 条件。
 
-## 停止结果
+## Contamination 复扫与首轮 QA 退回
 
-- 未创建 `evaluation/starlette-v1/canary/STR-04/`；
-- 未修改 validator、projection、pilot case manifest 或 Context Compiler core；
-- 未运行远端 GPT-5.6 或任何 D0/D1/D2 实验；
-- 未选择 reserve 替代 STR-04；
-- 只更新 contamination 记录及其 `pilot_not_frozen` hash；hash 仍只证明文件字节一致，不证明绝对无污染。
+精确 source-path 复扫没有发现把 STR-04 issue/fix 显式作为 LLM、agent、benchmark、code-repair 或 evaluation task 的公开复用，状态保持有限的 `no_public_hit_found`。
 
-下一步不是继续制作数据，而是先由独立 data QA 复核：该文件是否确为 LLM/RAGAS evaluation artifact、#2349 是否确实进入 contexts、以及现有预注册规则是否必然导出 `confirmed`。QA 接受后，STR-04 canary 和原六案路径保持关闭；任何新样本或规则都需新的预注册决策。
+首轮 Builder 曾把一个 RAGAS retrieved-context 命中判为 confirmed 并关闭 gate。独立 QA 读取同一固定提交的 `benchmark.py` 后证明该问题的 reference 是 FastAPI PR #15745，#2349 只是未被答案使用的检索噪声。主控接受退回并恢复 canary；命中与排除理由保留在 `contamination-scan.json`。若未来要把任意 LLM context 命中都定义为污染，必须新工单预注册并统一重扫全部 15 条候选。
 
-## 独立 QA 结论与处置
+## 剩余偏差与 Gate
 
-独立 QA 固定 Builder 候选 `57279d1` 后确认前三项外部事实，但进一步读取同一固定提交的 `evaluation/benchmark.py`：该题属于 `ambiguous`，`ground_truth_ref` 为 FastAPI PR #15745；CSV 生成答案也没有使用 #2349。故 #2349 只是 context-only retrieval noise，不是 STR-04 issue/fix 被作为 evaluation task、Gold 或 patch 复用。
+STR-04 证明 schema 可以表达 long/open、部分交付、关闭后重开和字段级 projection；它不能证明六案具有统计代表性。STR-05 改层后，长度、组件和 outcome 分布需要在下一工单重新预注册。
 
-QA 判定 Builder 把既有规则扩大成“任何 lineage source 进入 LLM context 都 confirmed”，因此首轮 gate-closed 为 FAIL。主控接受退回：`contamination-scan.json` 改回 `no_public_hit_found`，保留命中与排除理由，继续原 canary。上文保留为被证伪的 Builder 判断记录，不再代表当前门禁状态。
+只有新的独立 data QA 对来源、18 个增量、Gold/Oracle、语义泄漏、projection 与 hash 全部 PASS，DS-03 才可接受。即使 PASS，也只允许讨论下一批 freeze 的新预注册，不允许直接运行模型或沿用旧 2/2/2。

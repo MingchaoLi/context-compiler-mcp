@@ -1,0 +1,69 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-04",
+  "title": "Middleware route information: partial capabilities without resolving the global APM need",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "long",
+  "pilot_status": "canary_not_frozen",
+  "segments": [
+    {
+      "id": "STR-04",
+      "classification": "long",
+      "boundary": "independent",
+      "event_ids": ["STR-04/E1", "STR-04/E2", "STR-04/E3", "STR-04/E4", "STR-04/E5", "STR-04/E6", "STR-04/E7", "STR-04/E8", "STR-04/E9", "STR-04/E10", "STR-04/E11", "STR-04/E12", "STR-04/E13", "STR-04/E14", "STR-04/E15", "STR-04/E16", "STR-04/E17", "STR-04/E18"],
+      "information_increment_event_ids": ["STR-04/E1", "STR-04/E2", "STR-04/E3", "STR-04/E4", "STR-04/E5", "STR-04/E6", "STR-04/E7", "STR-04/E8", "STR-04/E9", "STR-04/E10", "STR-04/E11", "STR-04/E12", "STR-04/E13", "STR-04/E14", "STR-04/E15", "STR-04/E16", "STR-04/E17", "STR-04/E18"],
+      "slice_ids": ["STR-04/T1", "STR-04/T2", "STR-04/T3", "STR-04/T4", "STR-04/T5", "STR-04/T6", "STR-04/T7", "STR-04/T8", "STR-04/T9", "STR-04/T10", "STR-04/T11", "STR-04/T12", "STR-04/T13", "STR-04/T14", "STR-04/T15", "STR-04/T16", "STR-04/T17", "STR-04/T18"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "Issue 685 and PRs 1286, 1649, and 2349 repeatedly address where route-aware middleware can run. The later PRs add partial per-Mount or per-Route capabilities, while timestamped comments preserve the original low-touch global APM need and explain why the issue is reopened rather than resolved.",
+    "falsification": "Split the case if an audited source shows that the per-route and per-Mount work was unrelated to exposing routing information to middleware, or that issue 685 was finally resolved before the registered cutoff."
+  },
+  "included_source_ids": [
+    "gh:issue:685",
+    "gh:issue-comment:550240999",
+    "gh:issue-comment:647508712",
+    "gh:issue-comment:886086963",
+    "gh:pr:1286",
+    "gh:pr-review:866940372",
+    "gh:pr-comment:1024976097",
+    "gh:pr-comment:1027218920",
+    "gh:issue-event:6471096544",
+    "gh:pr:1649",
+    "gh:pr-comment:1190280041",
+    "gh:pr-review:1095494995",
+    "gh:issue-event:7433573738",
+    "gh:issue-comment:1254245484",
+    "gh:issue-event:7434468059",
+    "gh:issue-comment:1254265680",
+    "gh:issue-comment:1254275072",
+    "gh:pr:2349"
+  ],
+  "excluded_sources": [
+    {
+      "source_id": "gh:issue-comment:1254206150",
+      "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-1254206150",
+      "reason": "The body was edited after the premature close and now contains struck-through closure text, so it is not a safe timestamped explanation of the close."
+    },
+    {
+      "source_id": "gh:pr:1464",
+      "url": "https://github.com/Kludex/starlette/pull/1464",
+      "reason": "The canary preserves the later timestamped review that records this branch as rejected; expanding the full PR would create a second design branch without changing the registered continuity question."
+    },
+    {
+      "source_id": "gh:issue-comment:1254253253",
+      "url": "https://github.com/Kludex/starlette/issues/685#issuecomment-1254253253",
+      "reason": "The mark-scope plus centralized-I/O idea is already established by the earlier immutable PR 1649 comment; this repetition adds no new increment."
+    },
+    {
+      "source_id": "gh:pr:2349:current-body",
+      "url": "https://github.com/Kludex/starlette/pull/2349",
+      "reason": "The current mutable body says it does not solve issue 685, but its edit time is unavailable. The creation event uses only the creation-time title; final limitations rely on the issue's open state and merge anchor."
+    }
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "Issue and PR bodies are mutable. Creation events use only creation-time titles verified from GitHub metadata/timeline or an immutable initial commit. Stable comments and reviews use their own timestamps and observed body hashes. State-event hashes cover a documented canonical subset of the GitHub event response."
+}

@@ -4,14 +4,15 @@
   "title": "StaticFiles symlink support: merge, security reversal, and opt-in redesign",
   "repository": "Kludex/starlette",
   "historical_repository_aliases": ["encode/starlette"],
-  "tier": "medium",
+  "tier": "long",
   "pilot_status": "pilot_not_frozen",
   "segments": [
     {
       "id": "STR-05",
-      "classification": "medium",
+      "classification": "long",
       "boundary": "independent",
       "event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"],
+      "information_increment_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"],
       "slice_ids": ["STR-05/T1", "STR-05/T2", "STR-05/T3", "STR-05/T4", "STR-05/T5", "STR-05/T6", "STR-05/T7", "STR-05/T8", "STR-05/T9"]
     }
   ],
