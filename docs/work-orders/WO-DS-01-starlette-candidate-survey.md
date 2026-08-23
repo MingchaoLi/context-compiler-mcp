@@ -1,6 +1,10 @@
 # WO-DS-01 — Starlette 真实轨迹候选筛选
 
-状态：PLANNED
+状态：COMPLETED — CANDIDATE SURVEY ONLY
+
+交接：`docs/handoffs/WO-DS-01-starlette-candidate-survey.md`
+
+候选报告：`docs/evaluation/starlette-v1-candidate-survey.md`
 
 ## 结果
 

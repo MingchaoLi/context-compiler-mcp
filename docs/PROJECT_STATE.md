@@ -20,7 +20,7 @@ WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71
 
 ## Current candidate
 
-WO-EV-02 已接受，当前没有 pending core candidate。Evaluator v2 只校准评估尺子；Starlette 数据、远端回答实验和 Context Compiler core policy 修改均未开始。
+WO-DS-01 已完成 Starlette 候选筛选：预注册规则先于研究提交，15 条公开真实轨迹中推荐 8 条进入后续冻结工单，分布为 2 short / 2 medium / 4 long。该交付只是候选报告，不是冻结数据集；尚未生成时间切片、Gold、fixture、hash 或 D0/D1/D2 输出，也未修改 Context Compiler core。
 
 ## 最新对抗审查
 
@@ -38,6 +38,7 @@ WO-EV-02 已接受，当前没有 pending core candidate。Evaluator v2 只校�
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
+- Starlette 推荐候选尚需 WO-DS-02 逐事件规范化、独立 selection-bias/future-leakage 审计与 hash freeze；STR-15 已因公开 benchmark contamination 从 v1 推荐集中排除。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.
