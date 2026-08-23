@@ -121,3 +121,55 @@ console.log("ACCEPTED");
 1. Probe provenance 指向 `context_item` 时，明确拒绝空 `source_refs`，并继续验证每个 ref 指向本 case raw event；
 2. v2 公共 parser/runner 拒绝非枚举 unknown/data property，而不调用 getter、不泄漏值；
 3. 重新运行本报告的完整矩阵后再申请独立 re-QA。
+
+---
+
+## 独立 re-QA — PASS
+
+日期：2026-08-23
+
+结论：`PASS — INDEPENDENT RE-QA`
+
+### 固定修复候选
+
+- 分支：`main`
+- source candidate：`93b71dde1c660feb2671d974cbb6eedb3b58340a`
+- 父提交：`7e84fc8e72ebe544749b5acd811a00b589eb9d4d`
+- re-QA 开始时工作树干净。
+
+首次 FAIL 的历史记录与复现证据保留不变。修复候选以 append-only 提交关闭 P1/P2，未修改 v1、assembler、CLI、MCP 或依赖。
+
+### 首次 Findings 关闭证据
+
+- 原样重跑 P1 复现：把 Probe 所指 `cost-constraint.source_refs` 设为 `[]` 后，`parseEvaluationSuiteV2` 现在抛出 `EvaluationError(code=INVALID_INPUT)`，不再输出 `[]`。
+- 原样重跑 P2 复现：在 suite 根对象增加非枚举 `hidden_unknown` data property 后，`parseEvaluationSuiteV2` 现在抛出 `EvaluationError(code=INVALID_INPUT)`，不再输出 `ACCEPTED`。
+- 扩展矩阵确认 enumerable/non-enumerable unknown、accessor、custom prototype、sparse array、symbol、cycle、重复 Probe id、重复 provenance、缺失 provenance、空 `context_item.source_refs`、缺失 raw source ref、`current_input` provenance kind 全部在临时状态创建前返回 `INVALID_INPUT`。
+- getter 调用次数为 `0`，错误不含 `PRIVATE-EVIDENCE`，各拒绝路径没有临时目录残留。
+
+### 风险回归
+
+- **v1 compatibility：** 从父提交独立导出并构建，对父/当前真实 CLI 运行同一个 v1 fixture；退出码均为 `0`、stderr 为空，去除实测 latency 数值后完整报告逐字段一致。
+- **历史投影：** 四类 Probe 文本只在 `current_input` 出现时，D0/D1/D2 全部 `matched=0`；文本存在于真实历史且当前输入无关时，三维度四类指标全部 `matched=1`。
+- **完整输入成本：** D0/D1 token 分别与独立完整 transcript 完全相等；D2 token 与 assembler 的完整 `d2_compiled_tokens` 相等，并包含 current input。latency 计时边界仍覆盖完整 render/assemble。
+- **空率与 aggregate：** 空 Probe/recall case 的所有 rate 均为 `not_evaluable/rate:null`；五个 not-evaluable failure code 顺序稳定，真实 CLI 退出 `2`；混合 aggregate 不累计空 case 分母。
+- **D2-vs-D1：** calibration 三案与 aggregate 的 d1/d2/delta/ratio 算术全部精确；`compareEvaluationTokenCostV2(0,7)` 返回 `not_evaluable/ratio:null`；ratio 大于 1 不形成新 gate。Calibration fixture 仍只校准尺子，不作为 D2 效果证据。
+- **CLI：** v1 pass=`0`、v2 pass=`0`、v2 not-evaluable=`2`、v2 threshold failure=`2`、v2 invalid=`3`、未知 version=`3`。stdout/stderr 各保持单行、分流与净化；v2 validation error 使用 version 2，未知版本不泄漏证据。
+
+### Package、MCP 与扫描
+
+- 公共 JS exports 与 `.d.ts` declarations 仍完整暴露 v2 常量、parser、runner、cost helper 和类型。
+- 真实 `npm pack` 生成 50-entry tarball，shasum `f20e56e75c6b6aa9d7362627101771a6c2ca4510`；不含 src/test/docs/node_modules、凭据、数据库或日志。
+- tarball 解包并 offline `npm prune --omit=dev` 后，SDK/Zod 存在，Vitest/TypeScript 不存在；完整 production dependency tree 退出 `0`，无缺失必需依赖或 extraneous dependency。
+- production-only 真实 eval entry 运行 v1 与 v2 fixture 均退出 `0`、stderr 为空；真实 MCP `tools/list` 精确返回既有九工具且 stderr 为空。
+- fix diff 和完整 `src/package.json` 的 provider/network/credential/host/UI 扫描无命中；tracked 生成物/敏感文件扫描与 tarball 内容扫描无命中；没有新增 runtime dependency。
+
+### 必需命令
+
+- `npm test`：11 files、242 tests 全部通过。
+- `npm run test:protocol`：1 file、8 tests 全部通过。
+- `npm run build`：通过。
+- `git diff --check`：通过。
+
+验证环境仍为 macOS 26.5.1 / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0。Windows 与精确 Node.js 24 未验证，不能由本次结果推断。
+
+WO-EV-02 在固定 source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a` 上满足工单验收，可以更新为 `ACCEPTED`。这只接受 evaluator v2 测量校准，不构成 D2 效果、真实 Starlette 轨迹或远端回答实验的证据。

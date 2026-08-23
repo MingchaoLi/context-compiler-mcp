@@ -1,8 +1,12 @@
 # WO-EV-02 — Evaluator v2 测量有效性校准
 
-状态：IMPLEMENTED — PENDING INDEPENDENT QA
+状态：ACCEPTED — INDEPENDENT RE-QA PASS
 
 实现交接：`docs/handoffs/WO-EV-02-evaluator-validity-calibration.md`
+
+独立 QA：`docs/qa/WO-EV-02-evaluator-validity-calibration.md`
+
+接受的固定 source candidate：`93b71dde1c660feb2671d974cbb6eedb3b58340a`（2026-08-23）。首次独立 QA 的 P1/P2 与 append-only 修复后的 fresh re-QA 证据均保留在同一 QA 报告中。
 
 ## 结果
 
