@@ -1,0 +1,53 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-06",
+  "title": "FIPS ETag compatibility: accepted first wrapper, failed target test, and corrected probe",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "long",
+  "pilot_status": "canary_not_frozen",
+  "segments": [
+    {
+      "id": "STR-06",
+      "classification": "long",
+      "boundary": "independent",
+      "event_ids": ["STR-06/E1", "STR-06/E2", "STR-06/E3", "STR-06/E4", "STR-06/E5", "STR-06/E6", "STR-06/E7", "STR-06/E8", "STR-06/E9", "STR-06/E10", "STR-06/E11", "STR-06/E12", "STR-06/E13", "STR-06/E14", "STR-06/E15", "STR-06/E16"],
+      "information_increment_event_ids": ["STR-06/E1", "STR-06/E2", "STR-06/E3", "STR-06/E4", "STR-06/E5", "STR-06/E6", "STR-06/E7", "STR-06/E8", "STR-06/E9", "STR-06/E10", "STR-06/E11", "STR-06/E12", "STR-06/E13", "STR-06/E14", "STR-06/E15", "STR-06/E16"],
+      "slice_ids": ["STR-06/T1", "STR-06/T2", "STR-06/T3", "STR-06/T4", "STR-06/T5", "STR-06/T6", "STR-06/T7", "STR-06/T8", "STR-06/T9", "STR-06/T10", "STR-06/T11", "STR-06/T12", "STR-06/T13", "STR-06/T14", "STR-06/T15", "STR-06/T16"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "Issue 1365 and PRs 1366 and 1410 form one continuous compatibility lineage: the first accepted wrapper left its capability probe unusable on the reported FIPS system, the target test overturned the closure, and the second PR changed that same probe.",
+    "falsification": "Split the lineage if an audited immutable patch or timestamped source shows that PR 1410 addressed a different failure path rather than the capability probe introduced by PR 1366."
+  },
+  "included_source_ids": [
+    "gh:issue:1365",
+    "gh:issue-comment:994130888",
+    "gh:issue-comment:994408439",
+    "gh:issue-comment:994713435",
+    "gh:issue-comment:994762247",
+    "gh:pr:1366",
+    "gh:issue-event:5784383679",
+    "gh:issue-comment:996824650",
+    "gh:issue-comment:996829182",
+    "gh:issue-comment:1009954811",
+    "gh:issue-comment:1012564053",
+    "gh:issue-comment:1012568198",
+    "gh:issue-event:5890858859",
+    "gh:pr:1410",
+    "gh:issue-comment:1012588046",
+    "gh:issue-event:5893584617"
+  ],
+  "excluded_sources": [
+    {"source_id": "gh:issue-comment:994127553", "url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-994127553", "reason": "The next maintainer comment records the reviewable Django-style direction more directly; retaining both would duplicate the same initial option survey."},
+    {"source_id": "gh:issue-comment:996696543", "url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-996696543", "reason": "The release-number announcement adds packaging timing but does not change the compatibility diagnosis, decision, tracker state, or verification state."},
+    {"source_id": "gh:issue-comment:996774859", "url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-996774859", "reason": "This repeats the Python 3.9-only claim already present in event E5; the following correction is retained as the information increment."},
+    {"source_id": "gh:pr-comment:996705216", "url": "https://github.com/Kludex/starlette/pull/1366#issuecomment-996705216", "reason": "The PR author says 'Worked perfectly' immediately after being granted merge rights; it does not identify a FIPS run and must not be treated as behavior verification."},
+    {"source_id": "gh:issue-cross-reference:1153079447", "url": "https://github.com/Kludex/starlette/issues/1365#event-1153079447", "reason": "The PR 1366 creation event is retained directly, so this cross-reference adds no independent information."},
+    {"source_id": "gh:issue-cross-reference:1157152676", "url": "https://github.com/Kludex/starlette/issues/1365#event-1157152676", "reason": "The PR 1410 creation event is retained directly, so this cross-reference adds no independent information."}
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "Issue and PR bodies are mutable. Creation summaries use creation-time titles and immutable initial commits; current body digests detect later changes only. State-event digests use the documented canonical REST subset. Merge, close, and reporter evidence are kept distinct from repository regression tests, Builder/QA reproduction, and cross-environment proof."
+}

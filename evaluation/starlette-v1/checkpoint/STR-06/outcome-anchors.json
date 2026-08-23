@@ -1,0 +1,22 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-06",
+  "anchors": [
+    {
+      "id":"STR-06/O1","segment_id":"STR-06","kind":"patch_merged",
+      "source":{"source_id":"gh:merge:1366","kind":"merge_commit","repository":"Kludex/starlette","number":1366,"database_id":null,"node_id":null,"url":"https://github.com/Kludex/starlette/commit/0aef1724cfafbe23f846979d427a5a173667f6b7","commit_sha":"0aef1724cfafbe23f846979d427a5a173667f6b7"},
+      "occurred_at":"2021-12-17T12:37:33Z",
+      "summary":"The first compatibility wrapper for MD5 usedforsecurity handling is merged.",
+      "artifact_urls":["https://github.com/Kludex/starlette/pull/1366","https://github.com/Kludex/starlette/commit/0aef1724cfafbe23f846979d427a5a173667f6b7"],
+      "limitations":"No repository regression test is present in PR 1366, Builder and QA did not replay a FIPS environment, and the later target-system failure proves that this merge and close did not establish successful FIPS behavior."
+    },
+    {
+      "id":"STR-06/O2","segment_id":"STR-06","kind":"patch_merged",
+      "source":{"source_id":"gh:merge:1410","kind":"merge_commit","repository":"Kludex/starlette","number":1410,"database_id":null,"node_id":null,"url":"https://github.com/Kludex/starlette/commit/7d79ad96d5aaee71f16ac9f4e41072e81d18ab86","commit_sha":"7d79ad96d5aaee71f16ac9f4e41072e81d18ab86"},
+      "occurred_at":"2022-01-14T09:40:18Z",
+      "summary":"The capability probe is changed to usedforsecurity=False and the second patch is merged.",
+      "artifact_urls":["https://github.com/Kludex/starlette/pull/1410","https://github.com/Kludex/starlette/commit/7d79ad96d5aaee71f16ac9f4e41072e81d18ab86"],
+      "limitations":"No repository regression test is present in PR 1410. The reporter tested one altered commit on one FIPS system but not current master; Builder and QA did not replay FIPS, so merge and tracker closure do not prove every Python, OpenSSL, or FIPS environment."
+    }
+  ]
+}

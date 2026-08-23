@@ -1,0 +1,41 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-06",
+  "facts": [
+    {"id":"STR-06/F1","segment_id":"STR-06","category":"evidence","statement":"On the reported RHEL 8 FIPS system, Starlette 0.16.0 FileResponse ETag construction raises ValueError from hashlib.md5.","first_known_at_event_id":"STR-06/E1","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E1"]},
+    {"id":"STR-06/F2","segment_id":"STR-06","category":"decision","statement":"The reviewable narrow path is a usedforsecurity compatibility change; replacing the hash algorithm remains a separate design discussion.","first_known_at_event_id":"STR-06/E2","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E2"]},
+    {"id":"STR-06/F3","segment_id":"STR-06","category":"rejected_alternative","statement":"Requiring a security-grade hash for this ETag is withdrawn; the compatibility problem can be addressed while retaining MD5.","first_known_at_event_id":"STR-06/E4","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E3","STR-06/E4"]},
+    {"id":"STR-06/F4","segment_id":"STR-06","category":"decision","statement":"Use a compatibility wrapper that can call hashlib.md5 with usedforsecurity=False rather than assuming ordinary MD5 calls work under FIPS.","first_known_at_event_id":"STR-06/E5","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E4","STR-06/E5"]},
+    {"id":"STR-06/F5","segment_id":"STR-06","category":"evidence","statement":"PR 1366 opens a compatibility-helper implementation without adding a repository test file in its initial patch.","first_known_at_event_id":"STR-06/E6","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E6"]},
+    {"id":"STR-06/F6","segment_id":"STR-06","category":"outcome_status","statement":"Issue 1365 is tracker-closed when PR 1366 merges, but that state does not itself verify FIPS behavior.","first_known_at_event_id":"STR-06/E7","superseded_at_event_id":"STR-06/E13","provenance_event_ids":["STR-06/E6","STR-06/E7"]},
+    {"id":"STR-06/F7","segment_id":"STR-06","category":"constraint","statement":"RHEL backports make runtime capability different from a simple upstream Python-version boundary, so compatibility needs probing rather than version inference.","first_known_at_event_id":"STR-06/E8","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E5","STR-06/E8"]},
+    {"id":"STR-06/F8","segment_id":"STR-06","category":"open_question","statement":"Whether the first merged wrapper actually works on the target FIPS setup remains to be tested rather than inferred from try/except.","first_known_at_event_id":"STR-06/E9","superseded_at_event_id":"STR-06/E11","provenance_event_ids":["STR-06/E8","STR-06/E9"]},
+    {"id":"STR-06/F9","segment_id":"STR-06","category":"open_question","statement":"Target FIPS verification is still unavailable because the customer temporarily disabled FIPS mode.","first_known_at_event_id":"STR-06/E10","superseded_at_event_id":"STR-06/E11","provenance_event_ids":["STR-06/E9","STR-06/E10"]},
+    {"id":"STR-06/F10","segment_id":"STR-06","category":"evidence","statement":"The first merged implementation fails a real FIPS import because its capability probe passes usedforsecurity=True and triggers ValueError.","first_known_at_event_id":"STR-06/E11","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E11"]},
+    {"id":"STR-06/F11","segment_id":"STR-06","category":"rejected_alternative","statement":"Treating PR 1366 merge or the first tracker close as proof that FIPS behavior works is invalidated by the later target-system failure.","first_known_at_event_id":"STR-06/E11","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E7","STR-06/E11"]},
+    {"id":"STR-06/F12","segment_id":"STR-06","category":"decision","statement":"The follow-up should preserve parameter detection while changing the capability probe itself to usedforsecurity=False.","first_known_at_event_id":"STR-06/E12","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E11","STR-06/E12"]},
+    {"id":"STR-06/F13","segment_id":"STR-06","category":"outcome_status","statement":"Issue 1365 is reopened after the first accepted direction fails on the reported FIPS path.","first_known_at_event_id":"STR-06/E13","superseded_at_event_id":"STR-06/E16","provenance_event_ids":["STR-06/E11","STR-06/E13"]},
+    {"id":"STR-06/F14","segment_id":"STR-06","category":"evidence","statement":"PR 1410 changes the compatibility probe in _compat.py and adds no repository regression test.","first_known_at_event_id":"STR-06/E14","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E12","STR-06/E14"]},
+    {"id":"STR-06/F15","segment_id":"STR-06","category":"evidence","statement":"The reporter observes the revised probe working on one FIPS system, but cannot verify current master because of a FastAPI compatibility limit.","first_known_at_event_id":"STR-06/E15","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E11","STR-06/E15"]},
+    {"id":"STR-06/F16","segment_id":"STR-06","category":"outcome_status","statement":"Issue 1365 closes when PR 1410 merges; this is repository and tracker acceptance, not proof for every Python, OpenSSL, or FIPS combination.","first_known_at_event_id":"STR-06/E16","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E14","STR-06/E15","STR-06/E16"]},
+    {"id":"STR-06/F17","segment_id":"STR-06","category":"open_question","statement":"Current master and cross-environment FIPS behavior remain unverified; PR 1410 has no repository test and the reporter could not test current master.","first_known_at_event_id":"STR-06/E15","superseded_at_event_id":null,"provenance_event_ids":["STR-06/E14","STR-06/E15"]}
+  ],
+  "slices": [
+    {"slice_id":"STR-06/T1","fact_ids":["STR-06/F1"]},
+    {"slice_id":"STR-06/T2","fact_ids":["STR-06/F1","STR-06/F2"]},
+    {"slice_id":"STR-06/T3","fact_ids":["STR-06/F1","STR-06/F2"]},
+    {"slice_id":"STR-06/T4","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3"]},
+    {"slice_id":"STR-06/T5","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4"]},
+    {"slice_id":"STR-06/T6","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5"]},
+    {"slice_id":"STR-06/T7","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6"]},
+    {"slice_id":"STR-06/T8","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6","STR-06/F7"]},
+    {"slice_id":"STR-06/T9","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6","STR-06/F7","STR-06/F8"]},
+    {"slice_id":"STR-06/T10","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6","STR-06/F7","STR-06/F8","STR-06/F9"]},
+    {"slice_id":"STR-06/T11","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6","STR-06/F7","STR-06/F10","STR-06/F11"]},
+    {"slice_id":"STR-06/T12","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F6","STR-06/F7","STR-06/F10","STR-06/F11","STR-06/F12"]},
+    {"slice_id":"STR-06/T13","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F7","STR-06/F10","STR-06/F11","STR-06/F12","STR-06/F13"]},
+    {"slice_id":"STR-06/T14","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F7","STR-06/F10","STR-06/F11","STR-06/F12","STR-06/F13","STR-06/F14"]},
+    {"slice_id":"STR-06/T15","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F7","STR-06/F10","STR-06/F11","STR-06/F12","STR-06/F13","STR-06/F14","STR-06/F15","STR-06/F17"]},
+    {"slice_id":"STR-06/T16","fact_ids":["STR-06/F1","STR-06/F2","STR-06/F3","STR-06/F4","STR-06/F5","STR-06/F7","STR-06/F10","STR-06/F11","STR-06/F12","STR-06/F14","STR-06/F15","STR-06/F16","STR-06/F17"]}
+  ]
+}

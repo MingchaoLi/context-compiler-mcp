@@ -58,3 +58,16 @@ npx vitest run test/starlette-promotion.test.ts
 ```
 
 promotion 接线仍为 31 slices / 226 projected turns，并由真实 evaluator v2 parser 验证。独立 QA PASS 前该候选不接受；即使通过，也不表示六案 frozen、Probe/答案评价完成或可运行远端模型。
+
+## DS-06 STR-06 source/Gold checkpoint
+
+`checkpoint/STR-06/` 单独制作 Issue #1365、PR #1366/#1410 的 16 个真实增量与 16 个时间切片。机械分层结果为 long，纠正 survey 的预计 medium；该结果没有写回 DS-05 promotion collection，也没有为了保留预计分布删除事件。
+
+`str06-checkpoint.json` 保持 `checkpoint_not_frozen`，并显式禁止 promotion、evaluation 与 model run。它引用 DS-05 已接受 contamination snapshot/hash；`str06-checkpoint-hashes.json` 只固定待独立 QA candidate 的 wrapper 与七文件，不是 accepted source 外部锚点。
+
+```bash
+node evaluation/starlette-v1/validate-str06-checkpoint.mjs
+npx vitest run test/starlette-str06-checkpoint.test.ts
+```
+
+validator 额外固定三个 closed/reopened state canonical subset、16 个增量与 long tier、两次 merge 的 Outcome 上界，以及“无 repository regression test、无 Builder/QA FIPS replay、无跨环境证明”。每个 slice 继续只通过 `projectModelInput` 输出六字段历史；Gold、Oracle、Decision 与 Outcome 不进入模型输入。独立 Data QA PASS 前不接受该 checkpoint；PASS 后也不表示 STR-06 promoted/frozen 或可以运行 D0/D1/D2。
