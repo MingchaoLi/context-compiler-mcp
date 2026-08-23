@@ -47,27 +47,34 @@ WO-DS-11 已冻结六案、12 slices、8 个 provenance-bound context Probe 与 
 
 8 个 exact Probe 只是表示中立的 lexical carry-through 子集。19 个 `not_exactly_scorable` 历史依赖和 answer correctness 仍必须等待人类 review，不能由自动 8/8 替代。
 
+Probe 只分布在 3/12 slices（STR-07/T10=3、STR-01/T18=4、STR-04/T4=1），因此输出必须显式固定：
+
+- `lexical_diagnostic_coverage: 3/12 slices, 8 probes`；
+- `semantic_correctness_gate: pending_human_review`；
+- `context_reduction_interpretation: pending_correctness_gate`；
+- `operational_stability_gate: not_evaluated_by_this_work_order`。
+
+本工单只生成一次 official evaluator artifact。独立 QA 可以在隔离临时目录重放 evaluator 以复核 token/rate/delta 等确定性字段，但该 replay 不是第二份 official result。latency 单独保存为本机单次 observation，记录环境且不要求与 QA replay 数值相同，不得称为 Operational Stability Gate。
+
 ## Part B — condition-blind 人类 review bundle
 
-在 `evaluation/starlette-v1/results/feasibility-01/` 生成：
+在 `evaluation/starlette-v1/results/feasibility-01/` 生成物理隔离的两个边界：
 
-- `review-items.jsonl`：36 条 condition-blind item；
-- `review-key.json`：内部 review-id→packet/case/slice/condition 映射，不能交给 reviewer；
-- `reviewer-form-a.jsonl`、`reviewer-form-b.jsonl`：两份相同顺序的空白独立评分表；
-- `adjudication-template.jsonl`：只供两名 reviewer 发生分歧后使用；
-- `automatic-report.json`、`automatic-summary.json`；
-- hash manifest、validator、focused tests 与中文 README。
+- `public-review/`：`review-items.jsonl`、`reviewer-form-a.jsonl`、`reviewer-form-b.jsonl`、`adjudication-template.jsonl`、独立 public hash 与 reviewer README；
+- `internal-audit/`：`review-key.json`、canonical rubric/provenance mapping、`automatic-report.json`、`automatic-summary.json`、latency environment/observation 与内部 hash；
+- 根目录只放边界 manifest、validator、focused tests 与中文 README，不把 public 与 internal 复制到同一 export。
 
 每个 review item 只包含：
 
 - 与 condition 无关的 opaque `review_id`；
 - Current Task；
 - 原始 answer 字符串；
-- 该 slice 预注册的 required / forbidden / Critical-Miss checklist；
-- provenance source id 供人工核对；
+- 该 slice 预注册 checklist 的匿名 criterion id、类型与文字；不暴露 canonical rubric/fact/provenance id；
 - 固定判定说明。
 
-公开 reviewer bundle 禁止出现 `d0` / `d1` / `d2`、condition、packet id、context token、assembler/state/raw-window 等可推断条件的元数据。review order 由预注册 SHA-256 blinding domain 排序，不按答案或条件调整。
+公开 reviewer bundle 禁止出现 `d0` / `d1` / `d2`、condition、packet id、canonical case/slice/rubric/fact/provenance id、context token、assembler/state/raw-window 等可推断条件的元数据。review order 由预注册 SHA-256 blinding domain 排序，不按答案或条件调整；reviewer 不查看 D0/D1/D2 context。
+
+Reviewer access threat model 固定为：两名 reviewer 只收到 `public-review/` 的独立导出，不具备本仓库、raw capture、packet manifest、automatic report、internal key/provenance 或另一 reviewer 表单的访问权。如果实际 reviewer 无法满足该边界，不能开始人工评分，也不能声称 condition blind。
 
 ## 人工判定合同
 
@@ -97,6 +104,7 @@ WO-DS-11 已冻结六案、12 slices、8 个 provenance-bound context Probe 与 
 - token 算术、D2-vs-D1、not-evaluable 与 non-decision 状态；
 - 36 review item 对应 36 accepted raw answers，原文/hash 不变；
 - public bundle 无 condition/packet/context-format 泄漏，review id/order 唯一且固定；
+- public export 与 internal key/provenance/report 物理隔离，public criteria id 不能直接关联 canonical rubric id；
 - 两份 form 初始完全空白、同序、互不含对方判断；
 - internal key 完整一对一且不能进入 public bundle；
 - mutation 覆盖 answer/rubric/condition mapping、swap/duplicate/omission/order/hash 自举、review-id、future/unknown/symlink/Unicode format-control；
@@ -112,10 +120,10 @@ WO-DS-11 已冻结六案、12 slices、8 个 provenance-bound context Probe 与 
 - 不实现 PACE / Evidence Paging / semantic scorer / Experience；
 - 不补 medium、不换案、不改 Probe/rubric/Gold；
 - 不生成最终 D2-vs-D1 语义结论。
+- 不把单次 latency 或 QA replay 当 Operational Stability Gate。
 
 ## Gate
 
 Builder 提交中文 handoff 后必须由独立 QA 验证自动结果与 blinding。QA PASS 只表示“自动结果与人工评审包可交付”，不表示人工 Correctness Gate 已通过。
 
 下一步必须等待两名真实、condition-blind 人类返回独立评分。若无法获得两名人类，项目应明确记录该外部 blocker，而不是用模型替代。
-
