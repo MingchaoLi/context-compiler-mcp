@@ -1,0 +1,90 @@
+{
+  "schema_version": "state_replay_st02_empty_state_scoring_contract/v1",
+  "status": "preregistered_after_capture_before_scoring",
+  "scope": "standardized_event_summary_to_delta_empty_state_outcome_only",
+  "trust_roots": {
+    "capture": {
+      "commit": "bcce004f63b446d4bea4036f0ebfac771aff3137",
+      "parent": "9229eef89e0cddaf2d75f4a4a6ff7da633bb3591",
+      "packets_tree": "f911a4ee5d59b95f6cfbf029581637ac9668ed87",
+      "capture_tree": "4d5337f40846b05f6f566efd065abb1c82964ca3"
+    },
+    "gold": {
+      "accepted_data_commit": "79da83d95aeac7162c95714f4f6f5eff1f9e0608",
+      "parent": "aeed861b3e3c538fbf6aa1393a5745fb4d61490b",
+      "gold_tree": "7224a2b46d083e3f651ca3666778934af9b19f71",
+      "accepted_st01_qa_commit": "daa012c4d6f09919e798edc3771cf090bd5dd188"
+    }
+  },
+  "fixed_denominators": {
+    "event_steps": 30,
+    "case_ids_in_order": ["STR-08", "STR-07", "STR-06"],
+    "gold_nonempty_steps": 28,
+    "gold_empty_true_negative_steps": 2,
+    "gold_unique_items": 35,
+    "gold_critical_unique_items": 29,
+    "gold_supersessions": 6,
+    "gold_resolutions": 7,
+    "gold_dependencies": 4,
+    "gold_derived_from_relations": 53
+  },
+  "primary_outcome": {
+    "mutually_exclusive": true,
+    "categories": [
+      "parse_failure_with_empty_fallback",
+      "strict_valid_empty_on_gold_nonempty",
+      "strict_valid_empty_true_negative"
+    ],
+    "expected_counts_from_frozen_capture": {
+      "parse_failure_with_empty_fallback": 12,
+      "strict_valid_empty_on_gold_nonempty": 16,
+      "strict_valid_empty_true_negative": 2
+    }
+  },
+  "empty_state_scoring": {
+    "predicted_item_count": 0,
+    "predicted_relation_count": 0,
+    "general_unique_recall": {"numerator": 0, "denominator": 35},
+    "critical_unique_recall": {"numerator": 0, "denominator": 29},
+    "general_precision_status": "not_evaluable_zero_predicted_items",
+    "critical_precision_status": "not_evaluable_zero_predicted_items",
+    "matcher_execution_status": "short_circuited_empty_left_set",
+    "matcher_opportunity_count": 0,
+    "unmatched_predicted_count": 0,
+    "ambiguous_match_count": 0
+  },
+  "downstream_outcome": {
+    "supersession": {
+      "realized_numerator": 0,
+      "gold_denominator": 6,
+      "capability_eligible_count": 0,
+      "capability_status": "not_evaluable_precondition_absent",
+      "causal_attribution": "inherited_precondition_absent"
+    },
+    "resolution": {
+      "realized_numerator": 0,
+      "gold_denominator": 7,
+      "capability_eligible_count": 0,
+      "capability_status": "not_evaluable_precondition_absent",
+      "causal_attribution": "inherited_precondition_absent"
+    },
+    "stale_activation": {"incident_count": 0, "eligible_count": 0, "status": "not_evaluable"},
+    "wrong_reactivation": {"incident_count": 0, "eligible_count": 0, "status": "not_evaluable"},
+    "dependency_inconsistency": {"incident_count": 0, "eligible_count": 0, "status": "not_evaluable"},
+    "provenance_failure": {"incident_count": 0, "eligible_count": 0, "status": "not_evaluable"}
+  },
+  "rules": {
+    "gold_comparison_boundary": "accepted_standardized_event_summary_gold_only",
+    "parse_failure_precedes_gold_nonempty_classification": true,
+    "e13_interpretation": "empty_true_negative_only_not_wrong_reactivation_success",
+    "transition_results_are_not_additional_primary_extractor_errors": true,
+    "zero_incident_with_zero_eligibility_is_not_success": true,
+    "raw_invalid_response_text_is_not_semantically_scored": true,
+    "reducer_zero_rejection_is_observation_not_operational_proof": true,
+    "threshold": null,
+    "aggregate_score": null,
+    "architecture_winner": null,
+    "generic_semantic_matcher_implemented": false,
+    "model_call_count": 0
+  }
+}
