@@ -1,12 +1,20 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：PLANNED — IMPLEMENTATION NOT STARTED
+状态：PLANNED — PRE-IMPLEMENTATION ADVERSARIAL REVIEW DISPOSITIONED
 
 ## 背景校准
 
 项目长期研究目标是理解真实经历如何形成 Experience，并进一步影响 Agent 后续判断与行动。Context / State Compiler 只负责让 Agent 能低成本、可追溯地长期运行并积累可信的 Event–Action–Outcome / Feedback 数据；本工单不再以证明 Context Compiler 相对 PACE、mem0 或其他成熟方案更先进为目标。
 
 本工单是 v0 的收口式调整，不是新架构阶段。完成并经独立 QA 接受后，Context / State 基础设施冻结；后续默认只允许 correctness 修复，不再新增 Context 算法、复杂 ontology、PACE 对比、retrieval 调参或 Graph DB。
+
+2026-08-24 计划级对抗审查对原始五合一方案给出 `Challenge`。主控接受“风险域必须拆开验证、幂等与兼容合同必须先冻结”的挑战，但不删除用户明确要求的 bounded hybrid recall、dormant placement 与 targeted recovery。实施按三个 append-only checkpoint 顺序进行：
+
+1. **A — Extractor correctness**：只修版本化 prompt/parser/provenance；
+2. **B — Experience Ledger**：只加入 append-only data plane、raw mirror 与显式 operation id；
+3. **C — Operational Context Policy + freeze**：最后接入 Recent Raw 外召回、dormant placement、targeted recovery 与文档冻结。
+
+每个 checkpoint 都必须在进入下一个前通过 focused 与全量回归；最终统一交给独立 QA。审查记录见 `docs/adversarial-reviews/AR-2026-08-24-pre-v0-15-foundation-freeze.md`。
 
 ## 单一结果
 
@@ -30,7 +38,8 @@
 - `StrictStateExtractor` prompt 必须提供完整、机器可核对的十数组嵌套字段合同，而不是只展示空数组 shape。
 - prompt 必须明确合法 ID namespace、允许的 lifecycle transition、same-step reference 限制与 provenance 规则。
 - 新建 state item 必须携带至少一个当前 `newest_events` provenance ref；已有 item 的 content/lifecycle 变化必须在同一 Delta 中包含指向当前 `newest_events` 的 `DERIVED_FROM`。
-- parser 必须 fail-closed 拒绝缺 provenance、只引用旧 recent event、非法 nested field、同一步不可解析引用及 lifecycle/reference 冲突。
+- provenance 收紧进入新的 versioned Extractor contract；既有 `parseStrictStateDeltaPayload` / 显式 `apply_state_delta` 的历史兼容语义保留，不能让已接受 fixture 和调用方被静默升级。`StrictStateExtractor` 明确使用新合同并在结果/错误中暴露版本。
+- 新 parser 必须 fail-closed 拒绝缺 provenance、只引用旧 recent event、非法 nested field、同一步不可解析引用及 lifecycle/reference 冲突。
 - 用本地 scripted transport 证明 prompt 能产生 reducer 可接受的 non-empty Delta；不得调用远端模型，也不得重跑 DS-14 capture。
 
 ### 2. Recent Raw 与 hybrid window-out recall
@@ -38,13 +47,14 @@
 - `recent_raw_window_turns = N` 继续按最近完整用户轮次选取原文，默认值保持兼容；这些 raw event 不得被 retrieval 排名、摘要或压缩。
 - 仅对 Recent Raw 之外、最近 `N × candidate_turn_multiplier` 个用户轮次中的 raw event 做 bounded retrieval。
 - retrieval 为 BM25 + Dense cosine 的可解释混合；Dense 向量由调用方以 provider-neutral 数据提供，core 不生成 embedding、不选择 provider、不联网。
-- Dense 数据不存在或维度不匹配时必须显式报告 `dense_unavailable` / 等价状态并安全退化到 BM25，不能把 BM25-only 冒充 hybrid 成功。
+- Dense 输入统一为 `{ vector_space_id, values }`；space id 必须非空，values 为有界、非空、有限数字 dense array。一次 compile 只有在 query 与整个候选集合都具有相同 space 与维度时才运行 hybrid；缺失、partial coverage、space/维度不匹配均使整次 dense leg fail-closed 为 `dense_unavailable_*` 并统一退化到 BM25，禁止一部分候选用 hybrid、另一部分只用 BM25 的不可比排名。
 - 默认普通候选倍数与 targeted recovery 候选倍数分别取 5 与 8；二者和 limit/weights 都是带严格边界的配置参数，不写成理论规则，不做调参实验。
 - `CompiledContext` 必须物理区分 `recent_conversation` 与 `retrieved_history`，debug/metrics 报告候选范围、模式、分项分数和 token；同一 raw event 不得同时出现两处。
 
 ### 3. Dormant / cold placement
 
 - 对非 Constraint 的长期未闭合 item，在其最后 provenance/update 对应 turn 超过约 `N × dormancy_turn_multiplier`（默认 15）后，只有同时满足以下条件才从前台 root 中退出：整个生命周期 retrieval hit count 为 0；之后无 provenance/update；当前 query 未命中；不是 dependency closure 所需。
+- dormant 只允许用于具有可计算 current-event provenance turn、且其创建/最近更新不早于本功能 session telemetry baseline 的 item。既有数据库、无 provenance、无 `operation_id` compile history 或 telemetry 不完整时必须 fail-open 保留在前台，不能把“没有记录 hit”误当作“真实从未命中”。
 - 退出只记为 `dormant/cold` placement；authoritative item status、relations、raw provenance 与 revision 不变。
 - 当前 query 或 targeted recovery 命中 dormant item 时，该次 compile 必须重新纳入并记录 reactivation/hit；不得修改 authoritative lifecycle。
 - zero-history、无 user turn、无 provenance、重复 compile、跨 session、阈值边界与 dependency rescue 必须有确定性测试。
@@ -68,8 +78,9 @@
 ## 兼容与冻结要求
 
 - 现有 evaluator v1/v2、已冻结 fixture 和九工具协议必须保持可复现；新 operational policy 不得悄悄改写历史 evaluator artifact。
-- `compile_context` 仍不调用 extractor/model/provider/network；新增 ledger append 是显式披露的本地 observation side effect。
+- `compile_context` 仍不调用 extractor/model/provider/network。新增 ledger append 是显式披露的本地 observation side effect，但只在调用方提供非空 `operation_id` 时启用；无 `operation_id` 保持历史 read-only 行为。相同 operation id + 相同规范化输入必须幂等返回同一 trace，不得重复；相同 id + 不同输入必须 `CONFLICT`。
 - SQLite migration 必须兼容已有数据库，不能删除、重写或回填伪造历史语义；如为既有 raw event 建 ledger mirror，必须使用确定性来源标识并明确为 migration observation。
+- 新 raw event 与其 `EVENT` mirror 必须在同一 SQLite transaction 内提交或回滚，不能接受“raw 已成功但 mirror 丢失”的双写窗口。已有 raw event 的 migration mirror 使用由 raw id 派生的确定性 id/source key，并在 payload 明示 `migration_backfill`；它只是来源镜像，不补造 Action/Outcome 语义。
 - package surface 不新增 runtime dependency；真实 npm pack / production-only stdio 仍须通过。
 - README、ARCHITECTURE、DECISIONS、REQUIREMENTS、PROJECT_STATE、ROADMAP 必须用中文优先写明双轨与冻结：前台 Context 够用即可，后台研究数据完整保留；下一阶段转向真实使用和 Experience Formation 数据准备。
 
