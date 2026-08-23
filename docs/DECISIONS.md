@@ -47,3 +47,7 @@ The optional runtime transport spawns one explicitly supplied local executable w
 ## D-012 — 独立 QA 与对抗审查分工
 
 独立 QA 负责验证一个有界工单是否按约定实现；对抗审查负责质疑目标、顺序、依赖和投入是否必要。项目可在关键节点申请独立对抗审查，尤其是在进入新阶段、扩大运行时或宿主边界、连续多个工单沿同一路径通过，或 blocker 定义存在争议时。对抗审查默认只读，其 `Challenge` 不自动回滚已接受工单，也不自动成为 blocker；主控必须记录后续处置：补充证据、接受风险，或创建新的有界工单。
+
+## D-013 — 评估尺子版本化且历史保留不由当前输入证明
+
+ST-02 evaluator version 1 保留原始语义用于历史复现。测量有效性修正进入独立 version 2：Probe 必须带来源，空分母显式为 `not_evaluable`，历史连续性只在排除 `current_input` 的历史投影中检查。完整模型输入仍用于 token 和 latency 统计。Version 2 额外报告 D2 相对 D1 的原始 token delta/ratio，但在真实数据形成前不新增加权分数或决策门。

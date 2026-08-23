@@ -6,11 +6,17 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   EvaluationError,
+  compareEvaluationTokenCostV2,
   normalizeEvaluationText,
   parseEvaluationSuite,
+  parseEvaluationSuiteV2,
   runEvaluationSuite,
+  runEvaluationSuiteV2,
   type EvaluationCase,
+  type EvaluationCaseV2,
+  type EvaluationProbeV2,
   type EvaluationSuite,
+  type EvaluationSuiteV2,
 } from "../src/evaluation.js";
 import { EVALUATION_CLI_EXIT, runEvaluationCli } from "../src/evaluation-cli.js";
 import { SqliteHistoryRecallStore } from "../src/recall.js";
@@ -118,6 +124,36 @@ function suite(): EvaluationSuite {
       minimum_d2_recall_recovery: 1,
       maximum_d2_mean_latency_ms: 1_000,
     },
+  };
+}
+
+function probeV2(
+  id: string,
+  text: string,
+  kind: "raw_event" | "context_item",
+  sourceId: string
+): EvaluationProbeV2 {
+  return { id, text, provenance: [{ kind, id: sourceId }] };
+}
+
+function evaluationCaseV2(id = "case-v2"): EvaluationCaseV2 {
+  const base = evaluationCase(id);
+  return {
+    ...base,
+    probes: {
+      constraints: [probeV2("constraint-probe", "Never expose credentials", "context_item", "constraint-1")],
+      decisions: [probeV2("decision-probe", "Use SQLite WAL", "context_item", "decision-1")],
+      resolved_issues: [probeV2("resolved-probe", "Should the legacy port remain open?", "context_item", "resolved-1")],
+      open_questions: [probeV2("open-probe", "How should preparation records be compacted?", "context_item", "open-1")],
+    },
+  };
+}
+
+function suiteV2(): EvaluationSuiteV2 {
+  return {
+    version: 2,
+    cases: [evaluationCaseV2()],
+    thresholds: { ...suite().thresholds },
   };
 }
 
@@ -247,6 +283,143 @@ describe("evaluation fixture validation", () => {
   });
 });
 
+describe("evaluation v2 validity calibration", () => {
+  it("marks empty rates not_evaluable and never turns them into aggregate success", () => {
+    const input = suiteV2();
+    input.cases[0]!.probes = {
+      constraints: [], decisions: [], resolved_issues: [], open_questions: [],
+    };
+    input.cases[0]!.recall_queries = [];
+    input.thresholds.minimum_d2_token_reduction_ratio = 0;
+
+    const report = runEvaluationSuiteV2(input);
+    expect(report.aggregate.d2.constraint_retention).toEqual({
+      status: "not_evaluable", matched: 0, total: 0, rate: null,
+    });
+    expect(report.cases[0]!.dimensions.d2.resolved_issue_reopening.status).toBe("not_evaluable");
+    expect(report.passed).toBe(false);
+    expect(report.threshold_failures).toEqual([
+      "D2_CONSTRAINT_RETENTION_NOT_EVALUABLE",
+      "D2_DECISION_CONTINUITY_NOT_EVALUABLE",
+      "D2_RESOLVED_ISSUE_REOPENING_NOT_EVALUABLE",
+      "D2_OPEN_QUESTION_CONTINUITY_NOT_EVALUABLE",
+      "D2_RECALL_RECOVERY_NOT_EVALUABLE",
+    ]);
+  });
+
+  it("does not count a historical constraint repeated only by current_input", () => {
+    const input = suiteV2();
+    const evaluationCase = input.cases[0]!;
+    evaluationCase.raw_events = [
+      raw("event-1", 1, "user", "Constraint: retain the historical safety lock."),
+      raw("event-2", 2, "assistant", "Recorded in old history."),
+      raw("event-3", 3, "user", "Investigate the unrelated current regression."),
+      raw("event-4", 4, "assistant", "Starting with the recent evidence."),
+    ];
+    evaluationCase.context_items = [];
+    evaluationCase.state_relations = [];
+    evaluationCase.current_input = "Remember that we must retain the historical safety lock.";
+    evaluationCase.headlines = [];
+    evaluationCase.recall_queries = [];
+    evaluationCase.probes = {
+      constraints: [probeV2(
+        "old-constraint", "retain the historical safety lock", "raw_event", "event-1"
+      )],
+      decisions: [], resolved_issues: [], open_questions: [],
+    };
+
+    const report = runEvaluationSuiteV2(input);
+    const { d0, d1, d2 } = report.cases[0]!.dimensions;
+    expect(d0.constraint_retention).toMatchObject({ status: "evaluable", matched: 1, rate: 1 });
+    expect(d1.constraint_retention).toMatchObject({ status: "evaluable", matched: 0, rate: 0 });
+    expect(d2.constraint_retention).toMatchObject({ status: "evaluable", matched: 0, rate: 0 });
+    expect(d1.estimated_tokens).toBeGreaterThan(0);
+    expect(d2.estimated_tokens).toBeGreaterThan(0);
+  });
+
+  it("reports raw D2-vs-D1 token cost without adding a new gate", () => {
+    const report = runEvaluationSuiteV2(suiteV2());
+    const comparison = report.cases[0]!.d2_vs_d1_tokens;
+    expect(comparison.status).toBe("evaluable");
+    if (comparison.status !== "evaluable") throw new Error("comparison must be evaluable");
+    expect(comparison.delta).toBeGreaterThan(0);
+    expect(comparison.ratio).toBeGreaterThan(1);
+    expect(report.passed).toBe(true);
+    expect(report.threshold_failures).toEqual([]);
+    expect(report.d2_vs_d1_tokens).toMatchObject({ status: "evaluable" });
+  });
+
+  it("excludes empty cases from mixed aggregate denominators", () => {
+    const input = suiteV2();
+    const empty = evaluationCaseV2("empty-v2");
+    empty.probes = { constraints: [], decisions: [], resolved_issues: [], open_questions: [] };
+    empty.recall_queries = [];
+    input.cases.push(empty);
+
+    const report = runEvaluationSuiteV2(input);
+    expect(report.aggregate.d2.constraint_retention).toMatchObject({
+      status: "evaluable", matched: 1, total: 1, rate: 1,
+    });
+    expect(report.aggregate.d2.recall_recovery).toMatchObject({
+      status: "evaluable", matched: 2, total: 2, rate: 1,
+    });
+  });
+
+  it("validates provenance and exact plain-data shapes before execution", () => {
+    const missing = suiteV2();
+    missing.cases[0]!.probes.constraints[0]!.provenance[0]!.id = "missing";
+    expect(() => parseEvaluationSuiteV2(missing)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT" })
+    );
+
+    const duplicate = suiteV2();
+    duplicate.cases[0]!.probes.decisions[0]!.id = "constraint-probe";
+    expect(() => parseEvaluationSuiteV2(duplicate)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT" })
+    );
+
+    let accessed = false;
+    const accessor = suiteV2() as any;
+    Object.defineProperty(accessor.cases[0].probes.constraints[0], "secret", {
+      enumerable: true,
+      get() { accessed = true; return "PRIVATE"; },
+    });
+    expect(() => parseEvaluationSuiteV2(accessor)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT" })
+    );
+    expect(accessed).toBe(false);
+
+    const sparse = suiteV2() as any;
+    sparse.cases[0].probes.constraints.length = 2;
+    expect(() => parseEvaluationSuiteV2(sparse)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT" })
+    );
+
+    const prototype = suiteV2() as any;
+    Object.setPrototypeOf(prototype.cases[0].probes, { inherited: true });
+    expect(() => parseEvaluationSuiteV2(prototype)).toThrowError(
+      expect.objectContaining({ code: "INVALID_INPUT" })
+    );
+  });
+
+  it("handles a zero D1 denominator without inventing a ratio", () => {
+    expect(compareEvaluationTokenCostV2(0, 7)).toEqual({
+      status: "not_evaluable",
+      d1_estimated_tokens: 0,
+      d2_estimated_tokens: 7,
+      delta: 7,
+      ratio: null,
+    });
+  });
+
+  it("does not mutate a submitted v2 fixture", () => {
+    const input = suiteV2();
+    const before = structuredClone(input);
+    runEvaluationSuiteV2(input);
+    expect(input).toEqual(before);
+  });
+});
+
 describe("evaluation CLI", () => {
   async function fixtureFile(value: unknown): Promise<string> {
     const directory = await mkdtemp(join(tmpdir(), "context-compiler-eval-cli-"));
@@ -283,6 +456,37 @@ describe("evaluation CLI", () => {
     expect(JSON.parse(output.stdout.join(""))).toMatchObject({
       passed: false,
       threshold_failures: ["D2_TOKEN_REDUCTION"],
+    });
+  });
+
+  it("dispatches version 2 and preserves not_evaluable output", async () => {
+    const validPath = await fixtureFile(suiteV2());
+    const valid = capture();
+    expect(runEvaluationCli([validPath], valid.io)).toBe(EVALUATION_CLI_EXIT.passed);
+    expect(JSON.parse(valid.stdout.join(""))).toMatchObject({ version: 2, passed: true });
+
+    const emptyInput = suiteV2();
+    emptyInput.cases[0]!.probes = {
+      constraints: [], decisions: [], resolved_issues: [], open_questions: [],
+    };
+    emptyInput.cases[0]!.recall_queries = [];
+    emptyInput.thresholds.minimum_d2_token_reduction_ratio = 0;
+    const emptyPath = await fixtureFile(emptyInput);
+    const empty = capture();
+    expect(runEvaluationCli([emptyPath], empty.io)).toBe(EVALUATION_CLI_EXIT.thresholdFailed);
+    expect(JSON.parse(empty.stdout.join(""))).toMatchObject({
+      version: 2,
+      passed: false,
+      aggregate: { d2: { constraint_retention: { status: "not_evaluable", rate: null } } },
+    });
+  });
+
+  it("rejects an unknown evaluation version", async () => {
+    const path = await fixtureFile({ ...suiteV2(), version: 99 });
+    const output = capture();
+    expect(runEvaluationCli([path], output.io)).toBe(EVALUATION_CLI_EXIT.invalidInput);
+    expect(JSON.parse(output.stderr.join(""))).toEqual({
+      version: 1, passed: false, error: { code: "INVALID_INPUT" },
     });
   });
 

@@ -35,7 +35,8 @@ offline evaluation fixture
   -> D0 complete raw transcript
   -> D1 bounded recent transcript
   -> D2 existing assembler + labeled headline recall
-  -> aggregate quality, reduction, and latency thresholds
+  -> v1 reproducibility or v2 provenance-bound historical projection
+  -> aggregate quality, reduction, latency, and raw D2-vs-D1 token cost
 
 explicit optional runtime update
   -> durable prepare
@@ -52,7 +53,7 @@ explicit optional runtime update
 - `extractor.ts`: provider-neutral transport interface and strict delta validation. No runtime provider is configured.
 - `assembler.ts`: deterministic build-up assembly and debug manifest.
 - `recall.ts`: headline storage, FTS keyword lookup, and exact evidence recovery.
-- `evaluation.ts`, `evaluation-cli.ts`: strict provider-neutral D0/D1/D2 fixtures, metrics, thresholds, and JSON CLI. Evaluation uses isolated temporary databases and makes no model or network call.
+- `evaluation.ts`, `evaluation-cli.ts`: strict provider-neutral D0/D1/D2 fixtures, metrics, thresholds, and JSON CLI。Version 1 保留既有可复现语义；version 2 使用带 provenance 的 Probe、显式 `not_evaluable`、排除 `current_input` 的历史投影，并报告原始 D2-vs-D1 token 成本。评估使用隔离临时数据库，不调用模型或网络。
 - `subprocess-extractor.ts`: bounded one-shot local JSON transport. It invokes no shell and owns no provider, network, or credential configuration.
 - `runtime-state-update.ts`: explicit library-only prepare/extract/apply composition. It is not called by compile, ingest, recall, or MCP dispatch.
 - `mcp-service.ts`: sanitized nine-tool library service.

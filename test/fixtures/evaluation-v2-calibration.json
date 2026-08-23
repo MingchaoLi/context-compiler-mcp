@@ -1,0 +1,317 @@
+{
+  "version": 2,
+  "cases": [
+    {
+      "id": "calibration-empty-probes",
+      "session_id": "calibration-empty",
+      "raw_events": [
+        {
+          "id": "empty-event-1",
+          "session_id": "calibration-empty",
+          "seq": 1,
+          "role": "user",
+          "content": "This case contains no valid historical probes. The old transcript deliberately includes repeated setup, discarded detail, environment notes, and obsolete discussion so the calibration can remain compact without treating an empty metric as success.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "token_count": 52,
+          "metadata": { "calibration": "empty_probes" },
+          "source_event_id": "calibration-empty-source-1"
+        },
+        {
+          "id": "empty-event-2",
+          "session_id": "calibration-empty",
+          "seq": 2,
+          "role": "assistant",
+          "content": "More historical filler records previous investigation steps, old hypotheses, repeated traces, and superseded notes; none of it creates a valid Probe for this case.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "token_count": 38,
+          "metadata": { "calibration": "empty_probes" },
+          "source_event_id": "calibration-empty-source-2"
+        },
+        {
+          "id": "empty-event-3",
+          "session_id": "calibration-empty",
+          "seq": 3,
+          "role": "user",
+          "content": "Report the measurement status.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:03.000Z",
+          "token_count": 8,
+          "metadata": { "calibration": "empty_probes" },
+          "source_event_id": "calibration-empty-source-3"
+        },
+        {
+          "id": "empty-event-4",
+          "session_id": "calibration-empty",
+          "seq": 4,
+          "role": "assistant",
+          "content": "Return an explicit status.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:04.000Z",
+          "token_count": 7,
+          "metadata": { "calibration": "empty_probes" },
+          "source_event_id": "calibration-empty-source-4"
+        }
+      ],
+      "context_items": [],
+      "state_relations": [],
+      "current_input": "Report the empty-probe measurement state.",
+      "recent_raw_window_turns": 1,
+      "headlines": [],
+      "recall_queries": [],
+      "probes": {
+        "constraints": [],
+        "decisions": [],
+        "resolved_issues": [],
+        "open_questions": []
+      }
+    },
+    {
+      "id": "calibration-current-input-contamination",
+      "session_id": "calibration-contamination",
+      "raw_events": [
+        {
+          "id": "contamination-event-1",
+          "session_id": "calibration-contamination",
+          "seq": 1,
+          "role": "user",
+          "content": "Historical constraint: retain the safety lock during shutdown. Earlier investigation also accumulated extensive obsolete traces, environment descriptions, discarded options, and repeated diagnostic detail that does not belong to the recent window.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "token_count": 52,
+          "metadata": { "calibration": "current_input_contamination" },
+          "source_event_id": "calibration-contamination-source-1"
+        },
+        {
+          "id": "contamination-event-2",
+          "session_id": "calibration-contamination",
+          "seq": 2,
+          "role": "assistant",
+          "content": "The historical safety constraint was recorded together with more obsolete setup discussion, repeated observations, and old debugging detail that intentionally increases only the full-history baseline.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "token_count": 42,
+          "metadata": { "calibration": "current_input_contamination" },
+          "source_event_id": "calibration-contamination-source-2"
+        },
+        {
+          "id": "contamination-event-3",
+          "session_id": "calibration-contamination",
+          "seq": 3,
+          "role": "user",
+          "content": "Investigate the unrelated current regression.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:03.000Z",
+          "token_count": 11,
+          "metadata": { "calibration": "current_input_contamination" },
+          "source_event_id": "calibration-contamination-source-3"
+        },
+        {
+          "id": "contamination-event-4",
+          "session_id": "calibration-contamination",
+          "seq": 4,
+          "role": "assistant",
+          "content": "Only recent evidence is available in the window.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:04.000Z",
+          "token_count": 12,
+          "metadata": { "calibration": "current_input_contamination" },
+          "source_event_id": "calibration-contamination-source-4"
+        }
+      ],
+      "context_items": [],
+      "state_relations": [],
+      "current_input": "Remember that we must retain the safety lock during shutdown.",
+      "recent_raw_window_turns": 1,
+      "headlines": [],
+      "recall_queries": [],
+      "probes": {
+        "constraints": [
+          {
+            "id": "contamination-constraint",
+            "text": "retain the safety lock during shutdown",
+            "provenance": [
+              { "kind": "raw_event", "id": "contamination-event-1" }
+            ]
+          }
+        ],
+        "decisions": [],
+        "resolved_issues": [],
+        "open_questions": []
+      }
+    },
+    {
+      "id": "calibration-d2-cost",
+      "session_id": "calibration-cost",
+      "raw_events": [
+        {
+          "id": "cost-event-1",
+          "session_id": "calibration-cost",
+          "seq": 1,
+          "role": "user",
+          "content": "The legacy transport investigation accumulated extensive traces, compatibility notes, discarded patches, repeated environment reports, and historical discussion that make the full transcript intentionally much larger than either bounded strategy. The active constraint is never expose credentials. The legacy port question was whether it should remain open.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "token_count": 85,
+          "metadata": { "calibration": "d2_relative_cost" },
+          "source_event_id": "calibration-cost-source-1"
+        },
+        {
+          "id": "cost-event-2",
+          "session_id": "calibration-cost",
+          "seq": 2,
+          "role": "assistant",
+          "content": "After the long investigation the decision was to use SQLite WAL, the legacy port question was resolved, and the discarded option was to keep plaintext diagnostics. Additional historical detail is repeated here only to make D0 substantially larger than D2 without changing the calibration facts.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "token_count": 70,
+          "metadata": { "calibration": "d2_relative_cost" },
+          "source_event_id": "calibration-cost-source-2"
+        },
+        {
+          "id": "cost-event-3",
+          "session_id": "calibration-cost",
+          "seq": 3,
+          "role": "user",
+          "content": "What remains open?",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:03.000Z",
+          "token_count": 5,
+          "metadata": { "calibration": "d2_relative_cost" },
+          "source_event_id": "calibration-cost-source-3"
+        },
+        {
+          "id": "cost-event-4",
+          "session_id": "calibration-cost",
+          "seq": 4,
+          "role": "assistant",
+          "content": "Preparation retention remains open.",
+          "event_type": "calibration",
+          "created_at": "2026-08-23T00:00:04.000Z",
+          "token_count": 9,
+          "metadata": { "calibration": "d2_relative_cost" },
+          "source_event_id": "calibration-cost-source-4"
+        }
+      ],
+      "context_items": [
+        {
+          "id": "cost-constraint",
+          "session_id": "calibration-cost",
+          "type": "CONSTRAINT",
+          "content": "Never expose credentials",
+          "status": "ACTIVE",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "updated_at": "2026-08-23T00:00:01.000Z",
+          "source_refs": ["cost-event-1"],
+          "metadata": {}
+        },
+        {
+          "id": "cost-decision",
+          "session_id": "calibration-cost",
+          "type": "DECISION",
+          "content": "Use SQLite WAL",
+          "status": "ACTIVE",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "updated_at": "2026-08-23T00:00:02.000Z",
+          "source_refs": ["cost-event-2"],
+          "metadata": {}
+        },
+        {
+          "id": "cost-resolved",
+          "session_id": "calibration-cost",
+          "type": "OPEN_QUESTION",
+          "content": "Should the legacy port remain open?",
+          "status": "RESOLVED",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:01.000Z",
+          "updated_at": "2026-08-23T00:00:02.000Z",
+          "source_refs": ["cost-event-1", "cost-event-2"],
+          "metadata": {}
+        },
+        {
+          "id": "cost-open",
+          "session_id": "calibration-cost",
+          "type": "OPEN_QUESTION",
+          "content": "How should preparation records be retained?",
+          "status": "OPEN",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:03.000Z",
+          "updated_at": "2026-08-23T00:00:03.000Z",
+          "source_refs": ["cost-event-3"],
+          "metadata": {}
+        },
+        {
+          "id": "cost-rejected",
+          "session_id": "calibration-cost",
+          "type": "REJECTED_ALTERNATIVE",
+          "content": "Keep plaintext diagnostics",
+          "status": "REJECTED",
+          "confidence": 1,
+          "created_at": "2026-08-23T00:00:02.000Z",
+          "updated_at": "2026-08-23T00:00:02.000Z",
+          "source_refs": ["cost-event-2"],
+          "metadata": { "reason": "credential exposure" }
+        }
+      ],
+      "state_relations": [],
+      "current_input": "Choose the next investigation step.",
+      "recent_raw_window_turns": 1,
+      "token_budget": 500,
+      "headlines": [
+        {
+          "session_id": "calibration-cost",
+          "event_start_seq": 1,
+          "event_end_seq": 2,
+          "headline": "Legacy transport decision and resolved port question",
+          "keywords": ["legacy", "transport", "port"],
+          "created_at": "2026-08-23T00:00:02.000Z"
+        }
+      ],
+      "recall_queries": [
+        { "query": "legacy port", "expected_event_seqs": [1, 2] }
+      ],
+      "probes": {
+        "constraints": [
+          {
+            "id": "cost-constraint-probe",
+            "text": "Never expose credentials",
+            "provenance": [{ "kind": "context_item", "id": "cost-constraint" }]
+          }
+        ],
+        "decisions": [
+          {
+            "id": "cost-decision-probe",
+            "text": "Use SQLite WAL",
+            "provenance": [{ "kind": "context_item", "id": "cost-decision" }]
+          }
+        ],
+        "resolved_issues": [
+          {
+            "id": "cost-resolved-probe",
+            "text": "Should the legacy port remain open?",
+            "provenance": [{ "kind": "context_item", "id": "cost-resolved" }]
+          }
+        ],
+        "open_questions": [
+          {
+            "id": "cost-open-probe",
+            "text": "How should preparation records be retained?",
+            "provenance": [{ "kind": "context_item", "id": "cost-open" }]
+          }
+        ]
+      }
+    }
+  ],
+  "thresholds": {
+    "minimum_d2_token_reduction_ratio": 0,
+    "minimum_d2_constraint_retention": 0,
+    "minimum_d2_decision_continuity": 0,
+    "maximum_d2_resolved_issue_reopening": 1,
+    "minimum_d2_open_question_continuity": 0,
+    "minimum_d2_recall_recovery": 0,
+    "maximum_d2_mean_latency_ms": 10000
+  }
+}

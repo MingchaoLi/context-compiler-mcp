@@ -20,13 +20,13 @@ WO-ST-03 passed independent QA on 2026-08-23 at fixed source candidate `0b5b5dac
 
 ## Current candidate
 
-WO-ST-03 is accepted. There is no pending core candidate. Formal host mode remains a separate future host-repository consideration.
+WO-EV-02 已实现并等待独立 QA。候选保留 ST-02 version 1，同时新增 evaluator version 2，用于关闭空 Probe、`current_input` 污染和缺少 D2-vs-D1 成本报告的问题。该候选只校准评估尺子，不包含 Starlette 数据、远端模型或 Context Compiler core policy 修改。
 
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
 
-审查提出三个需要在下一次重大投入前明确处置的问题：ST-02 的空 probe、`current_input` 污染及缺少 D2 相对 D1 门槛；ST-01 是否真是首轮语义实验的技术 blocker；ST-03 的持久化 preparation 在连续抽取失败后缺少有界保留策略。当前没有自动生成修复工单，主控需要先决定补证、接受风险或开一个有界工单。
+审查提出三个需要在下一次重大投入前明确处置的问题：ST-02 的空 probe、`current_input` 污染及缺少 D2 相对 D1 门槛；ST-01 是否真是首轮语义实验的技术 blocker；ST-03 的持久化 preparation 在连续抽取失败后缺少有界保留策略。WO-EV-02 正在处置第一组测量问题；preparation 保留风险仍未形成实现工单。
 
 ## Current behavior
 
@@ -37,7 +37,7 @@ WO-ST-03 is accepted. There is no pending core candidate. Formal host mode remai
 - No implicit state evolution or extractor invocation from compile/ingest/MCP.
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
-- ST-02 的确定性指标尚未证明足以充当 D2 相对 D1 的决策门。
+- WO-EV-02 仍需独立 QA；即使通过，真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 are complete and independently accepted. Formal host mode remains out of scope and has not started.

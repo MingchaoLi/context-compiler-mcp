@@ -47,26 +47,45 @@ export function runEvaluationCli(
   }
 
   try {
-    const report = evaluation.runEvaluationSuite(input);
+    const version = inputVersion(input);
+    const report = version === evaluation.EVALUATION_REPORT_VERSION
+      ? evaluation.runEvaluationSuite(input)
+      : version === evaluation.EVALUATION_REPORT_VERSION_V2
+        ? evaluation.runEvaluationSuiteV2(input)
+        : undefined;
+    if (report === undefined) return writeError("INVALID_INPUT", io);
     io.stdout(`${JSON.stringify(report)}\n`);
     return report.passed ? EVALUATION_CLI_EXIT.passed : EVALUATION_CLI_EXIT.thresholdFailed;
   } catch (error) {
     return writeError(
       error instanceof evaluation.EvaluationError ? error.code : "RUNTIME_FAILURE",
-      io
+      io,
+      inputVersion(input) === evaluation.EVALUATION_REPORT_VERSION_V2
+        ? evaluation.EVALUATION_REPORT_VERSION_V2
+        : evaluation.EVALUATION_REPORT_VERSION
     );
   }
 }
 
-function writeError(code: EvaluationErrorCode, io: EvaluationCliIo): number {
+function writeError(
+  code: EvaluationErrorCode,
+  io: EvaluationCliIo,
+  version: 1 | 2 = evaluation.EVALUATION_REPORT_VERSION
+): number {
   io.stderr(`${JSON.stringify({
-    version: evaluation.EVALUATION_REPORT_VERSION,
+    version,
     passed: false,
     error: { code },
   })}\n`);
   return code === "INVALID_INPUT"
     ? EVALUATION_CLI_EXIT.invalidInput
     : EVALUATION_CLI_EXIT.runtimeFailure;
+}
+
+function inputVersion(input: unknown): unknown {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) return undefined;
+  const descriptor = Object.getOwnPropertyDescriptor(input, "version");
+  return descriptor !== undefined && "value" in descriptor ? descriptor.value : undefined;
 }
 
 const invokedPath = process.argv[1];

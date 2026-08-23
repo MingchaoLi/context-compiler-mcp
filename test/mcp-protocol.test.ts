@@ -224,6 +224,39 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(validEvaluation.stderr).toBe("");
       expect(JSON.parse(validEvaluation.stdout)).toMatchObject({ version: 1, passed: true });
 
+      const calibratedEvaluation = spawnSync(evaluationBin, [
+        join(root, "test", "fixtures", "evaluation-v2-calibration.json"),
+      ], { cwd: applicationRoot, encoding: "utf8" });
+      expect(calibratedEvaluation.status).toBe(0);
+      expect(calibratedEvaluation.stderr).toBe("");
+      expect(JSON.parse(calibratedEvaluation.stdout)).toMatchObject({
+        version: 2,
+        passed: true,
+        cases: [
+          {
+            id: "calibration-empty-probes",
+            dimensions: {
+              d2: { constraint_retention: { status: "not_evaluable", rate: null } },
+            },
+          },
+          {
+            id: "calibration-current-input-contamination",
+            dimensions: {
+              d1: { constraint_retention: { status: "evaluable", matched: 0 } },
+              d2: { constraint_retention: { status: "evaluable", matched: 0 } },
+            },
+          },
+          {
+            id: "calibration-d2-cost",
+            d2_vs_d1_tokens: { status: "evaluable" },
+          },
+        ],
+      });
+      const calibratedReport = JSON.parse(calibratedEvaluation.stdout) as {
+        cases: Array<{ d2_vs_d1_tokens: { ratio: number | null } }>;
+      };
+      expect(calibratedReport.cases[2]!.d2_vs_d1_tokens.ratio).toBeGreaterThan(1);
+
       const missingEvaluation = spawnSync(evaluationBin, [
         join(applicationRoot, "missing-evaluation-suite.json"),
       ], { cwd: applicationRoot, encoding: "utf8" });
