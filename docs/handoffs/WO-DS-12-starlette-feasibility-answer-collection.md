@@ -85,3 +85,34 @@
 ## QA 勘误（2026-08-23）
 
 独立 QA 按 `validate-capture.mjs` 的实际规则（先 JSON parse，再对 `answer.trim().split(/\s+/u)` 计数）复算：最长回答为 execution 33 的 **176** 个词，而非上文 Builder 自检段的 173。176 仍不超过 `<=250` 合同；上文历史自检没有被重写，本节仅保留勘误留痕。
+
+## Builder append-only fix（2026-08-23）
+
+首轮 QA commit `f261af2ce14a4dbce361bec22c7e51174d9bace7` 结论为 FAIL：P1 指出旧 validator/raw/run/capture-hash 集合可协调自举，P2 将历史自检的最长词数更正为 176。本 fix 不回写上述历史，也不改任何回答；没有启动新模型 session、retry、follow-up 或 evaluator。`raw-responses.jsonl` SHA-256 仍为 `1b574d4c1843a283d088cc641523855e78135516545a264c4fe48d5e059a4910`，`run-manifest.json` 仍为 `674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0`，均与 capture source Git object `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 的固定 blobs 逐字节一致。
+
+修复后的信任链：
+
+- validator 第一项操作是在任何当前 JSON parse/status calculation 之前，通过 `execFile("git", [...])`（`shell:false`）读取固定 commit `18a332f…` 的 raw/run blobs；
+- 固定并复验 `18a332f…` 的父提交 `b99bb4f…`、两个 repository path、blob SHA 与 current byte identity；
+- 参数只允许只读 `anchor_repository_root`，仍必须包含同一固定 commit；不允许注入替代 commit、path、parser 或 bytes；
+- `capture-hashes.json` 移除 `validate-capture.mjs` 自列 hash，明确记录 accepted Git-source contract、current payload hashes，并列出 validator/manifest self-attestation exclusions；
+- run manifest 顶层键、schema/run id、purpose/status、source identity、transport、execution/count、transport metadata、collection boundaries 与 interpretation limits 逐项 exact；额外 `authorization` 字段明确拒绝。
+
+8 项 focused 包含首轮 4 项，并新增：
+
+- 隔离副本同步修改 raw output、record response SHA、raw SHA、capture hash 与 validator constant，仍先由 fixed Git raw blob 拒绝；
+- 隔离副本同步修改 run purpose/status、添加授权、放宽未评分 boundaries、更新 run/capture hash 与 validator constants，仍先由 fixed Git run blob 拒绝；
+- 独立 `git rev-list` / `git cat-file blob` 核对 code 暴露的固定 source identity、父链和 blob SHA，同时确认 validator 不在自证 hash 列表；
+- 拒绝不含固定 commit 的替代 anchor repository 与任何 `anchor_bytes` 注入。
+
+当前状态仍为 **IMPLEMENTED — PENDING INDEPENDENT RE-QA**。本修复不自批，也不授权自动 context/cost、人类 review bundle、语义评分或 D2-vs-D1 结论。
+
+本 fix 的 Builder 自检结果：
+
+- capture validator：固定 Git object anchor 已验证；36 packets / 36 sessions / 36 attempts / 36 captured，0 invalid / 0 technical failure / 0 external-use observed；
+- focused：8/8 PASS；
+- `npm test`：21 files / 376 tests PASS；
+- `npm run test:protocol`：8/8 PASS；
+- `npm run build`、`git diff --check`：PASS；
+- 独立 `/private/tmp/context-compiler-ds12-fix-npm-cache` 的 `npm pack --dry-run --json --ignore-scripts`：50 files，SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`；
+- `raw-responses.jsonl` 与 `run-manifest.json` 的 working-tree diff 为空，SHA-256 分别仍为 `1b574d4c1843a283d088cc641523855e78135516545a264c4fe48d5e059a4910` 与 `674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0`。

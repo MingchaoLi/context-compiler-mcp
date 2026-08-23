@@ -2,10 +2,26 @@
   "schema_version": "starlette-answer-capture-hashes/v1",
   "status": "captured_unscored_pending_independent_qa",
   "algorithm": "sha256",
-  "files": [
+  "accepted_git_source_contract": {
+    "commit": "18a332fd06d7ebdfc8c0007ae1e9250db14c82cf",
+    "parent": "b99bb4fefe0284f26f00271b3c32839b0cddfd43",
+    "object_reader": "execFile_git_cat-file_blob_no_shell",
+    "verification_order": "before_current_json_parse_or_status_calculation",
+    "files": [
+      {
+        "path": "evaluation/starlette-v1/runs/feasibility-01/raw-responses.jsonl",
+        "sha256": "1b574d4c1843a283d088cc641523855e78135516545a264c4fe48d5e059a4910"
+      },
+      {
+        "path": "evaluation/starlette-v1/runs/feasibility-01/run-manifest.json",
+        "sha256": "674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0"
+      }
+    ]
+  },
+  "current_payload_files": [
     {
       "path": "README.md",
-      "sha256": "729946aa06adfb6a24a8f996b67d4410c66df7f97533ea76fe1b322507025cb9"
+      "sha256": "4689823fb778cf6eb15ff2efee407a28d3fe55f34f164dc6fcfe328ad36f25a8"
     },
     {
       "path": "raw-responses.jsonl",
@@ -14,10 +30,10 @@
     {
       "path": "run-manifest.json",
       "sha256": "674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0"
-    },
-    {
-      "path": "validate-capture.mjs",
-      "sha256": "1565b660153de1997ecc90f1813b8fb528fdc79667f8ae13b34ea3d9141274bd"
     }
+  ],
+  "self_attestation_exclusions": [
+    "capture-hashes.json",
+    "validate-capture.mjs"
   ]
 }

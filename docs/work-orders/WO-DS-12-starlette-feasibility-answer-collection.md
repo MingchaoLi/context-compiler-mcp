@@ -89,3 +89,11 @@ QA 只审核运行完整性，不评价回答语义，不知道条件也不代�
 2026-08-23 已严格按冻结 `execution_order` 完成 36/36 个 answer session：36 个 packet、36 个唯一 collaboration session、36 个 attempt，全部请求 `gpt-5.6-terra` non-sol / medium / `fork_turns:none`，每个 packet 一次，无 retry、best-of 或单点补跑，最大同时存在两个 answer worker。36 个原始 final output 已按 execution index 原样保存在 `evaluation/starlette-v1/runs/feasibility-01/raw-responses.jsonl`；机械解析为 36 个 `valid_response_format` / 36 个 `captured`，0 格式无效、0 technical failure、0 个观察到外部信息使用迹象。
 
 新增 run manifest、capture hashes、中文 README、只读 validator 与聚焦测试。validator 固定 DS-11 QA report、answer inputs、packet manifest、run contract 与完整 freeze wrapper/展开文件 SHA，并复验 36 session 唯一性、顺序、prompt/response hash、严格 JSON/250-word 状态、attempt=1、无 retry 与 capture hash。Builder 没有读取 rubric、没有运行 `runEvaluationSuiteV2`、自动 context/cost metric 或语义评分，也没有修改 frozen data/protocol/input、core、provider 或 host。完整检查与隔离 pack 结果见 `docs/handoffs/WO-DS-12-starlette-feasibility-answer-collection.md`；实现者不自批，当前等待新的独立 run-integrity QA。
+
+## Builder append-only fix（首轮 QA FAIL 后）
+
+首轮独立 QA commit `f261af2ce14a4dbce361bec22c7e51174d9bace7` 以 P1 退回：旧 validator 的 raw/run SHA 常量和自列 validator hash 可随 raw/run/capture-hashes 协调改写；另有 P2 词数勘误，最长回答应为 execution 33 的 176 词。修复保持 `raw-responses.jsonl` 与 `run-manifest.json` bytes 逐字节不变，也没有任何新模型会话或 retry。
+
+修复以已提交 capture source Git object `18a332fd06d7ebdfc8c0007ae1e9250db14c82cf` 为 mutable raw/run/hash/validator 集合之外的 trust anchor。validator 在任何当前 JSON 解析或状态计算前，使用参数化、无 shell 的 `execFile` 调用 `git cat-file`/`rev-list`，固定 source commit、父提交和两个 path，独立读取 raw/run blobs 并要求 current bytes 相同；只允许调用者提供含同一固定 commit 的只读 `anchor_repository_root`，不能注入替代 commit 或 bytes。`capture-hashes.json` 移除 validator 自证，改为明确 accepted Git-source contract、current payload hashes 与 self-attestation exclusions；run manifest 的所有顶层/nested 字段严格固定，额外 `authorization` 字段明确禁止，未评分/未授权 boundaries 保持 false/zero。
+
+聚焦测试新增两个真正隔离的协调攻击：同时修改 raw output、record response SHA、raw SHA、validator 常量与 capture hashes；以及同时修改 run purpose/status、新增 authorization、放宽 boundaries、修改 validator 常量与 capture hashes。两者均在 Git-object anchor、任何后续 JSON parse/status 之前拒绝。另独立验证固定 source lineage/blobs、validator 暴露的 code identity，以及替代 anchor repo/bytes 注入拒绝。当前仍为 implemented pending independent re-QA，不授权自动指标、人类 review bundle 或任何效果结论。
