@@ -26,7 +26,7 @@ WO-DS-03 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `32
 
 同一预检还证明 STR-05 的 9 个 pilot event 都是真实信息增量，必须从 medium 更正为 long。由此，先前 STR-07/08、STR-05/06、STR-01/04 的 2/2/2 声明已经失效；正式 freeze 不能沿用该配额或把 STR-04 当未污染样本。尚未运行 D0/D1/D2、远端模型、aggregate 或 PASS rate。
 
-WO-DS-04 已登记为当前工单，只做 STR-04/05/08 的确定性无模型接线冒烟。正式六案预注册固定为 STR-07/08/05/06/01/04，不得按任何 dry-run 或模型结果换案；2 short / 1 medium / 3 long 仅为预计分布。该工单只验证 collection index、字段投影、slice 前缀和 evaluator v2 输入/版本合同，不运行 `runEvaluationSuiteV2` 或远端模型，也不产生效果指标。
+WO-DS-04 Builder candidate 已完成，等待新的独立 QA。正式六案预注册固定为 STR-07/08/05/06/01/04，不得按任何 dry-run 或模型结果换案；2 short / 1 medium / 3 long 仅为预计分布。接线冒烟把已接受的 STR-08/05/04 共 31 个 slice、226 个投影历史 turn 确定性构造成 evaluator v2 严格 parser 可消费输入；没有调用 `runEvaluationSuiteV2` 或远端模型，也没有产生效果指标。
 
 ## 最新对抗审查
 
@@ -47,7 +47,7 @@ DS-03 接受后的第二次关键节点对抗审查记录为 `docs/adversarial-r
 - No formal compiler mode in any host adapter.
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
 - Starlette schema pilot 与 DS-03 long/open canary 已独立接受，但均不是正式数据集 freeze 或 D2 效果证据。`pilot_not_frozen`、`canary_not_frozen` 保持；STR-02/03/11/12/15 因公开 evaluation/benchmark 复用排除，STR-04 只有有限 `no_public_hit_found`，STR-05 按机械规则属于 long。剩余样本必须重新预注册实际分层，不能沿用旧 2/2/2 或直接运行模型。
-- WO-DS-04 接线冒烟尚未实现或独立 QA；在其通过前不得开始正式 promotion/freeze。
+- WO-DS-04 接线冒烟尚未独立 QA；在其通过前不得开始正式 promotion/freeze。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

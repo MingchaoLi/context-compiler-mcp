@@ -1,0 +1,18 @@
+{
+  "schema_version": "starlette-collection-plan/v1",
+  "status": "planned_not_frozen",
+  "registered_cases": [
+    {"case_id": "STR-07", "projected_tier": "short", "tier_status": "projected_not_a_quota"},
+    {"case_id": "STR-08", "projected_tier": "short", "tier_status": "audited_not_frozen"},
+    {"case_id": "STR-05", "projected_tier": "long", "tier_status": "audited_not_frozen"},
+    {"case_id": "STR-06", "projected_tier": "medium", "tier_status": "projected_not_a_quota"},
+    {"case_id": "STR-01", "projected_tier": "long", "tier_status": "projected_not_a_quota"},
+    {"case_id": "STR-04", "projected_tier": "long", "tier_status": "audited_not_frozen"}
+  ],
+  "smoke_case_ids": ["STR-08", "STR-05", "STR-04"],
+  "selection_policy": {
+    "allow_result_based_replacement": false,
+    "allow_transparent_tier_reclassification": true,
+    "tier_distribution_is_quota": false
+  }
+}

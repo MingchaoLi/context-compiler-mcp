@@ -39,3 +39,9 @@ node evaluation/starlette-v1/validate-pilot.mjs --canary
 校验器严格拒绝未知字段、重复/跨 segment 引用、`event_type`/`source.kind` 错配、`source_updated_at < occurred_at`、时间逆序、非前缀 evidence、未来 Gold/Oracle provenance、Current Task 规范化包含任意时点 Gold、Outcome 内容/标识或 cutoff 后 Decision Reference，以及 hash 篡改。内容规范化会移除 Unicode format/control 字符，并同时比较保留词边界与压缩词边界的形式，防止零宽字符、WORD JOINER 和 bidi control 绕过。
 
 `projectModelInput(bundle, sliceId)` 是后续 evaluator 的字段级输入投影。输出的每个 history turn 只有 `id`、`role`、`event_type`、`occurred_at`、`actor`、`summary`，Current Task 单独输出；source metadata、hash 和四类非输入文件不会进入投影。该函数与 validator 不能机械判断语义同义泄漏，仍需独立人工审计。
+
+## DS-04 无模型接线冒烟
+
+`collection-plan.json` 预注册正式六案 STR-07/08/05/06/01/04，禁止按任何试运行结果换案；其中的 tier 只是预计或已审计但未冻结状态，不是配额。`wiring-smoke.mjs` 只使用已接受的 STR-08/05/04，把 31 个 slice 映射成 evaluator v2 parser 可消费的内存输入。
+
+冒烟不会调用 `runEvaluationSuiteV2` 或远端模型，也不会输出 token、retention、latency、aggregate 或 PASS rate。它只验证集合索引、字段白名单、时间前缀、Oracle provenance 和既有 evaluator v2 版本合同；不能作为正式 freeze 或 D2 效果证据。

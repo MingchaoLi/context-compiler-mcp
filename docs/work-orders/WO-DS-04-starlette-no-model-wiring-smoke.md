@@ -1,6 +1,8 @@
 # WO-DS-04 — Starlette 无模型接线冒烟
 
-状态：PLANNED — NOT IMPLEMENTED
+状态：IMPLEMENTED — PENDING NEW INDEPENDENT QA
+
+Builder candidate 已完成 31 个 slice / 226 个 projected history turn 的 parser-only 接线；实现结果见 `docs/evaluation/starlette-v1-wiring-smoke.md`，独立 QA 前仍不得进入 promotion/freeze。
 
 ## 背景与对抗审查处置
 
