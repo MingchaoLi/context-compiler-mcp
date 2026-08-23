@@ -2,7 +2,7 @@
 
 日期：2026-08-23
 
-状态：**IMPLEMENTED — PENDING INDEPENDENT QA; ST-02 NOT AUTHORIZED**
+状态：**REIMPLEMENTED — PENDING INDEPENDENT RE-QA; ST-02 NOT AUTHORIZED**
 
 ## 单一交付结果
 
@@ -20,30 +20,43 @@
 - Gate-0 为每个事件记录 expressibility、当前摘要 entailment、同事件引用限制与 Gold leakage 风险；
 - 输入明确称为带原来源 hash 的标准化真实事件摘要，不冒充 verbatim GitHub body extraction。
 
-数据与 Gold 已单独提交并固定为 Git object `23b52e8b4ff92ea1966f16de793395950a443590`，父为 `a9536133fda43f0a40623d8f7a34da352e273dfc`。runner 在解析任何当前 fixture JSON 前读取该提交的 9 个固定 blobs，并要求当前字节一致；协调改写 Gold/checkpoint/hash 不能成为新的 trust root。
+首次独立 QA 返回后，修正后的数据与 Gold 已再次单独提交并固定为 Git object `79da83d95aeac7162c95714f4f6f5eff1f9e0608`，父为 QA 提交 `aeed861b3e3c538fbf6aa1393a5745fb4d61490b`。runner 在解析任何当前 fixture JSON 前读取该提交的 9 个固定 blobs，并要求当前字节一致；协调改写 Gold/checkpoint/hash 不能成为新的 trust root。
+
+## 首次独立 QA 返回与修复
+
+首次 QA 确认 reducer、strict schema、checkpoint、provenance、stale revision 与全部机械回放均通过，但拒绝接受 ST-01 的测量合同：3 条 `DEPENDS_ON` 因同一步新 item 无 runtime ID 而被延后写入后续 Delta，后续当前事件却不能直接支持这些关系，未来会把结构限制误记为 Extractor miss。
+
+Builder 接受该 P1，并做最小数据修复：
+
+- 删除 STR-07/E7 延后的 path-converter → URI-template 依赖，原始同事件关系明确列为 `not_evaluable`；
+- 删除 STR-06/E8、E12、E16 中没有当前事件直接依据的 probe → non-security 依赖；
+- 只保留 4 条当前事件直接支持的 `DEPENDS_ON`；
+- Gate-0 为全部 4 条依赖冻结 step/event/source/target 与当前事件 lexical anchors；
+- runner 要求 Gold 依赖与 justification 一一对应且锚点确实存在于同一步事件，focused test 覆盖错误事件与无依据锚点；
+- checkpoint、coverage 与 Git-object trust anchor 同步人工重建，未修改 item、lifecycle 或其他 relation。
 
 ## ST-01 原始结果
 
-- Gate-0：30/30 strict-expressible，5 个 same-step reference 限制显式披露；
+- Gate-0：30/30 strict-expressible，6 个 same-step reference 限制显式披露；
 - strict Gold Delta：30/30；其中 28 non-empty、2 empty true negative；
 - Expected State checkpoint：30/30；
 - fresh SQLite replay：2 次 canonical output 一致；
 - created items：35；
 - lifecycle transition 有当前事件 provenance：16；
-- relation：DERIVED_FROM 53、SUPERSEDES 6、RESOLVED_BY 3、REJECTS 3、DEPENDS_ON 8；
+- relation：DERIVED_FROM 53、SUPERSEDES 6、RESOLVED_BY 3、REJECTS 3、DEPENDS_ON 4；
 - final lifecycle：3 completed goals、6 superseded decisions、7 resolved questions、4 rejected alternatives；
 - stale expected revision：1/1 在 snapshot callback 与 mutation 前 fail-closed，revision/state 不变；
-- canonical replay SHA-256：`045b2fd7b7dbdcf2dab04387627de37c7f17d03b47bd15e6de3ca1cde31a5521`；
+- canonical replay SHA-256：`9ba9f5c94c33d2a48a92478d907e4ba0bc455357ed4bc8f3fcd94c02bb0a1910`；
 - model/provider/network/evaluator calls：全部 0。
 
-零分母类别 `constraint_supersession`、`goal_supersession`、`open_question_defer`、`semantic_reactivation_operation` 明确为 `not_evaluable`，未计入 ST-01 成功。E13 仍提供一个“tracker reopen 不应复制/激活已负向解决问题”的 ST-02 wrong-reactivation negative control，但当前 strict schema 没有直接 reactivation operation。
+零分母类别 `constraint_supersession`、`goal_supersession`、`open_question_defer`、`semantic_reactivation_operation` 以及 STR-07/E6 同事件新 item 依赖明确为 `not_evaluable`，未计入 ST-01 成功。E13 仍提供一个“tracker reopen 不应复制/激活已负向解决问题”的 ST-02 wrong-reactivation negative control，但当前 strict schema 没有直接 reactivation operation。
 
 ## 表达限制
 
 strict delta 的新 item 没有调用方 ID；同一 delta 的其他 operation 只能引用前一步已有 item。因此：
 
 - STR-08/E4 和 STR-07/E10 可同时创建终局 Decision 与 resolve 问题，但不能在同一步创建指向该新 Decision 的 `RESOLVED_BY`；Gold resolution 不伪造该 edge；
-- 新 Decision 与新 Constraint 的同事件 `DEPENDS_ON` 需延至下一真实事件；
+- 新 Decision 与新 Constraint 的同事件 `DEPENDS_ON` 只有在后续当前事件重新提供直接依据时才可延后；否则必须排除为 `not_evaluable`，不得计作后续 Extractor miss；
 - 已有 item 的 lifecycle provenance 通过显式 `DERIVED_FROM current_event` 补全，store 同时追加 `source_refs`；
 - STR-07/E9 与 STR-06/E16 使用前一步已有 active Decision，提供 3 个真实 `RESOLVED_BY` 正样本。
 
@@ -63,8 +76,8 @@ env NODE_NO_WARNINGS=1 npx vite-node --script evaluation/state-replay-v0.1/st01/
 
 ## Builder 自检
 
-- ST-01 focused：6/6 PASS；
-- `npm test`：389 PASS / 1 个既有 opt-in official runner SKIP；
+- ST-01 focused：7/7 PASS；
+- `npm test`：390 PASS / 1 个既有 opt-in official runner SKIP；
 - `npm run test:protocol`：8/8 PASS；
 - `npm run build`：PASS；
 - `git diff --check`：PASS；
@@ -74,9 +87,10 @@ env NODE_NO_WARNINGS=1 npx vite-node --script evaluation/state-replay-v0.1/st01/
 
 ## 独立 QA 必查
 
-- 固定 main/Builder candidate/父提交/clean，并确认 ST-01 前置 data commit 精确为 `23b52e8…`；
+- 固定 main/Builder candidate/父提交/clean，并确认修正后 data commit 精确为 `79da83d…`；
 - 从 Git object 独立重建 9 个 source/Gold blobs 与三个 promotion `events.json` 来源；
 - 逐项人工检查 30 个 Gate-0 entailment，尤其 E7/E13 empty、E4/E10 same-step limitation、E16 保留 cross-environment OPEN；
+- 独立重放 4 条 dependency justification，确认每条仅由其同一步当前事件支持，且错误 event/anchor 必须拒绝；
 - 不复用 Builder checkpoint 生成逻辑，独立重算 created/status/source_refs/relation/revision ledger；
 - 原样重放 Gold/checkpoint/validator/hash 协调改写、future event、missing provenance、wrong endpoint/type、duplicate/omission/order/unknown/Unicode/symlink；
 - 确认 empty delta 不变 revision/state、stale revision 在 callback/mutation 前拒绝；

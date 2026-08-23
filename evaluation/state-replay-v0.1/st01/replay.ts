@@ -41,18 +41,18 @@ const DELTA_ARRAY_KEYS = [
 ] as const;
 
 export const TRUSTED_DS14_DATA_SOURCE = Object.freeze({
-  commit: "23b52e8b4ff92ea1966f16de793395950a443590",
-  parent: "a9536133fda43f0a40623d8f7a34da352e273dfc",
+  commit: "79da83d95aeac7162c95714f4f6f5eff1f9e0608",
+  parent: "aeed861b3e3c538fbf6aa1393a5745fb4d61490b",
   files: Object.freeze([
     Object.freeze({ path: "README.md", sha256: "ea960d5d1a7166ab3872f60f71c1c5277132f9e828c410b9572de9d7c06641f4" }),
     Object.freeze({ path: "source/baseline-seal.json", sha256: "c033a6a3bf865fbfee534c827c9c5904593ad7634162284a6bbbae49c4732398" }),
     Object.freeze({ path: "source/selection.json", sha256: "4845e52a27ad181ff16fdd5989f4aa7ddfc19e5c8e58a3f16f54144e02b7fca9" }),
     Object.freeze({ path: "source/event-stream.jsonl", sha256: "a35771410cd027a70e439add43a268529826def666c14421b629e79a47c0a4e1" }),
-    Object.freeze({ path: "gold/gate0-expressibility.json", sha256: "f8484ca44196c629cbb568a4711d220647c37c6d6c5bf9109febca8f3289c931" }),
+    Object.freeze({ path: "gold/gate0-expressibility.json", sha256: "e863438d8b9c3be3bb595f3c59f7f99040933594fb23e5a1a1d214b0a44e186d" }),
     Object.freeze({ path: "gold/semantic-items.json", sha256: "10d8790e81335f823a813b85d1a039810880a2d62fbcd152cbdc72806f0d29d1" }),
-    Object.freeze({ path: "gold/gold-deltas.jsonl", sha256: "8ee790edca920c9d843f1acd4c87638e42f6346bf666cc7f4f3f3cfdc2583e53" }),
-    Object.freeze({ path: "gold/gold-state-checkpoints.jsonl", sha256: "bd046d91379e3d674ec189f88fffc8c11fde517609f9aac0954aa18b5ba9c775" }),
-    Object.freeze({ path: "gold/transition-coverage.json", sha256: "38a557511d4775a959ab69b7c410c879bb18abb3c8714dd5141ee36291d405c9" }),
+    Object.freeze({ path: "gold/gold-deltas.jsonl", sha256: "3a3bff57158adba2ebc0f606c72c0dab055319339ba857aa77cdb13ddf3dbfd4" }),
+    Object.freeze({ path: "gold/gold-state-checkpoints.jsonl", sha256: "c8c3a843b2967f2360e1b07a4029bb03826450b0ac0008055deb7bd6e4adea3d" }),
+    Object.freeze({ path: "gold/transition-coverage.json", sha256: "dcd9760376df8a202cf6cd201217aa8ef50162ee37298d9a33838a7d3a31b43a" }),
   ]),
 });
 
@@ -186,6 +186,80 @@ function exactKeys(value: JsonRecord, keys: readonly string[], path: string): vo
   if (!isDeepStrictEqual(actual, expected)) fail(path, `exact keys changed: ${actual.join(",")}`);
 }
 
+export function validateDependencyJustifications(
+  events: JsonRecord[],
+  deltas: JsonRecord[],
+  gate0: JsonRecord,
+): void {
+  exactKeys(gate0, [
+    "schema_version",
+    "status",
+    "input_representation",
+    "not_claimed_input_representation",
+    "strict_delta_contract",
+    "events",
+    "dependency_justifications",
+    "counts",
+    "gate0_conclusion",
+  ], "gate0");
+  exactKeys(gate0.strict_delta_contract, [
+    "new_items_receive_runtime_ids",
+    "same_delta_operations_may_reference_new_item",
+    "existing_item_lifecycle_can_add_current_event_provenance_via_derived_from",
+    "tracker_close_or_reopen_is_not_automatically_semantic_resolution_or_reactivation",
+  ], "gate0.strict_delta_contract");
+  exactKeys(gate0.counts, [
+    "event_count",
+    "strict_expressible_count",
+    "non_empty_delta_count",
+    "empty_true_negative_count",
+    "same_step_reference_limit_count",
+    "model_call_count",
+  ], "gate0.counts");
+  if (!Array.isArray(gate0.dependency_justifications)) fail("gate0.dependency_justifications", "expected array");
+
+  const actual = deltas.flatMap((delta) => (delta.new_relations as JsonRecord[])
+    .filter((relation) => relation.relation_type === "DEPENDS_ON")
+    .map((relation) => ({
+      step_id: delta.step_id,
+      event_id: delta.event_id,
+      source_key: relation.source_key,
+      target_key: relation.target_key,
+    })));
+  const declared = gate0.dependency_justifications.map((entry: JsonRecord, index: number) => {
+    exactKeys(entry, [
+      "step_id",
+      "event_id",
+      "source_key",
+      "target_key",
+      "required_current_event_anchors",
+    ], `gate0.dependency_justifications[${index}]`);
+    if (!Array.isArray(entry.required_current_event_anchors) || entry.required_current_event_anchors.length === 0) {
+      fail(`gate0.dependency_justifications[${index}].required_current_event_anchors`, "must be non-empty");
+    }
+    const currentEvent = events.find((event) => event.event_id === entry.event_id);
+    if (!currentEvent) fail(`gate0.dependency_justifications[${index}].event_id`, "unknown current event");
+    const content = String(currentEvent.content).toLowerCase();
+    for (const [anchorIndex, anchor] of entry.required_current_event_anchors.entries()) {
+      if (typeof anchor !== "string" || anchor.length === 0) {
+        fail(`gate0.dependency_justifications[${index}].required_current_event_anchors[${anchorIndex}]`, "expected non-empty string");
+      }
+      if (!content.includes(anchor.toLowerCase())) {
+        fail(`gate0.dependency_justifications[${index}].required_current_event_anchors[${anchorIndex}]`, "not supported by current event");
+      }
+    }
+    return {
+      step_id: entry.step_id,
+      event_id: entry.event_id,
+      source_key: entry.source_key,
+      target_key: entry.target_key,
+    };
+  });
+  if (!isDeepStrictEqual(actual, declared)) {
+    fail("gate0.dependency_justifications", "must exactly cover Gold DEPENDS_ON operations in order");
+  }
+}
+
 async function git(repositoryRoot: string, args: string[], encoding: BufferEncoding | "buffer" = "utf8"): Promise<string | Buffer> {
   try {
     const result = await execFileAsync("git", ["-C", repositoryRoot, ...args], {
@@ -292,6 +366,7 @@ async function loadFixture(repositoryRoot: string, fixtureRoot?: string): Promis
   if (!isDeepStrictEqual(events.map((entry) => entry.event_id), deltas.map((entry) => entry.event_id))) fail("gold-deltas.order", "must match event stream");
   if (!isDeepStrictEqual(events.map((entry) => entry.event_id), checkpoints.map((entry) => entry.event_id))) fail("checkpoints.order", "must match event stream");
   if (!isDeepStrictEqual(events.map((entry) => entry.event_id), gate0.events.map((entry: JsonRecord) => entry.event_id))) fail("gate0.order", "must match event stream");
+  validateDependencyJustifications(events, deltas, gate0);
 
   return { root, seal, selection, events, items, itemsByKey, deltas, checkpoints, gate0, coverage };
 }

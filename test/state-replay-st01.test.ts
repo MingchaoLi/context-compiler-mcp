@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   TRUSTED_DS14_DATA_SOURCE,
   runSt01Conformance,
+  validateDependencyJustifications,
 } from "../evaluation/state-replay-v0.1/st01/replay.js";
 
 const REPOSITORY_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,15 +49,15 @@ describe("WO-DS-14 ST-01 reducer conformance", () => {
       SUPERSEDES: 6,
       RESOLVED_BY: 3,
       REJECTS: 3,
-      DEPENDS_ON: 8,
+      DEPENDS_ON: 4,
     });
     expect(report.st02_authorized).toBe(false);
   });
 
   it("anchors source, Gold and checkpoints to the pre-run Git object before parsing", async () => {
     expect(TRUSTED_DS14_DATA_SOURCE).toMatchObject({
-      commit: "23b52e8b4ff92ea1966f16de793395950a443590",
-      parent: "a9536133fda43f0a40623d8f7a34da352e273dfc",
+      commit: "79da83d95aeac7162c95714f4f6f5eff1f9e0608",
+      parent: "aeed861b3e3c538fbf6aa1393a5745fb4d61490b",
     });
     expect(TRUSTED_DS14_DATA_SOURCE.files).toHaveLength(9);
     const source = await readFile(join(FIXTURE_ROOT, "st01/replay.ts"), "utf8");
@@ -126,5 +127,20 @@ describe("WO-DS-14 ST-01 reducer conformance", () => {
     expect(source).not.toContain("runEvaluationSuite");
     expect(source).not.toContain("assembleContext");
     expect(source).not.toContain("writeFile");
+  });
+
+  it("requires every scored dependency to be justified by its own current event", async () => {
+    const events = (await readFile(join(FIXTURE_ROOT, "source/event-stream.jsonl"), "utf8")).trimEnd().split("\n").map(JSON.parse);
+    const deltas = (await readFile(join(FIXTURE_ROOT, "gold/gold-deltas.jsonl"), "utf8")).trimEnd().split("\n").map(JSON.parse);
+    const gate0 = JSON.parse(await readFile(join(FIXTURE_ROOT, "gold/gate0-expressibility.json"), "utf8"));
+    expect(() => validateDependencyJustifications(events, deltas, gate0)).not.toThrow();
+
+    const unsupported = structuredClone(gate0);
+    unsupported.dependency_justifications[0].required_current_event_anchors = ["not in this current event"];
+    expect(() => validateDependencyJustifications(events, deltas, unsupported)).toThrow(/not supported by current event/);
+
+    const delayed = structuredClone(gate0);
+    delayed.dependency_justifications[0].event_id = "STR-08/E4";
+    expect(() => validateDependencyJustifications(events, deltas, delayed)).toThrow(/not supported by current event|exactly cover/);
   });
 });

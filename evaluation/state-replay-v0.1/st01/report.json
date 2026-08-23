@@ -12,7 +12,7 @@
     "status": "passed_with_declared_representation_limits",
     "event_count": 30,
     "strict_expressible_count": 30,
-    "same_step_reference_limit_count": 5,
+    "same_step_reference_limit_count": 6,
     "input_representation": "independently_accepted_standardized_real_event_summary_with_source_hash"
   },
   "counts": {
@@ -36,7 +36,7 @@
     "SUPERSEDES": 6,
     "RESOLVED_BY": 3,
     "REJECTS": 3,
-    "DEPENDS_ON": 8
+    "DEPENDS_ON": 4
   },
   "final_status_counts": {
     "completed_goals": 3,
@@ -55,16 +55,17 @@
       "SUPERSEDES": { "eligible": 6, "passed": 6, "status": "passed" },
       "RESOLVED_BY": { "eligible": 3, "passed": 3, "status": "passed" },
       "REJECTS": { "eligible": 3, "passed": 3, "status": "passed" },
-      "DEPENDS_ON": { "eligible": 8, "passed": 8, "status": "passed" }
+      "DEPENDS_ON": { "eligible": 4, "passed": 4, "status": "passed" }
     },
     "excluded_zero_denominators": [
       "constraint_supersession",
       "goal_supersession",
       "open_question_defer",
-      "semantic_reactivation_operation"
+      "semantic_reactivation_operation",
+      "same_event_new_item_dependency:STR-07/E6:path-converter-to-uri-template"
     ]
   },
-  "canonical_replay_sha256": "045b2fd7b7dbdcf2dab04387627de37c7f17d03b47bd15e6de3ca1cde31a5521",
+  "canonical_replay_sha256": "9ba9f5c94c33d2a48a92478d907e4ba0bc455357ed4bc8f3fcd94c02bb0a1910",
   "st02_authorized": false,
   "next_gate": "independent_st01_qa",
   "claims_not_made": [
