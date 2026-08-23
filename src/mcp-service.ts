@@ -5,12 +5,14 @@ import {
   type CompiledContext,
 } from "./assembler.js";
 import {
+  appendContextCompileTraceInsideService,
   ExperienceLedgerError,
   SqliteExperienceLedgerStore,
 } from "./experience-ledger.js";
 import {
   OperationalContextError,
   compileOperationalContext,
+  hasTrustedContextCompileBaseline,
   type ContextPolicyInput,
 } from "./operational-context.js";
 import {
@@ -242,6 +244,13 @@ export class ContextCompilerMcpService {
         .map((relation) => ({ ...relation, session_id: assemblerSessionId }));
       const rawEvents = this.rawStore.getSessionEvents(sessionId)
         .map((event) => ({ ...event, session_id: assemblerSessionId }));
+      const ledgerRecords = this.ledgerStore.getSessionRecords(sessionId);
+      if (input.operation_id === undefined &&
+          hasTrustedContextCompileBaseline(ledgerRecords, sessionId)) {
+        throw new OperationalContextError(
+          "operation_id is required after session compile telemetry has started"
+        );
+      }
       const operational = compileOperationalContext({
         session_id: assemblerSessionId,
         context_items: items,
@@ -258,11 +267,14 @@ export class ContextCompilerMcpService {
           : { context_policy: input.context_policy as unknown as ContextPolicyInput }),
         ...(denseQuery === undefined ? {} : { dense_query: denseQuery }),
         ...(input.operation_id === undefined ? {} : { operation_id: input.operation_id as string }),
-        ledger_records: this.ledgerStore.getSessionRecords(sessionId),
+        ledger_records: ledgerRecords.map((record) => ({
+          ...record,
+          session_id: assemblerSessionId,
+        })),
       });
       context = operational.context;
       if (input.operation_id !== undefined) {
-        const trace = this.ledgerStore.appendContextCompileTrace({
+        const trace = appendContextCompileTraceInsideService(this.ledgerStore, {
           session_id: sessionId,
           operation_id: input.operation_id as string,
           payload: operational.trace_payload,

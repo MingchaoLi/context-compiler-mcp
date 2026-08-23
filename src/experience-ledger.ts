@@ -14,11 +14,19 @@ export const EXPERIENCE_LEDGER_KINDS = [
   "RETRIEVAL_HIT",
 ] as const;
 
+export const PUBLIC_EXPERIENCE_LEDGER_KINDS = [
+  "ACTION",
+  "OUTCOME",
+  "FEEDBACK",
+  "CANDIDATE_EXPERIENCE",
+] as const;
+
 export type ExperienceLedgerKind = (typeof EXPERIENCE_LEDGER_KINDS)[number];
+export type PublicExperienceLedgerKind = (typeof PUBLIC_EXPERIENCE_LEDGER_KINDS)[number];
 
 export interface ExperienceLedgerInput {
   session_id: string;
-  kind: ExperienceLedgerKind;
+  kind: PublicExperienceLedgerKind;
   source_key: string;
   payload: JsonObject;
   occurred_at?: string;
@@ -42,6 +50,7 @@ export type ExperienceLedgerErrorCode =
   | "INVALID_INPUT"
   | "CONFLICT"
   | "NOT_FOUND"
+  | "CORRUPT_DATA"
   | "CLOSED";
 
 export class ExperienceLedgerError extends Error {
@@ -78,6 +87,12 @@ export interface ContextCompileTraceResult {
   hits: ExperienceLedgerRecord[];
 }
 
+interface InternalExperienceLedgerInput extends Omit<ExperienceLedgerInput, "kind"> {
+  kind: ExperienceLedgerKind;
+}
+
+const APPEND_CONTEXT_COMPILE_TRACE = Symbol("appendContextCompileTrace");
+
 /**
  * Append-only research ledger for replayable Event -> Action -> Outcome / Feedback data.
  * It deliberately performs no Experience extraction, scoring, promotion, or mutation.
@@ -99,7 +114,7 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
 
   append(input: ExperienceLedgerInput): ExperienceLedgerRecord {
     this.assertOpen();
-    const normalized = normalizeInput(input);
+    const normalized = normalizeInput(input, "public");
 
     this.database.exec("BEGIN IMMEDIATE;");
     try {
@@ -130,8 +145,8 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
     return rows.map(rowToRecord);
   }
 
-  /** Atomically append or repair one idempotent compile trace and all of its hits. */
-  appendContextCompileTrace(input: ContextCompileTraceInput): ContextCompileTraceResult {
+  /** @internal Atomically append or repair one idempotent compile trace and all of its hits. */
+  [APPEND_CONTEXT_COMPILE_TRACE](input: ContextCompileTraceInput): ContextCompileTraceResult {
     this.assertOpen();
     if (!isPlainObject(input)) invalid("compile trace input must be a plain object");
     assertExactKeys(input, ["session_id", "operation_id", "payload", "hits"], ["raw_event_ids"]);
@@ -169,7 +184,7 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
       payload,
       raw_event_ids: rawEventIds,
       parent_ledger_ids: [],
-    });
+    }, "system");
 
     this.database.exec("BEGIN IMMEDIATE;");
     try {
@@ -186,7 +201,7 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
           subject_id: hit.subject_id,
           reason: hit.reason,
         },
-      })));
+      }, "system")));
       this.database.exec("COMMIT;");
       return { trace, hits: records };
     } catch (error) {
@@ -204,6 +219,14 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
   private assertOpen(): void {
     if (this.closed) throw new ExperienceLedgerError("CLOSED", "Experience ledger is closed");
   }
+}
+
+/** Internal service hook; intentionally not re-exported from the package root. */
+export function appendContextCompileTraceInsideService(
+  store: SqliteExperienceLedgerStore,
+  input: ContextCompileTraceInput
+): ContextCompileTraceResult {
+  return store[APPEND_CONTEXT_COMPILE_TRACE](input);
 }
 
 function normalizeCompileHit(input: unknown, index: number): Required<ContextCompileHitInput> {
@@ -263,6 +286,11 @@ interface RawEventRow extends Record<string, unknown> {
 }
 
 const RAW_EVENT_SOURCE_PREFIX = "raw-event/";
+const RESERVED_SYSTEM_SOURCE_PREFIXES = [
+  RAW_EVENT_SOURCE_PREFIX,
+  "context-compile/",
+  "retrieval-hit/",
+] as const;
 
 /** Internal shared migration used by both ledger and raw stores. */
 export function migrateExperienceLedger(database: DatabaseSync): void {
@@ -348,7 +376,7 @@ export function appendRawEventMirrorInsideTransaction(
     raw_event_ids: [event.id],
     parent_ledger_ids: [],
     payload: rawMirrorPayload(event, migrationBackfill),
-  }, true);
+  }, "system");
   return appendExperienceLedgerRecord(database, normalized, rawMirrorId(event.id));
 }
 
@@ -435,19 +463,29 @@ function requireReferences(database: DatabaseSync, input: NormalizedLedgerInput)
   }
 }
 
-function normalizeInput(input: ExperienceLedgerInput, rawMirror = false): NormalizedLedgerInput {
+function normalizeInput(
+  input: InternalExperienceLedgerInput,
+  authority: "public" | "system"
+): NormalizedLedgerInput {
   if (!isPlainObject(input)) invalid("ledger input must be a plain object");
   assertExactKeys(input, ["session_id", "kind", "source_key", "payload"], [
     "occurred_at", "raw_event_ids", "parent_ledger_ids",
   ]);
   validateNonEmptyString(input.session_id, "session_id");
   if (!EXPERIENCE_LEDGER_KINDS.includes(input.kind)) invalid("unsupported ledger kind");
+  if (authority === "public" && !PUBLIC_EXPERIENCE_LEDGER_KINDS.includes(
+    input.kind as PublicExperienceLedgerKind
+  )) {
+    invalid("ledger kind is reserved for internal system observations");
+  }
   validateNonEmptyString(input.source_key, "source_key");
-  if (!rawMirror && input.source_key.startsWith(RAW_EVENT_SOURCE_PREFIX)) {
-    invalid(`source_key prefix ${RAW_EVENT_SOURCE_PREFIX} is reserved for raw mirrors`);
+  if (authority === "public" && RESERVED_SYSTEM_SOURCE_PREFIXES.some(
+    (prefix) => input.source_key.startsWith(prefix)
+  )) {
+    invalid("source_key prefix is reserved for internal system observations");
   }
   if (input.occurred_at !== undefined) {
-    if (rawMirror) {
+    if (authority === "system") {
       if (typeof input.occurred_at !== "string") invalid("occurred_at must be a string");
     } else {
       validateNonEmptyString(input.occurred_at, "occurred_at");
@@ -532,7 +570,7 @@ function normalizeJsonValue(value: unknown, ancestors: Set<object>, path: string
 
   if (!isPlainObject(value)) invalid(`${path} contains a non-plain object`);
   ancestors.add(value);
-  const result: JsonObject = {};
+  const result = Object.create(null) as JsonObject;
   for (const key of Reflect.ownKeys(value).sort((left, right) => {
     const leftKey = String(left);
     const rightKey = String(right);
@@ -543,7 +581,12 @@ function normalizeJsonValue(value: unknown, ancestors: Set<object>, path: string
     if (!descriptor?.enumerable || !("value" in descriptor)) {
       invalid(`${path}.${key} must be an enumerable data property`);
     }
-    result[key] = normalizeJsonValue(descriptor.value, ancestors, `${path}.${key}`);
+    Object.defineProperty(result, key, {
+      value: normalizeJsonValue(descriptor.value, ancestors, `${path}.${key}`),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
   }
   ancestors.delete(value);
   return result;
@@ -685,8 +728,7 @@ function parseStringArray(json: string, label: string): string[] {
     const value: unknown = JSON.parse(json);
     return normalizeIdList(value as string[], label);
   } catch (error) {
-    if (error instanceof ExperienceLedgerError) throw error;
-    throw new Error(`${label} is not valid JSON`, { cause: error });
+    throw corrupt(`${label} is not valid persisted data`, error);
   }
 }
 
@@ -695,8 +737,7 @@ function parsePayload(json: string): JsonObject {
     const value: unknown = JSON.parse(json);
     return normalizeJsonObject(value as JsonObject, "persisted payload");
   } catch (error) {
-    if (error instanceof ExperienceLedgerError) throw error;
-    throw new Error("Persisted ledger payload is not valid JSON", { cause: error });
+    throw corrupt("Persisted ledger payload is not valid data", error);
   }
 }
 
@@ -738,6 +779,12 @@ function configureDatabase(database: DatabaseSync, databasePath: string): void {
 
 function invalid(message: string): never {
   throw new ExperienceLedgerError("INVALID_INPUT", message);
+}
+
+function corrupt(message: string, cause: unknown): ExperienceLedgerError {
+  const error = new ExperienceLedgerError("CORRUPT_DATA", message);
+  Object.defineProperty(error, "cause", { value: cause, enumerable: false });
+  return error;
 }
 
 function rollback(database: DatabaseSync): void {

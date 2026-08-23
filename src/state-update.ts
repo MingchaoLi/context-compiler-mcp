@@ -444,7 +444,7 @@ function isSqliteFailure(error: unknown): error is { code: string } {
     error !== null &&
     "code" in error &&
     typeof error.code === "string" &&
-    error.code.startsWith("SQLITE_")
+    (error.code.startsWith("SQLITE_") || error.code.startsWith("ERR_SQLITE_"))
   );
 }
 

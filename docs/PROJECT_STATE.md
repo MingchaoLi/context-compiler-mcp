@@ -20,9 +20,9 @@ WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71
 
 ## Current candidate
 
-WO-V0-15 已按计划级对抗审查拆成 A/B/C 三个 append-only checkpoint，并完成 Builder 实现，固定起点为 `main@314d309dff7806633943d5b4796c2804c9cc9ba2`；**整体仍等待独立 QA，不是 accepted baseline**。A 以版本化 current-event contract 修复 DS-14 暴露的 extractor prompt/schema/provenance correctness，同时保留 v1 parser 与 pinned replay。B 加入独立 append-only Experience Ledger、新 raw 的同事务 EVENT mirror 和旧库确定性 migration observation。C 加入 Recent N 原文、窗口外 bounded BM25 + caller-Dense、verified-failure recovery、fail-open dormant placement 及 operation-id compile trace；九工具、provider/network 依赖、历史 evaluator 和 DS-13/14 artifact 均未改变。
+WO-V0-15 已按计划级对抗审查拆成 A/B/C 三个 append-only checkpoint。首轮独立 QA 在 `e0d9af3acd3273d592007f7cae273b2820807b36` 返回 telemetry gap、特殊 JSON 键、Dense 极值、持久层错误分类与 Runtime v2 错误面五项 correctness 问题；当前已从 QA 报告提交 `c625e1632de76e63d05ddfa68c787d19dc6fe2a7` 追加单一 fix，状态为 **FIX IMPLEMENTED / INDEPENDENT RE-QA PENDING，不是 accepted baseline**。A 的 versioned extractor、B 的 append-only ledger/raw mirror 与 C 的 bounded policy 范围不扩大。
 
-Checkpoint C 的 Builder 本地验证为：新 operational focused 14/14、全量 449 PASS / 1 个既有 SKIP、protocol 8/8、build、diff check、真实 npm pack、production-only prune 与 isolated stdio 九工具/operational call PASS。该数字只是 Builder 证据，独立 QA 仍需固定 candidate 后重做 migration、协调改写、并发/重试、跨 session、strict input、真实 pack/protocol 与 artifact reproduction。
+首轮 QA fix 的 Builder 证据需以最终 handoff 为准；它新增可信 exact-shape telemetry baseline、baseline 后 no-id fail-closed、public/system ledger 写入隔离、特殊 JSON 键无损、缩放 cosine 与 persisted-row `STORAGE_FAILURE` 分类。该数字仍只是 Builder 证据，独立 re-QA 需固定新 candidate 后重新攻击原五项反例、migration、并发/重试、strict input、真实 pack/protocol 与 artifact reproduction。
 
 WO-DS-02 的 Starlette schema 与三案例 pilot 已在第二次独立 re-QA 于 2026-08-23 接受，固定候选为 `2a65c85b1fc9554b24971e8ed20551eef3b53d39`。交付包含 3 个目录、4 个独立 segment、25 个时间有序 evidence event/slice；Gold、人工 Oracle-State、Decision Reference 与 Outcome Anchor 和输入物理隔离，pilot hash 明确保持 `pilot_not_frozen`。`STR-02` 已按证据拆成两个 medium segment，不再视为单一 long 根因链。
 
@@ -80,7 +80,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 
 ## Current behavior
 
-`compile_context` 不调用 extractor/model/provider/network，也不修改 raw/state。它固定保留最近 N 个完整用户轮次，并对窗口外有界候选做 BM25；只有 caller 为 query 与全部候选提供同 space/同维 Dense 时才 hybrid，否则整腿 BM25-only。无 `operation_id` 时仍是 read-only 且 dormant fail-open；有 id 时只向 Experience Ledger 原子追加去正文、可幂等重试的 compile/hit trace。State 变化保持显式 prepare/extract/apply；core 不生成 embedding。`CONTEXT_COMPILER_DB_PATH` 仍为独立数据库配置，`DSH_HOME` 只作 legacy fallback。
+`compile_context` 不调用 extractor/model/provider/network，也不修改 raw/state。它固定保留最近 N 个完整用户轮次，并对窗口外有界候选做 BM25；只有 caller 为 query 与全部候选提供同 space/同维 Dense 时才 hybrid，否则整腿 BM25-only。可信 baseline 前无 `operation_id` 仍为 read-only；baseline 后缺 id 稳定拒绝。有 id 时只由内部 batch 向 Experience Ledger 原子追加去正文、可幂等重试且 exact-shape 的 compile/hit trace。State 变化保持显式 prepare/extract/apply；core 不生成 embedding。`CONTEXT_COMPILER_DB_PATH` 仍为独立数据库配置，`DSH_HOME` 只作 legacy fallback。
 
 ## Known gaps
 

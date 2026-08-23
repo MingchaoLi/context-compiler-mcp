@@ -22,7 +22,8 @@ State Compilation 继续维护 authoritative lifecycle；operational Context 额
 - 窗口外召回只允许有界 BM25 + caller-supplied Dense；partial/mismatched Dense 整腿降级，core 不生成 embedding。
 - ACTIVE Constraint 强制进入；dormant 仅为其他未闭合 item 的 fail-open placement，不得改 authoritative lifecycle。
 - Raw Event 与 Experience Ledger append-only；前台 suppress/compact 不得删除或重写后台研究数据。
-- `operation_id` compile trace 必须去正文、原子、幂等；无 id compile 保持 read-only 且不启用 dormant。
+- `operation_id` compile trace 必须去正文、原子、幂等且 exact-shape 可验证；可信 baseline 前无 id compile 保持 read-only，baseline 后缺 id 必须拒绝，不能形成 telemetry gap。
+- Public Experience Ledger append 只允许 ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE；EVENT 与 compile/hit observation 由内部原子路径保留。严格 JSON 必须无损保留合法特殊数据键。
 
 ## v0 exclusions
 

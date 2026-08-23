@@ -12,11 +12,13 @@ export {
 
 export {
   EXPERIENCE_LEDGER_KINDS,
+  PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,
   SqliteExperienceLedgerStore,
   type ExperienceLedgerErrorCode,
   type ExperienceLedgerInput,
   type ExperienceLedgerKind,
+  type PublicExperienceLedgerKind,
   type ExperienceLedgerRecord,
   type ExperienceLedgerStore,
   type ContextCompileHitInput,

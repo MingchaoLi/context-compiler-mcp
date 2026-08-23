@@ -5,6 +5,9 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   ContextCompilerMcpService,
+  createEmptyStateDelta,
+  ExperienceLedgerError,
+  StateReducer,
   SqliteContextStateStore,
   SqliteExperienceLedgerStore,
   SqliteRawHistoryStore,
@@ -117,12 +120,22 @@ describe("operational compile MCP integration", () => {
     expect(first.context.retrieved_history.map(({ id }: { id: string }) => id)).toEqual([beforeRaw[0]!.id]);
     expect(afterFirst.filter((record) => record.kind === "RETRIEVAL_HIT")).toHaveLength(1);
     expect(JSON.stringify(trace.payload)).not.toContain("PRIVATE_CURRENT_TEXT_91");
+    expect(Object.keys(trace.payload).sort()).toEqual([
+      "current_input_sha256", "dense_availability", "dormant_state_ids", "hit_count",
+      "hits_sha256", "mode", "normalized_input_sha256", "operation_id", "policy",
+      "policy_version", "raw_boundary_max_seq", "raw_event_count", "raw_sha256",
+      "reactivated_state_ids", "recent_event_ids", "result_sha256", "retrieved_event_ids",
+      "selected_state_ids", "state_revision", "state_sha256",
+    ]);
 
     const retry = unwrap(service.call("compile_context", request)) as any;
     expect(retry.context.operational_debug.compile_trace_id).toBe(trace.id);
     expect(ledger.getSessionRecords("trace")).toHaveLength(afterFirst.length);
     expect(service.call("compile_context", { ...request, current_input: "different" }))
       .toEqual({ ok: false, error: { code: "CONFLICT" } });
+    expect(service.call("compile_context", {
+      session_id: "trace", current_input: "needle", recent_raw_window_turns: 1,
+    })).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
 
     expect(raw.getSessionEvents("trace")).toEqual(beforeRaw);
     const stateAfter = new SqliteContextStateStore(database);
@@ -130,6 +143,98 @@ describe("operational compile MCP integration", () => {
     stateAfter.close();
     raw.close();
     ledger.close();
+    service.close();
+  });
+
+  it("rejects baseline-following no-id compiles before any raw/state/ledger mutation", () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    const first = unwrap(service.call("ingest_event", {
+      session_id: "telemetry-gap", role: "user", content: "baseline",
+    })) as { id: string };
+    unwrap(service.call("compile_context", {
+      session_id: "telemetry-gap", current_input: "start", recent_raw_window_turns: 1,
+      operation_id: "baseline",
+    }));
+    const second = unwrap(service.call("ingest_event", {
+      session_id: "telemetry-gap", role: "user", content: "durable goal evidence",
+    })) as { id: string };
+    const state = new SqliteContextStateStore(database);
+    new StateReducer(state).apply("telemetry-gap", {
+      ...createEmptyStateDelta(),
+      new_goals: [{ content: "durable goal", source_refs: [second.id] }],
+    });
+    state.close();
+    for (let index = 3; index <= 17; index += 1) {
+      unwrap(service.call("ingest_event", {
+        session_id: "telemetry-gap", role: "user", content: `turn ${index}`,
+      }));
+    }
+    const audit = new DatabaseSync(database);
+    const before = {
+      raw: audit.prepare("SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?")
+        .get("telemetry-gap"),
+      ledger: audit.prepare("SELECT COUNT(*) AS count FROM experience_ledger WHERE session_id = ?")
+        .get("telemetry-gap"),
+      revision: audit.prepare("SELECT revision FROM context_state_revisions WHERE session_id = ?")
+        .get("telemetry-gap"),
+    };
+    expect(first.id).not.toBe(second.id);
+    expect(service.call("compile_context", {
+      session_id: "telemetry-gap", current_input: "durable goal", recent_raw_window_turns: 1,
+    })).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
+    expect({
+      raw: audit.prepare("SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?")
+        .get("telemetry-gap"),
+      ledger: audit.prepare("SELECT COUNT(*) AS count FROM experience_ledger WHERE session_id = ?")
+        .get("telemetry-gap"),
+      revision: audit.prepare("SELECT revision FROM context_state_revisions WHERE session_id = ?")
+        .get("telemetry-gap"),
+    }).toEqual(before);
+    audit.close();
+    service.close();
+  });
+
+  it("does not let public ledger append forge a compile baseline", () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    unwrap(service.call("ingest_event", {
+      session_id: "forged", role: "user", content: "raw",
+    }));
+    const ledger = new SqliteExperienceLedgerStore(database);
+    expect(() => ledger.append({
+      session_id: "forged", kind: "CONTEXT_COMPILE", source_key: "context-compile/forged",
+      payload: { policy_version: "operational-context-v1", raw_boundary_max_seq: 1 },
+    } as never)).toThrowError(expect.objectContaining<Partial<ExperienceLedgerError>>({
+      code: "INVALID_INPUT",
+    }));
+    expect(service.call("compile_context", {
+      session_id: "forged", current_input: "raw", recent_raw_window_turns: 1,
+    }).ok).toBe(true);
+    ledger.close();
+    service.close();
+  });
+
+  it("classifies malformed persisted ledger rows as STORAGE_FAILURE", () => {
+    const database = databasePath();
+    const service = new ContextCompilerMcpService(database);
+    unwrap(service.call("ingest_event", {
+      session_id: "corrupt", role: "user", content: "raw",
+    }));
+    const direct = new DatabaseSync(database);
+    direct.prepare(`
+      INSERT INTO experience_ledger (
+        id, session_id, seq, kind, occurred_at, source_key,
+        raw_event_ids_json, parent_ledger_ids_json, payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      "corrupt-row", "corrupt", 2, "ACTION", "2026-08-24T00:00:00.000Z", "corrupt/row",
+      "[1]", "[]", "{}"
+    );
+    direct.close();
+    expect(service.call("compile_context", {
+      session_id: "corrupt", current_input: "valid request",
+    })).toEqual({ ok: false, error: { code: "STORAGE_FAILURE" } });
     service.close();
   });
 

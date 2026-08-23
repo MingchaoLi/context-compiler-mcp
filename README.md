@@ -14,7 +14,7 @@ The current server exposes exactly nine tools:
 - `recall_exact`
 - `recall_keyword`
 
-`compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。缺少 `operation_id` 时它保持历史 read-only 行为；提供 `operation_id` 时，只会把去正文的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
+`compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。session 建立可信 compile telemetry baseline 之前，缺少 `operation_id` 仍保持历史 read-only；一旦首次带 id 的 trace 成功提交，后续该 session 缺 id compile 会以 `INVALID_INPUT` 拒绝，不能混用可观测与不可观测请求。带 id 时只把去正文、exact-shape 的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
 
 Operational compile 固定以下小边界：
 
@@ -24,6 +24,8 @@ Operational compile 固定以下小边界：
 - recovery 只接受同 session 已存在的 `event_type="verified_failure"` reference；默认仍使用较小上下文；
 - dormant/cold 只是前台 placement，不改 authoritative lifecycle。ACTIVE Constraint 永不 dormant，dependency closure 可救援 target；旧库、缺 provenance、缺 operation-id baseline 或 telemetry 不完整时一律 fail-open；
 - foreground suppress/compact 永不更新或删除 `raw_events` / `experience_ledger`。
+
+Library ledger 的公开 `append` 只接收未来研究记录 `ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE`。`EVENT` 只由 raw ingest/migration 原子镜像，`CONTEXT_COMPILE / RETRIEVAL_HIT` 只由内部 compile batch 生成；相应 source-key namespace 也被保留。严格 JSON 会把 `__proto__`、`constructor`、`prototype` 当作普通数据键无损保存，不把合法旧 raw metadata 当作控制字段。
 
 `ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy` 与 `operation_id`。MCP 工具仍精确为九个。
 

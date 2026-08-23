@@ -50,7 +50,8 @@ export type DenseAvailability =
   | "dense_unavailable_space_mismatch"
   | "dense_unavailable_dimension_mismatch"
   | "dense_unavailable_query_zero_norm"
-  | "dense_unavailable_candidate_zero_norm";
+  | "dense_unavailable_candidate_zero_norm"
+  | "dense_unavailable_numeric";
 
 export interface OperationalRetrievalScore {
   event_id: string;
@@ -152,6 +153,7 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     multiplier: policy.dormancy_turn_multiplier,
     operationId,
     ledgerRecords,
+    sessionId: input.session_id,
   });
 
   const assemblerInput: ContextAssemblerInput = {
@@ -256,6 +258,7 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     dormant_state_ids: actualDormant,
     reactivated_state_ids: placement.reactivatedIds,
   }));
+  const canonicalHits = canonicalizeTraceHits(hits);
   const tracePayload: JsonObject = {
     policy_version: OPERATIONAL_CONTEXT_POLICY_VERSION,
     operation_id: operationId ?? "",
@@ -275,6 +278,8 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     selected_state_ids: [...context.debug_manifest.kept_state_ids],
     dormant_state_ids: actualDormant,
     reactivated_state_ids: placement.reactivatedIds,
+    hit_count: canonicalHits.length,
+    hits_sha256: sha256(stableJson(canonicalHits)),
   };
   return {
     context,
@@ -432,17 +437,22 @@ function denseScores(
   if (embeddings.some((embedding) => embedding.values.length !== query.values.length)) {
     return { availability: "dense_unavailable_dimension_mismatch" };
   }
-  const queryNorm = vectorNorm(query.values);
-  if (queryNorm === 0) return { availability: "dense_unavailable_query_zero_norm" };
-  const norms = embeddings.map((embedding) => vectorNorm(embedding.values));
-  if (norms.some((norm) => norm === 0)) {
+  const queryVector = scaleVector(query.values);
+  if (queryVector.maxAbs === 0) return { availability: "dense_unavailable_query_zero_norm" };
+  const candidateVectors = embeddings.map((embedding) => scaleVector(embedding.values));
+  if (candidateVectors.some((vector) => vector.maxAbs === 0)) {
     return { availability: "dense_unavailable_candidate_zero_norm" };
+  }
+  if (!queryVector.valid || candidateVectors.some((vector) => !vector.valid)) {
+    return { availability: "dense_unavailable_numeric" };
+  }
+  const scores = candidateVectors.map((candidate) => stableCosine(queryVector, candidate));
+  if (scores.some((score) => !Number.isFinite(score))) {
+    return { availability: "dense_unavailable_numeric" };
   }
   return {
     availability: "hybrid",
-    scores: embeddings.map((embedding, index) =>
-      Math.max(-1, Math.min(1, dot(query.values, embedding.values) / (queryNorm * norms[index]!)))
-    ),
+    scores,
   };
 }
 
@@ -465,8 +475,9 @@ function placeDormantState(input: {
   multiplier: number;
   operationId: string | undefined;
   ledgerRecords: ExperienceLedgerRecord[];
+  sessionId: string;
 }): PlacementResult {
-  const telemetry = parseTelemetry(input.ledgerRecords);
+  const telemetry = parseTelemetry(input.ledgerRecords, input.sessionId);
   const dormancyEnabled = input.operationId !== undefined && telemetry.complete && telemetry.baseline !== undefined;
   const queryTokens = new Set(tokenize(input.query));
   const queryMatchedIds = input.items
@@ -526,34 +537,282 @@ function placeDormantState(input: {
   };
 }
 
-function parseTelemetry(records: ExperienceLedgerRecord[]): {
+function parseTelemetry(records: ExperienceLedgerRecord[], expectedSessionId?: string): {
   complete: boolean;
   baseline?: { seq: number; rawSeq: number };
   hitStateIds: Set<string>;
 } {
-  const compiles = records.filter((record) => record.kind === "CONTEXT_COMPILE");
-  if (compiles.length === 0) return { complete: true, hitStateIds: new Set() };
-  for (const record of compiles) {
-    if (record.payload.policy_version !== OPERATIONAL_CONTEXT_POLICY_VERSION ||
-        !Number.isSafeInteger(record.payload.raw_boundary_max_seq) ||
-        (record.payload.raw_boundary_max_seq as number) < 0) {
-      return { complete: false, hitStateIds: new Set() };
-    }
-  }
-  const baselineRecord = [...compiles].sort((left, right) => left.seq - right.seq)[0]!;
-  const hits = records.filter((record) => record.kind === "RETRIEVAL_HIT");
+  const inspected = inspectTelemetry(records, expectedSessionId);
+  if (!inspected.complete) return { complete: false, hitStateIds: new Set() };
+  if (inspected.compiles.length === 0) return { complete: true, hitStateIds: new Set() };
+  const baselineRecord = inspected.compiles[0]!;
   const hitStateIds = new Set<string>();
-  for (const hit of hits) {
-    if (typeof hit.payload.subject_kind !== "string" || typeof hit.payload.subject_id !== "string") {
-      return { complete: false, hitStateIds: new Set() };
+  for (const hit of inspected.hits) {
+    if (hit.payload.subject_kind === "STATE_ITEM") {
+      hitStateIds.add(hit.payload.subject_id as string);
     }
-    if (hit.payload.subject_kind === "STATE_ITEM") hitStateIds.add(hit.payload.subject_id);
   }
   return {
     complete: true,
     baseline: { seq: baselineRecord.seq, rawSeq: baselineRecord.payload.raw_boundary_max_seq as number },
     hitStateIds,
   };
+}
+
+/** True only when at least one complete, internally-shaped compile batch is replayable. */
+export function hasTrustedContextCompileBaseline(
+  records: ExperienceLedgerRecord[],
+  sessionId: string
+): boolean {
+  return inspectTelemetry(records, sessionId).trustedCompileCount > 0;
+}
+
+interface TelemetryInspection {
+  complete: boolean;
+  compiles: ExperienceLedgerRecord[];
+  hits: ExperienceLedgerRecord[];
+  trustedCompileCount: number;
+}
+
+const TRACE_PAYLOAD_KEYS = [
+  "policy_version", "operation_id", "normalized_input_sha256", "current_input_sha256",
+  "state_revision", "state_sha256", "raw_boundary_max_seq", "raw_event_count",
+  "raw_sha256", "result_sha256", "policy", "mode", "dense_availability",
+  "recent_event_ids", "retrieved_event_ids", "selected_state_ids", "dormant_state_ids",
+  "reactivated_state_ids", "hit_count", "hits_sha256",
+] as const;
+const TRACE_POLICY_KEYS = [
+  "candidate_turn_multiplier", "recovery_candidate_turn_multiplier", "dormancy_turn_multiplier",
+  "retrieval_limit", "recovery_retrieval_limit", "bm25_weight", "dense_weight",
+  "recovery_failure_event_id",
+] as const;
+const TRACE_HIT_PAYLOAD_KEYS = ["operation_id", "subject_kind", "subject_id", "reason"] as const;
+const DENSE_AVAILABILITIES: readonly DenseAvailability[] = [
+  "hybrid", "dense_unavailable_query_missing", "dense_unavailable_no_candidates",
+  "dense_unavailable_partial_coverage", "dense_unavailable_space_mismatch",
+  "dense_unavailable_dimension_mismatch", "dense_unavailable_query_zero_norm",
+  "dense_unavailable_candidate_zero_norm", "dense_unavailable_numeric",
+];
+
+function inspectTelemetry(
+  records: ExperienceLedgerRecord[],
+  expectedSessionId?: string
+): TelemetryInspection {
+  const compiles = records
+    .filter((record) => record.kind === "CONTEXT_COMPILE")
+    .sort((left, right) => left.seq - right.seq);
+  const hits = records
+    .filter((record) => record.kind === "RETRIEVAL_HIT")
+    .sort((left, right) => left.seq - right.seq);
+  const structurallyValidCompiles = compiles.filter((record) =>
+    isExactCompileTrace(record, expectedSessionId)
+  );
+  const validById = new Map(structurallyValidCompiles.map((record) => [record.id, record]));
+  const structurallyValidHits = hits.filter((record) => isExactRetrievalHit(record, validById));
+  const hitsByParent = new Map<string, ExperienceLedgerRecord[]>();
+  for (const hit of structurallyValidHits) {
+    const parentId = hit.parent_ledger_ids[0]!;
+    const group = hitsByParent.get(parentId) ?? [];
+    group.push(hit);
+    hitsByParent.set(parentId, group);
+  }
+
+  let trustedCompileCount = 0;
+  for (const compile of structurallyValidCompiles) {
+    const persistedHits = hitsByParent.get(compile.id) ?? [];
+    const canonicalHits = canonicalizePersistedTraceHits(persistedHits);
+    if (
+      compile.payload.hit_count === canonicalHits.length &&
+      compile.payload.hits_sha256 === sha256(stableJson(canonicalHits)) &&
+      hasExpectedTraceHitCoverage(compile, persistedHits, canonicalHits)
+    ) {
+      trustedCompileCount += 1;
+    }
+  }
+  const complete = structurallyValidCompiles.length === compiles.length &&
+    structurallyValidHits.length === hits.length &&
+    trustedCompileCount === compiles.length;
+  return {
+    complete,
+    compiles: complete ? structurallyValidCompiles : [],
+    hits: complete ? structurallyValidHits : [],
+    trustedCompileCount,
+  };
+}
+
+function hasExpectedTraceHitCoverage(
+  compile: ExperienceLedgerRecord,
+  hits: ExperienceLedgerRecord[],
+  canonicalHits: JsonValue[]
+): boolean {
+  if (new Set(canonicalHits.map(stableJson)).size !== canonicalHits.length) return false;
+  const rawHitIds = hits
+    .filter((hit) => hit.payload.subject_kind === "RAW_EVENT" &&
+      hit.payload.reason === "RETRIEVED_HISTORY")
+    .map((hit) => hit.payload.subject_id as string)
+    .sort(compareText);
+  const reactivatedIds = hits
+    .filter((hit) => hit.payload.subject_kind === "STATE_ITEM" &&
+      hit.payload.reason === "REACTIVATED")
+    .map((hit) => hit.payload.subject_id as string)
+    .sort(compareText);
+  return stableJson(rawHitIds) === stableJson(uniqueSorted(
+    compile.payload.retrieved_event_ids as string[]
+  )) && stableJson(reactivatedIds) === stableJson(uniqueSorted(
+    compile.payload.reactivated_state_ids as string[]
+  ));
+}
+
+function isExactCompileTrace(
+  record: ExperienceLedgerRecord,
+  expectedSessionId?: string
+): boolean {
+  const payload = record.payload;
+  if ((expectedSessionId !== undefined && record.session_id !== expectedSessionId) ||
+      !isValidTelemetryRecordBase(record) ||
+      !hasExactDataKeys(payload, TRACE_PAYLOAD_KEYS) ||
+      record.parent_ledger_ids.length !== 0 ||
+      typeof payload.operation_id !== "string" || payload.operation_id.trim().length === 0 ||
+      payload.operation_id.length > 500 ||
+      record.source_key !== `context-compile/${encodeURIComponent(payload.operation_id)}` ||
+      payload.policy_version !== OPERATIONAL_CONTEXT_POLICY_VERSION ||
+      !isSha256(payload.normalized_input_sha256) || !isSha256(payload.current_input_sha256) ||
+      !isSha256(payload.state_sha256) || !isSha256(payload.raw_sha256) ||
+      !isSha256(payload.result_sha256) || !isSha256(payload.hits_sha256) ||
+      !isNonNegativeSafeInteger(payload.state_revision) ||
+      !isNonNegativeSafeInteger(payload.raw_boundary_max_seq) ||
+      !isNonNegativeSafeInteger(payload.raw_event_count) ||
+      !isNonNegativeSafeInteger(payload.hit_count) ||
+      (payload.mode !== "normal" && payload.mode !== "targeted_recovery") ||
+      typeof payload.dense_availability !== "string" ||
+      !DENSE_AVAILABILITIES.includes(payload.dense_availability as DenseAvailability) ||
+      !isExactTracePolicy(payload.policy)) {
+    return false;
+  }
+  const idLists = [
+    payload.recent_event_ids, payload.retrieved_event_ids, payload.selected_state_ids,
+    payload.dormant_state_ids, payload.reactivated_state_ids,
+  ];
+  if (!idLists.every(isStrictUniqueStringArray)) return false;
+  const recent = payload.recent_event_ids as string[];
+  const retrieved = payload.retrieved_event_ids as string[];
+  if (recent.some((id) => retrieved.includes(id))) return false;
+  return stableJson(record.raw_event_ids) === stableJson(uniqueSorted([...recent, ...retrieved]));
+}
+
+function isExactTracePolicy(value: unknown): boolean {
+  if (!hasExactDataKeys(value, TRACE_POLICY_KEYS)) return false;
+  const policy = value as Record<string, unknown>;
+  for (const key of [
+    "candidate_turn_multiplier", "recovery_candidate_turn_multiplier", "dormancy_turn_multiplier",
+    "retrieval_limit", "recovery_retrieval_limit",
+  ]) {
+    if (!Number.isSafeInteger(policy[key]) || (policy[key] as number) < 1 || (policy[key] as number) > 100) {
+      return false;
+    }
+  }
+  for (const key of ["bm25_weight", "dense_weight"]) {
+    const valueAtKey = policy[key];
+    if (typeof valueAtKey !== "number" || !Number.isFinite(valueAtKey) || valueAtKey < 0 || valueAtKey > 1) {
+      return false;
+    }
+  }
+  if ((policy.bm25_weight as number) + (policy.dense_weight as number) <= 0) return false;
+  const recovery = policy.recovery_failure_event_id;
+  return recovery === null || (typeof recovery === "string" && recovery.trim().length > 0 && recovery.length <= 500);
+}
+
+function isExactRetrievalHit(
+  record: ExperienceLedgerRecord,
+  compiles: Map<string, ExperienceLedgerRecord>
+): boolean {
+  if (!hasExactDataKeys(record.payload, TRACE_HIT_PAYLOAD_KEYS) ||
+      record.parent_ledger_ids.length !== 1) return false;
+  const compile = compiles.get(record.parent_ledger_ids[0]!);
+  if (!compile || !isValidTelemetryRecordBase(record) ||
+      record.session_id !== compile.session_id || record.seq <= compile.seq) return false;
+  const operationId = record.payload.operation_id;
+  const subjectKind = record.payload.subject_kind;
+  const subjectId = record.payload.subject_id;
+  const reason = record.payload.reason;
+  if (operationId !== compile.payload.operation_id ||
+      (subjectKind !== "RAW_EVENT" && subjectKind !== "STATE_ITEM") ||
+      typeof subjectId !== "string" || subjectId.length === 0 ||
+      (reason !== "RETRIEVED_HISTORY" && reason !== "CURRENT_QUERY" &&
+       reason !== "REACTIVATED" && reason !== "DEPENDENCY_RESCUE")) return false;
+  if (subjectKind === "RAW_EVENT" && reason !== "RETRIEVED_HISTORY") return false;
+  const expectedSource = `retrieval-hit/${encodeURIComponent(operationId as string)}/${subjectKind}/${encodeURIComponent(subjectId)}/${reason}`;
+  if (record.source_key !== expectedSource) return false;
+  const expectedRawIds = subjectKind === "RAW_EVENT" ? [subjectId] : [];
+  return stableJson(record.raw_event_ids) === stableJson(expectedRawIds);
+}
+
+function canonicalizeTraceHits(hits: ContextCompileHitInput[]): JsonValue[] {
+  return hits.map((hit) => ({
+    subject_kind: hit.subject_kind,
+    subject_id: hit.subject_id,
+    reason: hit.reason,
+    raw_event_ids: uniqueSorted(hit.raw_event_ids ?? []),
+  })).sort((left, right) => compareText(stableJson(left), stableJson(right)));
+}
+
+function canonicalizePersistedTraceHits(hits: ExperienceLedgerRecord[]): JsonValue[] {
+  return hits.map((hit) => ({
+    subject_kind: hit.payload.subject_kind as string,
+    subject_id: hit.payload.subject_id as string,
+    reason: hit.payload.reason as string,
+    raw_event_ids: [...hit.raw_event_ids],
+  })).sort((left, right) => compareText(stableJson(left), stableJson(right)));
+}
+
+function hasExactDataKeys(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  if (!isPlainObject(value)) return false;
+  const ownKeys = Reflect.ownKeys(value);
+  if (ownKeys.length !== keys.length) return false;
+  const expected = new Set(keys);
+  for (const key of ownKeys) {
+    if (typeof key !== "string" || !expected.has(key)) return false;
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor?.enumerable || !("value" in descriptor)) return false;
+  }
+  return keys.every((key) => Object.prototype.hasOwnProperty.call(value, key));
+}
+
+function isStrictUniqueStringArray(value: unknown): value is string[] {
+  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) return false;
+  const seen = new Set<string>();
+  for (let index = 0; index < value.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+    if (!descriptor?.enumerable || !("value" in descriptor) ||
+        typeof descriptor.value !== "string" || descriptor.value.length === 0 ||
+        seen.has(descriptor.value)) return false;
+    seen.add(descriptor.value);
+  }
+  for (const key of Reflect.ownKeys(value)) {
+    if (key === "length") continue;
+    if (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isSha256(value: unknown): value is string {
+  return typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+}
+
+function isNonNegativeSafeInteger(value: unknown): value is number {
+  return Number.isSafeInteger(value) && (value as number) >= 0;
+}
+
+function isValidTelemetryRecordBase(record: ExperienceLedgerRecord): boolean {
+  return typeof record.id === "string" && record.id.length > 0 &&
+    typeof record.session_id === "string" && record.session_id.length > 0 &&
+    Number.isSafeInteger(record.seq) && record.seq > 0 &&
+    typeof record.occurred_at === "string" && record.occurred_at.length > 0 &&
+    typeof record.source_key === "string" && record.source_key.length > 0 &&
+    isStrictUniqueStringArray(record.raw_event_ids) &&
+    isStrictUniqueStringArray(record.parent_ledger_ids);
 }
 
 function excludeCurrentOperation(
@@ -600,12 +859,34 @@ function tokenize(value: string): string[] {
   return value.normalize("NFKC").toLocaleLowerCase("und").match(/[\p{L}\p{N}_]+/gu) ?? [];
 }
 
-function vectorNorm(values: number[]): number {
-  return Math.sqrt(values.reduce((sum, value) => sum + value * value, 0));
+interface ScaledVector {
+  maxAbs: number;
+  values: number[];
+  norm: number;
+  valid: boolean;
 }
 
-function dot(left: number[], right: number[]): number {
-  return left.reduce((sum, value, index) => sum + value * right[index]!, 0);
+function scaleVector(values: number[]): ScaledVector {
+  const maxAbs = values.reduce((maximum, value) => Math.max(maximum, Math.abs(value)), 0);
+  if (maxAbs === 0) return { maxAbs, values: values.map(() => 0), norm: 0, valid: true };
+  const scaled = values.map((value) => value / maxAbs);
+  const squaredNorm = scaled.reduce((sum, value) => sum + value * value, 0);
+  const norm = Math.sqrt(squaredNorm);
+  return {
+    maxAbs,
+    values: scaled,
+    norm,
+    valid: Number.isFinite(norm) && norm > 0 && scaled.every(Number.isFinite),
+  };
+}
+
+function stableCosine(left: ScaledVector, right: ScaledVector): number {
+  const product = left.values.reduce(
+    (sum, value, index) => sum + value * right.values[index]!,
+    0
+  );
+  const cosine = product / (left.norm * right.norm);
+  return Math.max(-1, Math.min(1, cosine));
 }
 
 function resolvedPolicyJson(policy: ResolvedContextPolicy): JsonObject {
@@ -628,8 +909,15 @@ function stableJson(value: unknown): string {
 function sortJson(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortJson);
   if (!isPlainObject(value)) return value;
-  const result: Record<string, unknown> = {};
-  for (const key of Object.keys(value).sort(compareText)) result[key] = sortJson(value[key]);
+  const result = Object.create(null) as Record<string, unknown>;
+  for (const key of Object.keys(value).sort(compareText)) {
+    Object.defineProperty(result, key, {
+      value: sortJson(value[key]),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  }
   return result;
 }
 

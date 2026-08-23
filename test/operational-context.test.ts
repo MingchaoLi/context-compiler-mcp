@@ -97,6 +97,47 @@ describe("bounded operational context policy", () => {
     expect(tie.context.retrieved_history?.map(({ id }) => id)).toEqual(["e2", "e1"]);
   });
 
+  it("keeps extreme finite Dense cosine numerically stable and reproducible", () => {
+    for (const values of [
+      [1e308],
+      [Number.MIN_VALUE],
+      [1e308, -1e308, 5e307],
+    ]) {
+      const events = [
+        raw(1, "candidate one", "message", { vector_space_id: "extreme", values }),
+        raw(2, "candidate two", "message", { vector_space_id: "extreme", values: [...values] }),
+        raw(3, "recent"),
+      ];
+      const result = compileOperationalContext(base(events, {
+        current_input: "not lexical", recent_raw_window_turns: 1,
+        dense_query: { vector_space_id: "extreme", values: [...values] },
+        context_policy: { bm25_weight: 0, dense_weight: 1 },
+      }));
+      expect(result.context.operational_debug?.dense_availability).toBe("hybrid");
+      const scores = result.context.operational_debug?.score_rows as Array<{
+        dense_cosine: number; combined_score: number;
+      }>;
+      expect(scores).toHaveLength(2);
+      expect(scores.every(({ dense_cosine, combined_score }) =>
+        Number.isFinite(dense_cosine) && Number.isFinite(combined_score)
+      )).toBe(true);
+      expect(scores.every(({ dense_cosine }) => Math.abs(dense_cosine - 1) < 1e-12)).toBe(true);
+      expect(result.context.retrieved_history?.map(({ id }) => id)).toEqual(["e2", "e1"]);
+    }
+  });
+
+  it("preserves special JSON keys when computing raw snapshot fingerprints", () => {
+    const first = raw(1, "same");
+    first.metadata = JSON.parse('{"__proto__":{"value":"A"},"constructor":{"prototype":"A"}}');
+    const second = structuredClone(first);
+    second.metadata = JSON.parse('{"__proto__":{"value":"B"},"constructor":{"prototype":"B"}}');
+    const firstTrace = compileOperationalContext(base([first], { operation_id: "special-a" }));
+    const secondTrace = compileOperationalContext(base([second], { operation_id: "special-b" }));
+    expect(firstTrace.trace_payload.raw_sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(secondTrace.trace_payload.raw_sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(firstTrace.trace_payload.raw_sha256).not.toBe(secondTrace.trace_payload.raw_sha256);
+  });
+
   it("rejects invalid recovery references and strict policy/vector shapes", () => {
     const events = [raw(1, "ordinary"), raw(2, "recent")];
     expect(() => compileOperationalContext(base(events, {
@@ -157,6 +198,13 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
     }));
     expect(incomplete.context.dormant_state_ids).toEqual([]);
     expect(incomplete.context.operational_debug?.telemetry_complete).toBe(false);
+    const crossSession = compileOperationalContext(base(events, {
+      context_items: [oldGoal], operation_id: "cross-session",
+      recent_raw_window_turns: 1,
+      ledger_records: [{ ...baseline, session_id: "foreign-session" }],
+    }));
+    expect(crossSession.context.dormant_state_ids).toEqual([]);
+    expect(crossSession.context.operational_debug?.telemetry_complete).toBe(false);
   });
 
   it("treats retrieved history as mandatory for operational token-budget accounting", () => {
@@ -174,19 +222,14 @@ describe("dormant placement is fail-open and orthogonal to lifecycle", () => {
     const updated = item("updated", "GOAL", "ACTIVE", "updated plan", ["e17"]);
     const hit = item("hit", "GOAL", "ACTIVE", "hit plan", ["e2"]);
     const dependent = item("dependent", "DECISION", "ACTIVE", "new decision", ["e17"]);
-    const hitRecord: ExperienceLedgerRecord = {
-      id: "hit-record", session_id: SESSION, seq: 2, kind: "RETRIEVAL_HIT",
-      occurred_at: iso(2), source_key: "retrieval-hit/older/STATE_ITEM/hit/CURRENT_QUERY",
-      raw_event_ids: [], parent_ledger_ids: [],
-      payload: { subject_kind: "STATE_ITEM", subject_id: "hit", reason: "CURRENT_QUERY" },
-    };
+    const hitTelemetry = compileRecordsWithStateHit(hit);
     const relation: StateRelation = {
       session_id: SESSION, source_id: "dependent", relation_type: "DEPENDS_ON",
       target_id: "old", created_at: iso(17),
     };
     const result = compileOperationalContext(base(events, {
       context_items: [oldGoal, constraint, updated, hit, dependent],
-      state_relations: [relation], operation_id: "rescues", ledger_records: [baseline, hitRecord], recent_raw_window_turns: 1,
+      state_relations: [relation], operation_id: "rescues", ledger_records: hitTelemetry, recent_raw_window_turns: 1,
     }));
     expect(result.context.dormant_state_ids).toEqual([]);
     expect(result.context.active_constraints.map(({ id }) => id)).toContain("constraint");
@@ -248,12 +291,43 @@ function item(
 }
 
 function compileRecord(seq: number, rawSeq: number): ExperienceLedgerRecord {
+  const operationId = `prior-${seq}`;
+  const generated = compileOperationalContext(base([
+    raw(rawSeq, `baseline ${rawSeq}`),
+  ], { operation_id: operationId, recent_raw_window_turns: 1 }));
   return {
     id: `compile-${seq}`, session_id: SESSION, seq, kind: "CONTEXT_COMPILE",
-    occurred_at: iso(seq), source_key: `context-compile/prior-${seq}`,
-    raw_event_ids: [], parent_ledger_ids: [],
-    payload: { policy_version: "operational-context-v1", raw_boundary_max_seq: rawSeq },
+    occurred_at: iso(seq), source_key: `context-compile/${encodeURIComponent(operationId)}`,
+    raw_event_ids: generated.trace_raw_event_ids, parent_ledger_ids: [],
+    payload: generated.trace_payload,
   };
+}
+
+function compileRecordsWithStateHit(stateItem: ContextItem): ExperienceLedgerRecord[] {
+  const operationId = "older";
+  const baselineItem = { ...stateItem, source_refs: ["e1"] };
+  const generated = compileOperationalContext(base([raw(1, "baseline")], {
+    context_items: [baselineItem], current_input: baselineItem.content,
+    operation_id: operationId, recent_raw_window_turns: 1,
+  }));
+  const trace: ExperienceLedgerRecord = {
+    id: "hit-trace", session_id: SESSION, seq: 1, kind: "CONTEXT_COMPILE",
+    occurred_at: iso(1), source_key: `context-compile/${operationId}`,
+    raw_event_ids: generated.trace_raw_event_ids, parent_ledger_ids: [],
+    payload: generated.trace_payload,
+  };
+  return [trace, ...generated.hits.map((hit, index): ExperienceLedgerRecord => ({
+    id: `hit-${index}`, session_id: SESSION, seq: index + 2, kind: "RETRIEVAL_HIT",
+    occurred_at: iso(index + 2),
+    source_key: `retrieval-hit/${operationId}/${hit.subject_kind}/${encodeURIComponent(hit.subject_id)}/${hit.reason}`,
+    raw_event_ids: hit.raw_event_ids ?? [], parent_ledger_ids: [trace.id],
+    payload: {
+      operation_id: operationId,
+      subject_kind: hit.subject_kind,
+      subject_id: hit.subject_id,
+      reason: hit.reason,
+    },
+  }))];
 }
 
 function iso(index: number): string {

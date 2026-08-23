@@ -130,6 +130,9 @@ WO-V0-15 独立 QA 接受后，Context / State 基础设施冻结；后续默认
 - Recent Raw and retrieved history are physically separate and deduplicated.
 - Dense is all-or-nothing per candidate set; partial/mismatched coverage never produces mixed rankings.
 - A compile trace contains hashes/ids/policy, never current-input or raw-event正文。
+- Compile telemetry 是 session 级 opt-in 连续合同：可信 baseline 前无 id 为 read-only；baseline 后无 id 拒绝。只有完整 exact-shape trace/hit batch 可建立 baseline，坏 telemetry 只能使 dormant fail-open。
+- Ledger public append 只写未来研究四类记录；EVENT mirror 与 compile/hit namespace 由内部原子路径保留。递归 JSON 规范化无损保留所有合法数据键。
+- Dense cosine 先按各向量最大绝对值缩放再计算；极大/极小有限向量不得溢出后伪装为 hybrid 零分，残余不可计算情况显式 `dense_unavailable_numeric`。
 - Compact representations retain provenance and exact evidence remains recoverable.
 - Compiler failure must be containable by an external host; this package never controls a host's fallback policy.
 - The core performs no network requests and contains no UI or application-host imports.

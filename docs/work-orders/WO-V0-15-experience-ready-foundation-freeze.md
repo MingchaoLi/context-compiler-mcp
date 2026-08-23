@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：BUILDER COMPLETE — CHECKPOINT A + B + C IMPLEMENTED / FINAL INDEPENDENT QA PENDING
+状态：QA FIX IMPLEMENTED — APPEND-ONLY FIX PENDING INDEPENDENT RE-QA
 
 ## 背景校准
 
@@ -21,6 +21,10 @@ Checkpoint A 已完成代码与本地回归：新增 current-event provenance co
 Checkpoint B 已完成代码与本地回归：新增独立 append-only `experience_ledger` 关系表与稳定 library store，冻结七类最小记录、session-local sequence / source-key 幂等、严格 JSON payload、同 session 已存在 raw/parent provenance 与外部连接 update/delete trigger。新 raw event 与确定性 `EVENT` mirror 由 `SqliteRawHistoryStore` 在同一 `BEGIN IMMEDIATE` transaction 中共同提交或回滚；旧库只按 raw session/sequence 确定性回填 `migration_backfill:true` 的 EVENT observation，不补造 ACTION / OUTCOME 等语义。Checkpoint B 本身未让 compile 写 trace，也未接入 retrieval / dormant / recovery；这些只由后续 Checkpoint C 实现。A/B/C 统一等待本工单最终独立 QA。
 
 Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 缺省路径保持原输出/渲染/token 语义；MCP `compile_context` 通过 optional `context_policy` / `dense_query` / `operation_id` 进入 bounded operational path。Recent N 完整用户轮次与 retrieved history 物理分区；BM25 可独立复算，Dense 仅全候选同 space/同维/可算 norm 时启用，否则整腿 fail-closed 到 BM25。Verified failure 才可 recovery；dormant 仅在 baseline 后 provenance、age、zero state-hit 与完整 telemetry 条件同时成立时启用，Constraint 强制且 dependency closure 可救援。operation-id trace/hits 单事务追加，重试按原 trace seq 截断 telemetry 并保持幂等，不同输入冲突；payload 只含 hash、policy 和 selected ids，不含 current/raw 正文。C 及 A/B 仍待统一独立 QA，本状态不是自批准。
+
+首轮独立 QA 于固定候选 `e0d9af3acd3273d592007f7cae273b2820807b36` 返回五项 correctness 问题；QA 报告提交后的固定修复起点为 `c625e1632de76e63d05ddfa68c787d19dc6fe2a7`。本 append-only fix 已收紧 telemetry 信任边界、特殊 JSON 键无损规范化、Dense 极值数值稳定性、持久层错误分类和 Runtime v2 错误合同，等待独立 re-QA，不得据 Builder 自测标记 accepted/frozen。
+
+修复后的连续 telemetry 合同是 opt-in 且不可混用：session 在首个可信 `operation_id` compile 之前，无 id compile 保持历史 read-only；一旦可信 baseline 已建立，后续 MCP `compile_context` 缺 `operation_id` 必须稳定拒绝，避免合法但不可观测的查询命中制造 telemetry gap。通用 ledger `append` 只允许 `ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE`；`EVENT`、`CONTEXT_COMPILE`、`RETRIEVAL_HIT` 及其 source namespace 只由 raw 原子 mirror / 内部 trace batch 产生。坏或未知 telemetry 不建立 baseline，dormant 继续 fail-open。
 
 ## 单一结果
 

@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   EXPERIENCE_LEDGER_KINDS,
+  PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,
   SqliteExperienceLedgerStore,
 } from "../src/experience-ledger.js";
@@ -199,14 +200,14 @@ describe("append-only Experience Ledger", () => {
     expect(ledger.getSessionRecords("legacy")).toEqual(firstReplay);
   });
 
-  it("supports all frozen kinds with same-session, already-existing provenance and ordered replay", () => {
+  it("supports only future-research kinds through public append with ordered replay", () => {
     const raw = track(new SqliteRawHistoryStore(databasePath));
     const event = raw.ingest({ session_id: "chain", role: "user", content: "task" });
     const ledger = track(new SqliteExperienceLedgerStore(databasePath));
     const eventMirror = ledger.getSessionRecords("chain")[0]!;
 
     let parent = eventMirror;
-    for (const [index, kind] of EXPERIENCE_LEDGER_KINDS.filter((value) => value !== "EVENT").entries()) {
+    for (const [index, kind] of PUBLIC_EXPERIENCE_LEDGER_KINDS.entries()) {
       parent = ledger.append({
         session_id: "chain",
         kind,
@@ -217,23 +218,110 @@ describe("append-only Experience Ledger", () => {
         payload: { kind, index },
       });
     }
-    const extraEvent = ledger.append({
-      session_id: "chain",
-      kind: "EVENT",
-      source_key: "host/derived-event/1",
-      raw_event_ids: [event.id],
-      parent_ledger_ids: [parent.id],
-      payload: { observation: "explicit host event" },
-    });
-
     const replay = ledger.getSessionRecords("chain");
-    expect(replay.map((record) => record.seq)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(new Set(replay.map((record) => record.kind))).toEqual(new Set(EXPERIENCE_LEDGER_KINDS));
-    expect(ledger.getRecord(extraEvent.id)).toEqual(extraEvent);
+    expect(replay.map((record) => record.seq)).toEqual([1, 2, 3, 4, 5]);
+    expect(new Set(replay.map((record) => record.kind))).toEqual(
+      new Set(["EVENT", ...PUBLIC_EXPERIENCE_LEDGER_KINDS])
+    );
+    expect(EXPERIENCE_LEDGER_KINDS).toContain("CONTEXT_COMPILE");
 
     ledger.close();
     const reopened = track(new SqliteExperienceLedgerStore(databasePath));
     expect(reopened.getSessionRecords("chain")).toEqual(replay);
+  });
+
+  it("reserves raw and telemetry kinds plus their source namespaces for internal atomic APIs", () => {
+    const raw = track(new SqliteRawHistoryStore(databasePath));
+    raw.ingest({ session_id: "reserved", role: "user", content: "raw" });
+    const ledger = track(new SqliteExperienceLedgerStore(databasePath));
+    for (const input of [
+      { kind: "EVENT", source_key: "host/event" },
+      { kind: "CONTEXT_COMPILE", source_key: "host/compile" },
+      { kind: "RETRIEVAL_HIT", source_key: "host/hit" },
+      { kind: "ACTION", source_key: "raw-event/forged" },
+      { kind: "ACTION", source_key: "context-compile/forged" },
+      { kind: "ACTION", source_key: "retrieval-hit/forged" },
+    ]) {
+      expect(() => ledger.append({
+        session_id: "reserved",
+        payload: {},
+        ...input,
+      } as never)).toThrowError(expect.objectContaining<Partial<ExperienceLedgerError>>({
+        code: "INVALID_INPUT",
+      }));
+    }
+    expect(ledger.getSessionRecords("reserved")).toHaveLength(1);
+  });
+
+  it("preserves special JSON data keys in live mirrors and conflicts changed payloads", () => {
+    const metadata = JSON.parse(
+      '{"__proto__":{"retained":true},"nested":{"constructor":{"prototype":"data"}}}'
+    );
+    const raw = track(new SqliteRawHistoryStore(databasePath));
+    const event = raw.ingest({
+      session_id: "special-live", source_event_id: "special-source",
+      role: "user", content: "special", metadata,
+    });
+    expect(Object.prototype.hasOwnProperty.call(event.metadata, "__proto__")).toBe(true);
+    expect(JSON.stringify(event.metadata)).toBe(JSON.stringify(metadata));
+
+    const ledger = track(new SqliteExperienceLedgerStore(databasePath));
+    const mirrorMetadata = (ledger.getSessionRecords("special-live")[0]!.payload.raw_event as any).metadata;
+    expect(JSON.stringify(mirrorMetadata)).toBe(JSON.stringify(metadata));
+    expect(Object.getPrototypeOf(mirrorMetadata)).toBeNull();
+    expect(() => raw.ingest({
+      session_id: "special-live", source_event_id: "special-source",
+      role: "user", content: "special",
+      metadata: JSON.parse('{"__proto__":{"retained":false}}'),
+    })).toThrow(/conflicts with existing raw evidence/);
+
+    const firstPayload = JSON.parse(
+      '{"__proto__":{"candidate":"A"},"nested":{"constructor":{"prototype":"A"}}}'
+    );
+    const secondPayload = JSON.parse(
+      '{"__proto__":{"candidate":"B"},"nested":{"constructor":{"prototype":"B"}}}'
+    );
+    const first = ledger.append({
+      session_id: "special-live", kind: "ACTION", source_key: "special/action", payload: firstPayload,
+    });
+    expect(JSON.stringify(first.payload)).toBe(
+      '{"__proto__":{"candidate":"A"},"nested":{"constructor":{"prototype":"A"}}}'
+    );
+    expect(() => ledger.append({
+      session_id: "special-live", kind: "ACTION", source_key: "special/action", payload: secondPayload,
+    })).toThrowError(expect.objectContaining<Partial<ExperienceLedgerError>>({ code: "CONFLICT" }));
+  });
+
+  it("deterministically backfills legacy raw metadata with special JSON data keys", () => {
+    const legacy = new DatabaseSync(databasePath);
+    legacy.exec(`
+      CREATE TABLE sessions (id TEXT PRIMARY KEY, created_at TEXT NOT NULL);
+      CREATE TABLE raw_events (
+        id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id), seq INTEGER NOT NULL,
+        source_event_id TEXT, role TEXT NOT NULL, content TEXT NOT NULL, event_type TEXT NOT NULL,
+        created_at TEXT NOT NULL, token_count INTEGER NOT NULL, metadata_json TEXT NOT NULL DEFAULT '{}',
+        UNIQUE (session_id, seq), UNIQUE (session_id, source_event_id)
+      );
+      INSERT INTO sessions VALUES ('legacy-special', '2026-08-24T00:00:00.000Z');
+      INSERT INTO raw_events VALUES (
+        'legacy-special-event', 'legacy-special', 1, NULL, 'user', 'legacy', 'message',
+        '2026-08-24T00:00:00.000Z', 1,
+        '{"__proto__":{"retained":true},"constructor":{"prototype":"legacy"}}'
+      );
+    `);
+    legacy.close();
+
+    const raw = track(new SqliteRawHistoryStore(databasePath));
+    const ledger = track(new SqliteExperienceLedgerStore(databasePath));
+    const event = raw.getEvent("legacy-special-event")!;
+    const mirror = ledger.getSessionRecords("legacy-special")[0]!;
+    expect(JSON.stringify(event.metadata)).toBe(
+      '{"__proto__":{"retained":true},"constructor":{"prototype":"legacy"}}'
+    );
+    expect(JSON.stringify((mirror.payload.raw_event as any).metadata)).toBe(
+      '{"__proto__":{"retained":true},"constructor":{"prototype":"legacy"}}'
+    );
+    expect(mirror.payload.migration_backfill).toBe(true);
   });
 
   it("makes source retries canonical and conflicts on changed content", () => {

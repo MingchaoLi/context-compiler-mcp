@@ -99,7 +99,7 @@ describe("provider-neutral runtime state updater", () => {
       const updater = new RuntimeStateUpdater(stateStore, transport(mode), { max_attempts: 1 });
       await expect(updater.updateState({
         session_id: "session-a", newest_event_ids: [event.id],
-      })).rejects.toEqual(expect.objectContaining({ code: "EXTRACTION_FAILED" }));
+      })).rejects.toEqual(runtimeFailure("EXTRACTION_FAILED"));
       expect(stateStore.getRevision("session-a")).toBe(0);
       expect(stateStore.getItems("session-a")).toEqual([]);
     }
@@ -136,7 +136,7 @@ describe("provider-neutral runtime state updater", () => {
       ...createEmptyStateDelta(),
       new_constraints: [{ content: "Concurrent state" }],
     });
-    await expect(operation).rejects.toEqual(expect.objectContaining({ code: "CONFLICT" }));
+    await expect(operation).rejects.toEqual(runtimeFailure("CONFLICT"));
     expect(stateStore.getRevision("session-a")).toBe(1);
     expect(stateStore.getItems("session-a")).toMatchObject([{
       type: "CONSTRAINT", content: "Concurrent state",
@@ -155,7 +155,10 @@ describe("provider-neutral runtime state updater", () => {
     const results = await Promise.allSettled([first, second]);
     expect(results.filter(({ status }) => status === "fulfilled")).toHaveLength(1);
     const rejected = results.find(({ status }) => status === "rejected");
-    expect(rejected).toMatchObject({ status: "rejected", reason: { code: "CONFLICT" } });
+    expect(rejected).toMatchObject({
+      status: "rejected",
+      reason: { code: "CONFLICT", contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION },
+    });
     expect(stateStore.getRevision("session-a")).toBe(1);
     expect(stateStore.getItems("session-a")).toHaveLength(1);
   });
@@ -166,14 +169,14 @@ describe("provider-neutral runtime state updater", () => {
     pre.abort();
     await expect(new RuntimeStateUpdater(stateStore, transport("goal")).updateState(
       { session_id: "session-a", newest_event_ids: [event.id] }, pre.signal
-    )).rejects.toEqual(expect.objectContaining({ code: "ABORTED" }));
+    )).rejects.toEqual(runtimeFailure("ABORTED"));
 
     const active = new AbortController();
     const operation = new RuntimeStateUpdater(stateStore, transport("timeout", 5_000)).updateState(
       { session_id: "session-a", newest_event_ids: [event.id] }, active.signal
     );
     setTimeout(() => active.abort(), 30);
-    await expect(operation).rejects.toEqual(expect.objectContaining({ code: "ABORTED" }));
+    await expect(operation).rejects.toEqual(runtimeFailure("ABORTED"));
     expect(stateStore.getRevision("session-a")).toBe(0);
     expect(stateStore.getItems("session-a")).toEqual([]);
   });
@@ -186,7 +189,7 @@ describe("provider-neutral runtime state updater", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 30));
     await childTransport.close();
-    await expect(operation).rejects.toEqual(expect.objectContaining({ code: "EXTRACTION_FAILED" }));
+    await expect(operation).rejects.toEqual(runtimeFailure("EXTRACTION_FAILED"));
     expect(stateStore.getRevision("session-a")).toBe(0);
   });
 
@@ -222,7 +225,7 @@ describe("provider-neutral runtime state updater", () => {
     cases.push(accessor);
     for (const input of cases) {
       await expect(updater.updateState(input as never)).rejects.toEqual(
-        expect.objectContaining({ code: "INVALID_INPUT" })
+        runtimeFailure("INVALID_INPUT")
       );
     }
     expect(accessed).toBe(false);
@@ -235,12 +238,35 @@ describe("provider-neutral runtime state updater", () => {
       stateStore,
       { complete: vi.fn() },
       { max_attempts: maxAttempts }
-    )).toThrowError(expect.objectContaining({ code: "INVALID_INPUT" }));
+    )).toThrowError(runtimeFailure("INVALID_INPUT"));
     expect(preparationCount()).toBe(0);
   });
 
   it("exposes only stable runtime error codes", () => {
-    expect(new RuntimeStateUpdateError("EXTRACTION_FAILED").message).toBe("EXTRACTION_FAILED");
+    expect(new RuntimeStateUpdateError("EXTRACTION_FAILED")).toMatchObject({
+      message: "EXTRACTION_FAILED",
+      code: "EXTRACTION_FAILED",
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+    });
+  });
+
+  it("exposes contract v2 on storage failure before extraction", async () => {
+    const event = newest();
+    const complete = vi.fn<ExtractorTransport["complete"]>();
+    const updater = new RuntimeStateUpdater(stateStore, { complete });
+    const direct = new DatabaseSync(databasePath);
+    direct.exec(`
+      CREATE TRIGGER reject_runtime_preparation
+      BEFORE INSERT ON state_update_preparations
+      BEGIN
+        SELECT RAISE(ABORT, 'injected preparation storage failure');
+      END;
+    `);
+    direct.close();
+    await expect(updater.updateState({
+      session_id: "session-a", newest_event_ids: [event.id],
+    })).rejects.toEqual(runtimeFailure("STORAGE_FAILURE"));
+    expect(complete).not.toHaveBeenCalled();
   });
 
   function preparationCount(): number {
@@ -254,3 +280,10 @@ describe("provider-neutral runtime state updater", () => {
     }
   }
 });
+
+function runtimeFailure(code: RuntimeStateUpdateError["code"]) {
+  return expect.objectContaining({
+    code,
+    contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+  });
+}

@@ -1,4 +1,5 @@
 import {
+  CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
   CurrentEventStateExtractor,
   ExtractorValidationError,
   type ExtractorResult,
@@ -21,6 +22,8 @@ export type RuntimeStateUpdateErrorCode =
   | "ABORTED";
 
 export class RuntimeStateUpdateError extends Error {
+  readonly contract_version = CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION;
+
   constructor(readonly code: RuntimeStateUpdateErrorCode) {
     super(code);
     this.name = "RuntimeStateUpdateError";

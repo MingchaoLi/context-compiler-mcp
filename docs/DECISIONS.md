@@ -70,6 +70,6 @@ v0 的唯一核心职责是 State Compilation：把 Raw Events 编译为带 life
 
 Dormant/cold 是 placement，不是 lifecycle。ACTIVE Constraint 永不 dormant；其他未闭合 item 只有在 operation-id telemetry baseline、可计算 current-event provenance、baseline 后更新、达到 age、生命周期 state hit 为零、当前 query 未命中且不被 dependency closure 需要时才可退出 root。缺证据一律 fail-open；命中或 closure 只在本次 compile 重激活，不修改 state revision/status/source refs。
 
-`compile_context` 仍有零 model/provider/network/extractor。无 `operation_id` 时 read-only 且不启用 dormant；有 id 时只原子追加去正文的 `CONTEXT_COMPILE` / `RETRIEVAL_HIT`，相同 id/固定输入幂等，不同输入冲突。九工具、历史 assembler/evaluator/DS-13/14 artifact 不变。
+`compile_context` 仍有零 model/provider/network/extractor。可信 telemetry baseline 前无 `operation_id` 时 read-only 且不启用 dormant；首个带 id compile 成功后，该 session 后续缺 id 请求稳定拒绝，禁止产生不可见 hit gap。有 id 时只由内部 batch 原子追加去正文、带完整 shape/hit fingerprint 的 `CONTEXT_COMPILE` / `RETRIEVAL_HIT`，相同 id/固定输入幂等，不同输入冲突；坏/未知 telemetry 不建立 baseline并使 placement fail-open。通用 ledger append 不拥有 EVENT/compile/hit kind 或 namespace。九工具、历史 assembler/evaluator/DS-13/14 artifact 不变。
 
 WO-V0-15 经独立 QA 接受后冻结 Context / State 基础设施。后续默认只做 correctness 修复，不新增 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation 实现；下一阶段先真实使用并积累研究数据。
