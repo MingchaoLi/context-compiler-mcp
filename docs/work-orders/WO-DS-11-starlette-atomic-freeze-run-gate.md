@@ -1,6 +1,6 @@
 # WO-DS-11 — Starlette data+protocol 原子 freeze 与首次运行 gate
 
-状态：IN PROGRESS — freeze/run-contract only，禁止模型调用
+状态：ACCEPTED — atomic freeze 生效；本工单仍禁止模型调用
 
 ## 背景
 
@@ -144,3 +144,9 @@ Builder 提交中文 handoff 且不能自批。独立 QA 必须固定 Builder ca
 validator 先复用已接受 promotion/protocol validator，再核对代码固定 freeze byte contract、hash manifest 展开、scan/run contract 与确定性 packet rebuild。14 项聚焦测试覆盖正常路径、污染确认、sol substitution、retry、授权、换 slice、packet swap/omission、条件与零宽泄漏、unknown、协调重写和 symlink。本工单保持 `model_call_count:0`、`evaluation_run_count:0`、`model_run_authorized:false`；实现者不自批。
 
 Builder 自检通过：atomic validator；14/14 聚焦测试；20 files / 368 全量单测；8/8 protocol；build、diff check；隔离真实 50-entry npm tarball SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，不含 evaluation/docs/test。
+
+## 独立 QA 接受
+
+2026-08-23 独立 Data / Run-Gate QA 在固定 Builder candidate `a2d68b851d178db20dc3abfb17b2d3eda8d66d3c` 通过。QA 从固定 Git object 独立重建 46 canonical + 3 protocol SHA/Git 链及 36 D0/D1/D2 input packet，逐项复核 Current Task、时间前缀、D2 assembler、prompt 隔离与 pre-run contamination rescan，并重放 data+protocol+freeze 协调改写、hash 自举、packet/auth/path/symlink/Unicode 反例。atomic wrapper 至此使固定 bytes 为 `frozen_by_manifest`；legacy 文件状态仍如 manifest 所披露。
+
+此接受只为下一工单授权最多 36 次未评分 `gpt-5.6-terra` non-sol / medium / `fork_turns:none` fresh session，每 packet 单次、无 retry/best-of，仍需两名 condition-blind 人类 reviewer；本工单的 model/evaluator/answer artifact count 均为 0。0 medium、单次 repetition、受限公开索引和人工 Oracle-State upper bound 限制仍必须披露，不表示 D2 优于 D1 或任何效果结论。详见 `docs/qa/WO-DS-11-starlette-atomic-freeze-run-gate.md`。

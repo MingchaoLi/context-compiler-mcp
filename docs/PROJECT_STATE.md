@@ -48,7 +48,7 @@ WO-DS-10 已在独立 Data QA 于 2026-08-23 接受为 `protocol_canary_not_froz
 
 DS-10 接受后已建立 WO-DS-11，只做 data+protocol 原子 freeze、append-only pre-run contamination rescan 与 36 个盲化 D0/D1/D2 input packet/GPT-5.6-terra non-sol feasibility 运行合同。该工单本身禁止 evaluator/model 调用；只有新的独立 QA PASS，下一工单才可按固定 order 发起恰好 36 个 fresh session。语义评分仍要求两名 condition-blind 人类 reviewer，不能由第二模型替代。
 
-WO-DS-11 Builder 候选已实现，正在等待新的独立 QA。append-only wrapper 展开固定 46 个 canonical-data 文件、3 个 protocol 文件、固定 12 slices 与 36 个 opaque answer-input packet；D0/D1 复用 evaluator renderer，D2 调用真实 assembler 但使用人工 Oracle-State，因此只代表 typed-state upper bound。pre-run contamination rescan 在受限公开 web index 中没有新增 qualified task-level reuse，但 GitHub code-search API/UI 不可用，不能作 absence proof。运行合同固定 GPT-5.6-terra non-sol / medium / 36 fresh sessions / 每 cell 单次，无 adaptive retry 或模型 judge。本候选仍保持 `model_call_count:0`、`evaluation_run_count:0`、`model_run_authorized:false`；QA PASS 前 freeze 不生效，也不得收集回答。
+WO-DS-11 已在独立 Data / Run-Gate QA 于 2026-08-23 接受 atomic data+protocol+answer-input freeze，固定 Builder candidate 为 `a2d68b851d178db20dc3abfb17b2d3eda8d66d3c`。append-only wrapper 展开固定 46 个 canonical-data 文件、3 个 protocol 文件、12 slices 与 36 个 opaque answer-input packet，并使其固定 bytes 为 `frozen_by_manifest`；D0/D1 沿用 evaluator transcript 语义，D2 调用真实 assembler 但使用人工 Oracle-State，故只代表 typed-state upper bound。pre-run contamination rescan 在受限公开 web index 中没有新增 qualified task-level reuse，但 GitHub code-search API/UI 不可用，不能作 absence proof。本工单仍保持 `model_call_count:0`、`evaluation_run_count:0`、`answer_artifact_count:0`；下一工单最多可收集 36 次未评分 GPT-5.6-terra non-sol / medium / fresh `fork_turns:none` session，每 cell 单次、无 adaptive retry，语义评分仍须两名 condition-blind 人类。0 medium、单次 repetition、Oracle upper-bound 和公开索引限制阻止 D2 优于 D1、稳健性或一般化结论。
 
 ## 最新对抗审查
 
