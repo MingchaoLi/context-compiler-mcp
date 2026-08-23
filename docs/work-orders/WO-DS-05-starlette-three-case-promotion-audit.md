@@ -1,6 +1,6 @@
 # WO-DS-05 — Starlette 三案 promotion audit 与共同 evidence cutoff
 
-状态：IMPLEMENTED — PENDING NEW INDEPENDENT DATA QA
+状态：ACCEPTED — 独立 Data re-QA 于 2026-08-23 通过
 
 ## 背景与对抗审查处置
 
@@ -139,7 +139,7 @@ collection manifest、contamination snapshot、promotion diff 和 promotion hash
 
 首轮独立 QA 在 `2dd87a6` 上发现 P1：accepted source、副本与所有可重算 hash 可协调改写后仍被接受。追加修复已在 validator 代码合同中锚定 accepted candidate `32600eb6...` 的全部 21 个路径、顺序与 SHA-256，并加入复刻该攻击的聚焦反例。
 
-追加修复后 Builder 自检通过 promotion 11/11、全量 294、protocol 8/8、build、diff check 和真实 50-entry npm pack 隔离。完整证据见 `docs/evaluation/starlette-v1-three-case-promotion.md` 与 `docs/handoffs/WO-DS-05-starlette-three-case-promotion-audit.md`。本结果不自行批准；等待同一独立 data QA re-QA。
+追加修复后 Builder 自检通过 promotion 11/11、全量 294、protocol 8/8、build、diff check 和真实 50-entry npm pack 隔离。独立 re-QA 已在固定 candidate `fb85572031711bc8337121fb307b5ffae81086f3` 上复刻首轮协调重写并通过；完整证据见 `docs/qa/WO-DS-05-starlette-three-case-promotion-audit.md`。本接受仍只固定三案 promotion audit：collection 保持 `promotion_candidate_not_frozen`、`evaluation_ready:false`、`model_run_authorized:false`，下一步仅允许另开 STR-06 source/Gold checkpoint。
 
 ## 明确不做
 

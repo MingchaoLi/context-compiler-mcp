@@ -40,3 +40,21 @@
 3. 在新的 append-only Builder fix commit 上重跑本报告的 source re-audit、污染规则限制复核、21 对字节/25 hash 重建、真实 parser wiring、production pack、focused/full/protocol/build/diff checks，再进行新的独立 Data QA。
 
 在此之前，WO、PROJECT_STATE 与 ROADMAP 必须保持 PENDING；collection 也不得以 validator PASS 宣称可 promotion/freeze 或 evaluation ready。
+
+## Re-QA（候选 `fb85572031711bc8337121fb307b5ffae81086f3`）
+
+日期：2026-08-23
+
+结论：**PASS — 接受 WO-DS-05 的三案 promotion audit。** 本次只关闭首轮 P1 的协调重写缺口；接受不表示完整六案 freeze、`evaluation_ready`、`model_run_authorized`、Probe/answer protocol、STR-06、D0/D1/D2、远端模型、aggregate 或任何效果解释获授权。下一步仅允许另开 WO-DS-06 的 STR-06 source/Gold checkpoint。
+
+### 固定候选与 P1 复验
+
+- 开始时 `main` HEAD 正是 `fb85572031711bc8337121fb307b5ffae81086f3`，父提交为首轮 QA docs-only commit `c9df2623d9e0052859480d31db66a3f74e944a14`，工作树 clean。完整 `4c6e740..fb85572` 差异仍无 `src/`、MCP、依赖/lockfile、provider、模型、host/UI、旧 pilot/canary/promotion payload、旧 hash 或旧 contamination snapshot 改动；fix 相对首轮候选只改 validator、聚焦测试和等待 re-QA 的 docs。
+- `validate-promotion.mjs` 代码内固定 accepted candidate `32600eb6b7caf3fbe339e1103d3293f0b7e33103` 及 **21** 项 `{case_id,path,sha256}` 合同。独立逐项将合同同该 Git commit 的旧文件、当前 accepted 文件和 promotion 副本比较：路径顺序为 STR-08/05/04 各七文件，21/21 SHA 均匹配，所有文件均为普通文件。
+- 首轮完整攻击已原样重放，并分别覆盖 STR-08、STR-05、STR-04：同步改 accepted task 与 promotion copy、重建相应 pilot/canary hash、promotion diff 的 old/new SHA、collection diff 引用及 25 项 promotion hash。三案均在固定 source 合同处拒绝，不能再借由 JSON hash 自举重写。path/order/status/cutoff/case id/change class/hash/漏项/重复/unknown/symlink 反例也均被拒绝；正常路径仍通过。
+
+### 其余复验
+
+- 独立重建仍得到 21 对 byte-identical relocation 与 25 项 promotion hash；pilot、canary、promotion validator 均通过，collection 仍为 `promotion_candidate_not_frozen`，且 `evaluation_ready:false`、`model_run_authorized:false`。真实静态导入 `parseEvaluationSuiteV2` 的 promotion wiring 仍为 31 slices / 226 projected history turns，未发现 `runEvaluationSuiteV2`、provider、network、credential 或 host/UI 调用。
+- 三案 source fixture、source re-audit、污染 snapshot、RAGAS exclusion 与 cutoff 相对首轮 candidate `2dd87a6` 均逐字节未变。因此首轮同日 GitHub REST 31/31 id/node/actor/time/content SHA、3 review `submitted_at`、3 state canonical hash 和 8 个 mutable body `updated_at` 的直接核验仍适用于此 fix；31 个 payload event 仍不晚于 cutoff。本轮再次请求 GitHub REST 时服务返回 403 rate limit，故没有把该失败重述为新的 absence/source proof；`no_public_hit_found` 继续只是不完整 as-of snapshot，STR-04 的固定 RAGAS hit 仍为 context-only noise（benchmark reference 为 FastAPI PR #15745）。
+- 临时实体依赖副本中：promotion focused 11/11；`npm test` 14 files / 294 tests；`npm run test:protocol` 8/8；`npm run build`；完整 range `git diff --check` 均通过。任务专用 `/private/tmp/context-compiler-ds05-reqa-npm-cache` 的真实 `npm pack --dry-run --json` 为 50 文件，未包含 evaluation/Starlette/promotion/validator/wiring 数据或脚本，既有九工具生产边界不变。
