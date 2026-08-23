@@ -167,3 +167,58 @@ Builder 需要 append-only 修复提交，并至少补齐以下回归后再申�
 ### re-QA 冻结判断
 
 首轮的 vacuous telemetry 自证、特殊 JSON 丢失、Dense 极值、persisted-row 错误分类与 Runtime v2 合同已经关闭，没有新的 P0/P1。但 fresh DB 双实例启动 P2 使 operational stability 尚未闭合，因此本轮仍为 FAIL；WO、PROJECT_STATE 与 ROADMAP 保持 `QA FIX IMPLEMENTED / INDEPENDENT RE-QA PENDING`。Dense 效果与 Experience Formation 效果继续标记为 **未评估**，本次不授权进入下一阶段或任何 Context 算法扩展。
+
+---
+
+## 第二个 append-only fix 独立 re-QA（2026-08-24）
+
+结论：**FAIL — fresh DB 竞争已关闭，但旧库并发 check-then-ALTER 仍有 P2；WO-V0-15 继续保持 PENDING，不得标记 ACCEPTED/FROZEN。**
+
+### 固定候选与边界
+
+- 分支：`main`
+- 固定候选：`2739bc5251c2a0b80d6b76b3977fb3903792a7e7`
+- 固定父提交：`4e366f3bd1545c1e9870de0f640195d0de232363`
+- re-QA 开始与测试完成后候选均为 clean；分支、HEAD、parent 未漂移，`git diff --check HEAD^..HEAD` 通过。
+- 本次未调用模型或网络，未修改 core、Gold、`feasibility-01`、WO-DS-14 official artifact 或 evaluation；QA 只追加本报告。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### 已关闭问题的独立重放
+
+- 首轮五类反例继续关闭：baseline 后 no-id 零写且稳定拒绝，exact trace/hit 变异 fail-open，public 保留 namespace 不可伪造；`__proto__ / constructor / prototype` 在 live/backfill/idempotency/fingerprint 中无损；`1e308 / Number.MIN_VALUE / 多维大数` cosine 有限且可复算；坏持久行稳定 `STORAGE_FAILURE`；RuntimeStateUpdater 成功及失败均保持 `contract_version:2`。v1 legacy parser/apply 和 DS-13/14 固定重放未漂移。
+- 上轮 fresh DB 竞争已关闭。不依赖 Builder 断言的独立 `SharedArrayBuffer + Atomics` 同步攻击得到：direct Raw store 60/60 实例成功，独立 `ContextCompilerMcpService` 60/60 实例构造成功且 health ready，十组双 stdio 程序 20/20 全部 health ready、stderr 为空。
+- SQLite 初始化 retry 边界与 Builder 合同一致：`ERR_SQLITE_ERROR + errcode 5/6`、`SQLITE_BUSY*`、`SQLITE_LOCKED*` 才重试；`errcode 1/11`、无 errcode 的普通 `ERR_SQLITE_ERROR`、`SQLITE_IOERR`、业务 schema error 及伪装 `ERR_OTHER + errcode 5` 均只调用一次并抛出同一 error object。持续 BUSY 共尝试 8 次（7 次延迟后耗尽）并抛回原异常；真实 service 在外部 `BEGIN IMMEDIATE` 持续锁下约 43.8 秒后稳定返回 `STORAGE_FAILURE`，未无界等待或误报请求参数。
+- 已初始化 DB 的 same-source ingest 与 same-operation compile 仍保持两连接幂等：分别只留一条 raw + EVENT mirror，以及一条 CONTEXT_COMPILE + 一条 RETRIEVAL_HIT。
+
+### 新阻塞问题
+
+#### P2：两个实例并发升级缺少 Dense 列的 legacy raw DB 时，仍可在 check-then-ALTER 之间竞争失败
+
+`initializeSqliteConnection` 已正确只重试 SQLite BUSY/LOCKED，但 `src/raw-store.ts` 的 `migrate` 没有把 `PRAGMA table_info(raw_events)` 的缺列检查与 `ALTER TABLE raw_events ADD COLUMN dense_embedding_json TEXT` 包在同一排他事务中。两个连接可同时看到该列缺失；其中一方 ALTER 成功后，另一方的 ALTER 抛出 `ERR_SQLITE_ERROR: duplicate column name: dense_embedding_json`。该错误按本 fix 的严格白名单正确不重试，但由于 migration 本身未原子化，仍会使一个合法实例启动失败。
+
+独立动态证据：
+
+- 预先构造 v0 旧 raw schema（保留 `sessions / raw_events`，唯独缺少 `dense_embedding_json`），每组用同步 barrier 打开两个 `SqliteRawHistoryStore`。100 组 / 200 个实例中 4 个失败，错误均为 `duplicate column name: dense_embedding_json`。
+- 对相同 legacy schema 同步打开两个 `ContextCompilerMcpService`，100 组 / 200 个实例中 2 个启动失败，对外是 `ContextCompilerServiceError(STORAGE_FAILURE)`。
+- 这不是人工伪造普通 ALTER 错误后要求宽泛重试，而是项目自己的“先检查、后 ALTER”旧库升级路径在已要求支持的双连接启动下不可串行化。失败不会破坏已有数据，但会让共享 legacy DB 的一个宿主/MCP 进程在 health 前退出，因此仍属 operational stability 范围的 P2。
+
+### 精确返回条件
+
+1. 从本 QA 报告提交再追加一个最小 fix，只关闭 legacy raw schema 的并发升级竞争，不修改 Context policy、evaluator、Gold、official artifact 或进入 Experience Formation。
+2. 优先使 raw schema inspection + ALTER 在同一 SQLite 排他事务中完成，或者在 duplicate-column 后严格重新验证目标列已被并发方以预期形状创建。不得把所有 `ERR_SQLITE_ERROR`、duplicate-column、schema、ALTER、corruption 或 I/O 错误加入重试/吞错白名单。
+3. 新增同步双 Worker/双 service legacy migration 回归：从无 Dense 列的真实旧 schema 开始，两者均必须 health，最终列只有一个且原始 raw 行、trigger、EVENT-only backfill 与序号完全一致。
+4. 保留 fresh DB Raw / service / stdio barrier、busy/locked 有界耗尽、非 busy 单次抛错、预初始化后 source/operation 幂等和前两轮已关闭的全部反例。再跑 focused/full/protocol/build/diff/DS-13/14 与 production-only pack/stdio。
+
+### 回归与打包证据
+
+- focused 9 文件：165/165 PASS。
+- 全量 `npm test`：467 PASS / 1 个既有 opt-in official runner SKIP。
+- `npm run test:protocol`：10/10 PASS；包含 fresh Raw/service/stdio 并发用例、真实 `npm pack`、production-only 隔离安装、精确九工具与 stdio 进程关闭。
+- `npm run build`、`git diff --check HEAD^..HEAD`：PASS。
+- DS-13 fixed-object validator：PASS；36 answers / 8 lexical Probes 诊断复现，未重跑 official artifact。
+- DS-14 定向回归：ST-01 7/7、ST-02 contract 8/8、empty-state score 8/8、feasibility results 7/7，合计 30/30 PASS。
+- candidate 相对父提交没有修改 `evaluation/`；未新增 provider/network/Graph DB/Experience Formation/PACE 范围。
+
+### 本轮冻结判断
+
+没有新的 P0/P1；fresh DB 与前两轮所有反例均已关闭。但 legacy raw DB 并发 ALTER P2 仍使已承诺的旧库兼容和 operational stability 不完整，因此本轮仍为 FAIL；WO、PROJECT_STATE 与 ROADMAP 继续保持 `QA FIX IMPLEMENTED / INDEPENDENT RE-QA PENDING`。Dense 效果与 Experience Formation 效果仍为 **未评估**，本次不授权冻结、进入下一阶段或扩展 Context 算法。
