@@ -50,7 +50,7 @@ DS-10 接受后已建立 WO-DS-11，只做 data+protocol 原子 freeze、append-
 
 WO-DS-11 已在独立 Data / Run-Gate QA 于 2026-08-23 接受 atomic data+protocol+answer-input freeze，固定 Builder candidate 为 `a2d68b851d178db20dc3abfb17b2d3eda8d66d3c`。append-only wrapper 展开固定 46 个 canonical-data 文件、3 个 protocol 文件、12 slices 与 36 个 opaque answer-input packet，并使其固定 bytes 为 `frozen_by_manifest`；D0/D1 沿用 evaluator transcript 语义，D2 调用真实 assembler 但使用人工 Oracle-State，故只代表 typed-state upper bound。pre-run contamination rescan 在受限公开 web index 中没有新增 qualified task-level reuse，但 GitHub code-search API/UI 不可用，不能作 absence proof。本工单仍保持 `model_call_count:0`、`evaluation_run_count:0`、`answer_artifact_count:0`；下一工单最多可收集 36 次未评分 GPT-5.6-terra non-sol / medium / fresh `fork_turns:none` session，每 cell 单次、无 adaptive retry，语义评分仍须两名 condition-blind 人类。0 medium、单次 repetition、Oracle upper-bound 和公开索引限制阻止 D2 优于 D1、稳健性或一般化结论。
 
-当前唯一工单为 WO-DS-12：严格执行已接受的 36-packet feasibility 合同，只收集 GPT-5.6-terra non-sol / medium 原始回答。每 packet 使用一个全新 `fork_turns:none` session、恰好一次、无 retry/best-of；Builder 只记录 raw output/hash/时间/解析状态，不运行 evaluator 或语义评分。完成后须独立 QA 审核调用完整性，才能进入自动 context/cost 结果与人类盲评包阶段。
+WO-DS-12 已由 Builder 于 2026-08-23 实现，等待新的独立 run-integrity QA。冻结 36 packet 已严格按 execution order 由 36 个唯一 `gpt-5.6-terra` non-sol / medium / fresh `fork_turns:none` collaboration session 各调用一次，最大两个 answer worker 并发；无 retry、best-of、technical failure 或单点补跑。36 个原始 final output 原样 capture，机械格式结果为 36 valid / 0 invalid，未观察到 tool/network/repository/其他外部信息使用迹象。只读 validator 固定 DS-11 QA/input/packet/run-contract 与完整 freeze/source SHA，并核对 session/order/hash/attempt/parse/status/capture。Builder 没有读取 rubric、没有运行 evaluator、自动 context/cost metric 或语义评分；这些仍是未评分 artifacts。只有独立 QA PASS 后才能进入自动结果与两名 condition-blind 人类 review bundle，且现有 0 medium、单次 repetition、Oracle upper-bound 与公开索引限制继续阻止 D2 优于 D1、稳健性或一般化结论。
 
 ## 最新对抗审查
 
@@ -80,5 +80,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-08 STR-01 source/Gold checkpoint 已独立 QA 接受：18 个增量机械归为 long，PR #500 closed-unmerged、PR #1692 narrow merge 与 #495 tracker close 没有混写；仍为 checkpoint_not_frozen，且 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false。此接受不表示 STR-01 promoted/frozen、六案完整、Probe/answer rubric 就绪或可运行 D0/D1/D2/远端模型。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 - WO-DS-11 仅冻结首次 feasibility 输入与运行合同；单次 repetition、0 medium、人工 Oracle-State upper-bound、GitHub code-search 不可用与尚缺两名 condition-blind 人类评分仍限制后续解释。即使独立 QA PASS，也不能据此声明 D2 优于 D1、稳健性或一般化。
+- WO-DS-12 已完成 36 个单次原始回答 capture，但尚未通过独立 run-integrity QA，也没有自动 context/cost 结果或两名 condition-blind 人类语义评分；36/36 格式有效不等于答案正确或 D2 有效。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

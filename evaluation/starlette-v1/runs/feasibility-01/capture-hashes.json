@@ -1,0 +1,23 @@
+{
+  "schema_version": "starlette-answer-capture-hashes/v1",
+  "status": "captured_unscored_pending_independent_qa",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "729946aa06adfb6a24a8f996b67d4410c66df7f97533ea76fe1b322507025cb9"
+    },
+    {
+      "path": "raw-responses.jsonl",
+      "sha256": "1b574d4c1843a283d088cc641523855e78135516545a264c4fe48d5e059a4910"
+    },
+    {
+      "path": "run-manifest.json",
+      "sha256": "674ab5a80074c7ce52f76c1491ba1ce428a133fdf14212445f68a3a9f90c9ed0"
+    },
+    {
+      "path": "validate-capture.mjs",
+      "sha256": "1565b660153de1997ecc90f1813b8fb528fdc79667f8ae13b34ea3d9141274bd"
+    }
+  ]
+}

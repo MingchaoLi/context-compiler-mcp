@@ -1,6 +1,6 @@
 # WO-DS-12 — Starlette 首次 GPT-5.6-terra feasibility 回答收集
 
-状态：IN PROGRESS — answer collection only
+状态：IMPLEMENTED — PENDING NEW INDEPENDENT QA
 
 ## 背景
 
@@ -84,3 +84,8 @@ QA 只审核运行完整性，不评价回答语义，不知道条件也不代�
 
 只有本工单独立 QA PASS，下一工单才能在固定 12-slice suite 上运行自动 context/cost 指标并生成 condition-blind 人类 review bundle。两名真实人类完成 rubric 前，不得给出 D2 是否优于 D1 的语义结论。
 
+## Builder 结果
+
+2026-08-23 已严格按冻结 `execution_order` 完成 36/36 个 answer session：36 个 packet、36 个唯一 collaboration session、36 个 attempt，全部请求 `gpt-5.6-terra` non-sol / medium / `fork_turns:none`，每个 packet 一次，无 retry、best-of 或单点补跑，最大同时存在两个 answer worker。36 个原始 final output 已按 execution index 原样保存在 `evaluation/starlette-v1/runs/feasibility-01/raw-responses.jsonl`；机械解析为 36 个 `valid_response_format` / 36 个 `captured`，0 格式无效、0 technical failure、0 个观察到外部信息使用迹象。
+
+新增 run manifest、capture hashes、中文 README、只读 validator 与聚焦测试。validator 固定 DS-11 QA report、answer inputs、packet manifest、run contract 与完整 freeze wrapper/展开文件 SHA，并复验 36 session 唯一性、顺序、prompt/response hash、严格 JSON/250-word 状态、attempt=1、无 retry 与 capture hash。Builder 没有读取 rubric、没有运行 `runEvaluationSuiteV2`、自动 context/cost metric 或语义评分，也没有修改 frozen data/protocol/input、core、provider 或 host。完整检查与隔离 pack 结果见 `docs/handoffs/WO-DS-12-starlette-feasibility-answer-collection.md`；实现者不自批，当前等待新的独立 run-integrity QA。
