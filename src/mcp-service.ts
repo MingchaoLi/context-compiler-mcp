@@ -8,6 +8,7 @@ import {
   appendContextCompileTraceInsideService,
   ExperienceLedgerError,
   SqliteExperienceLedgerStore,
+  withCompileTelemetryBoundaryInsideService,
 } from "./experience-ledger.js";
 import {
   OperationalContextError,
@@ -238,56 +239,59 @@ export class ContextCompilerMcpService {
     const assemblerSessionId = sessionId.trim().length === 0 ? "__context_compiler_whitespace_session__" : sessionId;
     let context: CompiledContext;
     try {
-      const items = this.stateStore.getItems(sessionId)
-        .map((item) => ({ ...item, session_id: assemblerSessionId }));
-      const relations = this.stateStore.getSessionRelations(sessionId)
-        .map((relation) => ({ ...relation, session_id: assemblerSessionId }));
-      const rawEvents = this.rawStore.getSessionEvents(sessionId)
-        .map((event) => ({ ...event, session_id: assemblerSessionId }));
-      const ledgerRecords = this.ledgerStore.getSessionRecords(sessionId);
-      if (input.operation_id === undefined &&
-          hasTrustedContextCompileBaseline(ledgerRecords, sessionId)) {
-        throw new OperationalContextError(
-          "operation_id is required after session compile telemetry has started"
-        );
-      }
-      const operational = compileOperationalContext({
-        session_id: assemblerSessionId,
-        context_items: items,
-        state_relations: relations,
-        raw_events: rawEvents,
-        current_input: currentInput,
-        state_revision: this.stateStore.getRevision(sessionId),
-        ...(input.token_budget === undefined ? {} : { token_budget: input.token_budget as number }),
-        ...(input.recent_raw_window_turns === undefined
-          ? {}
-          : { recent_raw_window_turns: input.recent_raw_window_turns as number }),
-        ...(input.context_policy === undefined
-          ? {}
-          : { context_policy: input.context_policy as unknown as ContextPolicyInput }),
-        ...(denseQuery === undefined ? {} : { dense_query: denseQuery }),
-        ...(input.operation_id === undefined ? {} : { operation_id: input.operation_id as string }),
-        ledger_records: ledgerRecords.map((record) => ({
-          ...record,
+      context = withCompileTelemetryBoundaryInsideService(this.ledgerStore, () => {
+        const items = this.stateStore.getItems(sessionId)
+          .map((item) => ({ ...item, session_id: assemblerSessionId }));
+        const relations = this.stateStore.getSessionRelations(sessionId)
+          .map((relation) => ({ ...relation, session_id: assemblerSessionId }));
+        const rawEvents = this.rawStore.getSessionEvents(sessionId)
+          .map((event) => ({ ...event, session_id: assemblerSessionId }));
+        const ledgerRecords = this.ledgerStore.getSessionRecords(sessionId);
+        if (input.operation_id === undefined &&
+            hasTrustedContextCompileBaseline(ledgerRecords, sessionId)) {
+          throw new OperationalContextError(
+            "operation_id is required after session compile telemetry has started"
+          );
+        }
+        const operational = compileOperationalContext({
           session_id: assemblerSessionId,
-        })),
-      });
-      context = operational.context;
-      if (input.operation_id !== undefined) {
-        const trace = appendContextCompileTraceInsideService(this.ledgerStore, {
-          session_id: sessionId,
-          operation_id: input.operation_id as string,
-          payload: operational.trace_payload,
-          raw_event_ids: operational.trace_raw_event_ids,
-          hits: operational.hits,
+          context_items: items,
+          state_relations: relations,
+          raw_events: rawEvents,
+          current_input: currentInput,
+          state_revision: this.stateStore.getRevision(sessionId),
+          ...(input.token_budget === undefined ? {} : { token_budget: input.token_budget as number }),
+          ...(input.recent_raw_window_turns === undefined
+            ? {}
+            : { recent_raw_window_turns: input.recent_raw_window_turns as number }),
+          ...(input.context_policy === undefined
+            ? {}
+            : { context_policy: input.context_policy as unknown as ContextPolicyInput }),
+          ...(denseQuery === undefined ? {} : { dense_query: denseQuery }),
+          ...(input.operation_id === undefined ? {} : { operation_id: input.operation_id as string }),
+          ledger_records: ledgerRecords.map((record) => ({
+            ...record,
+            session_id: assemblerSessionId,
+          })),
         });
-        context.operational_debug = {
-          ...context.operational_debug,
-          compile_trace_id: trace.trace.id,
-          compile_trace_seq: trace.trace.seq,
-          retrieval_hit_ledger_ids: trace.hits.map((record) => record.id),
-        };
-      }
+        const compiled = operational.context;
+        if (input.operation_id !== undefined) {
+          const trace = appendContextCompileTraceInsideService(this.ledgerStore, {
+            session_id: sessionId,
+            operation_id: input.operation_id as string,
+            payload: operational.trace_payload,
+            raw_event_ids: operational.trace_raw_event_ids,
+            hits: operational.hits,
+          });
+          compiled.operational_debug = {
+            ...compiled.operational_debug,
+            compile_trace_id: trace.trace.id,
+            compile_trace_seq: trace.trace.seq,
+            retrieval_hit_ledger_ids: trace.hits.map((record) => record.id),
+          };
+        }
+        return compiled;
+      });
     } catch (error) {
       if (error instanceof ContextAssemblerValidationError ||
           error instanceof OperationalContextError ||

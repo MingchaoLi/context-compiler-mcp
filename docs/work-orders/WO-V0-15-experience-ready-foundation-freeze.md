@@ -34,6 +34,8 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 
 2026-08-24 冻结返回最终复核 `docs/adversarial-reviews/AR-2026-08-24-post-v0-15-freeze-recheck.md` 再次给出 `Challenge`：snapshot baseline 只能证明最近 mutation 后的年龄，不能证明首个可信 telemetry 前 item 整个生命周期没有发生过无 id 命中。冻结因此只为 telemetry completeness P1 再次重开；第五个 append-only fix 同时保留 session global telemetry origin 与 current snapshot baseline 两道门，等待独立 re-QA。历史第四次接受继续保留，但不再代表 never-hit 合同完整关闭。
 
+2026-08-24 第五个 fix 的独立 re-QA 在固定 candidate `cdd1d79446453b3593f5486570a1f7c031af8ddb` 返回 compile telemetry 线性化 P1：首个 operation-id compile 检查空 telemetry 与实际提交首 trace 之间存在跨实例 TOCTOU，另一个实例可在该窗口创建 state 并执行不可观测的无 id 命中。第六个 append-only fix 只用同一 SQLite 的 `BEGIN IMMEDIATE` 包住完整 compile 读取、assembly、首 trace/hits 与 commit，使 no-id compile、raw ingest 和 state apply 与 telemetry origin 处于同一可回滚线性顺序；当前仍为 `FROZEN REOPENED — PENDING INDEPENDENT RE-QA`。
+
 ## 单一结果
 
 > 在不改变现有五类 typed state 与 reducer 生命周期语义、不增加 MCP 工具数量、不引入模型/provider/Graph DB 的前提下，修复已知 Extractor 合同问题，加入最小 hybrid history retrieval、正交 dormant placement、feedback-driven targeted recovery，以及 append-only Experience Ledger，使 v0 可用于长期真实运行与 Experience 数据积累，然后冻结该基础设施。

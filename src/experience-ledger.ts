@@ -93,6 +93,7 @@ interface InternalExperienceLedgerInput extends Omit<ExperienceLedgerInput, "kin
 }
 
 const APPEND_CONTEXT_COMPILE_TRACE = Symbol("appendContextCompileTrace");
+const WITH_COMPILE_TELEMETRY_BOUNDARY = Symbol("withCompileTelemetryBoundary");
 
 /**
  * Append-only research ledger for replayable Event -> Action -> Outcome / Feedback data.
@@ -101,6 +102,7 @@ const APPEND_CONTEXT_COMPILE_TRACE = Symbol("appendContextCompileTrace");
 export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
   private readonly database: DatabaseSync;
   private closed = false;
+  private compileTelemetryBoundaryOpen = false;
 
   constructor(databasePath: string) {
     if (typeof databasePath !== "string" || databasePath.length === 0) {
@@ -153,6 +155,26 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
     return rows.map(rowToRecord);
   }
 
+  /** @internal Serialize one complete service compile against every SQLite writer. */
+  [WITH_COMPILE_TELEMETRY_BOUNDARY]<T>(operation: () => T): T {
+    this.assertOpen();
+    if (this.compileTelemetryBoundaryOpen) {
+      throw new Error("Nested compile telemetry boundaries are not supported");
+    }
+    this.database.exec("BEGIN IMMEDIATE;");
+    this.compileTelemetryBoundaryOpen = true;
+    try {
+      const result = operation();
+      this.database.exec("COMMIT;");
+      return result;
+    } catch (error) {
+      rollback(this.database);
+      throw error;
+    } finally {
+      this.compileTelemetryBoundaryOpen = false;
+    }
+  }
+
   /** @internal Atomically append or repair one idempotent compile trace and all of its hits. */
   [APPEND_CONTEXT_COMPILE_TRACE](input: ContextCompileTraceInput): ContextCompileTraceResult {
     this.assertOpen();
@@ -194,8 +216,7 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
       parent_ledger_ids: [],
     }, "system");
 
-    this.database.exec("BEGIN IMMEDIATE;");
-    try {
+    const append = (): ContextCompileTraceResult => {
       const trace = appendExperienceLedgerRecord(this.database, traceInput);
       const records = hits.map((hit) => appendExperienceLedgerRecord(this.database, normalizeInput({
         session_id: input.session_id,
@@ -210,8 +231,15 @@ export class SqliteExperienceLedgerStore implements ExperienceLedgerStore {
           reason: hit.reason,
         },
       }, "system")));
-      this.database.exec("COMMIT;");
       return { trace, hits: records };
+    };
+    if (this.compileTelemetryBoundaryOpen) return append();
+
+    this.database.exec("BEGIN IMMEDIATE;");
+    try {
+      const result = append();
+      this.database.exec("COMMIT;");
+      return result;
     } catch (error) {
       rollback(this.database);
       throw error;
@@ -235,6 +263,14 @@ export function appendContextCompileTraceInsideService(
   input: ContextCompileTraceInput
 ): ContextCompileTraceResult {
   return store[APPEND_CONTEXT_COMPILE_TRACE](input);
+}
+
+/** Internal service hook; intentionally not re-exported from the package root. */
+export function withCompileTelemetryBoundaryInsideService<T>(
+  store: SqliteExperienceLedgerStore,
+  operation: () => T
+): T {
+  return store[WITH_COMPILE_TELEMETRY_BOUNDARY](operation);
 }
 
 function normalizeCompileHit(input: unknown, index: number): Required<ContextCompileHitInput> {

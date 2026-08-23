@@ -16,6 +16,7 @@ import {
   acquireSqliteExperimentalWarningFilter,
   runContextCompilerMcpServer,
 } from "../src/mcp-server.js";
+import { ContextCompilerMcpService } from "../src/mcp-service.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const serverEntry = join(root, "dist", "mcp-server.js");
@@ -136,6 +137,115 @@ describe("Context Compiler stdio MCP protocol", () => {
       "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'RETRIEVAL_HIT'"
     ).get()).toEqual({ count: 1 });
     compileAudit.close();
+  });
+
+  it("linearizes first trace commit before a competing service write and no-id compile", async () => {
+    const database = join(temporaryRoot, "compile-boundary-commit.db");
+    const sessionId = "compile-boundary-commit";
+    seedCompileBoundaryDatabase(database, sessionId);
+
+    const interleaving = await runCompileTelemetryBoundaryInterleaving(
+      database, sessionId, false
+    );
+    expect(interleaving.blocked_before_release).toBe(true);
+    expect(interleaving.trace_count_before_release).toBe(0);
+    expect(interleaving.origin.response).toMatchObject({ ok: true });
+    expect(interleaving.contender.no_id_response).toEqual({
+      ok: false, error: { code: "INVALID_INPUT" },
+    });
+    expect(interleaving.contender.state).toMatchObject({
+      revision: 1,
+      items: [{ content: "post-boundary durable goal", status: "ACTIVE" }],
+    });
+
+    const audit = new DatabaseSync(database);
+    const trace = audit.prepare(
+      "SELECT payload_json FROM experience_ledger WHERE kind = 'CONTEXT_COMPILE'"
+    ).get() as { payload_json: string };
+    expect(JSON.parse(trace.payload_json)).toMatchObject({
+      operation_id: "first-origin-commit",
+      raw_boundary_max_seq: 1,
+      state_revision: 0,
+      selected_state_ids: [],
+    });
+    expect(audit.prepare(
+      "SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?"
+    ).get(sessionId)).toEqual({ count: 2 });
+    audit.close();
+
+    const verifier = new ContextCompilerMcpService(database);
+    const goalId = interleaving.contender.state.items[0].id as string;
+    expect(verifier.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "post-commit-snapshot",
+    })).toMatchObject({
+      ok: true,
+      result: { context: { dormant_state_ids: [], operational_debug: { dormancy_enabled: false } } },
+    });
+    addUserTurns(verifier, sessionId, 3, 17);
+    expect(verifier.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "post-commit-threshold",
+    })).toMatchObject({
+      ok: true,
+      result: { context: { active_goals: [], dormant_state_ids: [goalId] } },
+    });
+    verifier.close();
+  });
+
+  it("rolls back a failed first trace before a competing service proceeds", async () => {
+    const database = join(temporaryRoot, "compile-boundary-rollback.db");
+    const sessionId = "compile-boundary-rollback";
+    seedCompileBoundaryDatabase(database, sessionId);
+
+    const interleaving = await runCompileTelemetryBoundaryInterleaving(
+      database, sessionId, true
+    );
+    expect(interleaving.blocked_before_release).toBe(true);
+    expect(interleaving.trace_count_before_release).toBe(0);
+    expect(interleaving.origin.response).toEqual({
+      ok: false, error: { code: "STORAGE_FAILURE" },
+    });
+    expect(interleaving.contender.no_id_response).toMatchObject({
+      ok: true,
+      result: { context: { active_goals: [{ content: "post-boundary durable goal" }] } },
+    });
+
+    const audit = new DatabaseSync(database);
+    expect(audit.prepare(
+      "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind IN ('CONTEXT_COMPILE','RETRIEVAL_HIT')"
+    ).get()).toEqual({ count: 0 });
+    expect(audit.prepare(
+      "SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?"
+    ).get(sessionId)).toEqual({ count: 2 });
+    audit.close();
+
+    const verifier = new ContextCompilerMcpService(database);
+    const goalId = interleaving.contender.state.items[0].id as string;
+    expect(verifier.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "first-origin-after-rollback",
+    })).toMatchObject({
+      ok: true,
+      result: { context: { active_goals: [{ id: goalId }], dormant_state_ids: [] } },
+    });
+    addUserTurns(verifier, sessionId, 3, 17);
+    expect(verifier.call("compile_context", {
+      session_id: sessionId,
+      current_input: "zzzz-unrelated-current-query",
+      recent_raw_window_turns: 1,
+      operation_id: "rollback-origin-threshold",
+    })).toMatchObject({
+      ok: true,
+      result: { context: { active_goals: [{ id: goalId }], dormant_state_ids: [] } },
+    });
+    verifier.close();
   });
 
   it("initializes, lists exactly nine tools, calls each tool, and keeps stdout protocol-pure", async () => {
@@ -734,6 +844,163 @@ describe("Context Compiler stdio MCP protocol", () => {
   });
 
 });
+
+interface CompileBoundaryWorkerResult {
+  type: "origin_result" | "contender_result";
+  response?: any;
+  event_id?: string;
+  no_id_response?: any;
+  state?: any;
+}
+
+function seedCompileBoundaryDatabase(database: string, sessionId: string): void {
+  const service = new ContextCompilerMcpService(database);
+  try {
+    expect(service.call("ingest_event", {
+      session_id: sessionId,
+      role: "user",
+      content: "initial boundary evidence",
+      source_event_id: `${sessionId}-initial-source`,
+    })).toMatchObject({ ok: true, result: { seq: 1 } });
+  } finally {
+    service.close();
+  }
+}
+
+function addUserTurns(
+  service: ContextCompilerMcpService,
+  sessionId: string,
+  first: number,
+  last: number
+): void {
+  for (let index = first; index <= last; index += 1) {
+    expect(service.call("ingest_event", {
+      session_id: sessionId,
+      role: "user",
+      content: `timeline ${index}`,
+      source_event_id: `${sessionId}-timeline-${index}`,
+    })).toMatchObject({ ok: true, result: { seq: index } });
+  }
+}
+
+async function runCompileTelemetryBoundaryInterleaving(
+  database: string,
+  sessionId: string,
+  rollback: boolean
+): Promise<{
+  origin: CompileBoundaryWorkerResult;
+  contender: CompileBoundaryWorkerResult;
+  blocked_before_release: boolean;
+  trace_count_before_release: number;
+}> {
+  const boundary = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * 6);
+  const view = new Int32Array(boundary);
+  const workerEntry = join(root, "test", "fixtures", "compile-telemetry-boundary-worker.mjs");
+  const originWorker = new Worker(workerEntry, {
+    workerData: {
+      root,
+      database,
+      session_id: sessionId,
+      kind: "origin",
+      operation_id: rollback ? "first-origin-rollback" : "first-origin-commit",
+      rollback,
+      boundary,
+    },
+    execArgv: ["--no-warnings"],
+  });
+  const contenderWorker = new Worker(workerEntry, {
+    workerData: { root, database, session_id: sessionId, kind: "contender", boundary },
+    execArgv: ["--no-warnings"],
+  });
+  const originResult = boundaryWorkerResult(originWorker, "origin_result");
+  const contenderStarted = boundaryWorkerMessage(contenderWorker, "contender_started");
+  const contenderResult = boundaryWorkerResult(contenderWorker, "contender_result");
+  const originExit = boundaryWorkerExit(originWorker);
+  const contenderExit = boundaryWorkerExit(contenderWorker);
+  let released = false;
+  try {
+    await waitForAtomicValue(view, 1, 1);
+    const audit = new DatabaseSync(database);
+    const traceCountBeforeRelease = (audit.prepare(
+      "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'CONTEXT_COMPILE'"
+    ).get() as { count: number }).count;
+    audit.close();
+
+    Atomics.store(view, 2, 1);
+    Atomics.notify(view, 2);
+    await contenderStarted;
+    await waitForAtomicValue(view, 4, 1);
+    await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 100));
+    const blockedBeforeRelease = Atomics.load(view, 5) === 0;
+    Atomics.store(view, 3, 1);
+    Atomics.notify(view, 3);
+    released = true;
+    const [origin, contender] = await Promise.all([originResult, contenderResult]);
+    await Promise.all([originExit, contenderExit]);
+    return {
+      origin,
+      contender,
+      blocked_before_release: blockedBeforeRelease,
+      trace_count_before_release: traceCountBeforeRelease,
+    };
+  } finally {
+    if (!released) {
+      Atomics.store(view, 2, 1);
+      Atomics.notify(view, 2);
+      Atomics.store(view, 3, 1);
+      Atomics.notify(view, 3);
+    }
+    await Promise.allSettled([originWorker.terminate(), contenderWorker.terminate()]);
+  }
+}
+
+function boundaryWorkerResult(
+  worker: Worker,
+  expectedType: CompileBoundaryWorkerResult["type"]
+): Promise<CompileBoundaryWorkerResult> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    worker.on("message", (message: { type?: string; error?: { message?: string } }) => {
+      if (message.type === expectedType) resolvePromise(message as CompileBoundaryWorkerResult);
+      if (message.type === "worker_error") {
+        rejectPromise(new Error(message.error?.message ?? "compile boundary worker failed"));
+      }
+    });
+    worker.once("error", rejectPromise);
+  });
+}
+
+function boundaryWorkerMessage(worker: Worker, expectedType: string): Promise<void> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    worker.on("message", (message: { type?: string; error?: { message?: string } }) => {
+      if (message.type === expectedType) resolvePromise();
+      if (message.type === "worker_error") {
+        rejectPromise(new Error(message.error?.message ?? "compile boundary worker failed"));
+      }
+    });
+    worker.once("error", rejectPromise);
+  });
+}
+
+function boundaryWorkerExit(worker: Worker): Promise<void> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    worker.once("exit", (code) => {
+      if (code === 0) resolvePromise();
+      else rejectPromise(new Error(`Compile boundary worker exited ${code}`));
+    });
+  });
+}
+
+async function waitForAtomicValue(
+  view: Int32Array,
+  index: number,
+  expected: number
+): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  while (Atomics.load(view, index) !== expected) {
+    if (Date.now() >= deadline) throw new Error(`Timed out waiting for boundary index ${index}`);
+    await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 5));
+  }
+}
 
 type FreshWorkerKind =
   | "raw_open"
