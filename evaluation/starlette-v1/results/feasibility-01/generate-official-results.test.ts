@@ -86,7 +86,7 @@ function withoutLatency(report: any): any {
   };
 }
 
-test("生成唯一一次 DS-13 official evaluator artifact 与盲审包", async () => {
+test.skipIf(process.env[OUTPUT_ENVIRONMENT_VARIABLE] === undefined)("生成唯一一次 DS-13 official evaluator artifact 与盲审包", async () => {
   const outputRoot = process.env[OUTPUT_ENVIRONMENT_VARIABLE];
   if (!outputRoot || !isAbsolute(outputRoot) || !outputRoot.startsWith("/private/tmp/context-compiler-ds13-official.")) {
     throw new Error(`${OUTPUT_ENVIRONMENT_VARIABLE} must be a unique absolute /private/tmp/context-compiler-ds13-official.* path`);
