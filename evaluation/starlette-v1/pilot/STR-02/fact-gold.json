@@ -1,0 +1,32 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-02",
+  "facts": [
+    {"id": "STR-02A/F1", "segment_id": "STR-02A", "category": "open_question", "statement": "Why BaseHTTPMiddleware delays later requests until a response background task completes remains unresolved.", "first_known_at_event_id": "STR-02A/E1", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02A/E1"]},
+    {"id": "STR-02A/F2", "segment_id": "STR-02A", "category": "evidence", "statement": "call_next can wait for the wrapped application and its background work after starting a StreamingResponse.", "first_known_at_event_id": "STR-02A/E2", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02A/E2"]},
+    {"id": "STR-02A/F3", "segment_id": "STR-02A", "category": "constraint", "statement": "A fix must reconcile streaming progress with middleware users that expect an evaluated response.", "first_known_at_event_id": "STR-02A/E3", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02A/E3"]},
+    {"id": "STR-02A/F4", "segment_id": "STR-02A", "category": "decision", "statement": "The active proposal replaces downstream cancellation with disconnect signaling and receive-stream closure.", "first_known_at_event_id": "STR-02A/E4", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02A/E4"]},
+    {"id": "STR-02A/F5", "segment_id": "STR-02A", "category": "decision", "statement": "A maintainer has approved the broader cancellation redesign for merge.", "first_known_at_event_id": "STR-02A/E5", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02A/E5"]},
+    {"id": "STR-02B/F1", "segment_id": "STR-02B", "category": "open_question", "statement": "The No response returned race remains present despite an older change being cited as a supposed fix.", "first_known_at_event_id": "STR-02B/E1", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E1"]},
+    {"id": "STR-02B/F2", "segment_id": "STR-02B", "category": "decision", "statement": "The first candidate patch suppresses the RuntimeError on a detected disconnect without a regression test.", "first_known_at_event_id": "STR-02B/E2", "superseded_at_event_id": "STR-02B/E4", "provenance_event_ids": ["STR-02B/E2"]},
+    {"id": "STR-02B/F3", "segment_id": "STR-02B", "category": "evidence", "statement": "A client-disconnect reproducer consistently fails with four nested middleware layers but completes with three.", "first_known_at_event_id": "STR-02B/E3", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E3"]},
+    {"id": "STR-02B/F4", "segment_id": "STR-02B", "category": "rejected_alternative", "statement": "The exception-suppression patch is rejected as an unreasonable fix.", "first_known_at_event_id": "STR-02B/E4", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E2", "STR-02B/E4"]},
+    {"id": "STR-02B/F5", "segment_id": "STR-02B", "category": "decision", "statement": "The replacement direction removes StreamingResponse-based disconnect polling from BaseHTTPMiddleware.", "first_known_at_event_id": "STR-02B/E5", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E5"]},
+    {"id": "STR-02B/F6", "segment_id": "STR-02B", "category": "evidence", "statement": "The replacement patch fixes the concrete four-layer reproducer.", "first_known_at_event_id": "STR-02B/E6", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E3", "STR-02B/E6"]},
+    {"id": "STR-02B/F7", "segment_id": "STR-02B", "category": "constraint", "statement": "Coverage review must distinguish required behavior from tests that only asserted the old disconnect-polling implementation.", "first_known_at_event_id": "STR-02B/E7", "superseded_at_event_id": null, "provenance_event_ids": ["STR-02B/E7"]}
+  ],
+  "slices": [
+    {"slice_id": "STR-02A/T1", "fact_ids": ["STR-02A/F1"]},
+    {"slice_id": "STR-02A/T2", "fact_ids": ["STR-02A/F1", "STR-02A/F2"]},
+    {"slice_id": "STR-02A/T3", "fact_ids": ["STR-02A/F1", "STR-02A/F2", "STR-02A/F3"]},
+    {"slice_id": "STR-02A/T4", "fact_ids": ["STR-02A/F1", "STR-02A/F2", "STR-02A/F3", "STR-02A/F4"]},
+    {"slice_id": "STR-02A/T5", "fact_ids": ["STR-02A/F1", "STR-02A/F2", "STR-02A/F3", "STR-02A/F4", "STR-02A/F5"]},
+    {"slice_id": "STR-02B/T1", "fact_ids": ["STR-02B/F1"]},
+    {"slice_id": "STR-02B/T2", "fact_ids": ["STR-02B/F1", "STR-02B/F2"]},
+    {"slice_id": "STR-02B/T3", "fact_ids": ["STR-02B/F1", "STR-02B/F2", "STR-02B/F3"]},
+    {"slice_id": "STR-02B/T4", "fact_ids": ["STR-02B/F1", "STR-02B/F3", "STR-02B/F4"]},
+    {"slice_id": "STR-02B/T5", "fact_ids": ["STR-02B/F1", "STR-02B/F3", "STR-02B/F4", "STR-02B/F5"]},
+    {"slice_id": "STR-02B/T6", "fact_ids": ["STR-02B/F1", "STR-02B/F3", "STR-02B/F4", "STR-02B/F5", "STR-02B/F6"]},
+    {"slice_id": "STR-02B/T7", "fact_ids": ["STR-02B/F1", "STR-02B/F3", "STR-02B/F4", "STR-02B/F5", "STR-02B/F6", "STR-02B/F7"]}
+  ]
+}

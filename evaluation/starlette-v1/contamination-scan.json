@@ -1,0 +1,189 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "scan_date": "2026-08-23T02:10:00Z",
+  "rule": "Mark confirmed only when a public repository explicitly reuses the same Starlette issue or fix as an LLM, agent, benchmark, code-repair, or evaluation task, or highly copies that task or patch. Ordinary downstream references, vendored source, production workarounds, and repository names that merely contain words such as agent do not count.",
+  "query_patterns": [
+    "GitHub code search for the exact quoted path starlette/issues/<number> across public repositories",
+    "Manual inspection of repositories or paths containing benchmark, eval, LLM, SWE, repair, dataset, TeamBench, CS540, or repo-issue markers",
+    "Previously discovered exact GitHub cross-references for the registered Issue and PR set"
+  ],
+  "results": [
+    {
+      "candidate_id": "STR-01",
+      "source_numbers": [495, 500, 1692],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned 24 files. A hit in Auto-Debugger-and-Repairing-Code is a notebook output containing an unrelated application's source comment, not a Starlette repair task; ordinary APM and middleware references were also excluded."
+    },
+    {
+      "candidate_id": "STR-02",
+      "source_numbers": [919, 1715, 2516, 2519, 2620],
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "ybkim95/TeamBench",
+          "path": "tasks/GH13_starlette_bg_block/spec.md",
+          "url": "https://github.com/ybkim95/TeamBench/blob/d185aef1916fd86a9ba554d581fd256319a973af/tasks/GH13_starlette_bg_block/spec.md",
+          "reason": "The benchmark task explicitly reuses issue 919 as a Starlette background-task repair problem."
+        },
+        {
+          "repository": "xbz123/repo-issue-intelligence",
+          "path": "benchmarks/cases.json",
+          "url": "https://github.com/xbz123/repo-issue-intelligence/blob/f321e7de14628fa42a0e542359d6567f652d57be/benchmarks/cases.json",
+          "reason": "The public benchmark case set explicitly includes issue 2516 and publishes model-evaluation results for it."
+        },
+        {
+          "repository": "bhollis6/cs540_dataset_ready",
+          "path": "LLM-J/candidates/starlette_pr_2688.json",
+          "url": "https://github.com/bhollis6/cs540_dataset_ready/blob/37c375908267794d911662df4f22c4402c7aa55a/LLM-J/candidates/starlette_pr_2688.json",
+          "reason": "The LLM-J candidate record cross-references the same issue 2516 lineage."
+        }
+      ],
+      "notes": "Both split segments are publicly reused. STR-02 remains useful for schema boundary calibration but is ineligible for a blind v1 effectiveness freeze."
+    },
+    {
+      "candidate_id": "STR-03",
+      "source_numbers": [2018, 2019, 2401, 2402, 3166],
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "ArturL6/knowledge-way",
+          "path": "benchmarks/tasks/encode-starlette-issue-2019.json",
+          "url": "https://github.com/ArturL6/knowledge-way/blob/d72137f4cfbf3beaf1ae392710b7da489ed1972f/benchmarks/tasks/encode-starlette-issue-2019.json",
+          "reason": "A public benchmark task is named for and encodes the same Starlette issue 2019."
+        },
+        {
+          "repository": "xbz123/repo-issue-intelligence",
+          "path": "benchmarks/cases.json",
+          "url": "https://github.com/xbz123/repo-issue-intelligence/blob/f321e7de14628fa42a0e542359d6567f652d57be/benchmarks/cases.json",
+          "reason": "The public issue-repair benchmark includes issue 2019 and model-result artifacts."
+        }
+      ],
+      "notes": "The exact issue-path search returned 70 files across three repositories, dominated by explicit benchmark artifacts."
+    },
+    {
+      "candidate_id": "STR-04",
+      "source_numbers": [685, 1286, 1649, 2349],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned one ordinary public reference and no explicit evaluation-task reuse."
+    },
+    {
+      "candidate_id": "STR-05",
+      "source_numbers": [1083, 1377, 1683],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned no indexed public code hit."
+    },
+    {
+      "candidate_id": "STR-06",
+      "source_numbers": [1365, 1366, 1410],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The issue URL is embedded in Starlette compatibility source and therefore appears in many vendored or copied environments. A SWE-named Starlette snapshot contains that unchanged source comment, but no inspected artifact explicitly frames issue 1365 as a repair/evaluation task; repository-name heuristics alone were not counted."
+    },
+    {
+      "candidate_id": "STR-07",
+      "source_numbers": [1008, 1010],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned no indexed public code hit."
+    },
+    {
+      "candidate_id": "STR-08",
+      "source_numbers": [1298],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned no indexed public code hit."
+    },
+    {
+      "candidate_id": "STR-09",
+      "source_numbers": [1315, 1347],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "Eight indexed hits were ordinary application workarounds or downstream references; none explicitly reused the issue as an evaluation task."
+    },
+    {
+      "candidate_id": "STR-10",
+      "source_numbers": [1102, 3258, 3355],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "One indexed hit was an ordinary downstream implementation reference."
+    },
+    {
+      "candidate_id": "STR-11",
+      "source_numbers": [2625, 2696, 2812, 2893, 2911],
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "ArturL6/knowledge-way",
+          "path": "benchmarks/tasks/encode-starlette-issue-2625.json",
+          "url": "https://github.com/ArturL6/knowledge-way/blob/d72137f4cfbf3beaf1ae392710b7da489ed1972f/benchmarks/tasks/encode-starlette-issue-2625.json",
+          "reason": "The public benchmark task directly encodes issue 2625."
+        },
+        {
+          "repository": "SWE-bench-Live/submission",
+          "path": "submissions/lite/ami-agent/20260623-v0.7.0-claude-opus-4-6/trajs/encode__starlette-2812.json",
+          "url": "https://github.com/SWE-bench-Live/submission/blob/db69a3626788c98688c730eea1d03adf3778a411/submissions/lite/ami-agent/20260623-v0.7.0-claude-opus-4-6/trajs/encode__starlette-2812.json",
+          "reason": "A public agent trajectory evaluates the same PR 2812 lineage and also references the later regression issue."
+        },
+        {
+          "repository": "bhollis6/cs540_dataset_ready",
+          "path": "LLM-J/candidates/starlette_pr_2812.json",
+          "url": "https://github.com/bhollis6/cs540_dataset_ready/blob/37c375908267794d911662df4f22c4402c7aa55a/LLM-J/candidates/starlette_pr_2812.json",
+          "reason": "The LLM-J dataset records the same fix candidate."
+        }
+      ],
+      "notes": "Both the initial fix and its regression chain are exposed in public benchmark or agent artifacts."
+    },
+    {
+      "candidate_id": "STR-12",
+      "source_numbers": [1724, 2288, 2881],
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "ArturL6/knowledge-way",
+          "path": "benchmarks/tasks/encode-starlette-issue-1724.json",
+          "url": "https://github.com/ArturL6/knowledge-way/blob/d72137f4cfbf3beaf1ae392710b7da489ed1972f/benchmarks/tasks/encode-starlette-issue-1724.json",
+          "reason": "The public benchmark task directly encodes the same limiter issue."
+        }
+      ],
+      "notes": "Other hits with agent in a repository name were vendored Solara code and were excluded; the knowledge-way task alone is sufficient for confirmation."
+    },
+    {
+      "candidate_id": "STR-13",
+      "source_numbers": [1309],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "Two indexed hits were ordinary downstream CORS references, with no evaluation semantics."
+    },
+    {
+      "candidate_id": "STR-14",
+      "source_numbers": [2312, 2335],
+      "status": "no_public_hit_found",
+      "direct_evidence": [],
+      "notes": "The exact issue-path search returned no indexed public code hit."
+    },
+    {
+      "candidate_id": "STR-15",
+      "source_numbers": [950, 1999, 2697],
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "LLM-CR-EVAL/starlette-153-cr1",
+          "path": "pull/1",
+          "url": "https://github.com/LLM-CR-EVAL/starlette-153-cr1/pull/1",
+          "reason": "A public LLM code-repair evaluation repository explicitly reuses the Range task and cross-references issue 950."
+        },
+        {
+          "repository": "bhollis6/cs540_dataset_ready",
+          "path": "LLM-J/candidates/starlette_pr_2697.json",
+          "url": "https://github.com/bhollis6/cs540_dataset_ready/blob/37c375908267794d911662df4f22c4402c7aa55a/LLM-J/candidates/starlette_pr_2697.json",
+          "reason": "The LLM-J candidate record explicitly reuses the final Range fix."
+        }
+      ],
+      "notes": "This reproduces and strengthens the original survey exclusion."
+    }
+  ],
+  "limitations": "GitHub code search is index-based, capped per query, and cannot prove absence. The scan covers public GitHub state observed on 2026-08-23, uses exact source-path discovery plus manual inspection, and records no_public_hit_found rather than claiming no contamination."
+}

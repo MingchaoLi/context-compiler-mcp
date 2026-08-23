@@ -20,7 +20,9 @@ WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71
 
 ## Current candidate
 
-WO-DS-01 已完成 Starlette 候选筛选：预注册规则先于研究报告提交，15 条公开真实轨迹中推荐 8 条，分布为 2 short / 2 medium / 4 long。关键节点对抗审查结论为 `Agree with reservations`：该报告足以进入三案例 schema pilot，但不足以直接批量规范化并冻结 8 条。该交付只是候选报告；尚未生成时间切片、Gold、fixture、hash 或 D0/D1/D2 输出，也未修改 Context Compiler core。
+WO-DS-02 已实现 Starlette schema 与三案例 pilot，等待独立 data QA。当前候选包含 3 个目录、4 个独立 segment、25 个时间有序 evidence event/slice；Gold、人工 Oracle-State、Decision Reference 与 Outcome Anchor 已和输入物理隔离，pilot hash 明确标记 `pilot_not_frozen`。`STR-02` 已按证据拆成两个 medium segment，不再视为单一 long 根因链。
+
+统一公开 contamination 扫描确认 `STR-02`、`STR-03`、`STR-11`、`STR-12`、`STR-15` 存在评测复用。若独立 QA 接受本 pilot，正式 freeze 的最小未污染推荐输入为 STR-07/08、STR-05/06、STR-01/04（2 short / 2 medium / 2 long）。尚未运行 D0/D1/D2、远端模型、aggregate 或 PASS rate，也未修改 Context Compiler core。
 
 ## 最新对抗审查
 
@@ -38,7 +40,7 @@ WO-DS-01 已完成 Starlette 候选筛选：预注册规则先于研究报告提
 - No automatic headline generation.
 - No formal compiler mode in any host adapter.
 - WO-EV-02 已完成尺子校准；真实 Starlette 轨迹和远端回答实验完成前，evaluator 仍不能充当最终决策门。
-- Starlette 下一步先用 STR-08/05/02 做三案例 schema pilot，显式审计 STR-02 composite/split，并统一扫描全部 15 条的 benchmark contamination；pilot 通过后才另开最低 6 条的 freeze 工单。STR-15 已因公开 benchmark contamination 从 v1 推荐集中排除。
+- Starlette schema pilot 已实现但等待独立 data QA；通过后另开最低 6 条的 freeze 工单。`STR-02` 已拆分且与 STR-03/11/12/15 一并因公开 benchmark contamination 排除盲评；`no_public_hit_found` 仍不是绝对无污染声明。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

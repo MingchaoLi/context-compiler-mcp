@@ -1,0 +1,69 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-05",
+  "events": [
+    {
+      "id": "STR-05/E1", "segment_id": "STR-05", "ordinal": 1, "role": "user", "event_type": "issue_body",
+      "source": {"source_id": "gh:issue:1083", "kind": "issue", "repository": "Kludex/starlette", "number": 1083, "database_id": "733659147", "node_id": "MDU6SXNzdWU3MzM2NTkxNDc=", "url": "https://github.com/Kludex/starlette/issues/1083", "commit_sha": null},
+      "occurred_at": "2020-10-31T07:33:43Z", "source_updated_at": "2023-02-04T17:23:16Z", "actor": "abe-winter",
+      "summary": "StaticFiles resolves a symlink target with realpath and rejects it when the target lies outside the configured static directory, blocking a development-assets use case.",
+      "source_content_sha256": "3809876ad2dd8a0f64945292d98a819c2594c2e16937140b701f35a3aa44307b"
+    },
+    {
+      "id": "STR-05/E2", "segment_id": "STR-05", "ordinal": 2, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:1377", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1377, "database_id": "805419178", "node_id": "PR_kwDOCELT_M4wAbiq", "url": "https://github.com/Kludex/starlette/pull/1377", "commit_sha": null},
+      "occurred_at": "2021-12-17T14:32:49Z", "source_updated_at": "2022-12-12T07:17:11Z", "actor": "aminalaee",
+      "summary": "A pull request proposes allowing StaticFiles to leave the configured directory when path resolution follows a symlink; its changed files include the implementation and static-files tests.",
+      "source_content_sha256": "a85e9d6c5030e315ee6dd455d0e4fca62c053a62d1529b2d06d7f5204fb5e72b"
+    },
+    {
+      "id": "STR-05/E3", "segment_id": "STR-05", "ordinal": 3, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1140290440", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1083, "database_id": "1140290440", "node_id": "IC_kwDOCELT_M5D93OI", "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-1140290440", "commit_sha": null},
+      "occurred_at": "2022-05-28T16:10:33Z", "source_updated_at": "2022-05-28T16:10:33Z", "actor": "Kludex",
+      "summary": "A maintainer reports that the fix has merged and is planned for the next release.",
+      "source_content_sha256": "4f2ccb3957cf5c5dad983e9ab66052f852d85c9bc0e12f77a8c029e859ce6676"
+    },
+    {
+      "id": "STR-05/E4", "segment_id": "STR-05", "ordinal": 4, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1151958979", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1083, "database_id": "1151958979", "node_id": "IC_kwDOCELT_M5EqX_D", "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-1151958979", "commit_sha": null},
+      "occurred_at": "2022-06-10T05:28:26Z", "source_updated_at": "2022-06-10T05:28:26Z", "actor": "Kludex",
+      "summary": "The maintainer reports that the first fix was reverted in Starlette 0.20.3, invalidating the prior resolved state.",
+      "source_content_sha256": "0c430ec50a22c8044d8d30601409f709ae2c83abb8025b990e0247cc36f7acb2"
+    },
+    {
+      "id": "STR-05/E5", "segment_id": "STR-05", "ordinal": 5, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:1683", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1683, "database_id": "964125852", "node_id": "PR_kwDOCELT_M45d2Sc", "url": "https://github.com/Kludex/starlette/pull/1683", "commit_sha": null},
+      "occurred_at": "2022-06-10T13:23:29Z", "source_updated_at": "2023-02-04T17:22:38Z", "actor": "aminalaee",
+      "summary": "A second pull request explicitly starts from the previous attempt and again proposes controlled support for symlinks outside the static directory.",
+      "source_content_sha256": "ea4f255eac110c68c8db12f67ec6a31c7b99880077a3db74353c19b9121738a0"
+    },
+    {
+      "id": "STR-05/E6", "segment_id": "STR-05", "ordinal": 6, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1197342293", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1083, "database_id": "1197342293", "node_id": "IC_kwDOCELT_M5HXf5V", "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-1197342293", "commit_sha": null},
+      "occurred_at": "2022-07-27T20:39:01Z", "source_updated_at": "2022-07-27T20:39:01Z", "actor": "Kludex",
+      "summary": "A maintainer raises a security boundary: following externally targeted symlinks can be harmful when users can update the served directory, and asks whether the feature should exist.",
+      "source_content_sha256": "6ab1bb6e65650f74ab89de081e41bfd10a282c253a380008c8bdb93af3bff731"
+    },
+    {
+      "id": "STR-05/E7", "segment_id": "STR-05", "ordinal": 7, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1346141751", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1083, "database_id": "1346141751", "node_id": "IC_kwDOCELT_M5QPH43", "url": "https://github.com/Kludex/starlette/issues/1083#issuecomment-1346141751", "commit_sha": null},
+      "occurred_at": "2022-12-12T09:16:49Z", "source_updated_at": "2022-12-12T09:18:05Z", "actor": "Kludex",
+      "summary": "The maintainer proposes an explicit follow_symlink option defaulting to false so existing behavior and the safer default remain unchanged.",
+      "source_content_sha256": "fc5a4bcece3b1dd667a34906dc70383195e2c7323a4995540f9ff880594999b7"
+    },
+    {
+      "id": "STR-05/E8", "segment_id": "STR-05", "ordinal": 8, "role": "user", "event_type": "pull_request_review",
+      "source": {"source_id": "gh:pr-review:1213285678", "kind": "pull_request_review", "repository": "Kludex/starlette", "number": 1683, "database_id": "1213285678", "node_id": "PRR_kwDOCELT_M5IUUUu", "url": "https://github.com/Kludex/starlette/pull/1683#pullrequestreview-1213285678", "commit_sha": null},
+      "occurred_at": "2022-12-17T10:04:48Z", "source_updated_at": "2022-12-17T10:04:48Z", "actor": "Kludex",
+      "summary": "A changes-requested review says the feature is still not settled and asks for a summary of the risks and alternatives before acceptance.",
+      "source_content_sha256": "5efc749e2728f4dd64362f44e5889a1e37a24dc3a3ef4176767648677966e03c"
+    },
+    {
+      "id": "STR-05/E9", "segment_id": "STR-05", "ordinal": 9, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:1416742982", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 1683, "database_id": "1416742982", "node_id": "IC_kwDOCELT_M5UcchG", "url": "https://github.com/Kludex/starlette/pull/1683#issuecomment-1416742982", "commit_sha": null},
+      "occurred_at": "2023-02-04T12:45:00Z", "source_updated_at": "2023-02-04T12:45:00Z", "actor": "aminalaee",
+      "summary": "The pull-request author accepts the maintainer's request to make the behavior opt-in and agrees to update the patch.",
+      "source_content_sha256": "b170bd1443d8900ccbcfa42ac9804e9f74ed996ab5efe824272247474dd9a24e"
+    }
+  ]
+}

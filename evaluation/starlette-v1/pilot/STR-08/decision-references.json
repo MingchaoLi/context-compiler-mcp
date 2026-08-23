@@ -1,0 +1,30 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "references": [
+    {
+      "id": "STR-08/DR1",
+      "slice_id": "STR-08/T1",
+      "source": {"source_id": "gh:issue-comment:933533925", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1298, "database_id": "933533925", "node_id": "IC_kwDOCELT_M43pJjl", "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-933533925", "commit_sha": null},
+      "occurred_at": "2021-10-04T14:18:58Z",
+      "description": "The reporter next tests the fixture suggestion and explains the event-loop mismatch.",
+      "non_unique_answer": true
+    },
+    {
+      "id": "STR-08/DR2",
+      "slice_id": "STR-08/T2",
+      "source": {"source_id": "gh:issue-comment:934095314", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1298, "database_id": "934095314", "node_id": "IC_kwDOCELT_M43rSnS", "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934095314", "commit_sha": null},
+      "occurred_at": "2021-10-05T06:06:45Z",
+      "description": "The reporter builds a blocking-portal lifecycle prototype.",
+      "non_unique_answer": true
+    },
+    {
+      "id": "STR-08/DR3",
+      "slice_id": "STR-08/T3",
+      "source": {"source_id": "gh:issue-comment:934634591", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 1298, "database_id": "934634591", "node_id": "IC_kwDOCELT_M43tWRf", "url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934634591", "commit_sha": null},
+      "occurred_at": "2021-10-05T17:54:40Z",
+      "description": "The reporter reads the existing implementation and stops the proposed change.",
+      "non_unique_answer": true
+    }
+  ]
+}

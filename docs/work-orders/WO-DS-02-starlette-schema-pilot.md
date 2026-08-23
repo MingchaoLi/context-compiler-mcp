@@ -1,6 +1,6 @@
 # WO-DS-02 — Starlette 数据 schema 与三案例 pilot
 
-状态：PLANNED
+状态：IMPLEMENTED — PENDING INDEPENDENT DATA QA
 
 ## 结果
 
@@ -132,3 +132,14 @@ STR-02 必须先列出所有拟纳入与明确排除的事件，再回答：
 - Extracted-State、extractor provider、Formal Host Mode、自动 Headline、隐式 State Update；
 - core/retrieval/assembler/evaluator policy 修改；
 - provider SDK、综合数学分数或 Decision Gate。
+
+## 实现结果
+
+- `evaluation/starlette-v1/` 已建立严格 schema、validator、pilot hash 与 15 条统一 contamination 扫描。
+- 三个目录共 25 个时间有序 evidence event / slice；`STR-02` 经公开证据审计拆为 `STR-02A` 与 `STR-02B`，两段都归为 medium，任何 slice 不跨段。
+- `events.json` / `tasks.json` 是唯一输入文件；Gold、人工 Oracle、Decision Reference 与 Outcome Anchor 物理隔离。
+- 统一扫描确认 `STR-02`、`STR-03`、`STR-11`、`STR-12`、`STR-15` 存在公开评测复用；`no_public_hit_found` 不表示绝对不存在。
+- schema pilot hash 状态固定为 `pilot_not_frozen`，不冒充最终 6–10 条冻结集。
+- 聚焦 validator 反例覆盖未来 event、未来 Gold provenance、Outcome 混入、重复 id、时间逆序、未知字段、跨案例引用、task 原样复述 Gold 与 hash 篡改。
+
+实现者自检完成后必须固定候选提交并交给独立 data QA；未通过前不得开始 6 条正式 freeze 或远端模型实验。

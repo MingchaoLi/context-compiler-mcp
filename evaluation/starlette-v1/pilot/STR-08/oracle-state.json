@@ -1,0 +1,48 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "mode": "oracle",
+  "states": [
+    {
+      "slice_id": "STR-08/T1",
+      "session_id": "STR-08",
+      "items": [
+        {"id": "STR-08/I1", "session_id": "STR-08", "type": "OPEN_QUESTION", "content": "How should TestClient activate lifespan for request tests?", "status": "OPEN", "confidence": 1, "created_at": "2021-10-04T10:48:05Z", "updated_at": "2021-10-04T10:48:05Z", "source_refs": ["STR-08/E1"], "metadata": {"oracle": true, "segment_id": "STR-08"}}
+      ],
+      "relations": []
+    },
+    {
+      "slice_id": "STR-08/T2",
+      "session_id": "STR-08",
+      "items": [
+        {"id": "STR-08/I1", "session_id": "STR-08", "type": "OPEN_QUESTION", "content": "How should TestClient activate lifespan for request tests?", "status": "OPEN", "confidence": 1, "created_at": "2021-10-04T10:48:05Z", "updated_at": "2021-10-04T10:48:05Z", "source_refs": ["STR-08/E1"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I2", "session_id": "STR-08", "type": "CONSTRAINT", "content": "Async resources must share the application event loop.", "status": "ACTIVE", "confidence": 1, "created_at": "2021-10-04T14:18:58Z", "updated_at": "2021-10-04T14:18:58Z", "source_refs": ["STR-08/E2"], "metadata": {"oracle": true, "segment_id": "STR-08"}}
+      ],
+      "relations": []
+    },
+    {
+      "slice_id": "STR-08/T3",
+      "session_id": "STR-08",
+      "items": [
+        {"id": "STR-08/I1", "session_id": "STR-08", "type": "OPEN_QUESTION", "content": "How should TestClient activate lifespan for request tests?", "status": "OPEN", "confidence": 1, "created_at": "2021-10-04T10:48:05Z", "updated_at": "2021-10-04T10:48:05Z", "source_refs": ["STR-08/E1"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I2", "session_id": "STR-08", "type": "CONSTRAINT", "content": "Async resources must share the application event loop.", "status": "ACTIVE", "confidence": 1, "created_at": "2021-10-04T14:18:58Z", "updated_at": "2021-10-04T14:18:58Z", "source_refs": ["STR-08/E2"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I3", "session_id": "STR-08", "type": "DECISION", "content": "Investigate manual lifespan dispatch through the blocking portal.", "status": "ACTIVE", "confidence": 0.8, "created_at": "2021-10-05T06:06:45Z", "updated_at": "2021-10-05T06:06:45Z", "source_refs": ["STR-08/E3"], "metadata": {"oracle": true, "segment_id": "STR-08"}}
+      ],
+      "relations": []
+    },
+    {
+      "slice_id": "STR-08/T4",
+      "session_id": "STR-08",
+      "items": [
+        {"id": "STR-08/I1", "session_id": "STR-08", "type": "OPEN_QUESTION", "content": "How should TestClient activate lifespan for request tests?", "status": "RESOLVED", "confidence": 1, "created_at": "2021-10-04T10:48:05Z", "updated_at": "2021-10-05T17:54:40Z", "source_refs": ["STR-08/E1", "STR-08/E4"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I2", "session_id": "STR-08", "type": "CONSTRAINT", "content": "Async resources must share the application event loop.", "status": "ACTIVE", "confidence": 1, "created_at": "2021-10-04T14:18:58Z", "updated_at": "2021-10-04T14:18:58Z", "source_refs": ["STR-08/E2"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I4", "session_id": "STR-08", "type": "DECISION", "content": "Use TestClient as a context manager for lifespan.", "status": "ACTIVE", "confidence": 1, "created_at": "2021-10-05T17:54:40Z", "updated_at": "2021-10-05T17:54:40Z", "source_refs": ["STR-08/E4"], "metadata": {"oracle": true, "segment_id": "STR-08"}},
+        {"id": "STR-08/I5", "session_id": "STR-08", "type": "REJECTED_ALTERNATIVE", "content": "Modify TestClient to dispatch lifespan messages manually.", "status": "REJECTED", "confidence": 1, "created_at": "2021-10-05T17:54:40Z", "updated_at": "2021-10-05T17:54:40Z", "source_refs": ["STR-08/E3", "STR-08/E4"], "metadata": {"oracle": true, "segment_id": "STR-08"}}
+      ],
+      "relations": [
+        {"session_id": "STR-08", "source_id": "STR-08/I1", "relation_type": "RESOLVED_BY", "target_id": "STR-08/I4", "created_at": "2021-10-05T17:54:40Z"},
+        {"session_id": "STR-08", "source_id": "STR-08/I5", "relation_type": "REJECTS", "target_id": "STR-08/I4", "created_at": "2021-10-05T17:54:40Z"}
+      ]
+    }
+  ]
+}

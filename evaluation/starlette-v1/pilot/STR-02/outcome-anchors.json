@@ -1,0 +1,20 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-02",
+  "anchors": [
+    {
+      "id": "STR-02A/O1", "segment_id": "STR-02A", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:1715", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 1715, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/040d8c86b09f34be49e8c253d97a588973bc7308", "commit_sha": "040d8c86b09f34be49e8c253d97a588973bc7308"},
+      "occurred_at": "2022-09-24T05:29:08Z", "summary": "PR 1715 merged a cancellation/disconnect redesign together with BaseHTTPMiddleware tests.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/1715", "https://github.com/Kludex/starlette/commit/040d8c86b09f34be49e8c253d97a588973bc7308"],
+      "limitations": "The merge does not prove that the later No-response race is the same defect or that every behavior discussed in issue 919 was reproduced."
+    },
+    {
+      "id": "STR-02B/O1", "segment_id": "STR-02B", "kind": "patch_merged",
+      "source": {"source_id": "gh:merge:2620", "kind": "merge_commit", "repository": "Kludex/starlette", "number": 2620, "database_id": null, "node_id": null, "url": "https://github.com/Kludex/starlette/commit/d771bb7a5ecfcd658735cf07ba6f1dd4ac057ccd", "commit_sha": "d771bb7a5ecfcd658735cf07ba6f1dd4ac057ccd"},
+      "occurred_at": "2024-09-01T07:04:50Z", "summary": "PR 2620 merged the non-polling BaseHTTPMiddleware implementation with middleware regression tests.",
+      "artifact_urls": ["https://github.com/Kludex/starlette/pull/2620", "https://github.com/Kludex/starlette/commit/d771bb7a5ecfcd658735cf07ba6f1dd4ac057ccd"],
+      "limitations": "The anchor covers the registered client-disconnect reproducer. A 2025 SSE comment reports a later symptom but does not establish the same race, so the dataset must not claim universal resolution."
+    }
+  ]
+}

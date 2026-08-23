@@ -1,0 +1,15 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-05",
+  "tasks": [
+    {"id": "STR-05/T1", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E1", "available_event_ids": ["STR-05/E1"], "recent_raw_window_turns": 1, "current_task": "What behavior and threat boundaries should be established before proposing a StaticFiles change?"},
+    {"id": "STR-05/T2", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E2", "available_event_ids": ["STR-05/E1", "STR-05/E2"], "recent_raw_window_turns": 2, "current_task": "What evidence is still needed to decide whether this implementation is safe and complete?"},
+    {"id": "STR-05/T3", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E3", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3"], "recent_raw_window_turns": 3, "current_task": "What is the current project state, and what should remain monitored after the announced release change?"},
+    {"id": "STR-05/T4", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E4", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4"], "recent_raw_window_turns": 3, "current_task": "How should the earlier conclusion change, and what must be learned before trying again?"},
+    {"id": "STR-05/T5", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E5", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5"], "recent_raw_window_turns": 3, "current_task": "How should this second attempt be evaluated without assuming that the first merge proved the design?"},
+    {"id": "STR-05/T6", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E6", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6"], "recent_raw_window_turns": 3, "current_task": "Which safety constraint now dominates the design, and what smaller product boundary could preserve the use case?"},
+    {"id": "STR-05/T7", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E7", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7"], "recent_raw_window_turns": 3, "current_task": "What should reviewers verify about the proposed compatibility and security boundary before acceptance?"},
+    {"id": "STR-05/T8", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E8", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8"], "recent_raw_window_turns": 3, "current_task": "Why is this still unresolved despite the proposed boundary, and what concrete response should come next?"},
+    {"id": "STR-05/T9", "segment_id": "STR-05", "cutoff_event_id": "STR-05/E9", "available_event_ids": ["STR-05/E1", "STR-05/E2", "STR-05/E3", "STR-05/E4", "STR-05/E5", "STR-05/E6", "STR-05/E7", "STR-05/E8", "STR-05/E9"], "recent_raw_window_turns": 3, "current_task": "What remains to validate before merge, and which earlier failure must not be forgotten?"}
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-08",
+  "tasks": [
+    {
+      "id": "STR-08/T1",
+      "segment_id": "STR-08",
+      "cutoff_event_id": "STR-08/E1",
+      "available_event_ids": ["STR-08/E1"],
+      "recent_raw_window_turns": 1,
+      "current_task": "Before changing TestClient, what behavior should be verified and what is the smallest next investigation?"
+    },
+    {
+      "id": "STR-08/T2",
+      "segment_id": "STR-08",
+      "cutoff_event_id": "STR-08/E2",
+      "available_event_ids": ["STR-08/E1", "STR-08/E2"],
+      "recent_raw_window_turns": 2,
+      "current_task": "Given the loop evidence so far, which assumptions remain uncertain and what should be tested next?"
+    },
+    {
+      "id": "STR-08/T3",
+      "segment_id": "STR-08",
+      "cutoff_event_id": "STR-08/E3",
+      "available_event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3"],
+      "recent_raw_window_turns": 2,
+      "current_task": "What should be checked in the existing public API before adopting the prototype as a product change?"
+    },
+    {
+      "id": "STR-08/T4",
+      "segment_id": "STR-08",
+      "cutoff_event_id": "STR-08/E4",
+      "available_event_ids": ["STR-08/E1", "STR-08/E2", "STR-08/E3", "STR-08/E4"],
+      "recent_raw_window_turns": 2,
+      "current_task": "What is the present issue status, and is any implementation work still justified?"
+    }
+  ]
+}

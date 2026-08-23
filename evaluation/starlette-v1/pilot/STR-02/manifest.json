@@ -1,0 +1,69 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-02",
+  "title": "BaseHTTPMiddleware lifecycle candidate boundary audit",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "boundary_audit",
+  "pilot_status": "pilot_not_frozen",
+  "segments": [
+    {
+      "id": "STR-02A",
+      "classification": "medium",
+      "boundary": "split_from_composite",
+      "event_ids": ["STR-02A/E1", "STR-02A/E2", "STR-02A/E3", "STR-02A/E4", "STR-02A/E5"],
+      "slice_ids": ["STR-02A/T1", "STR-02A/T2", "STR-02A/T3", "STR-02A/T4", "STR-02A/T5"]
+    },
+    {
+      "id": "STR-02B",
+      "classification": "medium",
+      "boundary": "split_from_composite",
+      "event_ids": ["STR-02B/E1", "STR-02B/E2", "STR-02B/E3", "STR-02B/E4", "STR-02B/E5", "STR-02B/E6", "STR-02B/E7"],
+      "slice_ids": ["STR-02B/T1", "STR-02B/T2", "STR-02B/T3", "STR-02B/T4", "STR-02B/T5", "STR-02B/T6", "STR-02B/T7"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "split_required",
+    "rationale": "Issue 2516 explicitly cites PR 1715 as a supposed prior fix, but the earlier segment concerns background-task completion and cancellation tradeoffs while the later segment has a distinct client-disconnect race, multi-middleware reproducer, rejected patch, and final non-polling fix. The citation is a historical dependency, not proof of one root cause.",
+    "falsification": "Recombine only if an immutable patch/test analysis demonstrates one causal defect whose state transitions account for both the original background-task behavior and the later No-response race without relying on the citation alone."
+  },
+  "included_source_ids": [
+    "gh:issue:919",
+    "gh:issue-comment:665477901",
+    "gh:issue-comment:672908610",
+    "gh:pr:1715",
+    "gh:pr-comment:1254195546",
+    "gh:issue:2516",
+    "gh:pr:2519",
+    "gh:issue-comment:1976400404",
+    "gh:pr-comment:2012214006",
+    "gh:pr:2620",
+    "gh:pr-comment:2166743888",
+    "gh:pr-comment:2301794696"
+  ],
+  "excluded_sources": [
+    {
+      "source_id": "gh:issue-comment:644596659",
+      "url": "https://github.com/Kludex/starlette/issues/919#issuecomment-644596659",
+      "reason": "The create_task workaround is not a verified fix and later discussion distinguishes blocking CPU work from the middleware defect."
+    },
+    {
+      "source_id": "gh:pr:1017",
+      "url": "https://github.com/Kludex/starlette/pull/1017",
+      "reason": "The abandoned response-evaluation direction is summarized by the included maintainer analysis; expanding it would create a separate branch."
+    },
+    {
+      "source_id": "gh:issue-comment:2148240732",
+      "url": "https://github.com/Kludex/starlette/issues/2516#issuecomment-2148240732",
+      "reason": "Pure ASGI middleware is a valid workaround but does not explain or resolve the later race in BaseHTTPMiddleware."
+    },
+    {
+      "source_id": "gh:issue-comment:3135077640",
+      "url": "https://github.com/Kludex/starlette/issues/2516#issuecomment-3135077640",
+      "reason": "A 2025 SSE reproduction occurs after the registered merge outcome and does not establish that it is the same race; it is preserved as an Outcome limitation instead of being back-propagated."
+    }
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "The current PR bodies are mutable snapshots. Segment membership relies on timestamped comments, conservative summaries, and immutable merge anchors; no summary treats the later citation as proof of identical root cause."
+}

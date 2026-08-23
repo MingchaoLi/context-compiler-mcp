@@ -1,0 +1,90 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-02",
+  "events": [
+    {
+      "id": "STR-02A/E1", "segment_id": "STR-02A", "ordinal": 1, "role": "user", "event_type": "issue_body",
+      "source": {"source_id": "gh:issue:919", "kind": "issue", "repository": "Kludex/starlette", "number": 919, "database_id": "608227532", "node_id": "MDU6SXNzdWU2MDgyMjc1MzI=", "url": "https://github.com/Kludex/starlette/issues/919", "commit_sha": null},
+      "occurred_at": "2020-04-28T11:03:13Z", "source_updated_at": "2024-05-30T20:15:18Z", "actor": "retnikt",
+      "summary": "The reporter observes that adding a transparent BaseHTTPMiddleware makes later requests wait for a response background task to finish, while the first response appears to return.",
+      "source_content_sha256": "147f02468ed1d0824f6fc6e48ef15df935855d8cfe0d4aaa8d912cd6b63a32d1"
+    },
+    {
+      "id": "STR-02A/E2", "segment_id": "STR-02A", "ordinal": 2, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:665477901", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 919, "database_id": "665477901", "node_id": "MDEyOklzc3VlQ29tbWVudDY2NTQ3NzkwMQ==", "url": "https://github.com/Kludex/starlette/issues/919#issuecomment-665477901", "commit_sha": null},
+      "occurred_at": "2020-07-29T07:09:12Z", "source_updated_at": "2020-07-29T07:09:12Z", "actor": "schmidtc",
+      "summary": "A contributor traces the behavior to call_next creating a StreamingResponse but not exiting until the wrapped app, including its background task, has completed; client content-length handling can hide that wait.",
+      "source_content_sha256": "37e9fa68a7b1b04f25f706645c5e05a4558617897a20112bef83ab6a55d01b38"
+    },
+    {
+      "id": "STR-02A/E3", "segment_id": "STR-02A", "ordinal": 3, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:672908610", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 919, "database_id": "672908610", "node_id": "MDEyOklzc3VlQ29tbWVudDY3MjkwODYxMA==", "url": "https://github.com/Kludex/starlette/issues/919#issuecomment-672908610", "commit_sha": null},
+      "occurred_at": "2020-08-12T14:33:16Z", "source_updated_at": "2020-08-12T14:33:56Z", "actor": "erewok",
+      "summary": "An attempted unevaluated-response fix conflicts with users who require an evaluated response in middleware; the contributor recommends raw ASGI middleware and warns against BaseHTTPMiddleware with streaming responses.",
+      "source_content_sha256": "360750ff910eaabd31fb81bf4ededc77aa0664c7c17b892164952626e096398b"
+    },
+    {
+      "id": "STR-02A/E4", "segment_id": "STR-02A", "ordinal": 4, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:1715", "kind": "pull_request", "repository": "Kludex/starlette", "number": 1715, "database_id": "983194198", "node_id": "PR_kwDOCELT_M46mlpW", "url": "https://github.com/Kludex/starlette/pull/1715", "commit_sha": null},
+      "occurred_at": "2022-06-29T23:11:14Z", "source_updated_at": "2022-09-24T05:29:09Z", "actor": "jhominal",
+      "summary": "A broad BaseHTTPMiddleware pull request proposes replacing downstream task cancellation with http.disconnect signaling and receive-stream closure, and records tests for related cancellation and deadlock cases.",
+      "source_content_sha256": "441731fbfcf356c64825542fb22a1db9f0c44bb0f4d97015718576faa9df9eae"
+    },
+    {
+      "id": "STR-02A/E5", "segment_id": "STR-02A", "ordinal": 5, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:1254195546", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 1715, "database_id": "1254195546", "node_id": "IC_kwDOCELT_M5KwYFa", "url": "https://github.com/Kludex/starlette/pull/1715#issuecomment-1254195546", "commit_sha": null},
+      "occurred_at": "2022-09-21T20:29:42Z", "source_updated_at": "2022-09-21T20:30:03Z", "actor": "Kludex",
+      "summary": "A maintainer approves the direction and authorizes merge after review.",
+      "source_content_sha256": "7a92fde17f099168802197423ae3eebdbc355a7156342a1efdb912e4165d86f1"
+    },
+    {
+      "id": "STR-02B/E1", "segment_id": "STR-02B", "ordinal": 1, "role": "user", "event_type": "issue_body",
+      "source": {"source_id": "gh:issue:2516", "kind": "issue", "repository": "Kludex/starlette", "number": 2516, "database_id": "2138407240", "node_id": "I_kwDOCELT_M5_dYFI", "url": "https://github.com/Kludex/starlette/issues/2516", "commit_sha": null},
+      "occurred_at": "2024-02-16T11:26:28Z", "source_updated_at": "2025-07-30T06:54:49Z", "actor": "jonathanslenders",
+      "summary": "A new issue reports a hard-to-reproduce No response returned race despite PR 1715 being cited as a supposed earlier fix, and supplies a high-middleware client-refresh reproducer.",
+      "source_content_sha256": "878bebfcf2534419180027ba1da76da78dded7228f2742468ab4ee4dbb8e78f6"
+    },
+    {
+      "id": "STR-02B/E2", "segment_id": "STR-02B", "ordinal": 2, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:2519", "kind": "pull_request", "repository": "Kludex/starlette", "number": 2519, "database_id": "1729398434", "node_id": "PR_kwDOCELT_M5nFIai", "url": "https://github.com/Kludex/starlette/pull/2519", "commit_sha": null},
+      "occurred_at": "2024-02-16T12:07:10Z", "source_updated_at": "2024-03-30T11:37:55Z", "actor": "jonathanslenders",
+      "summary": "An initial patch proposes suppressing the RuntimeError when a disconnect wins the race before a response, but it does not add a regression test and notes an even broader dummy-response alternative.",
+      "source_content_sha256": "f2b216f9abdaa03b4562a94fde82816279144567bb5b8e8817053391b153a97d"
+    },
+    {
+      "id": "STR-02B/E3", "segment_id": "STR-02B", "ordinal": 3, "role": "user", "event_type": "issue_comment",
+      "source": {"source_id": "gh:issue-comment:1976400404", "kind": "issue_comment", "repository": "Kludex/starlette", "number": 2516, "database_id": "1976400404", "node_id": "IC_kwDOCELT_M51zXoU", "url": "https://github.com/Kludex/starlette/issues/2516#issuecomment-1976400404", "commit_sha": null},
+      "occurred_at": "2024-03-04T11:47:01Z", "source_updated_at": "2024-03-05T12:26:21Z", "actor": "mikkelduif",
+      "summary": "A second reproducer ties the failure to client disconnect timing and nested BaseHTTPMiddleware count: three layers complete while four or more consistently fail in the outer layer.",
+      "source_content_sha256": "b1de621163c2955a552960e7e4d672a9e547ca6284b538360a78f3f244534466"
+    },
+    {
+      "id": "STR-02B/E4", "segment_id": "STR-02B", "ordinal": 4, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:2012214006", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 2519, "database_id": "2012214006", "node_id": "IC_kwDOCELT_M537_L2", "url": "https://github.com/Kludex/starlette/pull/2519#issuecomment-2012214006", "commit_sha": null},
+      "occurred_at": "2024-03-21T12:55:10Z", "source_updated_at": "2024-03-21T12:55:10Z", "actor": "Kludex",
+      "summary": "A maintainer rejects the initial patch as an unreasonable fix.",
+      "source_content_sha256": "a9cce6152b9113f0f161c99e3faffd98bdb5db3c4a2dba00fb1dbd6bb6bfb532"
+    },
+    {
+      "id": "STR-02B/E5", "segment_id": "STR-02B", "ordinal": 5, "role": "user", "event_type": "pull_request_body",
+      "source": {"source_id": "gh:pr:2620", "kind": "pull_request", "repository": "Kludex/starlette", "number": 2620, "database_id": "1919416492", "node_id": "PR_kwDOCELT_M5yZ_is", "url": "https://github.com/Kludex/starlette/pull/2620", "commit_sha": null},
+      "occurred_at": "2024-06-13T19:47:44Z", "source_updated_at": "2024-09-06T22:35:08Z", "actor": "adriangb",
+      "summary": "A new pull request targets the issue by removing StreamingResponse-based disconnect polling from BaseHTTPMiddleware rather than suppressing the observed exception.",
+      "source_content_sha256": "0f8b77b4c8e9f725668a9a038604489347fefae05dd2703ebbdfcd507f0a68bc"
+    },
+    {
+      "id": "STR-02B/E6", "segment_id": "STR-02B", "ordinal": 6, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:2166743888", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 2620, "database_id": "2166743888", "node_id": "IC_kwDOCELT_M6BJeNQ", "url": "https://github.com/Kludex/starlette/pull/2620#issuecomment-2166743888", "commit_sha": null},
+      "occurred_at": "2024-06-13T20:45:50Z", "source_updated_at": "2024-06-13T20:45:50Z", "actor": "mikkelduif",
+      "summary": "The author of the concrete four-layer reproducer confirms that the new pull request fixes that reproducer.",
+      "source_content_sha256": "28236624964b77894b85a902bbe3b4152ee424b340b2666a7f20e40d67af69fe"
+    },
+    {
+      "id": "STR-02B/E7", "segment_id": "STR-02B", "ordinal": 7, "role": "user", "event_type": "pull_request_comment",
+      "source": {"source_id": "gh:pr-comment:2301794696", "kind": "pull_request_comment", "repository": "Kludex/starlette", "number": 2620, "database_id": "2301794696", "node_id": "IC_kwDOCELT_M6JMpmI", "url": "https://github.com/Kludex/starlette/pull/2620#issuecomment-2301794696", "commit_sha": null},
+      "occurred_at": "2024-08-21T11:12:15Z", "source_updated_at": "2024-08-21T11:12:15Z", "actor": "adriangb",
+      "summary": "The patch author explains that coverage changed because the replacement no longer calls receive to poll for disconnects, so old tests asserting such calls encoded an implementation detail.",
+      "source_content_sha256": "e9080c821721b8b6e1dd662c958db4bb5a27cc65fb2d71cedffdf41b97ad6c2d"
+    }
+  ]
+}
