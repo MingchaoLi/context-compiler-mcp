@@ -1,11 +1,14 @@
 // @vitest-environment node
 
+import { execFile } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  ACCEPTED_ST02_CONTRACT_SOURCE,
   ACCEPTED_ST02_SOURCE,
   buildNextPacket,
   buildNextPacketFromCapture,
@@ -15,6 +18,7 @@ import {
 
 const REPOSITORY_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPLAY_ROOT = join(REPOSITORY_ROOT, "evaluation/state-replay-v0.1");
+const execFileAsync = promisify(execFile);
 const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
@@ -66,6 +70,22 @@ describe("WO-DS-14 ST-02 zero-model run contract", () => {
       canonical_source_commit: "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
       event_stream_git_blob: "9b4b18c77a5496278325429be2df6aaf767281e9",
       event_stream_sha256: "a35771410cd027a70e439add43a268529826def666c14421b629e79a47c0a4e1",
+    });
+    expect(ACCEPTED_ST02_CONTRACT_SOURCE).toEqual({
+      commit: "8d31cb6fc06b6b99bc141258539deb51b46d2d1b",
+      parent: "daa012c4d6f09919e798edc3771cf090bd5dd188",
+      files: [
+        {
+          path: "st02/contract/run-contract.json",
+          blob: "536e11f6ca9dc3cf91d7c761a99e9afb6564b13e",
+          sha256: "7a78f885c177cbd1a89458fe8694dffee51647e8ab7797992188049e97b8e502",
+        },
+        {
+          path: "st02/contract/response-contract.json",
+          blob: "96bb261c615e72f69580c338c3ccdc1450ec2dd6",
+          sha256: "be4a39e39ad0822b60bdce11936e6a1bf144094f068d857ed0a00231a50269dd",
+        },
+      ],
     });
     const contract = JSON.parse(await readFile(join(REPLAY_ROOT, "st02/contract/run-contract.json"), "utf8"));
     expect(contract.step_order).toHaveLength(30);
@@ -196,15 +216,44 @@ describe("WO-DS-14 ST-02 zero-model run contract", () => {
     contract.authorization.model_authorized = true;
     contract.input_boundary.oracle_state = true;
     await writeFile(contractPath, `${JSON.stringify(contract, null, 2)}\n`, "utf8");
-    await expect(buildNextPacket(REPOSITORY_ROOT, [], { fixture_root: contractFixture })).rejects.toThrow(/authorization|input_boundary/);
+    await expect(buildNextPacket(REPOSITORY_ROOT, [], { fixture_root: contractFixture })).rejects.toThrow(/accepted_st02_contract/);
+
+    const responseContractFixture = await sourceOnlyFixture();
+    const responseContractPath = join(responseContractFixture, "st02/contract/response-contract.json");
+    const responseContract = JSON.parse(await readFile(responseContractPath, "utf8"));
+    responseContract.invalid_response_policy.manual_repair = true;
+    await writeFile(responseContractPath, `${JSON.stringify(responseContract, null, 2)}\n`, "utf8");
+    await expect(buildNextPacket(REPOSITORY_ROOT, [], { fixture_root: responseContractFixture })).rejects.toThrow(/accepted_st02_contract/);
 
     const runtimeSource = await readFile(join(REPLAY_ROOT, "st02/runtime.ts"), "utf8");
+    expect(runtimeSource.indexOf("await validateContractAnchor(repositoryRoot, fixtureRoot);")).toBeLessThan(
+      runtimeSource.indexOf("const runContract = parseJson"),
+    );
     expect(runtimeSource).not.toContain("gold/");
     expect(runtimeSource).not.toContain("semantic-items");
     expect(runtimeSource).not.toContain("gold-deltas");
     expect(runtimeSource).not.toContain("runEvaluationSuite");
     expect(runtimeSource).not.toContain("assembleContext");
     expect(runtimeSource).not.toContain("writeFile");
+  });
+
+  it("runs the source-only CLI without an explicit repository-root argument", async () => {
+    const result = await execFileAsync(process.execPath, [
+      join(REPOSITORY_ROOT, "node_modules/vite-node/vite-node.mjs"),
+      "--script",
+      join(REPLAY_ROOT, "st02/run-source-only.ts"),
+    ], {
+      cwd: REPOSITORY_ROOT,
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed).toMatchObject({
+      status: "next_packet_ready_no_model_called",
+      processed_response_count: 0,
+      model_call_count: 0,
+      scoring_run_count: 0,
+      next_packet: { event_id: "STR-08/E1" },
+    });
   });
 
   it("keeps each raw response and its metadata in separate JSON files for mechanical replay", async () => {

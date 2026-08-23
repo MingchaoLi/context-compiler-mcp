@@ -16,7 +16,7 @@ import {
 import type { ContextItem, StateDelta, StateRelation } from "../../../src/state-types.js";
 
 const THIS_DIRECTORY = dirname(fileURLToPath(import.meta.url));
-export const DEFAULT_REPOSITORY_ROOT = join(THIS_DIRECTORY, "../../../..");
+export const DEFAULT_REPOSITORY_ROOT = join(THIS_DIRECTORY, "../../..");
 const DEFAULT_FIXTURE_ROOT = join(THIS_DIRECTORY, "..");
 const EVENT_STREAM_PATH = "source/event-stream.jsonl";
 const RUN_CONTRACT_PATH = "st02/contract/run-contract.json";
@@ -80,6 +80,23 @@ export const ACCEPTED_ST02_SOURCE = Object.freeze({
   canonical_source_commit: "4b974538d76d0e0d8a5ac17c5662533b714ef00e",
   event_stream_git_blob: "9b4b18c77a5496278325429be2df6aaf767281e9",
   event_stream_sha256: "a35771410cd027a70e439add43a268529826def666c14421b629e79a47c0a4e1",
+});
+
+export const ACCEPTED_ST02_CONTRACT_SOURCE = Object.freeze({
+  commit: "8d31cb6fc06b6b99bc141258539deb51b46d2d1b",
+  parent: "daa012c4d6f09919e798edc3771cf090bd5dd188",
+  files: Object.freeze([
+    Object.freeze({
+      path: "st02/contract/run-contract.json",
+      blob: "536e11f6ca9dc3cf91d7c761a99e9afb6564b13e",
+      sha256: "7a78f885c177cbd1a89458fe8694dffee51647e8ab7797992188049e97b8e502",
+    }),
+    Object.freeze({
+      path: "st02/contract/response-contract.json",
+      blob: "96bb261c615e72f69580c338c3ccdc1450ec2dd6",
+      sha256: "be4a39e39ad0822b60bdce11936e6a1bf144094f068d857ed0a00231a50269dd",
+    }),
+  ]),
 });
 
 type JsonRecord = Record<string, any>;
@@ -294,6 +311,27 @@ async function validateSourceAnchor(repositoryRoot: string, fixtureRoot: string)
   return currentBytes;
 }
 
+async function validateContractAnchor(repositoryRoot: string, fixtureRoot: string): Promise<void> {
+  const source = ACCEPTED_ST02_CONTRACT_SOURCE;
+  const commit = await gitText(repositoryRoot, ["rev-parse", `${source.commit}^{commit}`]);
+  if (commit !== source.commit) fail("accepted_st02_contract.commit", "fixed contract commit unavailable");
+  const parent = await gitText(repositoryRoot, ["show", "-s", "--format=%P", commit]);
+  if (parent !== source.parent) fail("accepted_st02_contract.parent", "fixed contract parent changed");
+  for (const entry of source.files) {
+    const repositoryPath = `evaluation/state-replay-v0.1/${entry.path}`;
+    const blob = await gitText(repositoryRoot, ["rev-parse", `${commit}:${repositoryPath}`]);
+    if (blob !== entry.blob) fail(`accepted_st02_contract.${entry.path}.blob`, "fixed contract blob changed");
+    const fixedBytes = await gitBuffer(repositoryRoot, ["cat-file", "blob", blob]);
+    if (sha256(fixedBytes) !== entry.sha256) {
+      fail(`accepted_st02_contract.${entry.path}.sha256`, "fixed contract digest changed");
+    }
+    const currentBytes = await readRegularFile(join(fixtureRoot, entry.path));
+    if (!currentBytes.equals(fixedBytes)) {
+      fail(`accepted_st02_contract.${entry.path}`, "current bytes differ from fixed 8d31cb6 Git blob");
+    }
+  }
+}
+
 function parseEvents(bytes: Buffer, order: readonly unknown[]): StateReplayEvent[] {
   const text = bytes.toString("utf8");
   if (!text.endsWith("\n")) fail(EVENT_STREAM_PATH, "must end with one newline");
@@ -467,6 +505,8 @@ function validateResponseContract(contract: JsonRecord): void {
 async function loadFixture(repositoryRoot: string, fixtureRootValue?: string): Promise<Fixture> {
   const fixtureRoot = resolve(fixtureRootValue ?? DEFAULT_FIXTURE_ROOT);
   const eventBytes = await validateSourceAnchor(repositoryRoot, fixtureRoot);
+  // Contract Git objects and current bytes are fixed before either current JSON document is parsed.
+  await validateContractAnchor(repositoryRoot, fixtureRoot);
   const runContract = parseJson((await readRegularFile(join(fixtureRoot, RUN_CONTRACT_PATH))).toString("utf8"), RUN_CONTRACT_PATH);
   const responseContract = parseJson((await readRegularFile(join(fixtureRoot, RESPONSE_CONTRACT_PATH))).toString("utf8"), RESPONSE_CONTRACT_PATH);
   const order = validateRunContract(runContract);

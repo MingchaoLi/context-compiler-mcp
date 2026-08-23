@@ -2,7 +2,7 @@
 
 日期：2026-08-23
 
-状态：**RUN CONTRACT IMPLEMENTED — PENDING INDEPENDENT RUN-GATE QA；MODEL NOT AUTHORIZED**
+状态：**RUN CONTRACT REIMPLEMENTED — PENDING INDEPENDENT RUN-GATE RE-QA；MODEL NOT AUTHORIZED**
 
 ## 本次有界结果
 
@@ -27,6 +27,22 @@
 - replay 只把 `raw_response` 交给现有 `StrictStateExtractor`，metadata 永不进入模型输入。
 
 `packets/`、`capture/`、`internal/` 当前均只有中文 README，没有任何 official artifact。
+
+## 首次 Run-Gate QA 返回与修复
+
+首次独立 QA 在固定候选 `8d31cb6fc06b6b99bc141258539deb51b46d2d1b` 发现两个 P1，QA 提交为 `cc9594831023b523705e34c47b414ac02ce46a20`：
+
+1. runtime 只在当前 JSON 解析前锚定 Event Stream，两份 contract 与其期望常量仍处于同一可协调改写集合；同步开启 model/capture/QA authorization 并改 runtime 常量后仍可自证；
+2. `DEFAULT_REPOSITORY_ROOT` 从 `st02/` 多上溯一层，无参数 CLI 落到项目父目录并真实报 `not a git repository`；首次 handoff 的 CLI 冒烟声明不可复现。
+
+本修复不改变合同语义、Event Stream、packet、模型或 capture，而是：
+
+- 把前置合同提交 `8d31cb6…` 作为外部固定 Git trust root，固定 parent、两份 contract 的 blob id 与 SHA-256；
+- runtime 在解析任一当前 contract JSON 前读取上述 Git blobs，并要求当前文件是普通非 symlink 文件且 bytes 完全一致；
+- 增加 run/response contract 分别改写的拒绝测试，错误必须先落在 `accepted_st02_contract`；
+- 默认根改为从 `st02/` 上溯三层到项目根，并增加真实无参数 CLI 回归。
+
+首次 QA 的其他验证均通过，但不能抵消上述 P1；在独立 re-QA 前模型继续未授权。
 
 ## Source-only runtime
 
@@ -54,10 +70,10 @@ focused test 使用合成 response 覆盖 valid parse、invalid JSON fallback �
 
 ## Builder 验证
 
-- focused：`test/state-replay-st02-contract.test.ts` 7/7 PASS；
+- focused：`test/state-replay-st02-contract.test.ts` 8/8 PASS；
 - source-only CLI 冒烟：输出 `STR-08/E1` next packet，`model_call_count:0`、`scoring_run_count:0`；
 - ST-02 runtime/CLI 独立 TypeScript no-emit check：PASS；
-- 全量：397 PASS / 1 个既有 opt-in official runner SKIP；
+- 全量：398 PASS / 1 个既有 opt-in official runner SKIP；
 - protocol：8/8 PASS；
 - `npm run build`：PASS；
 - `git diff --check`：PASS；
