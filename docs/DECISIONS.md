@@ -43,3 +43,7 @@ Evaluation uses strict versioned snapshots and explicit exact-text/recall labels
 ## D-011 — Provider adapters remain outside the process boundary
 
 The optional runtime transport spawns one explicitly supplied local executable with `shell: false` and exchanges strict versioned JSON over stdio. The child, not the core, owns provider SDKs, network requests, credentials, and vendor response translation. The core retains prompt construction, strict State Delta validation, retry/fallback policy, revision checks, and atomic state application. Runtime invocation is explicit library behavior and does not change the nine-tool MCP service.
+
+## D-012 — 独立 QA 与对抗审查分工
+
+独立 QA 负责验证一个有界工单是否按约定实现；对抗审查负责质疑目标、顺序、依赖和投入是否必要。项目可在关键节点申请独立对抗审查，尤其是在进入新阶段、扩大运行时或宿主边界、连续多个工单沿同一路径通过，或 blocker 定义存在争议时。对抗审查默认只读，其 `Challenge` 不自动回滚已接受工单，也不自动成为 blocker；主控必须记录后续处置：补充证据、接受风险，或创建新的有界工单。
