@@ -1,9 +1,9 @@
 {
   "schema_version": "starlette-pilot/v1",
-  "scan_date": "2026-08-23T02:10:00Z",
+  "scan_date": "2026-08-23T03:00:00Z",
   "rule": "Mark confirmed only when a public repository explicitly reuses the same Starlette issue or fix as an LLM, agent, benchmark, code-repair, or evaluation task, or highly copies that task or patch. Ordinary downstream references, vendored source, production workarounds, and repository names that merely contain words such as agent do not count.",
   "query_patterns": [
-    "GitHub code search for the exact quoted path starlette/issues/<number> across public repositories",
+    "GitHub code search for the exact quoted path starlette/issues/<number> and starlette/pull/<number> across public repositories",
     "Manual inspection of repositories or paths containing benchmark, eval, LLM, SWE, repair, dataset, TeamBench, CS540, or repo-issue markers",
     "Previously discovered exact GitHub cross-references for the registered Issue and PR set"
   ],
@@ -64,9 +64,16 @@
     {
       "candidate_id": "STR-04",
       "source_numbers": [685, 1286, 1649, 2349],
-      "status": "no_public_hit_found",
-      "direct_evidence": [],
-      "notes": "The exact issue-path search returned one ordinary public reference and no explicit evaluation-task reuse."
+      "status": "confirmed",
+      "direct_evidence": [
+        {
+          "repository": "Uniyalsumit/CT_PROJECT",
+          "path": "evaluation/results/ragas_results_test.csv",
+          "url": "https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/results/ragas_results_test.csv",
+          "reason": "A public RAGAS result uses a Starlette 0.33.0 release-note chunk containing PR 2349 as retrieved context for an LLM question about router changes; the repository's evaluation scripts construct question/answer/context rows and score them with RAGAS."
+        }
+      ],
+      "notes": "The 2026-08-23 rescan found ordinary downstream or vendored references for issue 685 and PRs 1286/1649, but PR 2349 also appears inside an explicit public LLM/RAGAS evaluation artifact. Under the preregistered rule, reuse of any source in the fixed STR-04 lineage is sufficient to mark the canary confirmed rather than no_public_hit_found."
     },
     {
       "candidate_id": "STR-05",

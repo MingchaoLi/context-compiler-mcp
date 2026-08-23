@@ -1,6 +1,6 @@
 # WO-DS-03 — Starlette long/open canary 与冻结就绪门
 
-状态：PLANNED
+状态：IMPLEMENTED — GATE CLOSED，等待独立 data QA
 
 ## 背景与对抗审查处置
 
@@ -137,3 +137,11 @@ validator 只可被描述为结构、时间前缀、provenance 和规范化字�
 - D0/D1/D2 上下文运行或远端 GPT-5.6 回答；
 - 自动语义泄漏检测、绝对训练污染证明或统计代表性声明；
 - Context Compiler 新能力、Formal Host Mode、provider SDK、自动 headline 或综合数学总分。
+
+## 实施结果（2026-08-23）
+
+同日 contamination 复扫在开始制作 STR-04 fixture 前发现确认污染：公开仓库 `Uniyalsumit/CT_PROJECT` 的 `evaluation/results/ragas_results_test.csv` 把包含 Starlette PR #2349 的 0.33.0 release-note 片段作为“Tell me about router changes.”这一 LLM 问答的 retrieved context；同仓库脚本明确用问题、回答和检索上下文构造数据集，并用 RAGAS 评分。
+
+这满足本项目已预注册的 `confirmed` 规则：“同一 Starlette issue 或 fix 被 LLM、agent、benchmark、code-repair 或 evaluation task 显式复用”。即使该问题没有要求修复 #685，#2349 仍是 STR-04 固定证据链的一部分，且确实进入公开 LLM evaluation artifact。若把规则收窄为“只有问题或 Gold 直接针对该缺陷才算污染”，属于看见结果后的选择规则变更，不能在本工单内追溯应用。
+
+因此按 Gate 条款停止 canary：没有创建 STR-04 fixture，没有实现 long/increment/projection，没有运行 D0/D1/D2 或远端模型，也没有自动换入 reserve。`STR-05` 的 long 重分类预检结论保留；旧 2/2/2 声明已经失效。详细证据见 `docs/evaluation/starlette-v1-long-canary-gate.md`，最终是否接受 gate closed 由独立 data QA 决定。

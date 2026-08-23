@@ -92,6 +92,10 @@ Outcome 与 Decision Reference 不进入输入。PR/Issue 当前正文可能在�
 5. `STR-02A` 的 outcome 不进入 `STR-02B` 输入；后者只能依赖自己 Issue body 对旧 PR 的公开引用。
 6. 当前 GitHub body digest 不是历史正文快照。若 summary 无法由 timestamped comment、状态或 immutable commit 交叉核对，应删除该节点，而不是推断原文。
 
+## 后续门禁更新（2026-08-23）
+
+WO-DS-03 在开始 STR-04 canary fixture 前发现两项会改变后续路径的证据：按机械信息增量规则，STR-05 的 9 个事件都应计数，因此实际属于 long；同日污染复扫又发现 PR #2349 进入公开 LLM/RAGAS evaluation context，因此 STR-04 按既有规则改为 `confirmed`。本报告上文的“2/2/2”与 STR-04 `no_public_hit_found` 只保留为当时 pilot 结论，不能再作为当前 freeze 输入。详见 `starlette-v1-long-canary-gate.md`。
+
 ## 机械验证
 
 `validate-pilot.mjs` 严格检查 envelope、未知字段、重复 id、segment 前缀、event/source 类型绑定、source 更新时间下界、时间顺序、完整 evidence 前缀、Gold/Oracle provenance、supersession、Current Task 对任意时点 Gold、Outcome summary/标识与 cutoff 后 Decision Reference 的规范化包含，以及 SHA-256。
