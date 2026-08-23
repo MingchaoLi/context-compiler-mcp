@@ -1,6 +1,6 @@
 # WO-DS-13 — Starlette 自动 Gate 指标与人工盲评包
 
-状态：IMPLEMENTED — PENDING INDEPENDENT QA
+状态：ACCEPTED — AUTOMATIC DIAGNOSTIC + BLANK BLIND REVIEW BUNDLE ONLY
 
 ## 背景
 
@@ -129,3 +129,9 @@ Reviewer access threat model 固定为：两名 reviewer 只收到 `public-revie
 Builder 提交中文 handoff 后必须由独立 QA 验证自动结果与 blinding。QA PASS 只表示“自动结果与人工评审包可交付”，不表示人工 Correctness Gate 已通过。
 
 下一步必须等待两名真实、condition-blind 人类返回独立评分。若无法获得两名人类，项目应明确记录该外部 blocker，而不是用模型替代。
+
+## 独立 QA 接受记录（2026-08-23）
+
+QA 在固定 candidate `259b19246bc46a93c4b10dcaa09360a86b7937fb` 上接受了 anchored official automatic artifact 与 36-item 空白 condition-blind bundle：artifact-recorded evaluator run 为 1，模型调用与语义评分均为 0；私有 deterministic replay 不写入也不替代 official artifact。接受不填表、不评价回答语义，也不改变 frozen data/raw capture。
+
+三项 Gate 仍为 `semantic_correctness_gate:pending_human_review`、`context_reduction_interpretation:pending_correctness_gate`、`operational_stability_gate:not_evaluated_by_this_work_order`。下一步的外部 blocker 是两名真实、彼此 condition-blind 的人类 reviewer；评分返回前不得解盲、计算 answer correctness 或声称 D2 优于 D1。
