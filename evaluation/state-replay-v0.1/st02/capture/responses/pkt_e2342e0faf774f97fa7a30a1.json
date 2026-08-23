@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_e2342e0faf774f97fa7a30a1",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[{\"content\":\"Changing the hash algorithm requires separate discussion and broader agreement.\",\"source_event_id\":\"state-replay-v0.1:STR-06/E2\"}],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

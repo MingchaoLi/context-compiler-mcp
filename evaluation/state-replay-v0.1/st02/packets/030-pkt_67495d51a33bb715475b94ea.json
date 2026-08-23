@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_67495d51a33bb715475b94ea",
+  "capture_ordinal": 30,
+  "event_id": "STR-06/E16",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "bf6cec5131eb34a0c0836ffe6700305616812a80bff61b608d35c18e47be4624",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_2d8be159341a5013ea73372f",
+        "session_id": "state-replay/STR-06",
+        "seq": 16,
+        "role": "user",
+        "content": "Issue 1365 closes when PR 1410 is merged; tracker closure follows limited reporter evidence but does not prove current master or every FIPS environment.",
+        "event_type": "issue_state",
+        "created_at": "2022-01-14T09:40:19.000Z",
+        "token_count": 38,
+        "metadata": {
+          "event_id": "STR-06/E16",
+          "source_ordinal": 16,
+          "actor": "Kludex",
+          "source_id": "gh:issue-event:5893584617",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#event-5893584617",
+          "source_content_sha256": "db911a1b28a53c264e5fc2451f0284aa0bf14b68cec7e52ad0117eeb40a3ef5f",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E16"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_2d8be159341a5013ea73372f\",\"session_id\":\"state-replay/STR-06\",\"seq\":16,\"role\":\"user\",\"content\":\"Issue 1365 closes when PR 1410 is merged; tracker closure follows limited reporter evidence but does not prove current master or every FIPS environment.\",\"event_type\":\"issue_state\",\"created_at\":\"2022-01-14T09:40:19.000Z\",\"token_count\":38,\"metadata\":{\"event_id\":\"STR-06/E16\",\"source_ordinal\":16,\"actor\":\"Kludex\",\"source_id\":\"gh:issue-event:5893584617\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#event-5893584617\",\"source_content_sha256\":\"db911a1b28a53c264e5fc2451f0284aa0bf14b68cec7e52ad0117eeb40a3ef5f\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E16\"}]}}",
+  "prompt_sha256": "68c867d643ccc1dc48c2e3379f5f8d1eb30111a9becafa6c08edddb10887f2e1",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

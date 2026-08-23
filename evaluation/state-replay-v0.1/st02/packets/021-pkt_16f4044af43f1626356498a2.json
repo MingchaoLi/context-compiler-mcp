@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_16f4044af43f1626356498a2",
+  "capture_ordinal": 21,
+  "event_id": "STR-06/E7",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "c39cba40118d0d941637bfe4fdbb997e6e62a8e29d818878295d67ed08636dca",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_f1d59cdaa1713322f81ab7eb",
+        "session_id": "state-replay/STR-06",
+        "seq": 7,
+        "role": "user",
+        "content": "Issue 1365 is closed when PR 1366 is merged; this records tracker and repository acceptance, not verified FIPS behavior.",
+        "event_type": "issue_state",
+        "created_at": "2021-12-17T12:37:33.000Z",
+        "token_count": 30,
+        "metadata": {
+          "event_id": "STR-06/E7",
+          "source_ordinal": 7,
+          "actor": "adriangb",
+          "source_id": "gh:issue-event:5784383679",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#event-5784383679",
+          "source_content_sha256": "e833bb040fa00a72c1c579e28d382d340301cbfb2d896db9560ff31448413b73",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E7"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_f1d59cdaa1713322f81ab7eb\",\"session_id\":\"state-replay/STR-06\",\"seq\":7,\"role\":\"user\",\"content\":\"Issue 1365 is closed when PR 1366 is merged; this records tracker and repository acceptance, not verified FIPS behavior.\",\"event_type\":\"issue_state\",\"created_at\":\"2021-12-17T12:37:33.000Z\",\"token_count\":30,\"metadata\":{\"event_id\":\"STR-06/E7\",\"source_ordinal\":7,\"actor\":\"adriangb\",\"source_id\":\"gh:issue-event:5784383679\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#event-5784383679\",\"source_content_sha256\":\"e833bb040fa00a72c1c579e28d382d340301cbfb2d896db9560ff31448413b73\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E7\"}]}}",
+  "prompt_sha256": "5498ae25e82f174ca5167defce8d8746c7a4cde43641bfcdd94fa5cb77f69477",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

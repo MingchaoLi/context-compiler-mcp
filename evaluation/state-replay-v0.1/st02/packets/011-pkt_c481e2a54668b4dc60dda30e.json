@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_c481e2a54668b4dc60dda30e",
+  "capture_ordinal": 11,
+  "event_id": "STR-07/E7",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "6465a7b3d9b24296ed29b3a11acc55e716ea96babe2d9f9489309d7157cf7ed2",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_96f092f166ab247a293550ad",
+        "session_id": "state-replay/STR-07",
+        "seq": 7,
+        "role": "user",
+        "content": "The reporter explains that a 307 redirect is not equivalent for the root use case because it can drop CORS headers, and argues that the behavioral break needs clearer versioning and documentation.",
+        "event_type": "issue_comment",
+        "created_at": "2020-07-28T10:55:54.000Z",
+        "token_count": 49,
+        "metadata": {
+          "event_id": "STR-07/E7",
+          "source_ordinal": 7,
+          "actor": "curtiscook",
+          "source_id": "gh:issue-comment:664972962",
+          "source_url": "https://github.com/Kludex/starlette/issues/1008#issuecomment-664972962",
+          "source_content_sha256": "f859bc3bda00bf79338bef6889be6f93f2debe2c43bf8485434761a10926ca6b",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E7"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_96f092f166ab247a293550ad\",\"session_id\":\"state-replay/STR-07\",\"seq\":7,\"role\":\"user\",\"content\":\"The reporter explains that a 307 redirect is not equivalent for the root use case because it can drop CORS headers, and argues that the behavioral break needs clearer versioning and documentation.\",\"event_type\":\"issue_comment\",\"created_at\":\"2020-07-28T10:55:54.000Z\",\"token_count\":49,\"metadata\":{\"event_id\":\"STR-07/E7\",\"source_ordinal\":7,\"actor\":\"curtiscook\",\"source_id\":\"gh:issue-comment:664972962\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1008#issuecomment-664972962\",\"source_content_sha256\":\"f859bc3bda00bf79338bef6889be6f93f2debe2c43bf8485434761a10926ca6b\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E7\"}]}}",
+  "prompt_sha256": "ce20a49efc008d67d9ecf7930178679a5dae1a6df2ddd564e1a2aa0809bf6a29",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

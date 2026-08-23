@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_a79450f7788d7b36d7a15f69",
+  "raw_response": "{\"new_goals\":[{\"description\":\"Change the md5_hexdigest capability probe to use usedforsecurity=False.\",\"status\":\"ACTIVE\"}],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

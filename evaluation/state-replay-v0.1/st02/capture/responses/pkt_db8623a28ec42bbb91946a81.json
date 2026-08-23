@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_db8623a28ec42bbb91946a81",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[{\"description\":\"If MD5 is retained, a hashlib compatibility wrapper or monkey patch is required.\",\"status\":\"ACTIVE\"}],\"updated_constraints\":[],\"new_decisions\":[{\"description\":\"Retract the secure-hash requirement.\",\"status\":\"ACTIVE\"}],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

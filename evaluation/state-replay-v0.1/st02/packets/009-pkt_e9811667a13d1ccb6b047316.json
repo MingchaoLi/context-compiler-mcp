@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_e9811667a13d1ccb6b047316",
+  "capture_ordinal": 9,
+  "event_id": "STR-07/E5",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "271dbbdd78726053a6cdc5e8351fb29d7502a0645f3cc632f51b47ec73490628",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_cdfa086999fb3fa5194fb004",
+        "session_id": "state-replay/STR-07",
+        "seq": 5,
+        "role": "user",
+        "content": "Another user reports that /.* also stopped matching, broadening the affected reliance from an optional root slash to a wildcard SPA route.",
+        "event_type": "issue_comment",
+        "created_at": "2020-07-27T18:48:24.000Z",
+        "token_count": 35,
+        "metadata": {
+          "event_id": "STR-07/E5",
+          "source_ordinal": 5,
+          "actor": "tarioch",
+          "source_id": "gh:issue-comment:664573918",
+          "source_url": "https://github.com/Kludex/starlette/issues/1008#issuecomment-664573918",
+          "source_content_sha256": "5197f96143655c0a947a04c666ecdbfe498c3336770f9ea96ac4c04c81af852e",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E5"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_cdfa086999fb3fa5194fb004\",\"session_id\":\"state-replay/STR-07\",\"seq\":5,\"role\":\"user\",\"content\":\"Another user reports that /.* also stopped matching, broadening the affected reliance from an optional root slash to a wildcard SPA route.\",\"event_type\":\"issue_comment\",\"created_at\":\"2020-07-27T18:48:24.000Z\",\"token_count\":35,\"metadata\":{\"event_id\":\"STR-07/E5\",\"source_ordinal\":5,\"actor\":\"tarioch\",\"source_id\":\"gh:issue-comment:664573918\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1008#issuecomment-664573918\",\"source_content_sha256\":\"5197f96143655c0a947a04c666ecdbfe498c3336770f9ea96ac4c04c81af852e\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E5\"}]}}",
+  "prompt_sha256": "0b34ef3168ad33ca99cbfb0ee61f2a38d26d19541d336aa772a04e4e0e37dd2d",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_d3d99dee3005af07920a85f0",
+  "capture_ordinal": 20,
+  "event_id": "STR-06/E6",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "658e6fa435b157190561de12d2bd22517e6ee54a9a7b183b82cf5bd49e4990e1",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_605717d648844a81cfbe1784",
+        "session_id": "state-replay/STR-06",
+        "seq": 6,
+        "role": "user",
+        "content": "PR 1366 opens under a title that passes usedforsecurity to hashlib.md5; its initial commit introduces a compatibility helper and changes FileResponse without adding a test file.",
+        "event_type": "pull_request_body",
+        "created_at": "2021-12-15T15:50:58.000Z",
+        "token_count": 45,
+        "metadata": {
+          "event_id": "STR-06/E6",
+          "source_ordinal": 6,
+          "actor": "adriangb",
+          "source_id": "gh:pr:1366",
+          "source_url": "https://github.com/Kludex/starlette/pull/1366",
+          "source_content_sha256": "c55947b12c1a8966322d5133ca71e127ec71b2116462b927caa247be2d7529ce",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E6"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_605717d648844a81cfbe1784\",\"session_id\":\"state-replay/STR-06\",\"seq\":6,\"role\":\"user\",\"content\":\"PR 1366 opens under a title that passes usedforsecurity to hashlib.md5; its initial commit introduces a compatibility helper and changes FileResponse without adding a test file.\",\"event_type\":\"pull_request_body\",\"created_at\":\"2021-12-15T15:50:58.000Z\",\"token_count\":45,\"metadata\":{\"event_id\":\"STR-06/E6\",\"source_ordinal\":6,\"actor\":\"adriangb\",\"source_id\":\"gh:pr:1366\",\"source_url\":\"https://github.com/Kludex/starlette/pull/1366\",\"source_content_sha256\":\"c55947b12c1a8966322d5133ca71e127ec71b2116462b927caa247be2d7529ce\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E6\"}]}}",
+  "prompt_sha256": "6b30ea5e8959ca6c7e9cedff475edd26662a1ad62fd8eb93b77023ea66f8ca67",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

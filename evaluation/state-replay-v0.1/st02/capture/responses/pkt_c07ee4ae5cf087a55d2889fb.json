@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_c07ee4ae5cf087a55d2889fb",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

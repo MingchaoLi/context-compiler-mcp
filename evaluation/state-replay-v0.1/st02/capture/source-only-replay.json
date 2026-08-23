@@ -1,0 +1,393 @@
+{
+  "schema_version": "state_replay_st02_source_only/v1",
+  "status": "response_prefix_complete_no_scoring",
+  "processed_response_count": 30,
+  "model_call_count": 0,
+  "scoring_run_count": 0,
+  "observations": [
+    {
+      "packet_id": "pkt_0aaac79f6e5179a3b24d3b18",
+      "event_id": "STR-08/E1",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_8fee64925d157dec59a26047",
+      "event_id": "STR-08/E2",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_d6afbeea18e82db8c40ec4a5",
+      "event_id": "STR-08/E3",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_c07ee4ae5cf087a55d2889fb",
+      "event_id": "STR-08/E4",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_c2b9606638e3689ff1073c53",
+      "event_id": "STR-07/E1",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_8aa8c20df9b560b88e6eab19",
+      "event_id": "STR-07/E2",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_5c90013fc58db0c62facd938",
+      "event_id": "STR-07/E3",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_fe5b0b69b46154340fb5496e",
+      "event_id": "STR-07/E4",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_e9811667a13d1ccb6b047316",
+      "event_id": "STR-07/E5",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_7d30c24a5ed995c55556a8e2",
+      "event_id": "STR-07/E6",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_c481e2a54668b4dc60dda30e",
+      "event_id": "STR-07/E7",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_e2753dbe55c17b98de4fc5fe",
+      "event_id": "STR-07/E8",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_8b451379cf0191e35418d3b2",
+      "event_id": "STR-07/E9",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_3e259ddd8d2d600a8611c4b6",
+      "event_id": "STR-07/E10",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_01745cda126867ea21f6e95c",
+      "event_id": "STR-06/E1",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_e2342e0faf774f97fa7a30a1",
+      "event_id": "STR-06/E2",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_4db7933588695707bbdc1cb2",
+      "event_id": "STR-06/E3",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_db8623a28ec42bbb91946a81",
+      "event_id": "STR-06/E4",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_94dc9ccc7d0f416a16119aa8",
+      "event_id": "STR-06/E5",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_d3d99dee3005af07920a85f0",
+      "event_id": "STR-06/E6",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_16f4044af43f1626356498a2",
+      "event_id": "STR-06/E7",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_25acca5a7c27bdea29b77d40",
+      "event_id": "STR-06/E8",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_6469d9faf13f97822291d786",
+      "event_id": "STR-06/E9",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_6c4fbf1f0ceee4019bf5bc26",
+      "event_id": "STR-06/E10",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_d02f6ea09afc6bec6c9be8c7",
+      "event_id": "STR-06/E11",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_1a2f65ef60b3d4853a49b6d5",
+      "event_id": "STR-06/E12",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_8647b053e6082f7f0550c927",
+      "event_id": "STR-06/E13",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_a79450f7788d7b36d7a15f69",
+      "event_id": "STR-06/E14",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": true,
+      "extractor_error_codes": [
+        "INVALID_SCHEMA"
+      ],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_0511bc9b6434c45d8f83e9cc",
+      "event_id": "STR-06/E15",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    },
+    {
+      "packet_id": "pkt_67495d51a33bb715475b94ea",
+      "event_id": "STR-06/E16",
+      "extractor_attempts": 1,
+      "extractor_fallback_used": false,
+      "extractor_error_codes": [],
+      "reducer_rejected": false,
+      "reducer_error_name": null,
+      "previous_revision": 0,
+      "next_revision": 0,
+      "state_unchanged_on_rejection": null
+    }
+  ]
+}

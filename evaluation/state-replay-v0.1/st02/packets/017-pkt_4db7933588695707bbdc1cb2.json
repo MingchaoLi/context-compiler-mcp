@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_4db7933588695707bbdc1cb2",
+  "capture_ordinal": 17,
+  "event_id": "STR-06/E3",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "23bf84b113918eaf09fbece8a5e5b261660481303ccb8c2e5a481374142c022e",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_b1381c825926a7bcf6e9374e",
+        "session_id": "state-replay/STR-06",
+        "seq": 3,
+        "role": "user",
+        "content": "A contributor challenges the assumption that the ETag needs a security-grade hash because it is a cache validator rather than a security proof.",
+        "event_type": "issue_comment",
+        "created_at": "2021-12-15T07:15:31.000Z",
+        "token_count": 36,
+        "metadata": {
+          "event_id": "STR-06/E3",
+          "source_ordinal": 3,
+          "actor": "adriangb",
+          "source_id": "gh:issue-comment:994408439",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-994408439",
+          "source_content_sha256": "56dd0cdefde6a1a116bca3542371378dab0949d273069a4e1b98364ad2b29615",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E3"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_b1381c825926a7bcf6e9374e\",\"session_id\":\"state-replay/STR-06\",\"seq\":3,\"role\":\"user\",\"content\":\"A contributor challenges the assumption that the ETag needs a security-grade hash because it is a cache validator rather than a security proof.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-12-15T07:15:31.000Z\",\"token_count\":36,\"metadata\":{\"event_id\":\"STR-06/E3\",\"source_ordinal\":3,\"actor\":\"adriangb\",\"source_id\":\"gh:issue-comment:994408439\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#issuecomment-994408439\",\"source_content_sha256\":\"56dd0cdefde6a1a116bca3542371378dab0949d273069a4e1b98364ad2b29615\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E3\"}]}}",
+  "prompt_sha256": "cd64f723b6292c95e2fa6228b775c31f7a87189a08746e44952ed316a0ebd52e",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

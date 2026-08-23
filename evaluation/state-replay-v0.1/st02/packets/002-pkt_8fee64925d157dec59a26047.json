@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_8fee64925d157dec59a26047",
+  "capture_ordinal": 2,
+  "event_id": "STR-08/E2",
+  "case_id": "STR-08",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "bdbe789f260bcbf6dc85beb8b8ba6049bd8651e40adaf0a4bc292171e5beb4bb",
+  "extractor_input": {
+    "session_id": "state-replay/STR-08",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_164fe5099f9ad42cf7c4e867",
+        "session_id": "state-replay/STR-08",
+        "seq": 2,
+        "role": "user",
+        "content": "The reporter confirms that async setup executed outside TestClient uses a different event loop, so a fixture alone does not make resources share the application's loop.",
+        "event_type": "issue_comment",
+        "created_at": "2021-10-04T14:18:58.000Z",
+        "token_count": 42,
+        "metadata": {
+          "event_id": "STR-08/E2",
+          "source_ordinal": 2,
+          "actor": "Kolumbs",
+          "source_id": "gh:issue-comment:933533925",
+          "source_url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-933533925",
+          "source_content_sha256": "84e4512bd37a5a964aad078d07b40ab33c86c85a4647384ee408a76771431da5",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-08/E2"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-08\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_164fe5099f9ad42cf7c4e867\",\"session_id\":\"state-replay/STR-08\",\"seq\":2,\"role\":\"user\",\"content\":\"The reporter confirms that async setup executed outside TestClient uses a different event loop, so a fixture alone does not make resources share the application's loop.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-10-04T14:18:58.000Z\",\"token_count\":42,\"metadata\":{\"event_id\":\"STR-08/E2\",\"source_ordinal\":2,\"actor\":\"Kolumbs\",\"source_id\":\"gh:issue-comment:933533925\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1298#issuecomment-933533925\",\"source_content_sha256\":\"84e4512bd37a5a964aad078d07b40ab33c86c85a4647384ee408a76771431da5\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-08/E2\"}]}}",
+  "prompt_sha256": "f83f79dd7f6e2615cafeb823575f9767e303975351203230910479eff942ddec",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

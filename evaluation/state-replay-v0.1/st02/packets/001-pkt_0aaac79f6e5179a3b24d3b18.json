@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_0aaac79f6e5179a3b24d3b18",
+  "capture_ordinal": 1,
+  "event_id": "STR-08/E1",
+  "case_id": "STR-08",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "extractor_input": {
+    "session_id": "state-replay/STR-08",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_0234e3056673e07ec7e4f1de",
+        "session_id": "state-replay/STR-08",
+        "seq": 1,
+        "role": "user",
+        "content": "The issue opens with the report that TestClient does not trigger startup or shutdown events; its later-edited body is not treated as a creation-time snapshot.",
+        "event_type": "issue_body",
+        "created_at": "2021-10-04T10:48:05.000Z",
+        "token_count": 40,
+        "metadata": {
+          "event_id": "STR-08/E1",
+          "source_ordinal": 1,
+          "actor": "Kolumbs",
+          "source_id": "gh:issue:1298",
+          "source_url": "https://github.com/Kludex/starlette/issues/1298",
+          "source_content_sha256": "a07cb71516117f53fc386bcdb6d8a04466acc31399f76d4eda364cc73d7db5be",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-08/E1"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-08\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_0234e3056673e07ec7e4f1de\",\"session_id\":\"state-replay/STR-08\",\"seq\":1,\"role\":\"user\",\"content\":\"The issue opens with the report that TestClient does not trigger startup or shutdown events; its later-edited body is not treated as a creation-time snapshot.\",\"event_type\":\"issue_body\",\"created_at\":\"2021-10-04T10:48:05.000Z\",\"token_count\":40,\"metadata\":{\"event_id\":\"STR-08/E1\",\"source_ordinal\":1,\"actor\":\"Kolumbs\",\"source_id\":\"gh:issue:1298\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1298\",\"source_content_sha256\":\"a07cb71516117f53fc386bcdb6d8a04466acc31399f76d4eda364cc73d7db5be\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-08/E1\"}]}}",
+  "prompt_sha256": "90592e1df981096b65bc37d5b4329656193713fc55bf7faf1de5d900c59b9298",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_5c90013fc58db0c62facd938",
+  "capture_ordinal": 7,
+  "event_id": "STR-07/E3",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "f64177e2573cab8492b85ca3508525aabc33dc199c76fa9241249f12baecea0e",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_e46c84bfa69995b43b7dd297",
+        "session_id": "state-replay/STR-07",
+        "seq": 3,
+        "role": "user",
+        "content": "PR 1010 opens from an existing initial commit that special-cases a final question mark and adds routing tests for both slash variants; current body text is only a change detector.",
+        "event_type": "pull_request_body",
+        "created_at": "2020-07-25T16:11:00.000Z",
+        "token_count": 45,
+        "metadata": {
+          "event_id": "STR-07/E3",
+          "source_ordinal": 3,
+          "actor": "JulienRobitaille",
+          "source_id": "gh:pr:1010",
+          "source_url": "https://github.com/Kludex/starlette/pull/1010",
+          "source_content_sha256": "4608ca940e215aa4ef9e77edda7569dfaa9995b50736314ee5ffb625da83be62",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E3"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_e46c84bfa69995b43b7dd297\",\"session_id\":\"state-replay/STR-07\",\"seq\":3,\"role\":\"user\",\"content\":\"PR 1010 opens from an existing initial commit that special-cases a final question mark and adds routing tests for both slash variants; current body text is only a change detector.\",\"event_type\":\"pull_request_body\",\"created_at\":\"2020-07-25T16:11:00.000Z\",\"token_count\":45,\"metadata\":{\"event_id\":\"STR-07/E3\",\"source_ordinal\":3,\"actor\":\"JulienRobitaille\",\"source_id\":\"gh:pr:1010\",\"source_url\":\"https://github.com/Kludex/starlette/pull/1010\",\"source_content_sha256\":\"4608ca940e215aa4ef9e77edda7569dfaa9995b50736314ee5ffb625da83be62\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E3\"}]}}",
+  "prompt_sha256": "0c8fedd3051939452c77b37ab978871b633238f40941e61d360f032497a24d13",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

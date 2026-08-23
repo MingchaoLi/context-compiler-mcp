@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_7d30c24a5ed995c55556a8e2",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[{\"content\":\"Use URI templating, rather than general regular expressions, for Route and Mount paths.\",\"status\":\"ACTIVE\"},{\"content\":\"Use a path converter for wildcard path segments.\",\"status\":\"ACTIVE\"},{\"content\":\"Retain redirects for slash-path variants.\",\"status\":\"ACTIVE\"}],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

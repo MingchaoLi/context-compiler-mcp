@@ -1,0 +1,75 @@
+{
+  "schema_version": "state_replay_st02_official_capture_manifest/v1",
+  "status": "official_capture_complete_unscored_scorer_pending",
+  "authorization": {
+    "controller_authorized": true,
+    "run_gate_qa_acceptance_commit": "9229eef89e0cddaf2d75f4a4a6ff7da633bb3591",
+    "run_gate_builder_commit": "a4c336d7f2e421c507e926fe333e5a1f4e5dbd06",
+    "fixed_contract_source_commit": "8d31cb6fc06b6b99bc141258539deb51b46d2d1b",
+    "authorized_official_run_count": 1,
+    "executed_official_run_count": 1
+  },
+  "fixed_remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session_per_step": true,
+    "attempts_per_step": 1,
+    "adaptive_retry": false,
+    "best_of": false,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  },
+  "expected_counts": {
+    "steps": 30,
+    "packets": 30,
+    "responses": 30,
+    "metadata": 30,
+    "fresh_sessions": 30
+  },
+  "actual_counts": {
+    "steps": 30,
+    "packets": 30,
+    "responses": 30,
+    "metadata": 30,
+    "fresh_sessions": 30,
+    "transport_completed": 30,
+    "transport_failed": 0,
+    "retry": 0,
+    "followup": 0,
+    "best_of": 0
+  },
+  "source_only_replay_observations": {
+    "status": "response_prefix_complete_no_scoring",
+    "processed_response_count": 30,
+    "strict_parse_accepted": 18,
+    "strict_parse_failed": 12,
+    "invalid_json": 0,
+    "invalid_schema": 12,
+    "invalid_reference": 0,
+    "empty_delta_fallback": 12,
+    "reducer_rejection": 0,
+    "revision_increment": 0
+  },
+  "boundaries": {
+    "gold_read_count": 0,
+    "scoring_run_count": 0,
+    "matcher_run_count": 0,
+    "manual_repair_count": 0,
+    "response_rewrite_count": 0,
+    "future_event_read_count": 0,
+    "outcome_read_count": 0,
+    "feasibility_artifact_read_or_write_count": 0,
+    "core_source_change_count": 0
+  },
+  "time_window": {
+    "started_at": "2026-08-23T14:18:15.138Z",
+    "completed_at": "2026-08-23T14:44:14.975Z"
+  },
+  "interpretation": {
+    "extractor_effect": "not_scored",
+    "architecture_winner": null,
+    "scorer_pending": true
+  }
+}

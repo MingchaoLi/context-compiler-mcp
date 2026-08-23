@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_3e259ddd8d2d600a8611c4b6",
+  "capture_ordinal": 14,
+  "event_id": "STR-07/E10",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "5681ce2fa98bba5eaee71d1876c5a65e520e2be20a44e8a95ac8904f96df5de9",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_0a3515e0b6eb11948f7ff355",
+        "session_id": "state-replay/STR-07",
+        "seq": 10,
+        "role": "user",
+        "content": "The reporter gives an explicit dual-route registration pattern for slash and no-slash forms, avoiding reliance on raw regex or a redirect for that endpoint.",
+        "event_type": "issue_comment",
+        "created_at": "2020-07-31T08:16:35.000Z",
+        "token_count": 39,
+        "metadata": {
+          "event_id": "STR-07/E10",
+          "source_ordinal": 10,
+          "actor": "curtiscook",
+          "source_id": "gh:issue-comment:666997766",
+          "source_url": "https://github.com/Kludex/starlette/issues/1008#issuecomment-666997766",
+          "source_content_sha256": "4dfc2fa12b33aa06c62dbd0177aac276285476977d5a5aea3a36639cd4589e89",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E10"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_0a3515e0b6eb11948f7ff355\",\"session_id\":\"state-replay/STR-07\",\"seq\":10,\"role\":\"user\",\"content\":\"The reporter gives an explicit dual-route registration pattern for slash and no-slash forms, avoiding reliance on raw regex or a redirect for that endpoint.\",\"event_type\":\"issue_comment\",\"created_at\":\"2020-07-31T08:16:35.000Z\",\"token_count\":39,\"metadata\":{\"event_id\":\"STR-07/E10\",\"source_ordinal\":10,\"actor\":\"curtiscook\",\"source_id\":\"gh:issue-comment:666997766\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1008#issuecomment-666997766\",\"source_content_sha256\":\"4dfc2fa12b33aa06c62dbd0177aac276285476977d5a5aea3a36639cd4589e89\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E10\"}]}}",
+  "prompt_sha256": "be5ccbe1f4eb68d1f6bfbafb28fc5ccb2c68cc90d7fbd3d4156b344ee187472c",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

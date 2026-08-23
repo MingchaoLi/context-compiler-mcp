@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_25acca5a7c27bdea29b77d40",
+  "capture_ordinal": 22,
+  "event_id": "STR-06/E8",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "28f9e4998941df88bc0090f66f1f3e42077fcd99b16fdb456471859bebc8e51f",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_7efadc370f05d4d577892cb7",
+        "session_id": "state-replay/STR-06",
+        "seq": 8,
+        "role": "user",
+        "content": "The reporter disputes a Python 3.9-only boundary because RHEL backported the parameter, while acknowledging uncertainty across versions and inferring that try/except may cover them.",
+        "event_type": "issue_comment",
+        "created_at": "2021-12-17T15:46:32.000Z",
+        "token_count": 46,
+        "metadata": {
+          "event_id": "STR-06/E8",
+          "source_ordinal": 8,
+          "actor": "landtuna",
+          "source_id": "gh:issue-comment:996824650",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-996824650",
+          "source_content_sha256": "c3e0c0ab9a0d9e0c680d91f980bf589a90d00a6a8ded09704a4260ed375d711f",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E8"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_7efadc370f05d4d577892cb7\",\"session_id\":\"state-replay/STR-06\",\"seq\":8,\"role\":\"user\",\"content\":\"The reporter disputes a Python 3.9-only boundary because RHEL backported the parameter, while acknowledging uncertainty across versions and inferring that try/except may cover them.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-12-17T15:46:32.000Z\",\"token_count\":46,\"metadata\":{\"event_id\":\"STR-06/E8\",\"source_ordinal\":8,\"actor\":\"landtuna\",\"source_id\":\"gh:issue-comment:996824650\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#issuecomment-996824650\",\"source_content_sha256\":\"c3e0c0ab9a0d9e0c680d91f980bf589a90d00a6a8ded09704a4260ed375d711f\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E8\"}]}}",
+  "prompt_sha256": "37301a5888b7948082d0051f921750d88ad0b0ca267ed01a9450570cec69a569",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

@@ -237,7 +237,7 @@ describe("WO-DS-14 ST-02 zero-model run contract", () => {
     expect(runtimeSource).not.toContain("writeFile");
   });
 
-  it("runs the source-only CLI without an explicit repository-root argument", async () => {
+  it("runs the source-only CLI against the completed official capture without an explicit repository-root argument", async () => {
     const result = await execFileAsync(process.execPath, [
       join(REPOSITORY_ROOT, "node_modules/vite-node/vite-node.mjs"),
       "--script",
@@ -248,12 +248,12 @@ describe("WO-DS-14 ST-02 zero-model run contract", () => {
     });
     const parsed = JSON.parse(result.stdout);
     expect(parsed).toMatchObject({
-      status: "next_packet_ready_no_model_called",
-      processed_response_count: 0,
+      status: "response_prefix_complete_no_scoring",
+      processed_response_count: 30,
       model_call_count: 0,
       scoring_run_count: 0,
-      next_packet: { event_id: "STR-08/E1" },
     });
+    expect(parsed).not.toHaveProperty("next_packet");
   });
 
   it("keeps each raw response and its metadata in separate JSON files for mechanical replay", async () => {

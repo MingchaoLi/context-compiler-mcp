@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_1a2f65ef60b3d4853a49b6d5",
+  "capture_ordinal": 26,
+  "event_id": "STR-06/E12",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "08b6753ce94b671336479b5ec45aa372c909a9112ba5401f422c36e5dd4bdccf",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_5a1ceddd37066d417e1eaa71",
+        "session_id": "state-replay/STR-06",
+        "seq": 12,
+        "role": "user",
+        "content": "The first PR author confirms that the probe intended only to detect parameter support but inadvertently triggers the FIPS ValueError, and commits to changing it.",
+        "event_type": "issue_comment",
+        "created_at": "2022-01-13T22:26:10.000Z",
+        "token_count": 41,
+        "metadata": {
+          "event_id": "STR-06/E12",
+          "source_ordinal": 12,
+          "actor": "adriangb",
+          "source_id": "gh:issue-comment:1012568198",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-1012568198",
+          "source_content_sha256": "7844401fe05a1c2df7c3bb1676087e18ea3282d2cdfb2d60a5df928f695ef4a0",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E12"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_5a1ceddd37066d417e1eaa71\",\"session_id\":\"state-replay/STR-06\",\"seq\":12,\"role\":\"user\",\"content\":\"The first PR author confirms that the probe intended only to detect parameter support but inadvertently triggers the FIPS ValueError, and commits to changing it.\",\"event_type\":\"issue_comment\",\"created_at\":\"2022-01-13T22:26:10.000Z\",\"token_count\":41,\"metadata\":{\"event_id\":\"STR-06/E12\",\"source_ordinal\":12,\"actor\":\"adriangb\",\"source_id\":\"gh:issue-comment:1012568198\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#issuecomment-1012568198\",\"source_content_sha256\":\"7844401fe05a1c2df7c3bb1676087e18ea3282d2cdfb2d60a5df928f695ef4a0\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E12\"}]}}",
+  "prompt_sha256": "dc25805bafdfe9819964310dd3b709b3bb0c1ba09164ed819016c433113c3c82",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

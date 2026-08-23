@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_6469d9faf13f97822291d786",
+  "raw_response": "{\"new_goals\":[{\"description\":\"Run an explicit test of master on Python 3.6.\",\"status\":\"ACTIVE\"}],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_d6afbeea18e82db8c40ec4a5",
+  "capture_ordinal": 3,
+  "event_id": "STR-08/E3",
+  "case_id": "STR-08",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "2ec48eb0ab0b74e486b8aadf5c1e007c4193aa06f4b3e8e5bc48b1ac287ed34e",
+  "extractor_input": {
+    "session_id": "state-replay/STR-08",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_f4a0f25b358ccc1098a8533e",
+        "session_id": "state-replay/STR-08",
+        "seq": 3,
+        "role": "user",
+        "content": "The reporter prototypes manually sending lifespan messages through TestClient's blocking portal to force startup and shutdown in the client loop.",
+        "event_type": "issue_comment",
+        "created_at": "2021-10-05T06:06:45.000Z",
+        "token_count": 37,
+        "metadata": {
+          "event_id": "STR-08/E3",
+          "source_ordinal": 3,
+          "actor": "Kolumbs",
+          "source_id": "gh:issue-comment:934095314",
+          "source_url": "https://github.com/Kludex/starlette/issues/1298#issuecomment-934095314",
+          "source_content_sha256": "be433d73ca8efb32ed161b3f4f96194e6ab1351953a413ec052476e3e0b7cb89",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-08/E3"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-08\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_f4a0f25b358ccc1098a8533e\",\"session_id\":\"state-replay/STR-08\",\"seq\":3,\"role\":\"user\",\"content\":\"The reporter prototypes manually sending lifespan messages through TestClient's blocking portal to force startup and shutdown in the client loop.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-10-05T06:06:45.000Z\",\"token_count\":37,\"metadata\":{\"event_id\":\"STR-08/E3\",\"source_ordinal\":3,\"actor\":\"Kolumbs\",\"source_id\":\"gh:issue-comment:934095314\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1298#issuecomment-934095314\",\"source_content_sha256\":\"be433d73ca8efb32ed161b3f4f96194e6ab1351953a413ec052476e3e0b7cb89\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-08/E3\"}]}}",
+  "prompt_sha256": "169e6fd3a7741ac9419eb39fc8a9de39a2fa744057eb5f814585021f7b703190",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

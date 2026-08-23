@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_e2342e0faf774f97fa7a30a1",
+  "capture_ordinal": 16,
+  "event_id": "STR-06/E2",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "5ba9f40e2f69b75a280c5a6959c73a48333ccbbcb97e34f4f0a285db4aa454d1",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_5b7f4953a5af87682090e8f9",
+        "session_id": "state-replay/STR-06",
+        "seq": 2,
+        "role": "user",
+        "content": "A maintainer will review a Django-style usedforsecurity compatibility change; changing the hash algorithm requires separate discussion and broader agreement.",
+        "event_type": "issue_comment",
+        "created_at": "2021-12-14T23:19:25.000Z",
+        "token_count": 40,
+        "metadata": {
+          "event_id": "STR-06/E2",
+          "source_ordinal": 2,
+          "actor": "Kludex",
+          "source_id": "gh:issue-comment:994130888",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-994130888",
+          "source_content_sha256": "3ef7310bcbe1cd2a82040f27f40045031f832be119e17726aee57d7d3c55a969",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E2"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_5b7f4953a5af87682090e8f9\",\"session_id\":\"state-replay/STR-06\",\"seq\":2,\"role\":\"user\",\"content\":\"A maintainer will review a Django-style usedforsecurity compatibility change; changing the hash algorithm requires separate discussion and broader agreement.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-12-14T23:19:25.000Z\",\"token_count\":40,\"metadata\":{\"event_id\":\"STR-06/E2\",\"source_ordinal\":2,\"actor\":\"Kludex\",\"source_id\":\"gh:issue-comment:994130888\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#issuecomment-994130888\",\"source_content_sha256\":\"3ef7310bcbe1cd2a82040f27f40045031f832be119e17726aee57d7d3c55a969\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E2\"}]}}",
+  "prompt_sha256": "7a242603e935c355bd4dbb77afd8bb6ae9026d61f3a44e1549863abb9e9ea7fa",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

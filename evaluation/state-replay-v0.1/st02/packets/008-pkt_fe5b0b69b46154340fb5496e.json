@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_fe5b0b69b46154340fb5496e",
+  "capture_ordinal": 8,
+  "event_id": "STR-07/E4",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "abeb236e7b0de2d807313fa5b26e49094632044929037fa3a253110b0e3d814c",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_e9c82b9ef4ec41521d3b0407",
+        "session_id": "state-replay/STR-07",
+        "seq": 4,
+        "role": "user",
+        "content": "A maintainer rejects optional trailing-slash regex as the desired contract and recommends one canonical route form plus Starlette's redirect behavior.",
+        "event_type": "pull_request_comment",
+        "created_at": "2020-07-27T07:55:26.000Z",
+        "token_count": 38,
+        "metadata": {
+          "event_id": "STR-07/E4",
+          "source_ordinal": 4,
+          "actor": "lovelydinosaur",
+          "source_id": "gh:pr-comment:664182957",
+          "source_url": "https://github.com/Kludex/starlette/pull/1010#issuecomment-664182957",
+          "source_content_sha256": "d0ddd7f93f544af2e6e2f70e4d850e939e1eac9b85535aad04526045625e221a",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E4"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_e9c82b9ef4ec41521d3b0407\",\"session_id\":\"state-replay/STR-07\",\"seq\":4,\"role\":\"user\",\"content\":\"A maintainer rejects optional trailing-slash regex as the desired contract and recommends one canonical route form plus Starlette's redirect behavior.\",\"event_type\":\"pull_request_comment\",\"created_at\":\"2020-07-27T07:55:26.000Z\",\"token_count\":38,\"metadata\":{\"event_id\":\"STR-07/E4\",\"source_ordinal\":4,\"actor\":\"lovelydinosaur\",\"source_id\":\"gh:pr-comment:664182957\",\"source_url\":\"https://github.com/Kludex/starlette/pull/1010#issuecomment-664182957\",\"source_content_sha256\":\"d0ddd7f93f544af2e6e2f70e4d850e939e1eac9b85535aad04526045625e221a\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E4\"}]}}",
+  "prompt_sha256": "34aaa568a9433123075bbabf1dcb61ec25eff073edef92113385aa30dfc99a62",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_1a2f65ef60b3d4853a49b6d5",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[{\"decision\":\"Change the parameter-support probe so it does not inadvertently trigger the FIPS ValueError.\",\"status\":\"ACTIVE\"}],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

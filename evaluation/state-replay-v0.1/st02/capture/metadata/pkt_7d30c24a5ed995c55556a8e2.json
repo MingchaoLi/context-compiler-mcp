@@ -1,0 +1,19 @@
+{
+  "schema_version": "state_replay_st02_capture_metadata/v1",
+  "packet_id": "pkt_7d30c24a5ed995c55556a8e2",
+  "capture_ordinal": 10,
+  "event_id": "STR-07/E6",
+  "prompt_sha256": "6219f2e709d4c9783f0e93e7e535ad2bb3a2059fa73160d89100439079fe3cfd",
+  "raw_response_sha256": "c80ea9cd541fea7bcbe4dff6fd4b1ae35bfdb9c7cad8307901e2e37845f3dc95",
+  "model": "gpt-5.6-terra",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "fresh_session": true,
+  "attempt": 1,
+  "tools_enabled": false,
+  "network_access": false,
+  "repository_access": false,
+  "started_at": "2026-08-23T14:27:27.574Z",
+  "completed_at": "2026-08-23T14:28:11.983Z",
+  "transport_status": "completed"
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_01745cda126867ea21f6e95c",
+  "capture_ordinal": 15,
+  "event_id": "STR-06/E1",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "185095b4d709b3765d23f46d292713feb7e7a0cea77a17ed33e4dfd0c3020286",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_b6b52117780be9e3af6c7d08",
+        "session_id": "state-replay/STR-06",
+        "seq": 1,
+        "role": "user",
+        "content": "A report shows Starlette 0.16.0 FileResponse ETag construction calling hashlib.md5 and raising a FIPS-disabled ValueError on RHEL 8 with Python 3.8.8.",
+        "event_type": "issue_body",
+        "created_at": "2021-12-14T22:20:55.000Z",
+        "token_count": 38,
+        "metadata": {
+          "event_id": "STR-06/E1",
+          "source_ordinal": 1,
+          "actor": "landtuna",
+          "source_id": "gh:issue:1365",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365",
+          "source_content_sha256": "d58c69d385bf7923f40b9caecf9ad76c32f7446534474f8920784981e75cd6c9",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E1"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_b6b52117780be9e3af6c7d08\",\"session_id\":\"state-replay/STR-06\",\"seq\":1,\"role\":\"user\",\"content\":\"A report shows Starlette 0.16.0 FileResponse ETag construction calling hashlib.md5 and raising a FIPS-disabled ValueError on RHEL 8 with Python 3.8.8.\",\"event_type\":\"issue_body\",\"created_at\":\"2021-12-14T22:20:55.000Z\",\"token_count\":38,\"metadata\":{\"event_id\":\"STR-06/E1\",\"source_ordinal\":1,\"actor\":\"landtuna\",\"source_id\":\"gh:issue:1365\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365\",\"source_content_sha256\":\"d58c69d385bf7923f40b9caecf9ad76c32f7446534474f8920784981e75cd6c9\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E1\"}]}}",
+  "prompt_sha256": "b56b670e9b48cfe1a164370d570e1b00fc3e64ceb3b7a709f7d59f1ba53bcc85",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_fe5b0b69b46154340fb5496e",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[\"Use one canonical route form with Starlette's redirect behavior.\"],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[\"Optional trailing-slash regex as the route contract.\"],\"supersessions\":[],\"new_relations\":[]}"
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_e2753dbe55c17b98de4fc5fe",
+  "capture_ordinal": 12,
+  "event_id": "STR-07/E8",
+  "case_id": "STR-07",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "fad6addce9d24e8fd6b8e939ccdc33b0097b3da4c639de430f0a7827d108db6e",
+  "extractor_input": {
+    "session_id": "state-replay/STR-07",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_0547c1f520f67a42ff27e316",
+        "session_id": "state-replay/STR-07",
+        "seq": 8,
+        "role": "user",
+        "content": "The maintainer says reverting and later reapplying the change with a larger release and documentation is worth considering, reopening that release decision without committing to it.",
+        "event_type": "issue_comment",
+        "created_at": "2020-07-28T11:44:32.000Z",
+        "token_count": 46,
+        "metadata": {
+          "event_id": "STR-07/E8",
+          "source_ordinal": 8,
+          "actor": "lovelydinosaur",
+          "source_id": "gh:issue-comment:664992297",
+          "source_url": "https://github.com/Kludex/starlette/issues/1008#issuecomment-664992297",
+          "source_content_sha256": "d26bb48af5327eda9df73f07db03300289eb1b5707db6b700026977fa129d850",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-07/E8"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-07\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_0547c1f520f67a42ff27e316\",\"session_id\":\"state-replay/STR-07\",\"seq\":8,\"role\":\"user\",\"content\":\"The maintainer says reverting and later reapplying the change with a larger release and documentation is worth considering, reopening that release decision without committing to it.\",\"event_type\":\"issue_comment\",\"created_at\":\"2020-07-28T11:44:32.000Z\",\"token_count\":46,\"metadata\":{\"event_id\":\"STR-07/E8\",\"source_ordinal\":8,\"actor\":\"lovelydinosaur\",\"source_id\":\"gh:issue-comment:664992297\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1008#issuecomment-664992297\",\"source_content_sha256\":\"d26bb48af5327eda9df73f07db03300289eb1b5707db6b700026977fa129d850\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-07/E8\"}]}}",
+  "prompt_sha256": "a9df43e8fa5a472891496f7818288572b2eab91d56680293c1ab5988fd54d603",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

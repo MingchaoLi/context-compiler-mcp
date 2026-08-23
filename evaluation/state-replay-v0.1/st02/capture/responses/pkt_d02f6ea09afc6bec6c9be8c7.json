@@ -1,0 +1,5 @@
+{
+  "schema_version": "state_replay_st02_response/v1",
+  "packet_id": "pkt_d02f6ea09afc6bec6c9be8c7",
+  "raw_response": "{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[{\"question\":\"Should the compatibility probe call hashlib.md5 with usedforsecurity=False to support FIPS environments?\",\"source_event_id\":\"STR-06/E11\"}],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]}"
+}

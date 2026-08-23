@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_a79450f7788d7b36d7a15f69",
+  "capture_ordinal": 28,
+  "event_id": "STR-06/E14",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "6e4e75e255e173a001cf172f0fc3a72c44189a24114bf3a1ce36fb09b3105e93",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_914432f9ebb89842c1b845bf",
+        "session_id": "state-replay/STR-06",
+        "seq": 14,
+        "role": "user",
+        "content": "PR 1410 opens to change the md5_hexdigest capability probe from usedforsecurity=True to False; its patch changes only _compat.py and adds no repository test.",
+        "event_type": "pull_request_body",
+        "created_at": "2022-01-13T22:27:18.000Z",
+        "token_count": 40,
+        "metadata": {
+          "event_id": "STR-06/E14",
+          "source_ordinal": 14,
+          "actor": "adriangb",
+          "source_id": "gh:pr:1410",
+          "source_url": "https://github.com/Kludex/starlette/pull/1410",
+          "source_content_sha256": "f5ef0a628d5bc6f73e2bfa1b4b855c6c36f3e490a70f8e02d3b1676b8e72a914",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E14"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_914432f9ebb89842c1b845bf\",\"session_id\":\"state-replay/STR-06\",\"seq\":14,\"role\":\"user\",\"content\":\"PR 1410 opens to change the md5_hexdigest capability probe from usedforsecurity=True to False; its patch changes only _compat.py and adds no repository test.\",\"event_type\":\"pull_request_body\",\"created_at\":\"2022-01-13T22:27:18.000Z\",\"token_count\":40,\"metadata\":{\"event_id\":\"STR-06/E14\",\"source_ordinal\":14,\"actor\":\"adriangb\",\"source_id\":\"gh:pr:1410\",\"source_url\":\"https://github.com/Kludex/starlette/pull/1410\",\"source_content_sha256\":\"f5ef0a628d5bc6f73e2bfa1b4b855c6c36f3e490a70f8e02d3b1676b8e72a914\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E14\"}]}}",
+  "prompt_sha256": "b3ec9dedea69d859d76277a432bd279aebb9bcc488d0ae3c38cd209648417a20",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}

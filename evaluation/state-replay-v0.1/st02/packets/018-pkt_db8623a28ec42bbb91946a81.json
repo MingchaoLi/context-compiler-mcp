@@ -1,0 +1,49 @@
+{
+  "schema_version": "state_replay_st02_packet/v1",
+  "packet_id": "pkt_db8623a28ec42bbb91946a81",
+  "capture_ordinal": 18,
+  "event_id": "STR-06/E4",
+  "case_id": "STR-06",
+  "previous_predicted_revision": 0,
+  "previous_response_chain_sha256": "884e03c8e6226b4e3a89360c473b3f6e05069764d8c61daa05c3684d9cbf93e2",
+  "extractor_input": {
+    "session_id": "state-replay/STR-06",
+    "active_state": [],
+    "state_relations": [],
+    "recent_context": [],
+    "newest_events": [
+      {
+        "id": "evt_bc6eaa97ea39fc3e90f82b21",
+        "session_id": "state-replay/STR-06",
+        "seq": 4,
+        "role": "user",
+        "content": "The reporter retracts the secure-hash requirement and says retaining MD5 requires a hashlib compatibility wrapper or monkey patch.",
+        "event_type": "issue_comment",
+        "created_at": "2021-12-15T11:46:36.000Z",
+        "token_count": 33,
+        "metadata": {
+          "event_id": "STR-06/E4",
+          "source_ordinal": 4,
+          "actor": "landtuna",
+          "source_id": "gh:issue-comment:994713435",
+          "source_url": "https://github.com/Kludex/starlette/issues/1365#issuecomment-994713435",
+          "source_content_sha256": "c53a6e6b401df4f1e1a8dace8d8283cd3da048c4aee43fb93125df78291d4df2",
+          "representation": "standardized_real_event_summary"
+        },
+        "source_event_id": "state-replay-v0.1:STR-06/E4"
+      }
+    ]
+  },
+  "prompt": "Extract only task-state changes. Return exactly one JSON object and no markdown.\nUse exactly the ten arrays in required_shape. Unknown fields are forbidden.\n{\"required_shape\":{\"new_goals\":[],\"updated_goals\":[],\"new_constraints\":[],\"updated_constraints\":[],\"new_decisions\":[],\"resolved_questions\":[],\"new_open_questions\":[],\"rejected_alternatives\":[],\"supersessions\":[],\"new_relations\":[]},\"contracts\":{\"updated_goals_status\":\"COMPLETED only\",\"updated_constraints_status\":\"SUPERSEDED only\",\"resolved_by\":\"same-session ACTIVE Decision only\",\"supersession\":\"different same-session ACTIVE Decisions only\",\"explicit_relations\":[\"DEPENDS_ON\",\"REJECTS\",\"DERIVED_FROM\"]},\"input\":{\"session_id\":\"state-replay/STR-06\",\"active_state\":[],\"state_relations\":[],\"recent_context\":[],\"newest_events\":[{\"id\":\"evt_bc6eaa97ea39fc3e90f82b21\",\"session_id\":\"state-replay/STR-06\",\"seq\":4,\"role\":\"user\",\"content\":\"The reporter retracts the secure-hash requirement and says retaining MD5 requires a hashlib compatibility wrapper or monkey patch.\",\"event_type\":\"issue_comment\",\"created_at\":\"2021-12-15T11:46:36.000Z\",\"token_count\":33,\"metadata\":{\"event_id\":\"STR-06/E4\",\"source_ordinal\":4,\"actor\":\"landtuna\",\"source_id\":\"gh:issue-comment:994713435\",\"source_url\":\"https://github.com/Kludex/starlette/issues/1365#issuecomment-994713435\",\"source_content_sha256\":\"c53a6e6b401df4f1e1a8dace8d8283cd3da048c4aee43fb93125df78291d4df2\",\"representation\":\"standardized_real_event_summary\"},\"source_event_id\":\"state-replay-v0.1:STR-06/E4\"}]}}",
+  "prompt_sha256": "6ab19d930c51a983da70e762656bef10704082e3d7195b932da4dbb209130cf6",
+  "remote_session": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium",
+    "fork_turns": "none",
+    "fresh_session": true,
+    "attempt": 1,
+    "tools_enabled": false,
+    "network_access": false,
+    "repository_access": false
+  }
+}
