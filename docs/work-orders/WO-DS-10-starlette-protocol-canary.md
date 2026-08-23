@@ -1,6 +1,6 @@
 # WO-DS-10 — Starlette 预注册评估协议 canary
 
-状态：IMPLEMENTED — PENDING INDEPENDENT QA
+状态：ACCEPTED — `protocol_canary_not_frozen`
 
 ## 背景与对抗审查处置
 
@@ -151,3 +151,7 @@ Builder 必须提交中文 handoff，明确记录 `evaluation_run_count:0`、`mo
 validator 固定 WO-DS-09 promotion identity 与 protocol file contract，重新派生完整 inventory，并拒绝 Oracle-only/raw-only anchor、latest repetition、resolved Probe、future answer Fact、dangling critical id、零宽字符、code-identifier 例外滥用、依赖静默丢失、状态提权、unknown field、coordinated rewrite 与 symlink。12 个 evaluator v2 输入只经真实 parser 静态解析，共 101 projected turns；没有调用 runner 或模型。
 
 Builder 自检通过：protocol validator；17 项聚焦测试；全量 354 项单测；protocol 8 项；build、diff check；真实 50-entry npm tarball SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，不含 evaluation/docs/test。`evaluation_run_count:0`、`model_call_count:0`、`effect_metrics_generated:false` 保持；实现者不自批。
+
+## 独立 QA 接受
+
+2026-08-23 独立 Data QA 在固定 Builder candidate `bc78c42505c34ae6f3220db49b2e5a5af905d0eb` 上通过。QA 独立重算 83 facts / 75 slices / 499 assignments，复核固定 12 slice 顺序、19 个人工 task-dependency、8 个双边 exact Probe，以及 42 required / 16 forbidden answer rubric；并重放 canonical/protocol 协调改写、hash 自举、unknown/path/order/status/symlink 和 lexical/future 反例。只接受 `protocol_canary_not_frozen`：canonical collection 仍为 `promotion_candidate_not_frozen`，`evaluation_ready:false`、`model_run_authorized:false`，未进行 Probe 实验、正式 freeze 或模型调用。QA 发现的 P2 是 interpretation 语义方向须保留人工审查；当前内容正确且固定文件合同阻止实际改写，详见 `docs/qa/WO-DS-10-starlette-protocol-canary.md`。

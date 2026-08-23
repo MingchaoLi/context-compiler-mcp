@@ -44,7 +44,7 @@ WO-DS-09 已在独立 Data QA 于 2026-08-23 接受为六案 canonical-data free
 
 DS-09 后关键节点对抗审查 `docs/adversarial-reviews/AR-2026-08-23-post-ds09-protocol.md` 结论为 `Agree with reservations`。主控接受其更小路径并建立 WO-DS-10：只制作不超过 12 slices 的预注册 protocol canary，同时生成 83 facts / 75 slices 的完整资格清单；context Probe 与 answer required/forbidden/Critical-Miss checklist 必须同冻。现有 resolved context 尺子固定为 diagnostic/not-evaluable，overall `passed` 不作决策。本工单禁止 evaluator/model 运行、core 修改与正式 freeze。
 
-WO-DS-10 Builder candidate 已实现、待新的独立 QA。当前 protocol 从固定六案数据重建 83 facts / 75 slices / 499 assignments，并固定 12 slices / 101 projected turns；只有 8 个共同 exact lexical-anchor Probe，19 个 task dependency 明确 `not_exactly_scorable`，答案 rubric 为 42 required / 16 forbidden。状态仍是 `protocol_canary_not_frozen`，没有改动 promotion payload、`src/` 或 package surface；`formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`，runner/model/effect count 均为 0。独立 QA PASS 前不得接受该 candidate。
+WO-DS-10 已在独立 Data QA 于 2026-08-23 接受为 `protocol_canary_not_frozen`，固定 Builder candidate 为 `bc78c42505c34ae6f3220db49b2e5a5af905d0eb`。protocol 从固定六案数据独立重建并复验 83 facts / 75 slices / 499 assignments，固定 12 slices / 101 projected turns；仅有 8 个共同 exact lexical-anchor Probe，19 个 task dependency 明确 `not_exactly_scorable`，答案 rubric 为 42 required / 16 forbidden。接受没有改动 promotion payload、`src/` 或 package surface；canonical collection 仍为 `promotion_candidate_not_frozen`，且 `formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`，runner/model/effect count 均为 0。0 medium 仍是外推限制；这不是 Probe 实验、正式 freeze、D0/D1/D2 或模型运行授权。
 
 ## 最新对抗审查
 
