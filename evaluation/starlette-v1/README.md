@@ -129,3 +129,18 @@ npx vitest run test/starlette-protocol-canary.test.ts
 ```
 
 当前状态仍为 `protocol_canary_not_frozen`；canonical data 仍是 `promotion_candidate_not_frozen`。validator 与 parser preflight 明确保持 evaluator/model run count 为 0，且 `formal_freeze_authorized:false`、`evaluation_ready:false`、`evaluator_run_authorized:false`、`model_run_authorized:false`。独立 QA PASS 后也需另开工单完成 data+protocol 原子 freeze、首次模型调用前追加污染复扫与运行参数预注册。
+
+## DS-11 原子 freeze/run gate
+
+`freeze/v1/` 以 append-only manifest 同时锁定 DS-09 的 46 个 canonical-data 文件、DS-10 的 3 个 protocol 文件与 36 个盲化 answer-input packet。旧 promotion/protocol 文件仍保留 candidate 状态；只有本候选独立 QA PASS 后，固定 bytes 才由 wrapper 声明为 `frozen_by_manifest`。
+
+36 个 packet 对应固定 12 slices × D0/D1/D2 × 1 repetition。D0/D1 逐字复用 evaluator transcript renderer，D2 调用真实 `assembleContext`；prompt 中没有 case/slice/condition 标签，内部映射与固定 SHA 排序运行顺序只保存在 `packet-manifest.json`。D2 使用人工 Oracle-State，必须解释为 typed-state upper bound，不能冒充自动 extractor 的端到端能力。
+
+首次调用前的 append-only contamination rescan 仍使用既定规则；六案在受限公开 web index 中没有 qualified task-level reuse，但 GitHub code-search API/UI 不可用，结论不是 absence proof。运行合同固定 GPT-5.6-terra non-sol、medium effort、36 个 fresh `fork_turns:none` session、每 cell 单次尝试且禁止 retry/best-of。当前仍未授权模型或 evaluator 调用，`model_call_count:0`、`evaluation_run_count:0`。
+
+```bash
+env NODE_NO_WARNINGS=1 npx vite-node --script evaluation/starlette-v1/freeze/v1/validate-freeze.ts evaluation/starlette-v1
+npx vitest run test/starlette-atomic-freeze.test.ts
+```
+
+语义回答仍须两名 condition-blind 人类 reviewer 按 DS-10 rubric 判断；单次 feasibility 不能支持稳健性、一般化或确定性复现结论。

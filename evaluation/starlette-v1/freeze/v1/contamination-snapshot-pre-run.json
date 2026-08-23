@@ -1,0 +1,139 @@
+{
+  "schema_version": "starlette-contamination-snapshot/v1",
+  "snapshot_id": "starlette-v1-pre-run-2026-08-23T08:58:06Z",
+  "rule_version": "starlette-contamination-rule/v1",
+  "evidence_cutoff_at": "2026-08-23T03:00:00Z",
+  "scan_observed_at": "2026-08-23T08:58:06Z",
+  "prior_snapshot": {
+    "path": "promotion/contamination-snapshot-freeze-candidate.json",
+    "sha256": "d3fe578e8f9b70eaba48ae24d4fdb13615104b27de11ca7d5b2ae3906fd98dd2"
+  },
+  "rule": "Mark confirmed only when a public repository explicitly reuses the same Starlette issue or fix as an LLM, agent, benchmark, code-repair, or evaluation task, or highly copies that task or patch. Ordinary downstream references, vendored source, production workarounds, repository names that merely contain agent or SWE, and retrieved-context noise unrelated to the task, Gold, or answer do not count.",
+  "search_capabilities": {
+    "github_code_search_api": "unavailable_in_current_tooling",
+    "github_public_code_search_ui": "unavailable_in_current_tooling",
+    "web_index_exact_path_search": "completed_with_index_limitations"
+  },
+  "results": [
+    {
+      "candidate_id": "STR-07",
+      "source_numbers": [1008, 1010],
+      "queries": [
+        "\"encode/starlette/issues/1008\" OR \"encode/starlette/pull/1010\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/1008\" OR \"Kludex/starlette/pull/1010\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [],
+      "notes": "The public web index returned repository pages and unrelated numeric collisions, but no qualified task-level reuse. This is an index-limited observation."
+    },
+    {
+      "candidate_id": "STR-08",
+      "source_numbers": [1298],
+      "queries": [
+        "\"encode/starlette/issues/1298\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/1298\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [
+        {
+          "url": "https://openreview.net/pdf?id=zH9aX65Zyi",
+          "classification": "numeric_line_collision",
+          "reason": "The indexed text fragment uses 1298 as a PDF line number in an unrelated multi-turn coding benchmark paper; it does not identify Starlette issue 1298."
+        }
+      ],
+      "notes": "The only benchmark-looking result was an unrelated PDF line-number collision; no qualified public reuse was observed."
+    },
+    {
+      "candidate_id": "STR-05",
+      "source_numbers": [1083, 1377, 1683],
+      "queries": [
+        "\"encode/starlette/issues/1083\" OR \"encode/starlette/pull/1377\" OR \"encode/starlette/pull/1683\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/1083\" OR \"Kludex/starlette/pull/1377\" OR \"Kludex/starlette/pull/1683\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [
+        {
+          "url": "https://www.starlette.io/release-notes/",
+          "classification": "ordinary_release_note",
+          "reason": "The release note lists PR 1683 as shipped work; it is not an LLM, agent, repair, benchmark, or evaluation task."
+        }
+      ],
+      "notes": "The accepted ordinary release-note exclusion is carried forward; no qualified task-level reuse was observed."
+    },
+    {
+      "candidate_id": "STR-06",
+      "source_numbers": [1365, 1366, 1410],
+      "queries": [
+        "\"encode/starlette/issues/1365\" OR \"encode/starlette/pull/1366\" OR \"encode/starlette/pull/1410\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/1365\" OR \"Kludex/starlette/pull/1366\" OR \"Kludex/starlette/pull/1410\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [],
+      "notes": "The public web index returned no qualified task-level reuse. Compatibility discussions and repository-name heuristics remain excluded by rule."
+    },
+    {
+      "candidate_id": "STR-01",
+      "source_numbers": [495, 500, 1692],
+      "queries": [
+        "\"encode/starlette/issues/495\" OR \"encode/starlette/pull/500\" OR \"encode/starlette/pull/1692\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/495\" OR \"Kludex/starlette/pull/500\" OR \"Kludex/starlette/pull/1692\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [
+        {
+          "url": "https://seokhyun2.tistory.com/97",
+          "classification": "ordinary_downstream_explanation",
+          "reason": "The article cites PR 1692 while explaining middleware body reuse; it is not an evaluation or repair task."
+        }
+      ],
+      "notes": "The accepted downstream explanation exclusion is carried forward; no qualified task-level reuse was observed."
+    },
+    {
+      "candidate_id": "STR-04",
+      "source_numbers": [685, 1286, 1649, 2349],
+      "queries": [
+        "\"encode/starlette/issues/685\" OR \"encode/starlette/pull/1286\" OR \"encode/starlette/pull/1649\" OR \"encode/starlette/pull/2349\" benchmark eval LLM agent repair dataset",
+        "\"Kludex/starlette/issues/685\" OR \"Kludex/starlette/pull/1286\" OR \"Kludex/starlette/pull/1649\" OR \"Kludex/starlette/pull/2349\" benchmark eval LLM agent repair dataset"
+      ],
+      "status": "no_public_hit_found",
+      "eligibility": "eligible_as_of_snapshot",
+      "blind_eligibility": true,
+      "direct_evidence": [],
+      "excluded_hits": [
+        {
+          "url": "https://github.com/Uniyalsumit/CT_PROJECT/blob/c11a9ce776b73670789a8757c033ff11b115fa42/evaluation/results/ragas_results_test.csv",
+          "classification": "context_only_retrieval_noise",
+          "reason": "PR 2349 occurs in retrieved context for an ambiguous router question, but benchmark.py registers FastAPI PR 15745 as the reference and the answer does not use PR 2349."
+        },
+        {
+          "url": "https://stackoverflow.com/questions/78739451/get-path-template-from-starlette-request-from-a-middleware",
+          "classification": "ordinary_downstream_reference",
+          "reason": "The answer cites issue comment 550240999 while discussing middleware routing; it is not an LLM, agent, repair, benchmark, or evaluation task."
+        },
+        {
+          "url": "https://github.com/Kludex/starlette/blob/main/tests/test_routing.py",
+          "classification": "canonical_repository_source",
+          "reason": "The Starlette regression test cites a PR 1649 review discussion inside the source repository itself; canonical source is not external evaluation reuse."
+        }
+      ],
+      "notes": "The accepted RAGAS context-only and ordinary-reference exclusions are carried forward; no new qualified task-level reuse was observed."
+    }
+  ],
+  "model_run_gate": "eligible_pending_independent_qa",
+  "limitations": "This append-only pre-run rescan used the current public web index and the unchanged registered rule. GitHub code-search API and UI were unavailable in current tooling. no_public_hit_found is only an as-of observation, not absence proof; the scan does not prove that no unindexed reuse exists."
+}

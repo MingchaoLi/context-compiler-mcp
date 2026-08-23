@@ -1,0 +1,88 @@
+{
+  "schema_version": "starlette-answer-run-contract/v1",
+  "status": "planned_not_authorized_pending_freeze_qa",
+  "purpose": "single_repetition_feasibility_only",
+  "transport": {
+    "kind": "codex_collaboration_agent_session",
+    "model_alias": "gpt-5.6-terra",
+    "model_family_constraint": "non-sol",
+    "reasoning_effort": "medium",
+    "session_count": 36,
+    "fresh_session_per_packet": true,
+    "fork_turns": "none",
+    "packets_per_session": 1,
+    "tools_allowed": false,
+    "network_allowed": false,
+    "repository_access_allowed": false
+  },
+  "design": {
+    "case_count": 6,
+    "slice_count": 12,
+    "conditions": ["d0", "d1", "d2"],
+    "repetitions_per_cell": 1,
+    "total_cells": 36,
+    "execution_order_source": "packet-manifest.json#execution_order",
+    "execution_order_algorithm": "ascending_sha256(starlette-v1-run-order/v1|packet_id)",
+    "condition_order_adaptation_allowed": false,
+    "answer_or_rubric_sharing_between_sessions": false
+  },
+  "attempt_policy": {
+    "attempts_per_cell": 1,
+    "adaptive_retry_allowed": false,
+    "best_of_allowed": false,
+    "technical_failure_status": "technical_failure",
+    "single_cell_retry_allowed": false,
+    "systemic_failure_requires_new_full_rerun_work_order": true
+  },
+  "response_contract": {
+    "format": "single_json_object",
+    "exact_keys": ["answer"],
+    "answer_language": "English",
+    "maximum_words": 250,
+    "markdown_wrapper_allowed": false,
+    "raw_output_rewriting_allowed": false
+  },
+  "capture_contract": {
+    "required_fields": [
+      "packet_id",
+      "prompt_sha256",
+      "requested_model_alias",
+      "requested_reasoning_effort",
+      "started_at",
+      "ended_at",
+      "raw_assistant_output",
+      "response_sha256",
+      "parse_status",
+      "cell_status"
+    ],
+    "temperature": "unavailable",
+    "sampling_parameters": "unavailable",
+    "seed": "unavailable",
+    "backend_build": "unavailable",
+    "billed_tokens": "unavailable",
+    "deterministic_reproduction_claim_allowed": false
+  },
+  "judging_contract": {
+    "answers_are_unscored_artifacts_at_collection": true,
+    "semantic_reviewers_required": 2,
+    "reviewer_type": "condition_blind_human",
+    "model_judge_allowed": false,
+    "required_forbidden_critical_miss_source": "../../protocol-canary/protocol.json",
+    "lexical_context_metrics_substitute_for_semantic_judgment": false
+  },
+  "interpretation_limits": {
+    "robustness_claim_allowed": false,
+    "generalization_claim_allowed": false,
+    "provider_comparison_allowed": false,
+    "d2_automatic_extractor_end_to_end_claim_allowed": false,
+    "d2_typed_state_upper_bound_must_be_disclosed": true,
+    "resolved_context_metric": "not_evaluable_diagnostic_only",
+    "overall_passed": "non_decision_diagnostic"
+  },
+  "authorization": {
+    "model_run_count_in_this_work_order": 0,
+    "model_calls_authorized_in_this_work_order": false,
+    "next_work_order_maximum_calls_after_independent_qa_pass": 36,
+    "independent_qa_pass_required": true
+  }
+}

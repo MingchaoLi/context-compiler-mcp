@@ -48,6 +48,8 @@ WO-DS-10 已在独立 Data QA 于 2026-08-23 接受为 `protocol_canary_not_froz
 
 DS-10 接受后已建立 WO-DS-11，只做 data+protocol 原子 freeze、append-only pre-run contamination rescan 与 36 个盲化 D0/D1/D2 input packet/GPT-5.6-terra non-sol feasibility 运行合同。该工单本身禁止 evaluator/model 调用；只有新的独立 QA PASS，下一工单才可按固定 order 发起恰好 36 个 fresh session。语义评分仍要求两名 condition-blind 人类 reviewer，不能由第二模型替代。
 
+WO-DS-11 Builder 候选已实现，正在等待新的独立 QA。append-only wrapper 展开固定 46 个 canonical-data 文件、3 个 protocol 文件、固定 12 slices 与 36 个 opaque answer-input packet；D0/D1 复用 evaluator renderer，D2 调用真实 assembler 但使用人工 Oracle-State，因此只代表 typed-state upper bound。pre-run contamination rescan 在受限公开 web index 中没有新增 qualified task-level reuse，但 GitHub code-search API/UI 不可用，不能作 absence proof。运行合同固定 GPT-5.6-terra non-sol / medium / 36 fresh sessions / 每 cell 单次，无 adaptive retry 或模型 judge。本候选仍保持 `model_call_count:0`、`evaluation_run_count:0`、`model_run_authorized:false`；QA PASS 前 freeze 不生效，也不得收集回答。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
@@ -75,5 +77,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-07 STR-07 单案 source/Gold checkpoint 已独立 QA 接受：10 个增量机械归为 long，不预设 survey 的 short；仍不 promotion STR-06/07，不制作 Probe 或运行模型。其后 WO-DS-08 的 STR-01 checkpoint/schema gate 也已接受；下一步只能由新工单一次性考虑 promotion STR-06/07/01。
 - WO-DS-08 STR-01 source/Gold checkpoint 已独立 QA 接受：18 个增量机械归为 long，PR #500 closed-unmerged、PR #1692 narrow merge 与 #495 tracker close 没有混写；仍为 checkpoint_not_frozen，且 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false。此接受不表示 STR-01 promoted/frozen、六案完整、Probe/answer rubric 就绪或可运行 D0/D1/D2/远端模型。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
+- WO-DS-11 仅冻结首次 feasibility 输入与运行合同；单次 repetition、0 medium、人工 Oracle-State upper-bound、GitHub code-search 不可用与尚缺两名 condition-blind 人类评分仍限制后续解释。即使独立 QA PASS，也不能据此声明 D2 优于 D1、稳健性或一般化。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

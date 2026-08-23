@@ -1,0 +1,35 @@
+{
+  "schema_version": "starlette-atomic-freeze-hashes/v1",
+  "status": "freeze_candidate_pending_independent_qa",
+  "algorithm": "sha256",
+  "source_identity": {
+    "canonical_data_qa_commit": "2012961d9409f6c957d344c5432a701a1c15f8e7",
+    "protocol_qa_commit": "44c9756b041601fa7f287c834157439ac77fec3f"
+  },
+  "files": [
+    {
+      "path": "freeze/v1/generate-run-inputs.ts",
+      "sha256": "88d020cbccbff17b1cae8a1b52ba67c9c2c59d023fdeaa11187feed835412868"
+    },
+    {
+      "path": "freeze/v1/answer-inputs.jsonl",
+      "sha256": "503441186a90efe93a93b04e53b350737877bfb941f48eb91e610144a3a52675"
+    },
+    {
+      "path": "freeze/v1/packet-manifest.json",
+      "sha256": "74d45b359b15087e1858face1076113809f2938be7599bf8e79b054b1b54d982"
+    },
+    {
+      "path": "freeze/v1/contamination-snapshot-pre-run.json",
+      "sha256": "9ad86c9acee5071dadc210d20fe6bd09e1c90de13c82ddcc3bedea5883469659"
+    },
+    {
+      "path": "freeze/v1/run-contract.json",
+      "sha256": "7cafe30a138c056da46b0f629e97fb2b0d2bcb096a8111db5ff90594206be85b"
+    },
+    {
+      "path": "freeze/v1/freeze-manifest.json",
+      "sha256": "58b5fb95f230645e0a47fcd97695668f1ce74241a8a75214992c9e6c55d7d6bc"
+    }
+  ]
+}

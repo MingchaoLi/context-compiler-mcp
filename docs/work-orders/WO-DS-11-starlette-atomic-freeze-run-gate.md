@@ -134,3 +134,13 @@ WO-DS-09 已接受六案 canonical-data freeze candidate；WO-DS-10 已在独立
 Builder 提交中文 handoff 且不能自批。独立 QA 必须固定 Builder candidate，独立重建 freeze/hash/36 packets，复核真实公开污染 scan、prompt/condition 隔离与 model contract，并验证无 runner/model/provider/network 执行路径。
 
 只有独立 QA PASS，data+protocol freeze 才正式生效，下一工单才可引用 QA commit 授权恰好 36 次 GPT-5.6-terra feasibility session。若 scan 出现 confirmed、packet 泄漏、hash 自举或运行合同可变，必须 FAIL。
+
+## Builder 实现结果
+
+2026-08-23 已完成待独立 QA 的 append-only 候选。freeze wrapper 展开锁定 DS-09 的 46 个 canonical-data 文件、DS-10 的 3 个 protocol 文件与 Git 身份，不改写旧 candidate payload。pre-run snapshot 沿用原规则覆盖六案，本次受限公开 web-index 观察没有 qualified task-level reuse；GitHub code-search API/UI 不可用和 `no_public_hit_found` 非 absence proof 已显式保留。
+
+生成器对固定 12 slices 分别复用 evaluator D0/D1 transcript rendering，并为 D2 调用真实 `assembleContext`，确定性生成 36 个 opaque packet。内部 manifest 固定 mapping、hash、字符/token 估算与 SHA 排序 order；D2 始终披露为人工 Oracle-State typed-state upper bound，无 headline/recall/extractor。run contract 固定 GPT-5.6-terra non-sol、medium、36 fresh `fork_turns:none` session、每 cell 一次、无 retry/best-of、原样 capture 与两名 condition-blind 人类 reviewer。
+
+validator 先复用已接受 promotion/protocol validator，再核对代码固定 freeze byte contract、hash manifest 展开、scan/run contract 与确定性 packet rebuild。14 项聚焦测试覆盖正常路径、污染确认、sol substitution、retry、授权、换 slice、packet swap/omission、条件与零宽泄漏、unknown、协调重写和 symlink。本工单保持 `model_call_count:0`、`evaluation_run_count:0`、`model_run_authorized:false`；实现者不自批。
+
+Builder 自检通过：atomic validator；14/14 聚焦测试；20 files / 368 全量单测；8/8 protocol；build、diff check；隔离真实 50-entry npm tarball SHA-1 `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，不含 evaluation/docs/test。
