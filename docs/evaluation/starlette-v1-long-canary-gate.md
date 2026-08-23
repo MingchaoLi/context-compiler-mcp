@@ -28,6 +28,8 @@ Issue/PR 创建事件只使用创建时可证明的标题。当前 body 的 SHA-
 
 最终 Outcome Anchor 保留 #1649 的行为测试提交、#1649 merge 与 #2349 merge。它们不会进入任何 Available Evidence。#685 在 2026-08-23 来源审计时仍为 open；这只支持“原问题未关闭”，不表示两个部分能力没有价值。
 
+第二轮独立 QA 发现 T13 曾把只有 `closed` 且 `commit_id: null` 的 tracker event 过度解释为“原需求 RESOLVED / Mount 已交付”。修复后，T13 只把 tracker 状态记为关闭、将语义问题标为 `DEFERRED`，并延续 E12 时已知的“仍在评估 Mount”状态；Fact Gold 使用 `outcome_status`，不进入 resolved-issue reopening 指标。E14 的 timestamped maintainer 评论出现后，才允许把 Mount 描述为不满足原 global APM 需求的部分能力。
+
 ## 模型输入 projection
 
 `projectModelInput(bundle, sliceId)` 先运行完整 bundle 校验，再输出：

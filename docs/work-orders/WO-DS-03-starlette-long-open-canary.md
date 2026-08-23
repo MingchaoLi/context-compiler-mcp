@@ -159,3 +159,9 @@ STR-04 已规范化为 1 个 long/open canary：18 个 event、18 个 slice、18
 validator 已实现 long/tier/increment 一致性和单 segment/multi segment 不变量；`projectModelInput` 仅输出六个允许的 event 字段与独立 Current Task。现有三个 pilot 补齐 increment ids，STR-05 如实改为 long，hash 状态仍为未冻结。聚焦测试还记录了 validator 会接受、人工必须拒绝的语义 future paraphrase，明确没有把字面检查误写成语义证明。
 
 Builder 完成后仍不自行打开批量 freeze gate；必须由新的独立 data QA 复验当前 candidate。
+
+## 第二轮 QA 退回与修复
+
+独立 re-QA 固定候选 `1d7b2d0` 后发现 T13 Oracle 把只有 `closed` 且 `commit_id:null` 的 Issue state event 写成原需求 `RESOLVED` 和 Mount 已交付，可能人为制造 resolved→reopen 信号。其余 18 个来源/增量、投影、hash、contamination 与全量回归通过。
+
+修复将 F14 从 `resolved_issue` 改为只表达 tracker 状态的 `outcome_status`；T13 open question 改为 `DEFERRED`，Mount 只延续 E12 可证明的评估状态，不再从 E13 推断交付。聚焦测试固定 null-commit canonical hash，并拒绝 T13 产生 `RESOLVED`/delivered Oracle。仍需再次独立 re-QA。

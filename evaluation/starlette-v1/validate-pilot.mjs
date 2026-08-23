@@ -113,6 +113,26 @@ function sha256(value, path) {
   return value;
 }
 
+export function hashIssueStateEvent(value) {
+  const target = exact(value, ["id", "node_id", "event", "actor", "created_at", "commit_id"], "issue-state-event");
+  integer(target.id, "issue-state-event.id", 1);
+  string(target.node_id, "issue-state-event.node_id");
+  enumValue(target.event, ["closed", "reopened"], "issue-state-event.event");
+  string(target.actor, "issue-state-event.actor");
+  iso(target.created_at, "issue-state-event.created_at");
+  if (target.commit_id !== null && !/^[a-f0-9]{40}$/.test(target.commit_id)) {
+    fail("issue-state-event.commit_id", "expected Git SHA-1 or null");
+  }
+  return createHash("sha256").update(JSON.stringify({
+    id: target.id,
+    node_id: target.node_id,
+    event: target.event,
+    actor: target.actor,
+    created_at: target.created_at,
+    commit_id: target.commit_id,
+  })).digest("hex");
+}
+
 function uniqueStrings(value, path) {
   const values = array(value, path).map((entry, index) => string(entry, `${path}[${index}]`));
   if (new Set(values).size !== values.length) fail(path, "duplicate value");

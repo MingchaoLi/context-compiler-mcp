@@ -7,8 +7,8 @@
     {"path": "canary/STR-04/manifest.json", "sha256": "19b436786ce401b3f3e385297d6bd58c4e8bacd905f9fb1e4c179b51aecb0f1d"},
     {"path": "canary/STR-04/events.json", "sha256": "00833cbfbf0d3a6cea2bd5615c5f353db31c3e200274fd58c4ea2f6710828154"},
     {"path": "canary/STR-04/tasks.json", "sha256": "8f69ae4c11546b4fee84a27da3dbc173d231b146ab7b6a5d6cc51b67e4af8104"},
-    {"path": "canary/STR-04/fact-gold.json", "sha256": "b69df32036553486f3945e50c427ed91a1068f07f6c676897247b66abb12e0fe"},
-    {"path": "canary/STR-04/oracle-state.json", "sha256": "04120716ce7d31469b122c7097fa1429bb4916c4eac36fdef3d4b380104111eb"},
+    {"path": "canary/STR-04/fact-gold.json", "sha256": "50150ff6202365832096a4c6eff1592be22540c7694e6ecfd86a080ba02cbffa"},
+    {"path": "canary/STR-04/oracle-state.json", "sha256": "be179bf0c2a42a6bad5a9bf0cfca37da433c8a9cb733fd3bb765fbedd5568e3b"},
     {"path": "canary/STR-04/decision-references.json", "sha256": "26d9da7b00e0c50ed4bb3e62866723e2d6af4e509b82516c6905914db3b08549"},
     {"path": "canary/STR-04/outcome-anchors.json", "sha256": "4e71438bb8d138f2973541e8fc3f8170d44942fc3dab8cc5e136525f819f7a1a"}
   ]

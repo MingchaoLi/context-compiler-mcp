@@ -19,6 +19,8 @@
 
 首轮 Builder 候选 `57279d1` 因 RAGAS context-only 命中错误关闭 gate。独立 QA 提交 `cf600f3` 判定 FAIL：任务 reference 实为 FastAPI PR #15745，#2349 不是任务、Gold 或答案。修复提交 `a364da4` 接受该结论，恢复 STR-04 `no_public_hit_found` 后才制作 canary。该历史保留，不能把检索噪声重新写成 confirmed。
 
+第二轮候选 `1d7b2d0` 又被独立 QA 退回：T13 把 `closed`/`commit_id:null` 过度解释成原需求 `RESOLVED` 和 Mount 已交付。当前修复把 T13 限定为 tracker closed、语义 `DEFERRED`，延续最后已知的评估状态；F14 改为 `outcome_status`，并增加 null-commit hash 与“不产生 resolved/delivered Oracle”反例。
+
 ## 新 QA 必查
 
 - 固定新的 Builder candidate、父提交和 clean worktree，确认 diff 不含 core/model/provider；
@@ -35,8 +37,8 @@
 
 - pilot validator：3 cases / 4 segments / 25 events / 25 slices，hash verified；
 - canary validator：1 case / 1 segment / 18 events / 18 slices / 18 increments，hash verified；
-- `npx vitest run test/starlette-pilot.test.ts`：31/31；
-- `npm test`：12 files / 273 tests；
+- `npx vitest run test/starlette-pilot.test.ts`：33/33；
+- `npm test`：12 files / 275 tests；
 - `npm run test:protocol`：8/8；
 - `npm run build`、`git diff --check`：通过。
 

@@ -8,7 +8,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 // The pilot validator intentionally remains outside the publishable src/ package.
 // @ts-expect-error JavaScript fixture utility has no declaration file.
 import {
-  loadCanary, loadPilot, projectModelInput, validateCanary, validateCaseBundle, validatePilot,
+  hashIssueStateEvent, loadCanary, loadPilot, projectModelInput, validateCanary, validateCaseBundle, validatePilot,
 } from "../evaluation/starlette-v1/validate-pilot.mjs";
 
 const PILOT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "evaluation", "starlette-v1");
@@ -239,6 +239,27 @@ describe("Starlette STR-04 canary and model projection", () => {
     const candidate = canaryBundle();
     candidate.tasks.tasks[0].current_task = "Assume later work supplies route-scoped hooks; explain why that still leaves zero-touch instrumentation incomplete.";
     expect(() => validateCaseBundle(candidate, "STR-04")).not.toThrow();
+  });
+
+  it("does not equate the E13 tracker close with semantic resolution or delivery", () => {
+    const candidate = canaryBundle();
+    const state = candidate.oracleState.states.find((entry: any) => entry.slice_id === "STR-04/T13");
+    expect(state.items.some((item: any) => item.status === "RESOLVED")).toBe(false);
+    expect(state.items.some((item: any) => /delivered direction/i.test(item.content))).toBe(false);
+    expect(candidate.factGold.facts.find((fact: any) => fact.id === "STR-04/F14")).toMatchObject({ category: "outcome_status" });
+  });
+
+  it("pins the E13 closed-state hash with a null commit id", () => {
+    const candidate = canaryBundle();
+    const event = candidate.events.events.find((entry: any) => entry.id === "STR-04/E13");
+    expect(hashIssueStateEvent({
+      id: 7433573738,
+      node_id: event.source.node_id,
+      event: "closed",
+      actor: event.actor,
+      created_at: event.occurred_at,
+      commit_id: null,
+    })).toBe(event.source_content_sha256);
   });
 
   it("rejects canary hash tampering", async () => {
