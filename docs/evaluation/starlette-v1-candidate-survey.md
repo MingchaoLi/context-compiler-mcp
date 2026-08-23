@@ -15,7 +15,7 @@
 
 ## 评分说明
 
-评分向量依次为：`证据链/状态变化/provenance/任务与Gold/Outcome Anchor/外部独立性`，总分 10。高分不自动覆盖排除条件：`STR-11` 因与另一 BaseHTTPMiddleware 根因链重复而只列 reserve，`STR-15` 即使 10 分仍因公开 benchmark contamination 建议 reject。
+评分向量依次为：`证据链/状态变化/provenance/任务与Gold/Outcome Anchor/外部独立性`，总分 10。高分不自动覆盖排除条件：`STR-11` 因 BaseHTTPMiddleware/background lifecycle 组件与现象配额而只列 reserve，但没有证据证明它与 STR-02 同根因；`STR-15` 即使 10 分仍因公开 benchmark contamination 建议 reject。
 
 ## 总表
 
@@ -135,7 +135,7 @@
 - 状态变化：异常被静默吞掉；无测试的 #2696 关闭；带 test 的 #2812 合并并关闭；新版本随后把已经处理的异常再次抛出，用户回退版本；#2911 增加检查和测试后合并。
 - Outcome Anchor：#2812、#2911 均含 `tests/middleware/test_base.py`，且第二个 patch 是第一个 patch 的可观察回归修复。
 - 适用性：证据极强。
-- 不优先原因：与 STR-02 同属 BaseHTTPMiddleware/background lifecycle，若同时冻结会明显放大同一组件权重；在 STR-02 证据规范化失败时可作为替补。
+- 不优先原因：与 STR-02 同属 BaseHTTPMiddleware/background lifecycle，若同时冻结会明显放大同一组件与现象权重；这不是“同根因”判断。在 STR-02 证据规范化失败时可作为替补。
 - 评分：`2/2/2/2/1/1 = 10`；`reserve`。
 
 ### STR-12 — 自定义 `CapacityLimiter` 最终只交付调参文档
@@ -184,7 +184,7 @@
 
 若 DS-02 在规范化时必须删除推荐案例，替换优先顺序不是按分数机械选择：
 
-1. STR-11 仅在 STR-02 删除后使用，避免重复 BaseHTTPMiddleware root；
+1. STR-11 仅在 STR-02 删除后使用，控制 BaseHTTPMiddleware/background lifecycle 组件权重；
 2. STR-10 仅在冻结明确 cutoff 且不纳入其后 active PR 后使用；
 3. STR-09 仅在外部依赖可以被公开 evidence 固定后使用；
 4. STR-12/13/14 只作为保持“非代码终局/外部归因”的备选；
@@ -193,7 +193,7 @@
 ## Selection bias findings
 
 1. **评论数检索偏差。** 初筛从高评论公开 Issue 入手，天然偏向旧、争议大和长期 open 的轨迹。已用 STR-07/08 与 2024–2025 regression 链补核，但推荐集仍不是 Starlette bug 的统计代表样本，只是评估连续性能力的 purposeful sample。
-2. **middleware 组件集中。** Starlette 高质量长链显著集中在 middleware。推荐集只保留一个复合 BaseHTTPMiddleware lifecycle 链 STR-02，并把同根的 STR-11 降为 reserve；即便如此，STR-01/03/04/05 仍涉及不同 middleware 边界，最终报告必须按组件披露，不能把 8 条当成独立同分布样本。
+2. **middleware 组件集中。** Starlette 高质量长链显著集中在 middleware。推荐集只保留一个复合 BaseHTTPMiddleware lifecycle 链 STR-02，并按组件配额把 STR-11 降为 reserve；公开证据没有证明两者同根因。即便如此，STR-01/03/04/05 仍涉及不同 middleware 边界，最终报告必须按组件披露，不能把 8 条当成独立同分布样本。
 3. **survivorship/outcome 偏差。** 有合并 PR/test 的案例更容易标注。STR-04、07、08 特意保留未完全修复、设计关闭和“无需修复”终局；不得因 Outcome Anchor 较弱在 freeze 时全部删除。
 4. **活跃截止偏差。** STR-09/10 在 2026 年仍变化，容易因截止日选择改变结果；推荐集暂不使用它们。
 5. **公开 benchmark 污染。** STR-15 已被公开 LLM 评测派生仓库重复，明确排除。DS-02 还应对其余 8 条再做一次公开 benchmark 名称/交叉引用扫描。

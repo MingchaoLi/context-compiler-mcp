@@ -16,7 +16,7 @@
 
 ## 关键判断
 
-- 高分不自动进入推荐集：STR-11 与已推荐的 BaseHTTPMiddleware 根因链重复，降为 reserve；STR-15 出现公开 `LLM-CR-EVAL` 派生任务交叉引用，因 benchmark contamination 直接 reject。
+- 高分不自动进入推荐集：STR-11 与已推荐项集中在 BaseHTTPMiddleware/background lifecycle 组件与现象，按组件配额降为 reserve；公开证据没有证明两者同根因。STR-15 出现公开 `LLM-CR-EVAL` 派生任务交叉引用，因 benchmark contamination 直接 reject。
 - 推荐集中保留了无代码 patch 的 short 终局，防止只选择 D2 天生有利的长链或只有合并测试的幸存案例。
 - STR-04 的两个已合并 routing middleware PR 只提供部分能力，原始 APM route-name 问题仍 open；后续不得误标为 resolved。
 - STR-02 的最终 patch 后仍有较晚复现评论，Outcome Anchor 只能表示已合并 patch/test，不能声称所有根因已消失。
@@ -27,19 +27,21 @@
 
 检索通过公开 GitHub API/页面只读完成；未克隆外部仓库，未向项目写入缓存、原始抓取、凭据或日志。
 
-## 下一工单输入
+## 对抗审查后的下一工单输入
 
-WO-DS-02 应先冻结数据 schema 与 GitHub-event→D1-turn 规则，再逐条规范化推荐 8 条。必须：
+独立对抗审查结论为 `Agree with reservations`，记录见 `docs/adversarial-reviews/AR-2026-08-23-starlette-candidate-survey.md`。下一工单不直接制作 8 条，而先冻结 schema 与 GitHub-event→D1-turn 规则，并只规范化 STR-08、STR-05、STR-02 三个哨兵 pilot。必须：
 
 1. 分离时间可见 evidence 与 Outcome Anchor；
 2. 以事件 timestamp 验证 `available_at <= Ti`；
 3. 为 Fact Gold 保存稳定 provenance；
 4. 对每条轨迹预先列出纳入/排除事件；
-5. 在查看任何 D2 输出前完成独立 selection-bias/future-leakage 审计和 canonical hash；
-6. 再次扫描公开 benchmark contamination；
-7. 如果删案，按候选报告里的有条件替补顺序处理，并记录原因，不能按 D2 表现换样。
+5. 显式决定 STR-02 是保持 composite 还是拆分，并给出逐节点证据；
+6. 对全部 15 条统一扫描公开 benchmark contamination；
+7. 在查看任何 D2 输出前完成 pilot 的独立 manifest/future-leakage 审计；
+8. pilot 不要求全数据集 canonical hash；通过后另开冻结工单，最低目标 6 条（2 short / 2 medium / 2 long），额外 long 作为扩展或 holdout；
+9. 如果删案，按候选报告里的有条件替补顺序处理并记录原因，不能按 D2 表现换样。
 
-WO-DS-02 建议先使用人工 Oracle-State 构造 D2 上界；自动 Extracted-State 必须是后续独立实验，不能混入首次 Starlette v1 结论。
+pilot 与后续冻结建议先使用人工 Oracle-State 构造 D2 上界；自动 Extracted-State 必须是后续独立实验，不能混入首次 Starlette v1 结论。
 
 ## 自检
 
