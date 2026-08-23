@@ -33,7 +33,7 @@
 }
 ```
 
-构造函数本身不返回 `wiring_compatible`；该状态只在 collection plan、accepted fixture/hash、确定性映射、evaluator v2 版本和严格 parser 全部核对后产生。接线校验还会先向 parser 注入一个未知字段反例；只有收到 `INVALID_INPUT` 且有效 suite 原样解析，才接受该回调，普通 no-op/宽松 parser 不能制造兼容状态。
+构造函数本身不返回 `wiring_compatible`；该状态只在 collection plan、accepted fixture/hash、确定性映射、evaluator v2 版本和严格 parser 全部核对后产生。独立 QA 发现首个候选允许注入一个能够模仿单一严格反例的 parser callback，因此将其判为 FAIL。当前追加修复把最终验证移入非发布的 TypeScript 工具，直接静态导入仓库内 `parseEvaluationSuiteV2` 与版本常量；调用方不能再注入 parser 或报告版本，原 QA lookalike callback 会被明确拒绝。
 
 ## 映射边界
 
@@ -51,7 +51,7 @@ Fact Gold、Decision Reference、Outcome Anchor、GitHub source/node/database id
 - 删除早期 slice 中间 event，使 exact prefix 不再匹配；
 - 把 Oracle `source_refs` 指向当前 slice 不可见的 event；
 - evaluator v2 报告版本不再是 `2`。
-- parser 回调是 no-op 或接受未知字段。
+- 尝试注入 no-op、宽松或能模仿 `INVALID_INPUT` 的 lookalike parser。
 
 测试同时逐项确认 raw content 恰好只有六个投影字段，结构摘要不含 `passed`、`aggregate` 或 `threshold_failures`。
 

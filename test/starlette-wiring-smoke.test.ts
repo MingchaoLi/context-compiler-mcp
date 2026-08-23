@@ -4,12 +4,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { EVALUATION_REPORT_VERSION_V2, parseEvaluationSuiteV2 } from "../src/evaluation.js";
+import { validateWiringSmoke } from "../evaluation/starlette-v1/validate-wiring-smoke.js";
 // The wiring utility intentionally remains outside the publishable src/ package.
 // @ts-expect-error JavaScript fixture utility has no declaration file.
 import {
   buildWiringSmoke,
   validateCollectionPlan,
-  validateWiringSmoke,
 } from "../evaluation/starlette-v1/wiring-smoke.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "evaluation", "starlette-v1");
@@ -62,10 +62,7 @@ describe("Starlette no-model wiring smoke", () => {
     const candidate = structuredClone(wiring);
     const target = candidate.suite.cases.find((entry: any) => entry.id === "STR-04/T3")!;
     target.raw_events.splice(1, 1);
-    await expect(validateWiringSmoke(ROOT, candidate, {
-      parseSuite: parseEvaluationSuiteV2,
-      evaluatorReportVersion: EVALUATION_REPORT_VERSION_V2,
-    })).rejects.toThrow(/slice-to-evaluator mapping changed/);
+    await expect(validateWiringSmoke(ROOT, candidate)).rejects.toThrow(/slice-to-evaluator mapping changed/);
   });
 
   it("rejects Oracle provenance that no longer resolves to visible raw evidence", async () => {
@@ -95,10 +92,7 @@ describe("Starlette no-model wiring smoke", () => {
 
   it("returns only structural evidence and pins the existing evaluator report version", async () => {
     const wiring = await buildWiringSmoke(ROOT);
-    const summary = await validateWiringSmoke(ROOT, wiring, {
-      parseSuite: parseEvaluationSuiteV2,
-      evaluatorReportVersion: EVALUATION_REPORT_VERSION_V2,
-    });
+    const summary = await validateWiringSmoke(ROOT, wiring);
     expect(summary).toEqual({
       schema_version: "starlette-wiring-smoke-report/v1",
       status: "wiring_compatible",
@@ -118,11 +112,19 @@ describe("Starlette no-model wiring smoke", () => {
     expect(summary).not.toHaveProperty("threshold_failures");
   });
 
-  it("does not accept a no-op callback as the strict evaluator parser", async () => {
+  it("rejects the QA lookalike parser instead of allowing callback injection", async () => {
     const wiring = await buildWiringSmoke(ROOT);
+    const lookalike = (value: any) => {
+      if (Object.prototype.hasOwnProperty.call(value, "unregistered_wiring_field")) {
+        const error = new Error("synthetic strict rejection") as Error & { code: string };
+        error.code = "INVALID_INPUT";
+        throw error;
+      }
+      return structuredClone(value);
+    };
     await expect(validateWiringSmoke(ROOT, wiring, {
-      parseSuite: (value: unknown) => value,
+      parseSuite: lookalike,
       evaluatorReportVersion: EVALUATION_REPORT_VERSION_V2,
-    })).rejects.toThrow(/did not enforce evaluator v2 strict input/);
+    })).rejects.toThrow(/parser injection is not supported/);
   });
 });

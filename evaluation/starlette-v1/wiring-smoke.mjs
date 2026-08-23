@@ -10,7 +10,6 @@ import {
 } from "./validate-pilot.mjs";
 
 const COLLECTION_PLAN_VERSION = "starlette-collection-plan/v1";
-const SMOKE_REPORT_VERSION = "starlette-wiring-smoke-report/v1";
 const EXPECTED_EVALUATOR_VERSION = 2;
 const EMPTY_PROBES = Object.freeze({
   constraints: Object.freeze([]),
@@ -171,46 +170,6 @@ async function assembleWiringSmoke(root) {
   return { plan, suite };
 }
 
-function createStructuralSummary(plan, suite) {
-  const projectedHistoryTurnCount = suite.cases.reduce((sum, entry) => sum + entry.raw_events.length, 0);
-  return {
-    schema_version: SMOKE_REPORT_VERSION,
-    status: "wiring_compatible",
-    collection_status: plan.status,
-    evaluator_input_version: EXPECTED_EVALUATOR_VERSION,
-    evaluator_report_version: EXPECTED_EVALUATOR_VERSION,
-    registered_case_count: plan.registered_cases.length,
-    smoke_case_count: plan.smoke_case_ids.length,
-    evaluator_case_count: suite.cases.length,
-    projected_history_turn_count: projectedHistoryTurnCount,
-    model_call_count: 0,
-    evaluation_run_count: 0,
-    effect_metrics_generated: false,
-  };
-}
-
 export async function buildWiringSmoke(root) {
   return assembleWiringSmoke(root);
-}
-
-export async function validateWiringSmoke(root, value, { parseSuite, evaluatorReportVersion }) {
-  if (typeof parseSuite !== "function") fail("parseEvaluationSuiteV2 callback is required");
-  if (evaluatorReportVersion !== EXPECTED_EVALUATOR_VERSION) {
-    fail("evaluator v2 report contract changed");
-  }
-  const expected = await assembleWiringSmoke(root);
-  if (!isDeepStrictEqual(value?.plan, expected.plan)) fail("collection plan mapping changed");
-  if (!isDeepStrictEqual(value?.suite, expected.suite)) fail("slice-to-evaluator mapping changed");
-  const invalidControl = clone(value.suite);
-  invalidControl.unregistered_wiring_field = true;
-  let strictRejection = false;
-  try {
-    parseSuite(invalidControl);
-  } catch (error) {
-    strictRejection = error?.code === "INVALID_INPUT";
-  }
-  if (!strictRejection) fail("parser callback did not enforce evaluator v2 strict input");
-  const parsed = parseSuite(value.suite);
-  if (!isDeepStrictEqual(parsed, value.suite)) fail("parser callback changed evaluator input");
-  return clone(createStructuralSummary(expected.plan, expected.suite));
 }

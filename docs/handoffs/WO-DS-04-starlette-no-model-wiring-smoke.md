@@ -7,11 +7,16 @@
 ## 当前交付
 
 - `collection-plan.json`：固定 STR-07/08/05/06/01/04，预计 tier 不作配额，禁止按结果换案；
-- `wiring-smoke.mjs`：校验 pilot/canary hash 后，把 STR-08/05/04 的每个 slice 确定性转换为 evaluator v2 输入；
+- `wiring-smoke.mjs`：纯 fixture 构造器；校验 pilot/canary hash 后，把 STR-08/05/04 的每个 slice 确定性转换为 evaluator v2 输入；
+- `validate-wiring-smoke.ts`：非发布验证器，直接静态导入真实 `parseEvaluationSuiteV2` 与 v2 报告版本，不接受 parser/version 注入；
 - `starlette-wiring-smoke.test.ts`：覆盖 31 slices、226 projected turns、严格 parser/no-op 反例、前缀/Oracle/索引反例和无效果摘要；
 - 中文接线报告、工单/状态/路线图更新。
 
 没有修改 `src/`、MCP、依赖、evaluator policy、assembler/retrieval 或 provider 接口；没有修改 STR-04/05/08 fixture、pilot/canary hash 或 contamination 记录；没有调用 `runEvaluationSuiteV2`、远端模型、aggregate 或 PASS rate。
+
+## 首轮 QA 退回
+
+首轮固定候选 `fe3c5cc` 允许调用方注入 parser callback。虽然 Builder 已加入 no-op 反例，独立 QA 仍构造出一个只模仿专用未知字段拒绝、其余输入直接 clone 的 lookalike callback，并据此判定 P0 FAIL。当前追加修复移除该依赖注入路径；最终状态只能由静态导入的真实 evaluator v2 parser 产生。失败报告与反例保留在 QA 文档中。
 
 ## 独立 QA 必查
 
@@ -23,7 +28,7 @@
 - 检查每个 raw content 恰好来自六字段 projection，非输入 artifact 不进入 raw/current input；
 - 攻击 Oracle `source_refs`、关系 id、session 和未来 event，确认 `parseEvaluationSuiteV2` 在执行前拒绝；
 - 静态确认接线工具没有导入或调用 `runEvaluationSuiteV2`、provider、网络、credential 或宿主代码；
-- 确认构造阶段不提前声称 `wiring_compatible`，no-op/宽松 parser 不能伪造成功，严格 parser 成功后摘要仍无 `passed`、aggregate 或任何效果指标；
+- 确认构造阶段不提前声称 `wiring_compatible`，最终验证器静态导入真实 parser/version 且拒绝 QA 的 lookalike callback，严格 parser 成功后摘要仍无 `passed`、aggregate 或任何效果指标；
 - 运行聚焦测试、`npm test`、protocol、build 与 `git diff --check`。
 
 ## Builder 自检
