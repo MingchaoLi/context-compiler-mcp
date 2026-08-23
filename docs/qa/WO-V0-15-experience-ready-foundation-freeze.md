@@ -222,3 +222,55 @@ Builder 需要 append-only 修复提交，并至少补齐以下回归后再申�
 ### 本轮冻结判断
 
 没有新的 P0/P1；fresh DB 与前两轮所有反例均已关闭。但 legacy raw DB 并发 ALTER P2 仍使已承诺的旧库兼容和 operational stability 不完整，因此本轮仍为 FAIL；WO、PROJECT_STATE 与 ROADMAP 继续保持 `QA FIX IMPLEMENTED / INDEPENDENT RE-QA PENDING`。Dense 效果与 Experience Formation 效果仍为 **未评估**，本次不授权冻结、进入下一阶段或扩展 Context 算法。
+
+---
+
+## 第三个 append-only fix 独立 re-QA（2026-08-24）
+
+结论：**PASS — WO-V0-15 ACCEPTED / FROZEN。** 前三轮的全部非空反例已关闭，本轮没有 P0/P1/P2。首轮和两次返回历史继续 append-only 保留，但不再表示当前候选状态。
+
+### 固定候选与独立性
+
+- 分支：`main`
+- 固定 source candidate：`76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e`
+- 固定父提交：`d59feeb2e855f7f7ded729085e89e4559bf40c2d`
+- re-QA 开始与测试完成后，分支、HEAD、parent 均未漂移，source candidate 工作树 clean，`git diff --check HEAD^..HEAD` 通过。
+- 本次未调用模型或网络，未修改 core、Gold、`feasibility-01`、WO-DS-14 official artifact 或 evaluation。QA 只追加中文报告并在 PASS 后更新 WO / PROJECT_STATE / ROADMAP。
+- 环境：macOS / Darwin 25.5.0 arm64、Node.js 25.6.1、npm 11.9.0；Windows 与 exact Node.js 24 未单独复跑。
+
+### legacy migration 高轮次同步攻击
+
+独立 QA 从缺少 `dense_embedding_json` 的旧 `sessions / raw_events` schema 开始，保留一条 seq 非 1、含 Unicode 正文与特殊 JSON 数据键的原始 raw 行，以 `SharedArrayBuffer + Atomics` 同步释放两个实例：
+
+- direct `SqliteRawHistoryStore` 100 组 / 200 实例全部成功。
+- 独立 `ContextCompilerMcpService` 100 组 / 200 实例全部构造成功且 health ready。
+- 双 stdio 30 组 / 60 个真实 MCP 子进程全部 health ready，stderr 为空。
+- 每组在并发完成后又进行第三次重启，随后独立查库：Dense 列精确一个，为 `TEXT / nullable / no default / non-PK`；旧 raw id/session/seq/source/role/正文/时间/token/metadata 字节不变且新列为 `NULL`；raw update/delete append-only trigger 精确各一个；EVENT backfill 恰好一条、ledger seq 为 1、`migration_backfill:true`，重启没有重复回填。
+
+### 事务、回滚与 retry 边界
+
+- 代码级核对确认 raw migration 在读取 `PRAGMA table_info(raw_events)` 前取得 `BEGIN IMMEDIATE`，table/index/trigger、inspection、conditional ALTER 全在同一事务内，成功后才 COMMIT。
+- 独立注入一个非 busy schema 冲突，让 index 名与已有 table 冲突。构造在约 1 ms 内原样抛出 `ERR_SQLITE_ERROR / errcode 1 / there is already a table named ...`；事务回滚后无 Dense 列、无半成品 raw trigger，原异常未被 rollback 覆盖。
+- `src/sqlite-initialization.ts` 相对上一个 fix 没有字节变化；retry 白名单没有扩大，仍只接受 SQLite `BUSY / LOCKED`。上轮已验证的 8 次有界耗尽、非 busy 单次原样抛出与 service `STORAGE_FAILURE` 分类继续通过 focused/full 回归。
+
+### 其他非空反例重放
+
+- fresh DB 独立同步重放：direct Raw + Service 合计 100 组 / 200 实例零失败；protocol 还重放 Raw / Service / stdio fresh barrier。
+- 预初始化 DB 上，same-source ingest 仍只有一条 raw + EVENT mirror；same-operation compile 仍只有一条 CONTEXT_COMPILE + 一条 RETRIEVAL_HIT。
+- 首轮五类问题继续关闭：no-id telemetry gap 被稳定拒绝且零写，exact trace/hit 变异 fail-open、public 保留 namespace 不可伪造；`__proto__ / constructor / prototype` 在 live/backfill/idempotency/fingerprint 中无损；Dense `1e308 / Number.MIN_VALUE / 多维大数` 有限可复算；坏持久行映射 `STORAGE_FAILURE`；RuntimeStateUpdater 成功及失败均保持 `contract_version:2`。v1 legacy parser/apply 和 DS-13/14 固定重放未漂移。
+
+### 回归、打包与范围
+
+- focused 9 文件：165/165 PASS。
+- 全量 `npm test`：468 PASS / 1 个既有 opt-in official runner SKIP。
+- `npm run test:protocol`：11/11 PASS；包含 fresh/legacy 并发、same-source/same-operation、真实 `npm pack`、production-only 隔离安装、精确九工具、stdio health 与进程关闭。
+- `npm run build`、`git diff --check HEAD^..HEAD`：PASS。
+- DS-13 fixed-object validator：PASS；36 answers / 8 lexical Probes 诊断复现，未重跑 official artifact。
+- DS-14 定向回归：ST-01 7/7、ST-02 contract 8/8、empty-state score 8/8、feasibility results 7/7，合计 30/30 PASS。
+- candidate 相对父提交没有修改 `evaluation/`；没有新增 provider/network/Graph DB/Experience Formation/PACE 范围，MCP 工具仍精确为九个。
+
+### 接受与冻结边界
+
+WO-V0-15 的实现 correctness、兼容、并发、迁移和打包合同已有足够非空证据，因此独立 QA 接受并冻结 Context / State 基础设施。该 PASS **不表示** Dense retrieval 有正向效果，也不表示 Experience Formation 已实现或有效；二者均仍为 **未评估**。
+
+下一阶段只转向真实长期使用，积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据。Context / State 默认只允许 correctness 修复；不再进行 Context 算法、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation 实现，除非之后另有明确工单和独立验证。

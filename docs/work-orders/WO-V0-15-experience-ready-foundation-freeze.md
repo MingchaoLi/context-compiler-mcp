@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：QA FIX IMPLEMENTED — APPEND-ONLY FIX PENDING INDEPENDENT RE-QA
+状态：ACCEPTED / FROZEN
 
 ## 背景校准
 
@@ -25,6 +25,8 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 首轮独立 QA 于固定候选 `e0d9af3acd3273d592007f7cae273b2820807b36` 返回五项 correctness 问题；QA 报告提交后的固定修复起点为 `c625e1632de76e63d05ddfa68c787d19dc6fe2a7`。本 append-only fix 已收紧 telemetry 信任边界、特殊 JSON 键无损规范化、Dense 极值数值稳定性、持久层错误分类和 Runtime v2 错误合同，等待独立 re-QA，不得据 Builder 自测标记 accepted/frozen。
 
 修复后的连续 telemetry 合同是 opt-in 且不可混用：session 在首个可信 `operation_id` compile 之前，无 id compile 保持历史 read-only；一旦可信 baseline 已建立，后续 MCP `compile_context` 缺 `operation_id` 必须稳定拒绝，避免合法但不可观测的查询命中制造 telemetry gap。通用 ledger `append` 只允许 `ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE`；`EVENT`、`CONTEXT_COMPILE`、`RETRIEVAL_HIT` 及其 source namespace 只由 raw 原子 mirror / 内部 trace batch 产生。坏或未知 telemetry 不建立 baseline，dormant 继续 fail-open。
+
+2026-08-24 第三次 append-only fix 在固定 source candidate `76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e` 通过独立 re-QA。首轮五项 correctness 问题、fresh DB 并发初始化与 legacy raw schema 并发 ALTER 竞争均已关闭；高轮次 Raw / Service / stdio 同步攻击、旧 raw 字节/序号保留、单一 EVENT backfill、事务回滚、幂等并发与 production-only pack 均通过。本工单现已接受并冻结；Dense 效果与 Experience Formation 效果仍为未评估。
 
 ## 单一结果
 
@@ -134,4 +136,4 @@ Checkpoint C 已完成 Builder 实现与本地回归：历史 `assembleContext` 
 - 不实现 PACE、多级摘要、glimpse/page fault、Graph DB、复杂 ontology、learned retrieval/compression。
 - 不接入 embedding/provider SDK，不联网，不调权重，不做 PACE/mem0 benchmark。
 - 不增加 MCP tool，不做 Formal Host Mode，不修改宿主仓库。
-- 不进入下一阶段；本工单接受后冻结 Context / State 基础设施。
+- Context / State 基础设施已冻结；下一阶段只转向真实使用与 Event–Action–Outcome / Feedback 数据积累，不由本工单隐式授权 Experience Formation 实现。
