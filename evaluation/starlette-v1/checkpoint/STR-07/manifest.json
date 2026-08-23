@@ -1,0 +1,49 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-07",
+  "title": "Routing regex regression: an unmerged patch yields to documented API boundaries and explicit workarounds",
+  "repository": "Kludex/starlette",
+  "historical_repository_aliases": ["encode/starlette"],
+  "tier": "long",
+  "pilot_status": "canary_not_frozen",
+  "segments": [
+    {
+      "id": "STR-07",
+      "classification": "long",
+      "boundary": "independent",
+      "event_ids": ["STR-07/E1", "STR-07/E2", "STR-07/E3", "STR-07/E4", "STR-07/E5", "STR-07/E6", "STR-07/E7", "STR-07/E8", "STR-07/E9", "STR-07/E10"],
+      "information_increment_event_ids": ["STR-07/E1", "STR-07/E2", "STR-07/E3", "STR-07/E4", "STR-07/E5", "STR-07/E6", "STR-07/E7", "STR-07/E8", "STR-07/E9", "STR-07/E10"],
+      "slice_ids": ["STR-07/T1", "STR-07/T2", "STR-07/T3", "STR-07/T4", "STR-07/T5", "STR-07/T6", "STR-07/T7", "STR-07/T8", "STR-07/T9", "STR-07/T10"]
+    }
+  ],
+  "boundary_decision": {
+    "status": "single_case",
+    "rationale": "All ten increments concern the same routing contract: whether path strings may contain general regex, whether the proposed optional-question-mark patch should restore that behavior, and which supported alternatives cover the affected use cases.",
+    "falsification": "Split the case only if an audited source shows that wildcard SPA routing and slash/no-slash routing were maintained as independent decisions with no shared regex-escaping or public-API premise."
+  },
+  "included_source_ids": [
+    "gh:issue:1008",
+    "gh:issue-comment:663614196",
+    "gh:pr:1010",
+    "gh:pr-comment:664182957",
+    "gh:issue-comment:664573918",
+    "gh:issue-comment:664875431",
+    "gh:issue-comment:664972962",
+    "gh:issue-comment:664992297",
+    "gh:issue-comment:665152933",
+    "gh:issue-comment:666997766"
+  ],
+  "excluded_sources": [
+    {"source_id":"gh:issue-comment:664868573","url":"https://github.com/Kludex/starlette/issues/1008#issuecomment-664868573","reason":"Only repeats the already visible Issue-to-PR relationship."},
+    {"source_id":"gh:issue-comment:664980668","url":"https://github.com/Kludex/starlette/issues/1008#issuecomment-664980668","reason":"Restates that regex behavior was undocumented and adds a civility request, but no new technical constraint or decision."},
+    {"source_id":"gh:issue-comment:664990984","url":"https://github.com/Kludex/starlette/issues/1008#issuecomment-664990984","reason":"The revert/version/docs proposal is quoted by the immediately following included maintainer response, which is the actual decision-state change."},
+    {"source_id":"gh:issue-comment:664996905","url":"https://github.com/Kludex/starlette/issues/1008#issuecomment-664996905","reason":"Adds external provenance for the old workaround and repeats the documentation concern without changing the repository decision."},
+    {"source_id":"gh:issue-comments:666411308-666455277","url":"https://github.com/Kludex/starlette/issues/1008","reason":"The TestClient redirect debugging branch is inconclusive and tangential; it ends in a reproduction correction rather than a durable STR-07 routing decision."},
+    {"source_id":"gh:issue-comment:701141122","url":"https://github.com/Kludex/starlette/issues/1008#issuecomment-701141122","reason":"Post-scope acknowledgement repeats that the dual-route workaround is useful but adds no new boundary."},
+    {"source_id":"gh:pr-comment:717292974","url":"https://github.com/Kludex/starlette/pull/1010#issuecomment-717292974","reason":"A later third-party regex monkey patch occurs after the registered decision window and relies on the rejected implementation surface."},
+    {"source_id":"gh:timeline-noise:1008","url":"https://github.com/Kludex/starlette/issues/1008","reason":"Mention, subscription, cross-reference, and head-ref deletion events add no task-relevant state."}
+  ],
+  "input_files": ["events.json", "tasks.json"],
+  "non_input_files": ["fact-gold.json", "oracle-state.json", "decision-references.json", "outcome-anchors.json"],
+  "source_body_history_limitations": "GitHub does not expose complete immutable edit history for Issue/PR bodies through the normal API. Current body SHA-256 and source_updated_at values are change detectors; creation summaries are limited to immutable title, timestamped comments, the initial commit, and the observed patch."
+}

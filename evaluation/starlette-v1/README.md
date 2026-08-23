@@ -71,3 +71,16 @@ npx vitest run test/starlette-str06-checkpoint.test.ts
 ```
 
 validator 额外固定三个 closed/reopened state canonical subset、16 个增量与 long tier、两次 merge 的 Outcome 上界，以及“无 repository regression test、无 Builder/QA FIPS replay、无跨环境证明”。每个 slice 继续只通过 `projectModelInput` 输出六字段历史；Gold、Oracle、Decision 与 Outcome 不进入模型输入。独立 Data QA PASS 前不接受该 checkpoint；PASS 后也不表示 STR-06 promoted/frozen 或可以运行 D0/D1/D2。
+
+## DS-07 STR-07 source/Gold checkpoint
+
+`checkpoint/STR-07/` 覆盖 Issue #1008 与 closed-unmerged PR #1010 的 10 个真实增量、10 个 slice 和 55 个投影历史 turn。逐事件审计把 survey 的预计 short 机械更正为 long；不为补 short/medium 配额删除 maintainer rejection、redirect/CORS、revert reconsideration 或两类 workaround。
+
+`str07-checkpoint.json` 保持 `checkpoint_not_frozen`，显式禁止 promotion/evaluation/model run。validator 固定 10 个来源合同，并拒绝把 PR API 的 `merge_commit_sha` 当成 merged patch、把 PR 内测试当成 repository regression test、把 Issue close 当成所有用例解决，或把 URI templating/path converter/CORS/revert/dual route 等未来答案写进较早 Current Task。
+
+```bash
+node evaluation/starlette-v1/validate-str07-checkpoint.mjs
+npx vitest run test/starlette-str07-checkpoint.test.ts
+```
+
+真实 evaluator v2 parser 只做 10 slices 的静态输入验证，不调用 runner 或模型。独立 Data QA PASS 前不接受该 checkpoint；PASS 后仍不表示 STR-07 promoted/frozen、六案完整或可运行 D0/D1/D2。

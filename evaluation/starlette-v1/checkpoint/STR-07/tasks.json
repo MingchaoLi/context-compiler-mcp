@@ -1,0 +1,16 @@
+{
+  "schema_version": "starlette-pilot/v1",
+  "case_id": "STR-07",
+  "tasks": [
+    {"id":"STR-07/T1","segment_id":"STR-07","cutoff_event_id":"STR-07/E1","available_event_ids":["STR-07/E1"],"recent_raw_window_turns":1,"current_task":"What changed, which prior behavior needs reproduction, and what is the smallest next investigation?"},
+    {"id":"STR-07/T2","segment_id":"STR-07","cutoff_event_id":"STR-07/E2","available_event_ids":["STR-07/E1","STR-07/E2"],"recent_raw_window_turns":2,"current_task":"What causal hypothesis is now supported, and what compatibility contract remains uncertain?"},
+    {"id":"STR-07/T3","segment_id":"STR-07","cutoff_event_id":"STR-07/E3","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3"],"recent_raw_window_turns":3,"current_task":"Before accepting the proposed patch, which public-API and compatibility assumptions should reviewers verify?"},
+    {"id":"STR-07/T4","segment_id":"STR-07","cutoff_event_id":"STR-07/E4","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4"],"recent_raw_window_turns":3,"current_task":"Which implementation direction is now disfavored, and what evidence would test whether the reported impact is broader?"},
+    {"id":"STR-07/T5","segment_id":"STR-07","cutoff_event_id":"STR-07/E5","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5"],"recent_raw_window_turns":3,"current_task":"How should maintainers now clarify the supported routing boundary and evaluate alternatives for the two use cases?"},
+    {"id":"STR-07/T6","segment_id":"STR-07","cutoff_event_id":"STR-07/E6","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5","STR-07/E6"],"recent_raw_window_turns":3,"current_task":"Which user needs are covered by the stated alternatives, and what limitations still require evidence?"},
+    {"id":"STR-07/T7","segment_id":"STR-07","cutoff_event_id":"STR-07/E7","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5","STR-07/E6","STR-07/E7"],"recent_raw_window_turns":3,"current_task":"How should the new redirect constraint change the compatibility assessment and the remaining release decision?"},
+    {"id":"STR-07/T8","segment_id":"STR-07","cutoff_event_id":"STR-07/E8","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5","STR-07/E6","STR-07/E7","STR-07/E8"],"recent_raw_window_turns":3,"current_task":"What lower-cost evidence could distinguish workable supported alternatives from a need to revisit the release decision?"},
+    {"id":"STR-07/T9","segment_id":"STR-07","cutoff_event_id":"STR-07/E9","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5","STR-07/E6","STR-07/E7","STR-07/E8","STR-07/E9"],"recent_raw_window_turns":3,"current_task":"What separate root-path need remains, and what solution properties would avoid the known redirect limitation?"},
+    {"id":"STR-07/T10","segment_id":"STR-07","cutoff_event_id":"STR-07/E10","available_event_ids":["STR-07/E1","STR-07/E2","STR-07/E3","STR-07/E4","STR-07/E5","STR-07/E6","STR-07/E7","STR-07/E8","STR-07/E9","STR-07/E10"],"recent_raw_window_turns":3,"current_task":"What are the current API, workaround, repository-delivery, and unresolved release/documentation states?"}
+  ]
+}

@@ -34,6 +34,8 @@ WO-DS-06 已在独立 re-QA 于 2026-08-23 接受，固定 source candidate 为 
 
 DS-06 接受后的第四次关键节点对抗审查记录为 `docs/adversarial-reviews/AR-2026-08-23-post-ds06-checkpoint.md`，结论为 `Challenge`。主控接受其更小路径：不单独 promotion STR-06、不提前实现 Probe，先以 WO-DS-07 制作 STR-07 source/Gold checkpoint，再单独制作 STR-01，最后一次性 promotion 新三案。当前实际已审计分布为 1 short / 0 medium / 3 long；缺少 medium 必须披露，但不授权换案、漏计或强拆 lineage。
 
+WO-DS-07 Builder 候选已完成、等待新的独立 Data QA。Issue #1008 与 closed-unmerged PR #1010 被规范化为 10 个 information increment/slice，机械分层为 long，进一步把已审计分布改为 1 short / 0 medium / 4 long。候选明确区分未合并 patch/test、公开 URI-template API、redirect/CORS 限制、path-converter 与 dual-route workaround，以及仍未决的 revert/release/docs；状态保持 checkpoint_not_frozen，未 promotion，evaluation/model 均未授权。
+
 ## 最新对抗审查
 
 2026-08-23 在 ST-03 接受后完成了首次独立对抗审查，结论为 `Challenge`。该结论不否定 ST-01 至 ST-03 的实现 QA；它指出现有证据主要证明“实现符合工单”，尚不足以证明“工单顺序是验证核心假设的最小投资路径”。完整记录见 `docs/adversarial-reviews/AR-2026-08-23-post-st03.md`。
@@ -58,7 +60,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-04 接线冒烟已独立 re-QA 接受，但这不构成正式 promotion/freeze、D0/D1/D2、远端模型或效果解释授权；这些步骤仍需新的有界工单和独立 QA。
 - WO-DS-05 三案 promotion audit 已独立 re-QA 接受；全六案共享 evidence cutoff 为 `2026-08-23T03:00:00Z`，扫描观察时间独立版本化。接受仍不是六案 freeze、`evaluation_ready` 或模型运行授权；只允许下一步另开 STR-06 source/Gold checkpoint。
 - WO-DS-06 STR-06 source/Gold checkpoint 已独立 re-QA 接受为 checkpoint/schema gate；16 个增量机械归为 long。它没有 repository regression test、本地 FIPS replay 或跨环境证明，merge/close 只表示 repository/tracker acceptance。接受仍保持 checkpoint_not_frozen，未进入 promotion/freeze，且 promotion_authorized:false、evaluation_ready:false、model_run_authorized:false；下一步不得擅自扩大，必须另开有界工单决定 promotion 或剩余 STR-01/07 的制作顺序。
-- WO-DS-07 已规划为 STR-07 单案 source/Gold checkpoint：不预设 survey 的 short 结论，按真实信息增量机械重算 tier；不 promotion STR-06/07，不制作 STR-01，不创建 Probe 或运行模型。
+- WO-DS-07 STR-07 单案 source/Gold checkpoint 已实现待独立 QA：10 个增量机械归为 long，不预设 survey 的 short；不 promotion STR-06/07，不制作 STR-01，不创建 Probe 或运行模型。
 - 持久化 preparation snapshot 尚无明确的有界保留策略。
 
 WO-ST-01 through WO-ST-03 and WO-EV-02 are complete and independently accepted. Formal host mode remains out of scope and has not started.

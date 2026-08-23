@@ -1,0 +1,15 @@
+{
+  "schema_version": "starlette-str07-checkpoint/v1",
+  "status": "checkpoint_not_frozen",
+  "algorithm": "sha256",
+  "files": [
+    {"path":"str07-checkpoint.json","sha256":"258bfc7f8156e0793f0c2c0f9a1f4055a7e89a7f96c0d8f9f944b322f2cc0a58"},
+    {"path":"checkpoint/STR-07/manifest.json","sha256":"50be99952568fa0c1d8842f21eaa2cc1f75ccde589168ca57c809128252692e2"},
+    {"path":"checkpoint/STR-07/events.json","sha256":"3997eb8605f3b666eb0bc722e15279b0e680b5ea9130fb41a244d2bcbba30111"},
+    {"path":"checkpoint/STR-07/tasks.json","sha256":"d3cbd14605d0994be5d493e7257e4d79cf61a44cc7373ebfeea7820e697e2040"},
+    {"path":"checkpoint/STR-07/fact-gold.json","sha256":"159391d3b9985a2148d36650f8e30dfe7dc7bcfa383fd1e11f6cf61df02baa8a"},
+    {"path":"checkpoint/STR-07/oracle-state.json","sha256":"ffda91eda4f11e0d5e451824d2723f1029ba329a65a92486c246b234c1fc1ff8"},
+    {"path":"checkpoint/STR-07/decision-references.json","sha256":"31e8993a52d42c3853d2e8c40ce15130bfb53c260c602429baa247ec832ce1a5"},
+    {"path":"checkpoint/STR-07/outcome-anchors.json","sha256":"a728b56bc371a548973875f90f55234fcc52b47fa1245111d343d390512c8aa3"}
+  ]
+}
