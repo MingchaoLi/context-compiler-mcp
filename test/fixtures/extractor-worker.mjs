@@ -42,6 +42,18 @@ function envelope(delta = emptyDelta()) {
   return JSON.stringify({ version: 1, delta });
 }
 
+function currentEventSource(request) {
+  if (typeof request?.prompt !== "string") return {};
+  const finalLine = request.prompt.split("\n").at(-1);
+  try {
+    const parsed = JSON.parse(finalLine);
+    const id = parsed?.input?.newest_events?.at(-1)?.id;
+    return typeof id === "string" && id.length > 0 ? { source_refs: [id] } : {};
+  } catch {
+    return {};
+  }
+}
+
 function respond(request) {
   switch (mode) {
     case "empty":
@@ -51,13 +63,13 @@ function respond(request) {
     case "goal":
       process.stdout.write(envelope({
         ...emptyDelta(),
-        new_goals: [{ content: "Runtime-created goal" }],
+        new_goals: [{ content: "Runtime-created goal", ...currentEventSource(request) }],
       }));
       return;
     case "delayed-goal":
       setTimeout(() => process.stdout.write(envelope({
         ...emptyDelta(),
-        new_goals: [{ content: "Runtime-created goal" }],
+        new_goals: [{ content: "Runtime-created goal", ...currentEventSource(request) }],
       })), 150);
       return;
     case "stderr":

@@ -5,10 +5,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
+  CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+  CurrentEventStateExtractor,
   ExtractorValidationError,
+  LEGACY_STATE_DELTA_CONTRACT_VERSION,
   StrictStateExtractor,
+  buildCurrentEventStateDeltaPrompt,
   createEmptyStateDelta,
+  parseCurrentEventStateDelta,
   parseStrictStateDelta,
+  parseStrictStateDeltaPayload,
   type ExtractorInput,
   type ExtractorTransport,
 } from "../src/extractor.js";
@@ -117,6 +123,49 @@ function validDelta(): StateDelta {
 
 function response(overrides: Partial<StateDelta> = {}): string {
   return JSON.stringify({ ...validDelta(), ...overrides });
+}
+
+function validCurrentEventDelta(): StateDelta {
+  return {
+    ...validDelta(),
+    new_goals: [{ content: "New goal", source_refs: ["raw-2"] }],
+    new_constraints: [{ content: "New constraint", source_refs: ["raw-2"] }],
+    new_open_questions: [{ content: "What budget?", source_refs: ["raw-2"] }],
+    rejected_alternatives: [{
+      content: "Use retired plan",
+      reason: "Already superseded",
+      source_refs: ["raw-2"],
+      rejects: ["decision-retired"],
+    }],
+    new_relations: [
+      {
+        source_id: "goal-1",
+        relation_type: "DEPENDS_ON",
+        target_id: "constraint-1",
+      },
+      ...["goal-1", "constraint-1", "question-1", "decision-old", "decision-other"].map(
+        (source_id) => ({
+          source_id,
+          relation_type: "DERIVED_FROM" as const,
+          target_id: "raw-2",
+        })
+      ),
+    ],
+  };
+}
+
+function currentResponse(overrides: Partial<StateDelta> = {}): string {
+  return JSON.stringify({ ...validCurrentEventDelta(), ...overrides });
+}
+
+function currentEventExtractor(
+  transport: ExtractorTransport,
+  maxAttempts?: number
+): StrictStateExtractor {
+  return new CurrentEventStateExtractor(
+    transport,
+    maxAttempts === undefined ? {} : { maxAttempts }
+  );
 }
 
 describe("strict StateDelta parser", () => {
@@ -388,13 +437,239 @@ describe("strict StateDelta parser", () => {
   });
 });
 
+describe("current-event StateDelta contract v2", () => {
+  it("exports a complete machine-checkable ten-array prompt contract", () => {
+    const prompt = buildCurrentEventStateDeltaPrompt(cloneInput());
+    const contract = JSON.parse(prompt.split("\n").at(-1)!) as any;
+
+    expect(contract.contract_version).toBe(CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION);
+    expect(contract.output_contract.required_arrays).toEqual([
+      "new_goals",
+      "updated_goals",
+      "new_constraints",
+      "updated_constraints",
+      "new_decisions",
+      "resolved_questions",
+      "new_open_questions",
+      "rejected_alternatives",
+      "supersessions",
+      "new_relations",
+    ]);
+    expect(Object.keys(contract.output_contract.arrays)).toEqual(
+      contract.output_contract.required_arrays
+    );
+    expect(contract.output_contract.arrays.new_goals.items).toMatchObject({
+      additional_fields: false,
+      required: ["content", "source_refs"],
+      optional: [],
+      fields: { content: "non-blank string", source_refs: "non-empty raw_event_id[]" },
+    });
+    expect(contract.output_contract.arrays.updated_goals.items.fields.status).toEqual([
+      "COMPLETED",
+    ]);
+    expect(contract.output_contract.arrays.updated_constraints.items.fields.status).toEqual([
+      "SUPERSEDED",
+    ]);
+    expect(contract.output_contract.arrays.new_decisions.items).toMatchObject({
+      required: ["content", "source_refs"],
+      optional: ["reason", "supersedes", "reopen_if"],
+    });
+    expect(contract.output_contract.arrays.resolved_questions.items).toMatchObject({
+      required: ["id"],
+      optional: ["resolved_by"],
+    });
+    expect(contract.output_contract.arrays.new_relations.items.fields.relation_type).toEqual([
+      "DEPENDS_ON",
+      "REJECTS",
+      "DERIVED_FROM",
+    ]);
+    expect(contract.id_namespaces.same_step_new_items).toContain("cannot be");
+    expect(contract.provenance_contract.recent_only_provenance).toContain("does not satisfy");
+  });
+
+  it("accepts a fully attributed non-empty delta", () => {
+    expect(parseCurrentEventStateDelta(currentResponse(), cloneInput())).toEqual(
+      validCurrentEventDelta()
+    );
+  });
+
+  it.each([
+    [
+      "new item without source_refs",
+      { ...createEmptyStateDelta(), new_goals: [{ content: "Unattributed" }] },
+    ],
+    [
+      "new item with empty source_refs",
+      {
+        ...createEmptyStateDelta(),
+        new_open_questions: [{ content: "Unattributed question", source_refs: [] }],
+      },
+    ],
+    [
+      "new item with recent-only source_refs",
+      {
+        ...createEmptyStateDelta(),
+        new_constraints: [{ content: "Old-only", source_refs: ["raw-1"] }],
+      },
+    ],
+    [
+      "updated content without current DERIVED_FROM",
+      {
+        ...createEmptyStateDelta(),
+        updated_goals: [{ id: "goal-1", content: "Changed" }],
+      },
+    ],
+    [
+      "resolved lifecycle without current DERIVED_FROM",
+      {
+        ...createEmptyStateDelta(),
+        resolved_questions: [{ id: "question-1", resolved_by: "decision-new" }],
+      },
+    ],
+    [
+      "superseded lifecycle without current DERIVED_FROM",
+      {
+        ...createEmptyStateDelta(),
+        supersessions: [{
+          superseded_id: "decision-old",
+          superseding_id: "decision-new",
+        }],
+      },
+    ],
+    [
+      "new Decision supersedes an old Decision without current DERIVED_FROM",
+      {
+        ...createEmptyStateDelta(),
+        new_decisions: [{
+          content: "Replacement",
+          source_refs: ["raw-2"],
+          supersedes: ["decision-old"],
+        }],
+      },
+    ],
+    [
+      "old DERIVED_FROM cannot satisfy a current update",
+      {
+        ...createEmptyStateDelta(),
+        updated_constraints: [{ id: "constraint-1", content: "Changed" }],
+        new_relations: [{
+          source_id: "constraint-1",
+          relation_type: "DERIVED_FROM" as const,
+          target_id: "raw-1",
+        }],
+      },
+    ],
+    [
+      "same-step generated item cannot be referenced",
+      {
+        ...createEmptyStateDelta(),
+        new_goals: [{ content: "Generated", source_refs: ["raw-2"] }],
+        new_relations: [{
+          source_id: "generated-goal-id",
+          relation_type: "DERIVED_FROM" as const,
+          target_id: "raw-2",
+        }],
+      },
+    ],
+  ])("fails closed for %s", (_label, candidate) => {
+    expect(() =>
+      parseCurrentEventStateDelta(JSON.stringify(candidate), cloneInput())
+    ).toThrowError(expect.objectContaining({
+      code: "INVALID_REFERENCE",
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+    }));
+  });
+
+  it("keeps the legacy parser source-less contract for explicit historical apply", () => {
+    const historical = {
+      ...createEmptyStateDelta(),
+      new_goals: [{ content: "Legacy source-less goal" }],
+    };
+
+    expect(parseStrictStateDeltaPayload(historical, cloneInput())).toEqual(historical);
+    expect(() =>
+      parseCurrentEventStateDelta(JSON.stringify(historical), cloneInput())
+    ).toThrowError(expect.objectContaining({
+      code: "INVALID_REFERENCE",
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+    }));
+  });
+
+  it("applies a scripted non-empty v2 result with the same reducer", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "context-compiler-extractor-v2-"));
+    const databasePath = join(directory, "context-compiler.db");
+    const rawStore = new SqliteRawHistoryStore(databasePath);
+    const stateStore = new SqliteContextStateStore(databasePath);
+    try {
+      const event = rawStore.ingest({
+        session_id: "session-v2",
+        role: "user",
+        content: "Create a provenance-backed goal",
+      });
+      const input: ExtractorInput = {
+        session_id: "session-v2",
+        active_state: [],
+        state_relations: [],
+        recent_context: [],
+        newest_events: [event],
+      };
+      const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue(JSON.stringify({
+        ...createEmptyStateDelta(),
+        new_goals: [{ content: "Provenance-backed goal", source_refs: [event.id] }],
+      }));
+
+      const extraction = await currentEventExtractor({ complete }).extract(input);
+      const applied = new StateReducer(stateStore).apply("session-v2", extraction.delta);
+
+      expect(extraction).toMatchObject({
+        contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+        fallback_used: false,
+        attempts: 1,
+      });
+      expect(applied.created).toMatchObject([{
+        type: "GOAL",
+        content: "Provenance-backed goal",
+        source_refs: [event.id],
+      }]);
+      expect(applied.relations).toMatchObject([{
+        source_id: applied.created[0]!.id,
+        relation_type: "DERIVED_FROM",
+        target_id: event.id,
+      }]);
+    } finally {
+      stateStore.close();
+      rawStore.close();
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("StrictStateExtractor transport and fallback", () => {
+  it("keeps unversioned construction on v1 for frozen historical replay", async () => {
+    const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue(JSON.stringify({
+      ...createEmptyStateDelta(),
+      new_goals: [{ content: "Historical source-less goal" }],
+    }));
+    const extractor = new StrictStateExtractor({ complete });
+
+    const result = await extractor.extract(cloneInput());
+    const promptPayload = JSON.parse(complete.mock.calls[0]![0].split("\n").at(-1)!) as any;
+
+    expect(result).toMatchObject({
+      contract_version: LEGACY_STATE_DELTA_CONTRACT_VERSION,
+      fallback_used: false,
+      delta: { new_goals: [{ content: "Historical source-less goal" }] },
+    });
+    expect(promptPayload.required_shape).toEqual(createEmptyStateDelta());
+    expect(promptPayload.contract_version).toBeUndefined();
+  });
+
   it("retries a validation failure once with only a sanitized repair code", async () => {
     const complete = vi
       .fn<ExtractorTransport["complete"]>()
       .mockResolvedValueOnce("response SECRET_VALUE is not JSON")
-      .mockResolvedValueOnce(response());
-    const extractor = new StrictStateExtractor({ complete });
+      .mockResolvedValueOnce(currentResponse());
+    const extractor = currentEventExtractor({ complete });
 
     const result = await extractor.extract(cloneInput());
 
@@ -402,7 +677,9 @@ describe("StrictStateExtractor transport and fallback", () => {
     expect(result.fallback_used).toBe(false);
     expect(result.error_codes).toEqual(["INVALID_JSON"]);
     expect(complete).toHaveBeenCalledTimes(2);
+    expect(complete.mock.calls[0]?.[0]).toContain("contract_version=2");
     expect(complete.mock.calls[1]?.[0]).toContain("repair_error_code=INVALID_JSON");
+    expect(complete.mock.calls[1]?.[0]).toContain('"contract_version":2');
     expect(complete.mock.calls[1]?.[0]).not.toContain("SECRET_VALUE");
   });
 
@@ -410,8 +687,8 @@ describe("StrictStateExtractor transport and fallback", () => {
     const complete = vi
       .fn<ExtractorTransport["complete"]>()
       .mockRejectedValueOnce(new Error("upstream SECRET_VALUE"))
-      .mockResolvedValueOnce(response());
-    const extractor = new StrictStateExtractor({ complete });
+      .mockResolvedValueOnce(currentResponse());
+    const extractor = currentEventExtractor({ complete });
 
     const result = await extractor.extract(cloneInput());
 
@@ -422,7 +699,7 @@ describe("StrictStateExtractor transport and fallback", () => {
 
   it("returns a fresh ten-array fallback after exhaustion", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue("not-json");
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
 
     const first = await extractor.extract(cloneInput());
     first.delta.new_goals.push({ content: "mutated" });
@@ -430,6 +707,7 @@ describe("StrictStateExtractor transport and fallback", () => {
 
     expect(first.fallback_used).toBe(true);
     expect(second).toEqual({
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
       delta: createEmptyStateDelta(),
       attempts: 2,
       fallback_used: true,
@@ -441,11 +719,14 @@ describe("StrictStateExtractor transport and fallback", () => {
 
   it("rejects invalid input before transport", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const invalid = cloneInput();
     invalid.newest_events[0]!.session_id = "session-b";
 
-    await expect(extractor.extract(invalid)).rejects.toMatchObject({ code: "INVALID_INPUT" });
+    await expect(extractor.extract(invalid)).rejects.toMatchObject({
+      code: "INVALID_INPUT",
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+    });
     expect(complete).not.toHaveBeenCalled();
   });
 
@@ -464,7 +745,7 @@ describe("StrictStateExtractor transport and fallback", () => {
     ],
   ])("rejects %s before transport", async (_label, mutate) => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const invalid = cloneInput();
     mutate(invalid);
 
@@ -476,7 +757,7 @@ describe("StrictStateExtractor transport and fallback", () => {
     const complete = vi
       .fn<ExtractorTransport["complete"]>()
       .mockResolvedValue(JSON.stringify(createEmptyStateDelta()));
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const historical = cloneInput();
     historical.active_state.push(
       item("decision-middle", "DECISION", "SUPERSEDED"),
@@ -556,7 +837,7 @@ describe("StrictStateExtractor transport and fallback", () => {
     ],
   ])("rejects invalid historical %s before transport", async (_label, relation) => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const invalid = cloneInput();
     invalid.state_relations = [relation as StateRelation];
 
@@ -566,7 +847,7 @@ describe("StrictStateExtractor transport and fallback", () => {
 
   it("rejects accessor/prototype input shapes before transport", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const accessorInput = cloneInput() as ExtractorInput & { hidden?: string };
     Object.defineProperty(accessorInput, "hidden", { enumerable: true, get: () => "value" });
 
@@ -582,7 +863,7 @@ describe("StrictStateExtractor transport and fallback", () => {
 
   it("propagates a real aborted signal and does not invoke transport", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const controller = new AbortController();
     controller.abort(new DOMException("Stopped", "AbortError"));
 
@@ -594,7 +875,7 @@ describe("StrictStateExtractor transport and fallback", () => {
 
   it("propagates a pre-aborted signal before validating invalid input", async () => {
     const complete = vi.fn<ExtractorTransport["complete"]>();
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const controller = new AbortController();
     const reason = new DOMException("Stopped before validation", "AbortError");
     controller.abort(reason);
@@ -606,8 +887,8 @@ describe("StrictStateExtractor transport and fallback", () => {
   });
 
   it("passes the exact signal to transport", async () => {
-    const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue(response());
-    const extractor = new StrictStateExtractor({ complete });
+    const complete = vi.fn<ExtractorTransport["complete"]>().mockResolvedValue(currentResponse());
+    const extractor = currentEventExtractor({ complete });
     const controller = new AbortController();
 
     await extractor.extract(cloneInput(), controller.signal);
@@ -619,7 +900,7 @@ describe("StrictStateExtractor transport and fallback", () => {
     const forged = new Error("SECRET_VALUE");
     forged.name = "AbortError";
     const complete = vi.fn<ExtractorTransport["complete"]>().mockRejectedValue(forged);
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
     const controller = new AbortController();
 
     const result = await extractor.extract(cloneInput(), controller.signal);
@@ -635,7 +916,7 @@ describe("StrictStateExtractor transport and fallback", () => {
       controller.abort(new DOMException("Stopped", "AbortError"));
       throw new Error("ordinary transport error");
     });
-    const extractor = new StrictStateExtractor({ complete });
+    const extractor = currentEventExtractor({ complete });
 
     await expect(extractor.extract(cloneInput(), controller.signal)).rejects.toMatchObject({
       name: "AbortError",
@@ -647,5 +928,12 @@ describe("StrictStateExtractor transport and fallback", () => {
     expect(
       () => new StrictStateExtractor({ complete: vi.fn() }, { maxAttempts })
     ).toThrow(/between 1 and 3/);
+  });
+
+  it("rejects an unknown contract version", () => {
+    expect(() => new StrictStateExtractor(
+      { complete: vi.fn() },
+      { contractVersion: 3 as never }
+    )).toThrow(/must be 1 or 2/);
   });
 });

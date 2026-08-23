@@ -1,6 +1,6 @@
 import {
+  CurrentEventStateExtractor,
   ExtractorValidationError,
-  StrictStateExtractor,
   type ExtractorResult,
   type ExtractorTransport,
 } from "./extractor.js";
@@ -41,7 +41,7 @@ export interface RuntimeStateUpdateResult {
 
 export class RuntimeStateUpdater {
   private readonly coordinator: StateUpdateCoordinator;
-  private readonly extractor: StrictStateExtractor;
+  private readonly extractor: CurrentEventStateExtractor;
 
   constructor(
     store: SqliteContextStateStore,
@@ -50,7 +50,7 @@ export class RuntimeStateUpdater {
   ) {
     this.coordinator = new StateUpdateCoordinator(store);
     const maxAttempts = parseOptions(options);
-    this.extractor = new StrictStateExtractor(
+    this.extractor = new CurrentEventStateExtractor(
       transport,
       maxAttempts === undefined ? {} : { maxAttempts }
     );

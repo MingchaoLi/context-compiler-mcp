@@ -34,6 +34,7 @@ export interface ExtractorTransport {
 }
 
 export interface ExtractorResult {
+  contract_version: StateDeltaContractVersion;
   delta: StateDelta;
   attempts: number;
   fallback_used: boolean;
@@ -42,10 +43,25 @@ export interface ExtractorResult {
 
 export interface StrictStateExtractorOptions {
   maxAttempts?: number;
+  contractVersion?: StateDeltaContractVersion;
 }
 
+export interface CurrentEventStateExtractorOptions {
+  maxAttempts?: number;
+}
+
+export const LEGACY_STATE_DELTA_CONTRACT_VERSION = 1 as const;
+export const CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION = 2 as const;
+
+export type StateDeltaContractVersion =
+  | typeof LEGACY_STATE_DELTA_CONTRACT_VERSION
+  | typeof CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION;
+
 export class ExtractorValidationError extends Error {
-  constructor(readonly code: ExtractorErrorCode) {
+  constructor(
+    readonly code: ExtractorErrorCode,
+    readonly contract_version: StateDeltaContractVersion = LEGACY_STATE_DELTA_CONTRACT_VERSION
+  ) {
     super(code);
     this.name = "ExtractorValidationError";
   }
@@ -88,6 +104,7 @@ const RELATION_TYPES: readonly RelationType[] = [
 
 export class StrictStateExtractor {
   private readonly maxAttempts: number;
+  private readonly contractVersion: StateDeltaContractVersion;
 
   constructor(
     private readonly transport: ExtractorTransport,
@@ -97,11 +114,20 @@ export class StrictStateExtractor {
     if (!Number.isSafeInteger(this.maxAttempts) || this.maxAttempts < 1 || this.maxAttempts > 3) {
       throw new Error("maxAttempts must be an integer between 1 and 3");
     }
+    // Unversioned construction remains v1 so frozen historical replays stay byte-identical.
+    // Current operational callers must opt in explicitly to the current-event v2 contract.
+    this.contractVersion = options.contractVersion ?? LEGACY_STATE_DELTA_CONTRACT_VERSION;
+    if (
+      this.contractVersion !== LEGACY_STATE_DELTA_CONTRACT_VERSION &&
+      this.contractVersion !== CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION
+    ) {
+      throw new Error("contractVersion must be 1 or 2");
+    }
   }
 
   async extract(input: ExtractorInput, signal?: AbortSignal): Promise<ExtractorResult> {
     throwIfAborted(signal);
-    validateExtractorInput(input);
+    validateExtractorInputForContract(input, this.contractVersion);
     const errorCodes: ExtractorErrorCode[] = [];
 
     for (let attempt = 1; attempt <= this.maxAttempts; attempt += 1) {
@@ -109,7 +135,10 @@ export class StrictStateExtractor {
 
       let response: string;
       try {
-        response = await this.transport.complete(buildPrompt(input, errorCodes.at(-1)), {
+        const prompt = this.contractVersion === CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION
+          ? buildCurrentEventStateDeltaPrompt(input, errorCodes.at(-1))
+          : buildLegacyStateDeltaPrompt(input, errorCodes.at(-1));
+        response = await this.transport.complete(prompt, {
           ...(signal === undefined ? {} : { signal }),
         });
       } catch {
@@ -120,8 +149,11 @@ export class StrictStateExtractor {
 
       throwIfAborted(signal);
       try {
-        const delta = parseStrictStateDelta(response, input);
+        const delta = this.contractVersion === CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION
+          ? parseCurrentEventStateDelta(response, input)
+          : parseStrictStateDelta(response, input);
         return {
+          contract_version: this.contractVersion,
           delta,
           attempts: attempt,
           fallback_used: false,
@@ -134,11 +166,25 @@ export class StrictStateExtractor {
     }
 
     return {
+      contract_version: this.contractVersion,
       delta: createEmptyStateDelta(),
       attempts: this.maxAttempts,
       fallback_used: true,
       error_codes: [...errorCodes],
     };
+  }
+}
+
+/** Current operational extractor entry point. Frozen unversioned v1 callers use the base class. */
+export class CurrentEventStateExtractor extends StrictStateExtractor {
+  constructor(
+    transport: ExtractorTransport,
+    options: CurrentEventStateExtractorOptions = {}
+  ) {
+    super(transport, {
+      contractVersion: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+      ...(options.maxAttempts === undefined ? {} : { maxAttempts: options.maxAttempts }),
+    });
   }
 }
 
@@ -176,6 +222,42 @@ export function parseStrictStateDeltaPayload(
   input: ExtractorInput
 ): StateDelta {
   return parseStateDeltaPayload(payload, input, validateExtractorInput(input));
+}
+
+/**
+ * Extractor contract v2. Unlike the legacy public/apply parser, every proposed
+ * change must be attributable to at least one event in newest_events.
+ */
+export function parseCurrentEventStateDelta(
+  response: string,
+  input: ExtractorInput
+): StateDelta {
+  return withContractVersion(CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION, () => {
+    const context = validateExtractorInput(input);
+    if (typeof response !== "string") fail("INVALID_SCHEMA");
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(response);
+    } catch {
+      fail("INVALID_JSON");
+    }
+
+    const delta = parseStateDeltaPayload(parsed, input, context);
+    validateCurrentEventProvenance(delta, input);
+    return delta;
+  });
+}
+
+export function parseCurrentEventStateDeltaPayload(
+  payload: unknown,
+  input: ExtractorInput
+): StateDelta {
+  return withContractVersion(CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION, () => {
+    const delta = parseStateDeltaPayload(payload, input, validateExtractorInput(input));
+    validateCurrentEventProvenance(delta, input);
+    return delta;
+  });
 }
 
 function parseStateDeltaPayload(
@@ -551,7 +633,10 @@ function requirePersistedTimestamp(value: unknown): string {
   return timestamp;
 }
 
-function buildPrompt(input: ExtractorInput, previousError?: ExtractorErrorCode): string {
+function buildLegacyStateDeltaPrompt(
+  input: ExtractorInput,
+  previousError?: ExtractorErrorCode
+): string {
   return [
     "Extract only task-state changes. Return exactly one JSON object and no markdown.",
     "Use exactly the ten arrays in required_shape. Unknown fields are forbidden.",
@@ -570,6 +655,205 @@ function buildPrompt(input: ExtractorInput, previousError?: ExtractorErrorCode):
   ]
     .filter((line): line is string => line !== undefined)
     .join("\n");
+}
+
+export function buildCurrentEventStateDeltaPrompt(
+  input: ExtractorInput,
+  previousError?: ExtractorErrorCode
+): string {
+  validateExtractorInputForContract(input, CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION);
+  return [
+    "Extract only task-state changes. Return exactly one JSON object and no markdown.",
+    "Follow contract_version=2 exactly. Use all ten arrays; unknown or missing fields fail closed.",
+    "New item IDs are generated only after validation, so no operation may reference an item created in this same delta.",
+    "Every new item needs non-empty source_refs including at least one newest_events ID.",
+    "Every existing item whose content or lifecycle changes needs a same-delta DERIVED_FROM relation to at least one newest_events ID.",
+    previousError === undefined ? undefined : `repair_error_code=${previousError}`,
+    JSON.stringify({
+      contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+      output_contract: {
+        type: "object",
+        additional_fields: false,
+        required_arrays: TOP_LEVEL_KEYS,
+        arrays: {
+          new_goals: arrayContract(
+            ["content", "source_refs"],
+            [],
+            { content: "non-blank string", source_refs: "non-empty raw_event_id[]" }
+          ),
+          updated_goals: arrayContract(
+            ["id"],
+            ["content", "status"],
+            {
+              id: "existing ACTIVE GOAL state_item_id",
+              content: "non-blank string",
+              status: ["COMPLETED"],
+            },
+            "at least one of content/status; add current-event DERIVED_FROM"
+          ),
+          new_constraints: arrayContract(
+            ["content", "source_refs"],
+            [],
+            { content: "non-blank string", source_refs: "non-empty raw_event_id[]" }
+          ),
+          updated_constraints: arrayContract(
+            ["id"],
+            ["content", "status"],
+            {
+              id: "existing ACTIVE CONSTRAINT state_item_id",
+              content: "non-blank string",
+              status: ["SUPERSEDED"],
+            },
+            "at least one of content/status; add current-event DERIVED_FROM"
+          ),
+          new_decisions: arrayContract(
+            ["content", "source_refs"],
+            ["reason", "supersedes", "reopen_if"],
+            {
+              content: "non-blank string",
+              source_refs: "non-empty raw_event_id[]",
+              reason: "string",
+              supersedes: "unique existing ACTIVE DECISION state_item_id[]",
+              reopen_if: "string",
+            },
+            "each superseded existing Decision also needs current-event DERIVED_FROM"
+          ),
+          resolved_questions: arrayContract(
+            ["id"],
+            ["resolved_by"],
+            {
+              id: "existing OPEN OPEN_QUESTION state_item_id",
+              resolved_by: "existing ACTIVE DECISION state_item_id",
+            },
+            "add current-event DERIVED_FROM for the resolved question"
+          ),
+          new_open_questions: arrayContract(
+            ["content", "source_refs"],
+            [],
+            { content: "non-blank string", source_refs: "non-empty raw_event_id[]" }
+          ),
+          rejected_alternatives: arrayContract(
+            ["content", "source_refs"],
+            ["reason", "reopen_if", "rejects"],
+            {
+              content: "non-blank string",
+              source_refs: "non-empty raw_event_id[]",
+              reason: "string",
+              reopen_if: "string",
+              rejects: "unique existing state_item_id[]",
+            }
+          ),
+          supersessions: arrayContract(
+            ["superseded_id", "superseding_id"],
+            [],
+            {
+              superseded_id: "existing ACTIVE DECISION state_item_id",
+              superseding_id: "different existing ACTIVE DECISION state_item_id",
+            },
+            "add current-event DERIVED_FROM for superseded_id"
+          ),
+          new_relations: arrayContract(
+            ["source_id", "relation_type", "target_id"],
+            [],
+            {
+              source_id: "existing state_item_id",
+              relation_type: ["DEPENDS_ON", "REJECTS", "DERIVED_FROM"],
+              target_id:
+                "existing state_item_id for DEPENDS_ON/REJECTS; raw_event_id for DERIVED_FROM",
+            }
+          ),
+        },
+      },
+      id_namespaces: {
+        state_item_id: "id from input.active_state only",
+        raw_event_id: "id from input.recent_context or input.newest_events",
+        current_raw_event_id: "id from input.newest_events",
+        same_step_new_items:
+          "have no usable ID until reducer application and cannot be relation/reference endpoints",
+      },
+      lifecycle_contract: {
+        goal: "ACTIVE -> COMPLETED via updated_goals",
+        constraint: "ACTIVE -> SUPERSEDED via updated_constraints",
+        decision: "ACTIVE -> SUPERSEDED via new_decisions.supersedes or supersessions",
+        open_question: "OPEN -> RESOLVED via resolved_questions",
+        rejected_alternative: "created directly as REJECTED; no lifecycle update",
+        other_transitions: "forbidden",
+      },
+      provenance_contract: {
+        new_items:
+          "source_refs required, non-empty, and at least one ref must be from input.newest_events",
+        existing_item_changes:
+          "new_relations must contain DERIVED_FROM from every changed existing item to at least one input.newest_events event",
+        recent_only_provenance: "does not satisfy current-event provenance",
+      },
+      input,
+    }),
+  ]
+    .filter((line): line is string => line !== undefined)
+    .join("\n");
+}
+
+function arrayContract(
+  required: readonly string[],
+  optional: readonly string[],
+  fields: Readonly<Record<string, string | readonly string[]>>,
+  rule?: string
+) {
+  return {
+    type: "array",
+    items: {
+      type: "object",
+      additional_fields: false,
+      required,
+      optional,
+      fields,
+      ...(rule === undefined ? {} : { rule }),
+    },
+  };
+}
+
+function validateCurrentEventProvenance(delta: StateDelta, input: ExtractorInput): void {
+  const newestIds = new Set(input.newest_events.map(({ id }) => id));
+
+  const newItems: readonly NewItemDelta[] = [
+    ...delta.new_goals,
+    ...delta.new_constraints,
+    ...delta.new_decisions,
+    ...delta.new_open_questions,
+    ...delta.rejected_alternatives,
+  ];
+  for (const item of newItems) {
+    if (
+      item.source_refs === undefined ||
+      item.source_refs.length === 0 ||
+      !item.source_refs.some((id) => newestIds.has(id))
+    ) {
+      fail("INVALID_REFERENCE");
+    }
+  }
+
+  const changedExistingIds = new Set<string>();
+  for (const update of delta.updated_goals) changedExistingIds.add(update.id);
+  for (const update of delta.updated_constraints) changedExistingIds.add(update.id);
+  for (const resolution of delta.resolved_questions) changedExistingIds.add(resolution.id);
+  for (const decision of delta.new_decisions) {
+    for (const id of decision.supersedes ?? []) changedExistingIds.add(id);
+  }
+  for (const supersession of delta.supersessions) {
+    changedExistingIds.add(supersession.superseded_id);
+  }
+
+  const currentDerivedSources = new Set(
+    delta.new_relations
+      .filter(
+        (relation) =>
+          relation.relation_type === "DERIVED_FROM" && newestIds.has(relation.target_id)
+      )
+      .map(({ source_id }) => source_id)
+  );
+  for (const id of changedExistingIds) {
+    if (!currentDerivedSources.has(id)) fail("INVALID_REFERENCE");
+  }
 }
 
 function parseNewItem(value: unknown, context: ValidationContext): NewItemDelta {
@@ -827,6 +1111,27 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 function abortReason(signal: AbortSignal): unknown {
   if (signal.reason !== undefined) return signal.reason;
   return new DOMException("The operation was aborted", "AbortError");
+}
+
+function validateExtractorInputForContract(
+  input: ExtractorInput,
+  contractVersion: StateDeltaContractVersion
+): ValidationContext {
+  return withContractVersion(contractVersion, () => validateExtractorInput(input));
+}
+
+function withContractVersion<T>(
+  contractVersion: StateDeltaContractVersion,
+  operation: () => T
+): T {
+  try {
+    return operation();
+  } catch (error) {
+    if (error instanceof ExtractorValidationError) {
+      throw new ExtractorValidationError(error.code, contractVersion);
+    }
+    throw error;
+  }
 }
 
 function fail(code: ExtractorErrorCode): never {

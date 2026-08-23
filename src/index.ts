@@ -37,9 +37,15 @@ export {
 } from "./state-types.js";
 
 export {
+  CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+  CurrentEventStateExtractor,
   ExtractorValidationError,
+  LEGACY_STATE_DELTA_CONTRACT_VERSION,
   StrictStateExtractor,
+  buildCurrentEventStateDeltaPrompt,
   createEmptyStateDelta,
+  parseCurrentEventStateDelta,
+  parseCurrentEventStateDeltaPayload,
   parseStrictStateDelta,
   parseStrictStateDeltaPayload,
   type ExtractorErrorCode,
@@ -47,6 +53,8 @@ export {
   type ExtractorResult,
   type ExtractorTransport,
   type ExtractorTransportOptions,
+  type CurrentEventStateExtractorOptions,
+  type StateDeltaContractVersion,
   type StrictStateExtractorOptions,
 } from "./extractor.js";
 

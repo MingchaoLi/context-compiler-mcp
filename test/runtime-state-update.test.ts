@@ -5,7 +5,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmptyStateDelta, type ExtractorTransport } from "../src/extractor.js";
+import {
+  CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+  createEmptyStateDelta,
+  type ExtractorTransport,
+} from "../src/extractor.js";
 import { StateReducer } from "../src/reducer.js";
 import { SqliteRawHistoryStore } from "../src/raw-store.js";
 import {
@@ -63,7 +67,12 @@ describe("provider-neutral runtime state updater", () => {
 
     expect(result).toMatchObject({
       expected_revision: 0,
-      extraction: { attempts: 1, fallback_used: false, error_codes: [] },
+      extraction: {
+        contract_version: CURRENT_EVENT_STATE_DELTA_CONTRACT_VERSION,
+        attempts: 1,
+        fallback_used: false,
+        error_codes: [],
+      },
       application: { changed: true, revision: 1 },
     });
     expect(result.preparation_token).toMatch(/^[0-9a-f-]{36}$/);

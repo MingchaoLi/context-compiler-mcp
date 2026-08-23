@@ -1,6 +1,6 @@
 # WO-V0-15 — Experience-ready Context / State 基础设施收口冻结
 
-状态：PLANNED — PRE-IMPLEMENTATION ADVERSARIAL REVIEW DISPOSITIONED
+状态：IN PROGRESS — CHECKPOINT A COMPLETE / CHECKPOINT B PENDING
 
 ## 背景校准
 
@@ -15,6 +15,8 @@
 3. **C — Operational Context Policy + freeze**：最后接入 Recent Raw 外召回、dormant placement、targeted recovery 与文档冻结。
 
 每个 checkpoint 都必须在进入下一个前通过 focused 与全量回归；最终统一交给独立 QA。审查记录见 `docs/adversarial-reviews/AR-2026-08-24-pre-v0-15-foundation-freeze.md`。
+
+Checkpoint A 已完成代码与本地回归：新增 current-event provenance contract v2，并由明确命名的 `CurrentEventStateExtractor` 和现行 `RuntimeStateUpdater` 固定使用，结果与错误显式暴露合同版本；原 `parseStrictStateDelta` / `parseStrictStateDeltaPayload`、未带版本的历史 `StrictStateExtractor` 与 `apply_state_delta` 保持 v1 语义。WO-DS-14 pinned runtime、official capture、Gold 与评分结果均未修改，历史 replay 仍逐字节复现。独立 QA 尚未开始；Checkpoint B 仍为 pending。
 
 ## 单一结果
 
@@ -38,7 +40,7 @@
 - `StrictStateExtractor` prompt 必须提供完整、机器可核对的十数组嵌套字段合同，而不是只展示空数组 shape。
 - prompt 必须明确合法 ID namespace、允许的 lifecycle transition、same-step reference 限制与 provenance 规则。
 - 新建 state item 必须携带至少一个当前 `newest_events` provenance ref；已有 item 的 content/lifecycle 变化必须在同一 Delta 中包含指向当前 `newest_events` 的 `DERIVED_FROM`。
-- provenance 收紧进入新的 versioned Extractor contract；既有 `parseStrictStateDeltaPayload` / 显式 `apply_state_delta` 的历史兼容语义保留，不能让已接受 fixture 和调用方被静默升级。`StrictStateExtractor` 明确使用新合同并在结果/错误中暴露版本。
+- provenance 收紧进入新的 versioned Extractor contract；既有 `parseStrictStateDeltaPayload` / 显式 `apply_state_delta` 的历史兼容语义保留，不能让已接受 fixture 和调用方被静默升级。新的 `CurrentEventStateExtractor` 和现行 `RuntimeStateUpdater` 明确使用新合同并在结果/错误中暴露版本；未带版本的 `StrictStateExtractor` 仅为 pinned 历史 replay 保留 v1 兼容。
 - 新 parser 必须 fail-closed 拒绝缺 provenance、只引用旧 recent event、非法 nested field、同一步不可解析引用及 lifecycle/reference 冲突。
 - 用本地 scripted transport 证明 prompt 能产生 reducer 可接受的 non-empty Delta；不得调用远端模型，也不得重跑 DS-14 capture。
 
