@@ -10,7 +10,7 @@
 - 机械分层为 long，明确纠正 survey 的 projected medium，不为维持分层配额删除有效事件；
 - Fact Gold 与人工 Oracle-State 分离 tracker/repository acceptance、实际 FIPS evidence、仓库测试缺口和跨环境未验证；
 - 两个 Outcome Anchor 只登记 merge patch，并明确没有 repository regression test、Builder/QA FIPS replay 或全环境证明；
-- 新增 `str06-checkpoint.json`、八项 hash、严格 validator 与 11 项聚焦测试；
+- 新增 `str06-checkpoint.json`、八项 hash、严格 validator 与 12 项聚焦测试；
 - 引用 DS-05 已接受 contamination snapshot/hash，不修改 promotion collection 或任何旧 fixture/hash；
 - 新增中文 checkpoint 报告并更新目录说明、工单、项目状态和路线图。
 
@@ -37,11 +37,15 @@
 - 静态确认没有修改/调用 promotion collection、runner、D0/D1/D2、provider、network、credential、host/UI 或模型；
 - 运行聚焦、全量、protocol、build、真实 production pack 与 `git diff --check`，确认 evaluation/checkpoint 文件不进入 npm tarball。
 
+## 首轮 QA 返回与 Builder 修复
+
+首轮独立 QA 在 `a03564aa29c129415e6d00bf6ce17d6389f5aed3` 发现来源 P0：PR #1366 的当前 body digest/`updated_at` 不准确，E7/E16 也把独立 merge SHA 错写进官方 REST 为 `null` 的 issue-state `commit_id`。后续 Builder 修复已按 REST 更正 E6，并把三个 state 的 `commit_id` 全部固定为 `null`；两个 merge SHA 只留在独立 merge/Outcome 证据。聚焦测试新增向 E7/E16 注入 merge SHA 必须拒绝的反例。re-QA 不得继承首轮来源结论，必须原样复验返回条件。
+
 ## Builder 自检
 
 - `node evaluation/starlette-v1/validate-str06-checkpoint.mjs`：通过；
-- `npx vitest run test/starlette-str06-checkpoint.test.ts`：11/11；
-- `npm test`：15 files / 305 tests；
+- `npx vitest run test/starlette-str06-checkpoint.test.ts`：12/12；
+- `npm test`：15 files / 306 tests；
 - `npm run test:protocol`：8/8；
 - `npm run build`、`git diff --check`：通过；
 - 独立 `/private/tmp` npm cache 的真实 `npm pack --dry-run --json`：50 files、shasum `f20e56e75c6b6aa9d7362627101771a6c2ca4510`，没有 evaluation、checkpoint、docs 或 Starlette test 文件进入 tarball；

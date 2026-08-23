@@ -73,9 +73,9 @@ describe("Starlette STR-06 source/Gold checkpoint", () => {
   it("pins all three state events to canonical REST subsets", async () => {
     const { bundle } = await loadStr06Checkpoint(ROOT);
     const expected = [
-      ["STR-06/E7", 5784383679, "closed", "0aef1724cfafbe23f846979d427a5a173667f6b7"],
+      ["STR-06/E7", 5784383679, "closed", null],
       ["STR-06/E13", 5890858859, "reopened", null],
-      ["STR-06/E16", 5893584617, "closed", "7d79ad96d5aaee71f16ac9f4e41072e81d18ab86"],
+      ["STR-06/E16", 5893584617, "closed", null],
     ];
     for (const [eventId, id, state, commitId] of expected) {
       const event = bundle.events.events.find((entry: any) => entry.id === eventId);
@@ -87,6 +87,19 @@ describe("Starlette STR-06 source/Gold checkpoint", () => {
         created_at: event.occurred_at,
         commit_id: commitId,
       })).toBe(event.source_content_sha256);
+    }
+  });
+
+  it("rejects merge SHAs injected into null-commit close events", async () => {
+    for (const [eventId, mergeSha] of [
+      ["STR-06/E7", "0aef1724cfafbe23f846979d427a5a173667f6b7"],
+      ["STR-06/E16", "7d79ad96d5aaee71f16ac9f4e41072e81d18ab86"],
+    ]) {
+      const root = await copiedRoot();
+      await mutateJson(root, "checkpoint/STR-06/events.json", (value) => {
+        value.events.find((entry: any) => entry.id === eventId).source.commit_sha = mergeSha;
+      });
+      await expect(validateStr06Checkpoint(root)).rejects.toThrow(/state canonical contract changed/);
     }
   });
 

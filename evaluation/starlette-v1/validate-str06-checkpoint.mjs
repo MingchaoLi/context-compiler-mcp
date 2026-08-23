@@ -39,8 +39,8 @@ const STATE_EVENTS = [
     event: "closed",
     actor: "adriangb",
     created_at: "2021-12-17T12:37:33Z",
-    commit_id: "0aef1724cfafbe23f846979d427a5a173667f6b7",
-    sha256: "699cfa012d29203c4b4eb6007f57d34bf2f4e806e909de590bd35017f42ccd62",
+    commit_id: null,
+    sha256: "e833bb040fa00a72c1c579e28d382d340301cbfb2d896db9560ff31448413b73",
   },
   {
     event_id: "STR-06/E13",
@@ -59,8 +59,8 @@ const STATE_EVENTS = [
     event: "closed",
     actor: "Kludex",
     created_at: "2022-01-14T09:40:19Z",
-    commit_id: "7d79ad96d5aaee71f16ac9f4e41072e81d18ab86",
-    sha256: "8ca129fbc4138b9fc098db0336b4e0ab56d30b5fd73663180226d87c043d7462",
+    commit_id: null,
+    sha256: "db911a1b28a53c264e5fc2451f0284aa0bf14b68cec7e52ad0117eeb40a3ef5f",
   },
 ];
 

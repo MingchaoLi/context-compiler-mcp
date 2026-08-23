@@ -5,11 +5,11 @@
   "files": [
     {"path":"str06-checkpoint.json","sha256":"6cdfacdc76a61b17c9538aca90e1e1997c505d1032b2c4c4efb698eb6d38eb90"},
     {"path":"checkpoint/STR-06/manifest.json","sha256":"57db1709992d1931e35cb166bbbaa88722c5ccc6e8f1b1fbc331445a8923154b"},
-    {"path":"checkpoint/STR-06/events.json","sha256":"a79aa068b277f977bd7bb4125b8cb6e610aeea8371b1df0e96954c2568240b42"},
+    {"path":"checkpoint/STR-06/events.json","sha256":"5c6987c02ec7e22e819ca7f856a041866439bb217b734c6252a92cc367002efd"},
     {"path":"checkpoint/STR-06/tasks.json","sha256":"9f3b6a743f94b7f421401680505b43f8810b268e46875ba1858ed4efebe834e5"},
     {"path":"checkpoint/STR-06/fact-gold.json","sha256":"06366e47427a337ab81877bf20cbc5c93eb7669ad8685fbe4d1cbabf45eb593b"},
     {"path":"checkpoint/STR-06/oracle-state.json","sha256":"a432b420dcd7437c936b991f3c551564f1f66f8b889910a8f91c6c0c46e6bca4"},
-    {"path":"checkpoint/STR-06/decision-references.json","sha256":"b776426dac12a3035e1a9240d1de683f12f5a085a62130ef1f607cea1be0dafb"},
+    {"path":"checkpoint/STR-06/decision-references.json","sha256":"10fdaf1976b85d8a999ec33956894120189af131ff252e10be5b30943b2e85d1"},
     {"path":"checkpoint/STR-06/outcome-anchors.json","sha256":"98da239df9e97d05ba56b9c8a98bf7dad15b4954ac3787b057b98769d3258ff6"}
   ]
 }

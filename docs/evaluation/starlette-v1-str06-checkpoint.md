@@ -35,7 +35,7 @@
 | E15 | 2022-01-13 22:50:40Z | comment 1012588046 | 报告者确认一个改过 probe 的 commit 在一个 FIPS 系统工作，但因 FastAPI 限制未测 current master |
 | E16 | 2022-01-14 09:40:19Z | closed event 5893584617 | #1410 merge 后 tracker 再关闭；仍不等于跨环境行为证明 |
 
-三个 state event 使用 `{id,node_id,event,actor,created_at,commit_id}` canonical subset 计算 SHA-256；close/reopen/close 的 commit id 分别为 `0aef1724...`、`null`、`7d79ad96...`。评论正文保留独立时间与内容 hash；Issue/PR body 的当前 hash 只用于变化探测，creation summary 限制在创建时 title、初始 commit 与当时可见 patch。
+三个 state event 使用 `{id,node_id,event,actor,created_at,commit_id}` canonical subset 计算 SHA-256；官方 REST 中 close/reopen/close 的 `commit_id` 均为 `null`。两个 merge SHA 只保留在独立 PR/commit 与 Outcome Anchor 证据中，不能倒写到 issue state。评论正文保留独立时间与内容 hash；Issue/PR body 的当前 hash 只用于变化探测，creation summary 限制在创建时 title、初始 commit 与当时可见 patch。
 
 ## 排除与歧义处置
 

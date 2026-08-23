@@ -144,6 +144,8 @@ Decision Reference 只记录真实后续动作且明确答案不唯一。Outcome
 
 2026-08-23 已完成待验收候选：按 Issue #1365、PR #1366/#1410 的公开时间线保留 16 个真实信息增量和 16 个严格前缀 slice，机械分层为 long，纠正 survey 的预计 medium。第一次 merge/close、真实 FIPS 失败、reopen、第二 patch、有限单环境成功与第二 close 分别建模；Fact Gold/Oracle 没有把 tracker state 冒充语义 resolution。
 
-新增七文件 checkpoint、wrapper、八项 hash、严格 validator、11 项聚焦反例、中文 source ledger 报告与 handoff。两个 Outcome Anchor 均明确没有 repository regression test、Builder/QA FIPS replay 或跨环境成功证明。引用的 DS-05 contamination snapshot、promotion collection、旧 pilot/canary/hash 和 core 均未修改；没有运行 Probe、D0/D1/D2、provider 或远端模型。
+新增七文件 checkpoint、wrapper、八项 hash、严格 validator、12 项聚焦反例、中文 source ledger 报告与 handoff。两个 Outcome Anchor 均明确没有 repository regression test、Builder/QA FIPS replay 或跨环境成功证明。引用的 DS-05 contamination snapshot、promotion collection、旧 pilot/canary/hash 和 core 均未修改；没有运行 Probe、D0/D1/D2、provider 或远端模型。
 
-Builder 自检已通过 checkpoint validator、聚焦 11/11、全量 305、protocol 8/8、build、diff check 与真实 50-entry npm pack 隔离。实现者不接受本工单；必须由新的独立 Data QA 固定 Builder candidate，重新访问 16 个 source 并攻击 increment、future leakage 与 merge/close 语义后决定 PASS/FAIL。
+首轮独立 QA 在 `a03564aa29c129415e6d00bf6ce17d6389f5aed3` 发现并拒绝来源 P0：E6 的 PR current-body 变化探测值不准确，E7/E16 又把独立 merge SHA 写入官方 REST 为 `null` 的 issue-state `commit_id`。后续 Builder 修复已纠正 E6，并把三个 state 的 `commit_id` 全部固定为 `null`；merge SHA 只保留在独立 merge/Outcome 证据，新增 merge-SHA 注入反例。
+
+修复候选自检已通过 checkpoint validator、聚焦 12/12、全量 306、protocol 8/8、build 与 diff check。实现者不接受本工单；必须由新的独立 Data QA 固定修复 candidate，原样复验首轮返回条件并重新访问 16 个 source 后决定 PASS/FAIL。
