@@ -352,20 +352,20 @@ Core reflection 取得。MCP 不新增 command。
 - [x] Transaction Composition Gate 机械证明并冻结；State v1 选择 reference-only，当前
   substrate 足够；atomic new State 是明确 stop condition。
 - [x] Exact Takeover/Enrichment/coverage/artifact grammar + policy hash frozen first.
-- [ ] Explicit scope；无 session/Host fallback、legacy backfill 或 cross-scope reuse.
-- [ ] Takeover range 从 current Frontier 直接后继开始且连续、完整、有界。
-- [ ] Frontier revision/position double-CAS 与 Takeover revision 原子推进且无 hole.
-- [ ] Required proposal/ref/coverage/artifact failure 整笔 rollback、Frontier 不动.
-- [ ] Enrichment 可非连续但绝不推进 Frontier/Takeover 或其他 primary axis.
-- [ ] Canonical State/Fact/Relation authority 使用 accepted owner contract，无第二 writer.
-- [ ] Compaction Artifact immutable、content-bound、range/policy/provenance-bound.
-- [ ] Exact replay/conflict/concurrency/migration/tamper/read/reopen fail closed.
-- [ ] Hot Raw after successful Takeover 可由 Ledger + committed Frontier 无丢失重建.
-- [ ] WO-03A/03B/04A/04B frozen public/domain behavior保持；substrate source不变.
-- [ ] No Snapshot/Working Context/Host/provider/network/MCP/new retrieval behavior.
-- [ ] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
-- [ ] Candidate paths exact allowlist；无 production DB、network 或 sibling Host access.
-- [ ] Builder handoff exists；Builder 不自批；Independent QA 可独立复现。
+- [x] Explicit scope；无 session/Host fallback、legacy backfill 或 cross-scope reuse.
+- [x] Takeover range 从 current Frontier 直接后继开始且连续、完整、有界。
+- [x] Frontier revision/position double-CAS 与 Takeover revision 原子推进且无 hole.
+- [x] Required proposal/ref/coverage/artifact failure 整笔 rollback、Frontier 不动.
+- [x] Enrichment 可非连续但绝不推进 Frontier/Takeover 或其他 primary axis.
+- [x] Canonical State/Fact/Relation authority 使用 accepted owner contract，无第二 writer.
+- [x] Compaction Artifact immutable、content-bound、range/policy/provenance-bound.
+- [x] Exact replay/conflict/concurrency/migration/tamper/read/reopen fail closed.
+- [x] Hot Raw after successful Takeover 可由 Ledger + committed Frontier 无丢失重建.
+- [x] WO-03A/03B/04A/04B frozen public/domain behavior保持；substrate source不变.
+- [x] No Snapshot/Working Context/Host/provider/network/MCP/new retrieval behavior.
+- [x] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
+- [x] Candidate paths exact allowlist；无 production DB、network 或 sibling Host access.
+- [x] Builder handoff exists；Builder 不自批；Independent QA 可独立复现。
 
 ---
 
@@ -375,5 +375,7 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 审计并单独写 QA 文件/commit。失败必须回到同一 append-only implementation chain 修复；
 不得重写已提交历史或边 QA 边实现。
 
-本工单的 Execution Baseline 与 pre-source Composition Gate 已冻结；这不等于 source
-实现、Builder candidate 或 Independent QA 已完成，也不授权自动开始 WO-05 或 Host 集成。
+本工单已在 Builder candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5`
+完成，并由 Independent QA commit `d33f52281e2af857c16a79768c7d3fcde816da42`
+接受。状态：**ACCEPTED / COMPLETE**。该接受不授权 Host 集成；后续 WO-05 必须另立
+有界工单、Execution Baseline、Builder handoff 与 Independent QA。

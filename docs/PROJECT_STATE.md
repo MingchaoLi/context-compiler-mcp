@@ -1,6 +1,6 @@
 # Project state
 
-Updated: 2026-08-24
+Updated: 2026-08-25
 
 ## Current approved baseline
 
@@ -16,21 +16,22 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
-WO-04B Fact / Relation Authority + Policy 已在第二个 append-only fixed candidate
-`8758f68bf4c6b604ae37fad13d15ca7e98c08bfc` 通过 fresh Independent re-QA，QA
-commit 为 `0236d88e7f6e7b04ca347bc0bdddbdbfa7582dc1`，状态为 **ACCEPTED /
-COMPLETE**。原 Builder candidate `3cecddd004fa7ab4df3eba6d4df9a7d63baf04c0`、
-首轮 QA rejection `4dccaa824d47e2abda3333536dc54df0dcbe7f33`、第一 fixed
-candidate `467bfb5f0797abe668c9cfa087c65a6ad96c1a84` 与第二次 rejection
-`599da5005a414f46c0f621618a4d5da87afc36c9` 全部 append-only 保留。显式
-scope 的 Fact/Relation authority 现具有严格四轴 Fact policy、typed Relation
-Registry、append-only object revisions、原子 domain commit、exact replay 与
-same-scope Raw/Fact/State endpoint authority；`STATE_ITEM` 在同一 SQLite snapshot
-内验证 `1..observed state_revision` 的完整 WO-04A authority chain，拒绝 direct
-row/marker mismatch、前序 revision laundering 与相邻 marker vector 回退，同时允许
-State commits 之间合法非 State 轴前进。Focused 为 53/53，全量为 521 passed、1
-skipped，构建通过；WO-03A/03B/04A、legacy v0、MCP exact-nine 与 frozen source
-均无漂移。
+WO-04C Semantic Takeover / Enrichment + Frontier + Compaction Artifact 已在 Builder
+candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5` 通过 Independent QA，QA
+commit 为 `d33f52281e2af857c16a79768c7d3fcde816da42`，状态为 **ACCEPTED /
+COMPLETE**。Core-private 组合事务协调器复用 frozen substrate 的单连接 callback，
+State v1 只引用 exact committed authority，Fact/Relation 通过 owner same-handle seam
+原子 apply，Enrichment axis-neutral。连续 Frontier double-CAS、完整 coverage、immutable
+Compaction Artifact、exact replay/reopen/tamper、并发冲突与 Hot Raw 重建均通过独立验证；
+Focused 为 50/50，全量为 544 passed、1 skipped，构建通过。共享 substrate、Host/provider/
+MCP、Snapshot/Working Context 与 frozen v0 均无漂移。下一顺序只能是先建立 WO-05
+ContextSnapshot Contract 的有界工单与独立 Execution Baseline。
+
+WO-04B Fact / Relation Authority + Policy 继续冻结在第二个 append-only fixed candidate
+`8758f68bf4c6b604ae37fad13d15ca7e98c08bfc` 与 fresh Independent re-QA commit
+`0236d88e7f6e7b04ca347bc0bdddbdbfa7582dc1`。显式 scope 的 Fact/Relation authority
+具有严格四轴 Fact policy、typed Relation Registry、append-only object revisions、原子
+domain commit、exact replay 与 same-scope Raw/Fact/State endpoint authority。
 
 WO-04A Canonical State Revision Commit 已在 append-only 修复候选 `98e02ef898587b013ad588cf7ab2f182afa276e3` 通过 fresh Independent re-QA，QA commit 为 `74d39636e112054f7a4ea2b9a2e1be0b3728cdd7`，状态为 **ACCEPTED / COMPLETE**。原 Builder candidate `d35970a3d8b75e2d17a7f3d24c7dd179f664086a` 与 QA rejection `3359f002ab4d206617815942aaee4eb9e9706685` 完整保留。显式 scope 的 proposal-validated Canonical State 现在具有稳定 commit identity、完整状态快照/hash、State axis `+1`、same-scope committed Raw provenance、exact replay 与 fail-closed marker/read binding；re-QA 复现并关闭三个协调替换反例和 policy substitution 分类缺口。Focused 为 40/40，全量为 508 passed、1 skipped，构建通过；WO-03A/03B、legacy State、MCP exact-nine 与 frozen v0 均无漂移。
 
@@ -38,17 +39,11 @@ WO-03B Ledger High-water + Hot Raw Replay 继续冻结在 Builder candidate `24b
 
 WO-03A Shared Revision / Stream / Transaction Substrate 继续冻结在 fixed Builder candidate `c93072dc5e4b5c89464b003e716bbb688b072b89` 与 Independent re-QA commit `f02c5e12ee0931d4a23a999fa2dc2c0dbb977940`。WO-03B 没有修改该 substrate，也没有推进 Frontier、映射 legacy session/seq、改变现有 Raw/State/Recall/MCP/evaluation，或引入 Host/provider 依赖。
 
-Umbrella WO-04 的原始范围继续按 append-only 子序列执行。WO-04A 与 WO-04B 均已
-接受；唯一当前工单为 `WO-04C Semantic Takeover / Enrichment + Frontier + Compaction
-Artifact`，状态 **IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE COMPOSITION GATE
-FROZEN；SOURCE NOT STARTED**。Execution Baseline 已由 standalone commit
-`6b77ed06b250176fd9cff16b35ab1c3d4701c9a2` 固定 source world
-`c3a184f9c067d529e8f2908080ab72650fb59cbc`。Composition Gate 选择“一个
-Core-private 组合事务协调器 + 多领域 Authority Owner”：Takeover 复用 frozen substrate
-的单连接 callback，State v1 只引用 exact committed authority，Fact/Relation 通过 owner
-same-handle seam 原子 apply，Enrichment axis-neutral；若要求 Takeover 同时新建 State
-revision，必须另开 substrate extension。04C 不得引入 Host/provider/MCP 或提前实现
-WO-05 Snapshot/Working Context；WO-05 仍须等待 04C 完成。
+Umbrella WO-04 的三个有界子工单 WO-04A/04B/04C 均已完成并通过独立 QA。WO-04C
+Execution Baseline commit `6b77ed06b250176fd9cff16b35ab1c3d4701c9a2`、source world
+`c3a184f9c067d529e8f2908080ab72650fb59cbc`、Builder candidate 与 QA commit 均已固定。
+当前没有已启动的 source 工单；依 Umbrella 顺序，下一步仅可建立 WO-05 ContextSnapshot
+Contract，并在任何 source 变更前单独冻结 Execution Baseline 与 pre-source Gate。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -142,8 +137,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-V0-15 的首 trace commit 前跨实例 telemetry origin TOCTOU P1 已由第六个 fix 关闭，Context / State 基础设施恢复冻结。Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。下一阶段只通过真实使用积累可回放的 Event–Action–Outcome / Feedback 数据。
 
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
-WO-04A 与 WO-04B 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
+WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
-WO-04C 现为唯一当前工单；Execution Baseline 与 pre-source Composition Gate 已冻结，
-但 schema/source、Builder handoff 与 Independent QA 均未开始/未完成。Formal Host Mode
-与 WO-05+ 均未开始。
+当前没有已启动的 source 工单；下一顺序是 WO-05 ContextSnapshot Contract 的 docs-first
+规划与独立 Execution Baseline。Formal Host Mode 与 WO-06+ 均未开始。
