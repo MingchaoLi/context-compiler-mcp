@@ -623,3 +623,103 @@ focused and adversarial fixture count
 
 无论实验结果如何，Closed/Open lifecycle、Strong Constraint Immediate Authority 与 Raw
 Retention 都不得由 Grace Tail 替代。
+
+---
+
+## DA-06 — RejectedAlternative Default-excluded Projection
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED DIRECTION / PRESERVE V0 + CANONICAL STATE V1 /
+PENDING FUTURE ABLATION / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — Takeover v1 继续只读 exact State authority，不改变 State kind、
+policy hash、coverage、Artifact 或 transaction。
+
+**Routing：** WO-05 ContextSnapshot projection/dedup/authority precedence；WO-06 explicit
+recovery of rejection rationale；未来独立 Canonical State v2 experiment 才可评估是否移除
+该 State kind。
+
+### Semantic separation
+
+`CONSTRAINT` 与 `REJECTED_ALTERNATIVE` 不默认合并：
+
+```text
+CONSTRAINT
+  current normative Authority that must be followed
+
+REJECTED_ALTERNATIVE
+  historical record that an option was rejected, including rationale/reopen context
+```
+
+阶段性否决、成本权衡或当前不采用不能自动升级为永久 Constraint。只有显式 Authority
+表达当前必须/禁止的规则时，才允许产生独立 active Constraint。Constraint 与 rejection
+record 可以共享 provenance 或建立显式关系，但不能因文本相似而协调合并。
+
+### Future canonical projection default
+
+Future WO-05 Snapshot 默认不把 RejectedAlternative 作为常驻 Working Context root 或
+automatic historical note。只有以下 closed inclusion reason 之一成立时，才纳入当前
+Snapshot/EvidenceBundle：
+
+```text
+EXPLICIT_REF
+OPTION_REPROPOSED
+REQUIRED_DECISION_RATIONALE
+DEPENDENCY_OR_RELATION_CLOSURE
+TARGETED_WHY_NOT_RECOVERY
+```
+
+如果 rejection 已经派生出当前 active Constraint，默认 Context 只呈现 Constraint；拒绝
+记录作为 provenance/rationale 按需取回，避免同一语义重复占用 token。纳入历史拒绝只表示
+提供证据，不使旧方案、旧否决或 reopen condition 自动获得新的 Authority。
+
+### Preservation boundary
+
+当前 frozen v0 assembler 已将 RejectedAlternative 与 superseded Decision 放在 optional
+historical notes，而非 mandatory active root；本调整不改变该 accepted behavior。Canonical
+State v1 已冻结 `REJECTED_ALTERNATIVE / REJECTED`、policy descriptor/hash 与 exact replay，
+同样不原地删除、重命名或合并。
+
+Future default-excluded 是可逆 projection policy，不是 schema migration。如果真实证据显示
+RejectedAlternative 不值得继续作为 canonical State kind，必须新建 State policy/schema v2、
+migration/promotion/compatibility plan 与 Independent QA；v1 历史仍须 exact replay。
+
+### Future comparison direction
+
+在同一 frozen State/Raw world 比较：
+
+```text
+R0 = current optional historical-note projection
+R1 = RejectedAlternative default-excluded + explicit/on-demand inclusion
+```
+
+至少覆盖：
+
+```text
+many unrelated rejected alternatives and Context growth
+active Constraint derived from a rejection
+temporary rejection that must not become a permanent prohibition
+user reproposes an exact rejected option
+"why did we not choose X" Targeted Recovery
+changed conditions that permit reconsideration
+superseded/rejected historical pollution negative control
+```
+
+指标至少包含：
+
+```text
+rejected_alternative_context_tokens
+duplicate_constraint_rationale_tokens
+rejection_rationale_recovery_success
+forbidden_option_resuggestion
+false_permanent_constraint
+valid_reconsideration_blocked
+Snapshot inclusion reason integrity
+```
+
+- R1 保持 active Constraint 与 why-not/reproposal correctness，同时减少常驻 token/污染：
+  可 promotion 为 future WO-05 default；
+- R1 导致拒绝理由不可恢复或频繁重新建议已否决方案：保留 R0/建立更窄显式 inclusion，
+  不直接把 rejection 全部转成 Constraint；
+- 数据不足：保持可逆候选，不宣称应删除 State kind。
