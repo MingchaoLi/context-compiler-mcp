@@ -42,13 +42,17 @@ WO-03A Shared Revision / Stream / Transaction Substrate 继续冻结在 fixed Bu
 Umbrella WO-04 的三个有界子工单 WO-04A/04B/04C 均已完成并通过独立 QA。WO-04C
 Execution Baseline commit `6b77ed06b250176fd9cff16b35ab1c3d4701c9a2`、source world
 `c3a184f9c067d529e8f2908080ab72650fb59cbc`、Builder candidate 与 QA commit 均已固定。
-当前唯一工单为 WO-05 ContextSnapshot Contract，状态 **IN PROGRESS — EXECUTION BASELINE +
-PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN；SOURCE NOT STARTED**。standalone baseline
+WO-05 ContextSnapshot Contract 的 standalone baseline
 commit `18a2ab3dc02657200e5d96eec3bfc9a715c316e6` 固定 source world
 `0dbff6a8a148f37fcabef7accf7f71d057e1a90f`。Gate 选择新的 Core-private
 `context-snapshot` owner：在单连接 `BEGIN IMMEDIATE` 中复用 accepted domain owner 的只读
 same-handle seam，确定性投影/组装后原子写 immutable Snapshot + AttemptStarted receipt；
 Snapshot axis-neutral，existing v0 assembler/operational context 与 shared substrate 均冻结不变。
+source spike 随后证明 accepted current-semantic read seam 在 Takeover 后合法 Raw advance 时
+错误要求完整五轴向量全等并返回 `CORRUPT_DATA`。WO-05 现为 **PAUSED**，source 草稿已隔离；
+唯一当前工单为 **WO-04D Current Semantic Takeover Read Seam — PLANNED / NOT STARTED**。
+WO-04D 只修 latest Takeover 的只读解析，不改变任何 writer/schema/public surface；通过独立 QA
+后自动恢复 WO-05。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -144,6 +148,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
 WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
-WO-05 ContextSnapshot Contract 现为唯一当前工单，Execution Baseline 与 pre-source Gate 已
-冻结，source 尚未开始；下一步只能按 exact allowlist 实现并交付 Builder handoff。Formal Host
-Mode 与 WO-06+ 均未开始。
+WO-05 ContextSnapshot Contract 的 Execution Baseline 与 pre-source Gate 已冻结，但因
+current-semantic owner seam blocker 暂停。WO-04D 是唯一当前工单；下一步只能先冻结其独立
+Execution Baseline，再完成只读 seam 修复与独立 QA。通过后恢复 WO-05。Formal Host Mode 与
+WO-06+ 均未开始。
