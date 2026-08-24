@@ -191,3 +191,129 @@ run, `npm test`, `npm run build`, and a built-package command parity probe.
 
 No network, remote model, production database, destructive command, credential,
 sibling Host repository, or external Host source was accessed.
+
+## Fresh append-only independent re-QA — 2026-08-24
+
+### Result: ACCEPTED
+
+The original **REJECTED** record above is retained verbatim. Fresh independent
+re-QA accepts the append-only fixed candidate:
+
+```text
+source_baseline / planning_authority: 8285c8a63dcc471009bdaf90b96b5fb26e6804b8
+original_builder_candidate:           c3c82099bf28eb2f865021a9329138325feb1d26
+retained_QA_rejection:                b9239360ffe5ded5567d1b7fb736db1b2e1fcc2e
+fixed_builder_candidate:              a03a059d9c0823d0500f42659e6be891558f12be
+fixed_candidate_parent:               b9239360ffe5ded5567d1b7fb736db1b2e1fcc2e
+branch_at_re-QA:                      main
+worktree_before_re-QA_write:          clean
+```
+
+`HEAD`, its single parent, every retained commit in the chain, ancestry, branch,
+and an empty tracked/untracked worktree were mechanically pinned before this
+append.
+
+### Fixed-candidate scope
+
+`retained_QA_rejection..fixed_builder_candidate` modifies exactly two Builder
+documents:
+
+```text
+docs/handoffs/WO-02-core-host-authority-boundary.md
+docs/inventory/WO-02/authority-mutation-matrix.md
+```
+
+The retained QA file is unchanged in the fixed candidate. No source, test,
+schema/migration, configuration, dependency, evaluation, sealed evidence, or
+official artifact changed. The `src`, `test`, and `evaluation` Git tree object IDs
+are byte-identical between the original Builder candidate and the fixed candidate,
+and `git diff --check` passes for the documentation fix.
+
+### B1 closure — Umbrella Registry ownership
+
+The fixed Authority / Mutation Matrix was compared directly with the authoritative
+Umbrella Child Work Order Registry:
+
+- no WO-03C, WO-03D, or WO-03E route remains in the matrix;
+- WO-03A owns namespace/stream/revision/transaction and shadow namespace
+  substrate;
+- WO-03B owns ledger high-water and Hot Raw replay;
+- WO-04 owns semantic State/Fact/Relation authority, Takeover/Enrichment,
+  contiguous Frontier behavior, and Compaction Artifact identity;
+- immutable ContextSnapshot and replay identity are assigned to WO-05;
+- formal Operation/Attempt/Action and ToolResult durability are assigned to
+  WO-07;
+- Verification/recovery, objective Outcome/Feedback eventization, Response, and
+  Outbox are assigned to WO-08;
+- Background mutation is a separate row and remains `UNASSIGNED / UNKNOWN` because
+  the current Registry allocates no Child WO;
+- Shadow is explicitly split into WO-03A substrate, WO-09 verification-only
+  isolation tests, and WO-10 routing/dogfood/comparison evidence.
+
+Compile/hit telemetry evolution, evaluation changes, artifact rewriting, and
+other unallocated research-record migration also remain `UNASSIGNED / UNKNOWN`
+rather than inventing a work-order owner. The matrix now follows the Umbrella
+authority hierarchy and is safe as a routing input for later planning.
+
+### B2 closure — session authority and physical writers
+
+The corrected `sessions` row was checked against the unchanged implementation:
+
+- `ContextCompilerCore` is named as the single logical mutation-command authority;
+  low-level Store exports are explicitly compatibility paths rather than future
+  Host contracts.
+- The actual internal physical ensure-session writers are identified: Raw ingest,
+  State preparation/item/revision writes, and Experience Ledger append. Recall
+  does not create a parallel session authority.
+- Raw ingest performs `INSERT OR IGNORE` after its `BEGIN IMMEDIATE`; State
+  `ensureSession` is reachable only inside the selected State transaction; public
+  ledger append uses its own `BEGIN IMMEDIATE`, while internal EVENT/telemetry
+  append inherits the enclosing Raw or telemetry transaction.
+- Core/coordinator input validation and the selected Store validation occur before
+  or inside the owned mutation path. Every Store defines the shared session id as
+  non-empty `TEXT PRIMARY KEY`; SQLite primary-key uniqueness plus
+  `INSERT OR IGNORE` owns physical idempotency.
+- Retry ownership remains with the selected existing command contract:
+  `source_event_id` compatibility for Raw, preparation/fingerprint/expected
+  revision for State, and `(session_id, source_key)` compatibility for the ledger.
+
+The row therefore distinguishes the single logical authority from multiple
+current implementation writers while naming transaction, validation,
+idempotency, retry, Host prohibition, and compatibility responsibilities. B2 is
+closed without changing schema or runtime behavior.
+
+### Regression and dynamic-test decision
+
+The original Independent QA already ran, on the byte-identical source/test tree:
+
+```text
+focused Core/service/protocol: 3 files passed; 22 tests passed
+npm test:                     30 files passed, 1 skipped;
+                              477 tests passed, 1 skipped
+npm run build:                PASS — tsc -p tsconfig.json
+```
+
+That QA also independently verified exactly nine MCP tools, protocol/error and
+lifecycle compatibility, public exports, adapter/Core import boundaries,
+representative adapter-to-Core-to-writer transactions, the private fixture move,
+and the two 15-second timeout changes. The rejection was limited to B1 and B2
+documentation defects.
+
+This re-QA did not rerun runtime tests or build. The risk basis is mechanical:
+the return fix changes only the two documents above, while `src`, `test`, package
+configuration, and evaluation artifacts are byte-identical to the already tested
+candidate. Repeating artifact-producing checks cannot exercise either corrected
+documentation claim and would add no new behavior-preservation evidence.
+
+### Decision
+
+Both retained rejection blockers are closed, no new acceptance-blocking deviation
+was found, and the fixed candidate is **ACCEPTED** for WO-02. State partial-DDL,
+compatibility-only low-level exports, unallocated Background authority, and
+unimplemented WO-03A+ capabilities remain explicitly recorded limits; acceptance
+does not claim they are implemented or authorize QA to begin WO-03A.
+
+Fresh re-QA used only read-only Git/diff/tree comparisons and routed repository
+source/document inspection before this QA append. No network, remote model,
+production database, destructive command, sibling Host repository, or external
+Host source was accessed.
