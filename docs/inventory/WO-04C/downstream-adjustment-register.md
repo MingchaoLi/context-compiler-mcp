@@ -2077,3 +2077,153 @@ producer semantic correctness 与 State/Attempt mechanical correctness 分开。
 - 已发生副作用问题被错误归因于 State：返回 Interrupt/Action lifecycle，不扩大 Fast Path；
 - 要求删除 existing `immediate_authority` capability 或改变 Canonical State v1 grammar：另开
   Architecture Contract/policy-version work order，不由本登记隐式授权。
+
+## DA-14 — Exact State Item Identity + No Semantic Authority Merge
+
+- **Status:** ACCEPTED FOR DOWNSTREAM PLANNING
+- **WO-04C impact:** NONE
+- **Future routing:** 独立的 State identity / Extractor / Authority Producer 工单；WO-05 可选择性
+  测试 exact-render projection dedup。详细 Scope binding 留给下一项裁决。
+
+### Accepted direction
+
+Canonical State item identity 只由精确键决定：
+
+```text
+(scope.namespace, scope.stream_id, item_id)
+```
+
+必须分开三类 identity：
+
+```text
+state_commit_id
+-> Authority commit 的幂等 identity
+
+item_id
+-> 一个 Canonical State item 的持久 identity
+
+producer / extraction-run / candidate identity
+-> Authority 之前的临时 orchestration identity
+```
+
+Core / deterministic Reducer 不做 semantic identity inference，也不做 semantic dedup。系统只在
+以下情形自动认定“同一个 item”：
+
+1. exact scoped `item_id` binding；
+2. 同一个 captured commit/proposal 的 exact retry。
+
+现有 Canonical State v1 继续保持 `proposal.upsert_items[]`、kind-specific lifecycle status 与 no
+delete。DA-14 不新增通用 `MERGE`、`DEDUP`、`RECONFIRM` 或其他 Canonical State operation。
+
+### Producer outcomes before Authority
+
+未来 producer/orchestration 可在 Authority 之前产生有界结果，但这些不是 State operations：
+
+```text
+REFERENCE_EXISTING
+-> 输入中有 exact existing item_id
+
+CREATE_CANDIDATE
+-> 独立新 candidate；不允许模型发明或复用 canonical item_id
+
+RECONFIRM_EXISTING
+-> exact-bound item 的重复确认；默认 NO_PROPOSAL
+   Raw Event 保留，不制造无意义 State revision
+
+AMBIGUOUS_IDENTITY
+-> DEFER，不猜测
+```
+
+新 canonical item ID 必须由 deterministic、replayable orchestration 分配，输入至少包含 explicit
+scope、durable producer/extraction-run identity 与 stable candidate key。模型不得自行分配、选择或
+复用 Authority ID。只有 exact ID 已在 frozen input/current State 中时才允许 update existing item。
+State revision race 必须 CAS fail；不得把 stale proposal 自动补丁到较新 State。
+
+例如已有 `C17: 禁止修改 architecture`，后来出现“架构还是先别动”：
+
+```text
+exact binding + mere reaffirmation
+-> RECONFIRM_EXISTING -> NO_PROPOSAL
+
+exact binding + material change
+-> upsert existing C17
+
+no exact binding
+-> AMBIGUOUS_IDENTITY -> DEFER
+```
+
+### Scope precedes identity
+
+- 先解析 Scope，再解析 item identity；
+- 禁止 cross-scope dedup、merge 或 identity reuse；
+- 相同或相似文字出现在不同 task/project/session/stream，不证明它们是同一个 item；
+- DA-14 不通过 similarity rule 偷偷定义 Scope；详细 binding contract 留给下一项。
+
+### Semantic similarity is diagnostic only
+
+Embedding、lexical similarity 或 LLM 只能在 shadow 中输出 non-authoritative
+`possible_duplicate` diagnostic，绝不得据此：
+
+- merge items 或复用 item ID；
+- 改变 lifecycle；
+- 重写 provenance；
+- 修改 Authority。
+
+false merge 比 duplicate retention 更严重：前者会破坏 Authority、provenance 与 lifecycle；后者
+主要增加 storage/Context cost，且以后可以显式修复。因此 canonical duplicates 默认不自动合并。
+
+### Optional projection-only exact dedup
+
+Context projection 未来只可测试一个极窄的 deterministic optimization：
+
+```text
+same explicit scope
++ same kind/status
++ byte-equal normalized rendered content
+-> render once
+-> Snapshot Manifest 仍保留全部 exact Authority refs
+```
+
+禁止 near-duplicate、paraphrase 或 semantic folding。Projection dedup 只改变展示，不改变
+canonical identity 或 State。
+
+若未来确需 canonical consolidation，必须另行定义显式操作，并提供 exact survivor IDs、exact
+duplicate IDs、exact Raw refs、expected State revision 与合法的 kind-specific lifecycle
+transitions；不得隐式引入 delete 或通用 `MERGED` status。
+
+### Future comparison direction
+
+```text
+I0 = exact scoped item_id only; no semantic dedup
+
+I1 = exact existing-ID binding
+     + deterministic new-ID allocation
+     + reconfirm -> NO_PROPOSAL
+     + ambiguous -> DEFER
+     + optional exact-render projection dedup
+
+I2 = embedding/LLM semantic auto-merge
+     negative / experimental comparator only
+```
+
+至少覆盖：explicit repeated Constraint、similar text in different scopes、same text in different
+tasks、scope narrowing/broadening、Decision 与 Constraint 相似内容、explicit correction、same Raw
+reprocessing、one Event producing multiple items、identical text with intentionally distinct IDs、terminal
+old item beside new active item、State revision race、crash/retry/reopen，以及 projection exact dedup
+仍保存全部 refs。
+
+指标至少包含：
+
+```text
+false_merge
+duplicate_active_items
+unnecessary_reconfirmation_revisions
+identity_stability across retry/reopen
+ambiguous_identity_defer_rate
+context_duplicate_tokens
+provenance / lifecycle corruption
+```
+
+`false_merge` 是 critical zero-tolerance fixture failure。优先使用 projection-only dedup 或显式
+consolidation，而不是 semantic Authority merge。若只有 I2 能减少重复，仍保留 I0/I1，等待更强
+证据，不以减少 token 为由接受 Authority corruption 风险。
