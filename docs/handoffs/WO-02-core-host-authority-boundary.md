@@ -1,12 +1,43 @@
 # WO-02 Builder Handoff — Core / Host Authority Boundary
 
-Status: **BUILDER COMPLETE / AWAITING INDEPENDENT QA**<br>
+Status: **BUILDER FIX COMPLETE / AWAITING INDEPENDENT RE-QA**<br>
 Work order: `docs/work-orders/WO-02-core-host-authority-boundary.md`<br>
 Source baseline HEAD: `8285c8a63dcc471009bdaf90b96b5fb26e6804b8`<br>
 Planning authority commit: `8285c8a63dcc471009bdaf90b96b5fb26e6804b8`<br>
 Expected parent: `c264d5f5debd207278deacb703fa8e64f2b66c0c`<br>
 Builder candidate HEAD: the commit containing this handoff; Independent QA must
 resolve and pin that exact commit before review.
+
+Original Builder candidate:
+`c3c82099bf28eb2f865021a9329138325feb1d26`<br>
+Independent QA rejection commit:
+`b9239360ffe5ded5567d1b7fb736db1b2e1fcc2e`<br>
+Fixed candidate HEAD: the append-only commit containing this updated handoff;
+Independent re-QA must resolve and pin that exact commit before review.
+
+## Append-only QA-return fix
+
+Independent QA accepted the source boundary, transaction preservation, protocol,
+fixture move, timeout evidence, tests, build, and prohibited-drift checks, but
+rejected the original candidate for two Authority / Mutation Matrix defects. This
+fix changes no source, schema, tests, configuration, dependencies, evaluation, or
+official artifacts.
+
+The bounded corrections are:
+
+1. Every future owner now follows the exact Umbrella v3.1.1 Registry: WO-03A
+   substrate, WO-03B High-water/Hot Raw, WO-04 semantic State/Fact/Relation and
+   takeover/enrichment, WO-05 ContextSnapshot, WO-07 Operation/Action/ToolResult,
+   WO-08 Verification/Outbox, and the WO-03A/09/10 Shadow split. Invented
+   WO-03C/03D/03E routes were removed. Background mutation is explicitly
+   `UNASSIGNED / UNKNOWN` because the Registry allocates no Child WO.
+2. The `sessions` row now names `ContextCompilerCore` as the single logical
+   mutation-command authority, enumerates the current internal physical
+   ensure-session writers, and assigns validation, enclosing transaction,
+   primary-key/`INSERT OR IGNORE` idempotency, and command retry ownership.
+
+The retained QA rejection is an audit commit. This Builder fix is a new
+append-only candidate, not a rewrite of the rejected candidate.
 
 ## Bounded result
 
@@ -128,6 +159,27 @@ The first full-suite diagnostic exposed the moved private fixture injection and
 the parallel-load timeout described above. Both were resolved within the amended
 allowlist; the final full suite is green.
 
+Post-rejection fix checks:
+
+```text
+b923936..fixed candidate path set
+  PASS — only authority-mutation-matrix.md and this handoff
+
+Umbrella Registry route comparison
+  PASS — no invented WO-03C/03D/03E; unallocated ownership remains UNKNOWN
+
+session writer ownership trace
+  PASS — Core gate, enclosing Store transaction, INSERT OR IGNORE / primary key
+
+git diff --check
+  PASS
+```
+
+The Builder did not rerun runtime tests after this documentation-only return fix.
+The source/test tree is byte-identical to the rejected candidate on which both
+Builder and Independent QA already recorded green focused, full-suite, and build
+results. Re-QA remains responsible for an independent final decision.
+
 No remote model, network, credential, production database, destructive command,
 or sibling Host repository was used or accessed.
 
@@ -147,12 +199,13 @@ or sibling Host repository was used or accessed.
 
 ## Independent QA requirements
 
-The Builder does not approve this candidate. Independent QA must:
+The Builder does not approve this fixed candidate. Independent re-QA must:
 
 1. pin the exact candidate commit containing this handoff and verify the fixed
    source baseline and ancestry;
-2. verify every changed path is in the original or explicitly amended WO-02
-   allowlist;
+2. preserve the rejection commit and verify that
+   `b9239360ffe5ded5567d1b7fb736db1b2e1fcc2e..fixed_candidate_HEAD` changes only
+   the Authority / Mutation Matrix and this handoff;
 3. independently trace representative Raw/Event, State, Headline/FTS, compile
    telemetry, and research ledger calls from adapter/Core to physical writer;
 4. verify the Authority / Mutation Matrix names transaction, validation,
@@ -167,5 +220,6 @@ The Builder does not approve this candidate. Independent QA must:
    hides a production behavior regression;
 9. verify config, schemas, algorithms, evaluation logic, and official artifacts
    are unchanged; and
-10. write a separate `docs/qa/WO-02-core-host-authority-boundary.md` acceptance or
-    rejection. QA must not begin WO-03A.
+10. append a fresh re-QA section to
+    `docs/qa/WO-02-core-host-authority-boundary.md` and create a separate QA
+    commit. QA must not begin WO-03A.
