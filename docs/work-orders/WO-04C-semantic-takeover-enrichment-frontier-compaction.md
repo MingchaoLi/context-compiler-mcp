@@ -1,7 +1,8 @@
 # WO-04C — Semantic Takeover / Enrichment + Frontier + Compaction Artifact
 ## Long-term Agent / Context Compiler
 
-**状态：** PLANNED / NOT STARTED — EXECUTION BASELINE NOT YET FROZEN<br>
+**状态：** IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE COMPOSITION GATE FROZEN；
+SOURCE NOT STARTED<br>
 **类型：** Core semantic commit composition + Frontier authority<br>
 **依赖：** WO-03A fixed Builder `c93072dc5e4b5c89464b003e716bbb688b072b89`
 + re-QA `f02c5e12ee0931d4a23a999fa2dc2c0dbb977940`；WO-03B Builder
@@ -53,6 +54,11 @@ Working Context。
 docs/inventory/WO-04C/execution-baseline-manifest.md
 ```
 
+Gate 已由 standalone commit `6b77ed06b250176fd9cff16b35ab1c3d4701c9a2`
+冻结；固定 `source_baseline_HEAD` 为
+`c3a184f9c067d529e8f2908080ab72650fb59cbc`。该 baseline commit 只新增 manifest，
+没有 source/schema/test/config 漂移。
+
 至少固定 repository/branch/source baseline/planning authority/parent/clean status/
 submodules/config hashes、WO-03A/03B/04A/04B accepted candidate + QA、实现时间。
 
@@ -93,6 +99,27 @@ Gate 产物必须在 pre-source architecture commit 中冻结：exact Takeover/E
 grammar、authority reference/proposal model、coverage proof、no-op/partial semantics、
 policy hash 与完整 transaction order。
 
+Gate 选择已经冻结在：
+
+```text
+docs/architecture/WO-04C-semantic-takeover-enrichment-frontier-compaction.md
+docs/inventory/WO-04C/transaction-composition-schema-map.md
+```
+
+选择为“一个 Core-private 组合事务协调器 + 多个领域 Authority Owner”：
+
+- `src/authority-transaction-coordinator.ts` 是唯一跨领域组合入口；
+- Takeover 在 frozen `commitTakeoverFrontierInsideCore` 已开启的单连接 transaction callback
+  中统一 Raw/State/Fact/Relation/Artifact 读写；
+- State v1 只引用同 snapshot 已提交且完整验证的 exact authority，State axis 不前进，
+  `previous_state_revision == new_state_revision`；
+- Fact/Relation 可通过 owner 的 Core-private same-handle apply/read seam 在同事务提交；
+- Enrichment 由 coordinator 的单连接 axis-neutral transaction 提交，绝不调用
+  Frontier/Takeover primitive；
+- schema、policy、reducer、object revision 仍归各领域 owner，coordinator 不是 generic writer；
+- 若功能要求同一 Takeover 新建 State revision，则当前 substrate 不足，必须另开 bounded
+  substrate extension，不得在 04C 隐式实现。
+
 ---
 
 # 4. DEPENDENCIES
@@ -128,11 +155,13 @@ policy hash 与完整 transaction order。
 预期 allowlist：
 
 ```text
+src/authority-transaction-coordinator.ts
 src/semantic-takeover.ts
 src/canonical-state.ts                 # 仅 Composition Gate 冻结的 Core-private seam
 src/canonical-fact-relation.ts         # 仅 Composition Gate 冻结的 Core-private seam
 src/core.ts
 src/index.ts
+test/authority-transaction-coordinator.test.ts
 test/semantic-takeover.test.ts
 test/canonical-state.test.ts           # 仅 seam 回归必要时
 test/canonical-fact-relation.test.ts    # 仅 seam 回归必要时
@@ -142,9 +171,10 @@ docs/inventory/WO-04C/**
 docs/handoffs/WO-04C-semantic-takeover-enrichment-frontier-compaction.md
 ```
 
-Execution Baseline 必须把机械证明后真正需要的路径收窄为 exact allowlist。04A/04B
-文件若改变，只能是保持现有 public/domain behavior 的 Core-private transaction/read
-adapter；不得复制第二 writer、改变现有 policy/schema/hash 或从 package root 导出。
+以上即 Composition Gate 收窄后的 exact maximum allowlist；Builder 可以少改但不得新增
+source/test path。04A/04B 文件若改变，只能是保持现有 public/domain behavior 的
+Core-private transaction/read adapter；不得复制第二 writer、改变现有 policy/schema/hash
+或从 package root 导出。
 
 ---
 
@@ -200,6 +230,10 @@ provenance_event_ids
   设为 covered end；
 - State/Fact/Relation authority 必须在同 snapshot 通过 accepted owner 的完整 read/apply
   contract；exact revision maps 和 complete result 绑定到 Takeover marker；
+- State v1 只允许 exact authority ref，不接受 State proposal；callback previous/current 的
+  State axis 必须相等。零 State 只允许空 ref，正 State 必须完整验证 `1..observed` chain；
+- Fact/Relation proposal 可选；若存在，必须通过 owner same-handle seam 原子生成 object/
+  domain revisions。没有新 proposal 的 Takeover仍必须有完整 coverage + Artifact；
 - required proposal/ref/coverage/artifact 任一失败，marker、artifact、object rows 与全部
   primary axes 均回滚；不得推进部分 range；
 - exact normalized retry 返回原 result；range/order/CAS/policy/provenance/authority/artifact
@@ -218,6 +252,8 @@ metadata enrichment。Pre-source grammar 至少显式包含 scope、stable
 
 - 可引用非连续、很老但 same-scope committed canonical Raw Event；
 - 必须使用与 Takeover 相同的 accepted State/Fact/Relation validators；
+- v1 必须产生至少一个新的 Fact/Relation object revision；reference-only/no-change
+  Enrichment 非法；
 - 只产生 architecture 冻结的 canonical object/domain rows和自己的 append-only marker；
 - 不得写 `raw_frontier_revision`、`frontier_position`、`takeover_commit_revision`；
 - exact retry/替换/conflict、rollback、concurrency、migration/read 均需稳定；
@@ -312,9 +348,10 @@ Core reflection 取得。MCP 不新增 command。
 
 # 14. ACCEPTANCE
 
-- [ ] Execution Baseline fixed in a standalone pre-source commit.
-- [ ] Transaction Composition Gate 机械证明并冻结；若 substrate 不足，停止而非绕过。
-- [ ] Exact Takeover/Enrichment/coverage/artifact grammar + policy hash frozen first.
+- [x] Execution Baseline fixed in a standalone pre-source commit.
+- [x] Transaction Composition Gate 机械证明并冻结；State v1 选择 reference-only，当前
+  substrate 足够；atomic new State 是明确 stop condition。
+- [x] Exact Takeover/Enrichment/coverage/artifact grammar + policy hash frozen first.
 - [ ] Explicit scope；无 session/Host fallback、legacy backfill 或 cross-scope reuse.
 - [ ] Takeover range 从 current Frontier 直接后继开始且连续、完整、有界。
 - [ ] Frontier revision/position double-CAS 与 Takeover revision 原子推进且无 hole.
@@ -338,5 +375,5 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 审计并单独写 QA 文件/commit。失败必须回到同一 append-only implementation chain 修复；
 不得重写已提交历史或边 QA 边实现。
 
-本工单规划完成不等于 Execution Baseline 已冻结，也不授权自动开始 Inventory、source
-实现、WO-05 或 Host 集成。
+本工单的 Execution Baseline 与 pre-source Composition Gate 已冻结；这不等于 source
+实现、Builder candidate 或 Independent QA 已完成，也不授权自动开始 WO-05 或 Host 集成。

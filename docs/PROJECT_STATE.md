@@ -39,12 +39,16 @@ WO-03B Ledger High-water + Hot Raw Replay 继续冻结在 Builder candidate `24b
 WO-03A Shared Revision / Stream / Transaction Substrate 继续冻结在 fixed Builder candidate `c93072dc5e4b5c89464b003e716bbb688b072b89` 与 Independent re-QA commit `f02c5e12ee0931d4a23a999fa2dc2c0dbb977940`。WO-03B 没有修改该 substrate，也没有推进 Frontier、映射 legacy session/seq、改变现有 Raw/State/Recall/MCP/evaluation，或引入 Host/provider 依赖。
 
 Umbrella WO-04 的原始范围继续按 append-only 子序列执行。WO-04A 与 WO-04B 均已
-接受；唯一当前工单改为 `WO-04C Semantic Takeover / Enrichment + Frontier +
-Compaction Artifact`，状态 **PLANNED / NOT STARTED — EXECUTION BASELINE NOT YET
-FROZEN**。04C 只允许在冻结的 WO-03A/03B/04A/04B authority 上组合连续安全前缀
-Takeover、非连续 Enrichment、Frontier double-CAS、takeover ordering 与 immutable
-Compaction Artifact；不得修改共享 substrate、引入 Host/provider/MCP，或提前实现
-WO-05 Snapshot/Working Context。WO-05 仍须等待 04C 完成。
+接受；唯一当前工单为 `WO-04C Semantic Takeover / Enrichment + Frontier + Compaction
+Artifact`，状态 **IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE COMPOSITION GATE
+FROZEN；SOURCE NOT STARTED**。Execution Baseline 已由 standalone commit
+`6b77ed06b250176fd9cff16b35ab1c3d4701c9a2` 固定 source world
+`c3a184f9c067d529e8f2908080ab72650fb59cbc`。Composition Gate 选择“一个
+Core-private 组合事务协调器 + 多领域 Authority Owner”：Takeover 复用 frozen substrate
+的单连接 callback，State v1 只引用 exact committed authority，Fact/Relation 通过 owner
+same-handle seam 原子 apply，Enrichment axis-neutral；若要求 Takeover 同时新建 State
+revision，必须另开 substrate extension。04C 不得引入 Host/provider/MCP 或提前实现
+WO-05 Snapshot/Working Context；WO-05 仍须等待 04C 完成。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -140,5 +144,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
 WO-04A 与 WO-04B 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
-WO-04C 现为唯一下一工单，但 Execution Baseline 尚未冻结，任何 schema/source 实现
-必须先通过其 Baseline Gate；Formal Host Mode 与 WO-05+ 均未开始。
+WO-04C 现为唯一当前工单；Execution Baseline 与 pre-source Composition Gate 已冻结，
+但 schema/source、Builder handoff 与 Independent QA 均未开始/未完成。Formal Host Mode
+与 WO-05+ 均未开始。
