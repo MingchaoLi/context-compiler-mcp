@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import * as publicSurface from "../src/index.js";
 import {
   CONTEXT_COMPILER_COMMANDS,
+  CANONICAL_STATE_POLICY_HASH,
   ContextCompilerCore,
   ContextCompilerCoreError,
   ContextCompilerMcpService,
@@ -30,6 +31,8 @@ describe("ContextCompilerCore boundary", () => {
     expect("compareAndAdvanceFrontierInsideCore" in publicSurface).toBe(false);
     expect("SqliteLedgerHotRawStore" in publicSurface).toBe(false);
     expect("migrateLedgerHotRaw" in publicSurface).toBe(false);
+    expect("SqliteCanonicalStateStore" in publicSurface).toBe(false);
+    expect("migrateCanonicalState" in publicSurface).toBe(false);
 
     const core = new ContextCompilerCore(databasePath());
     const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));
@@ -41,6 +44,10 @@ describe("ContextCompilerCore boundary", () => {
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
       value.constructor?.name === "SqliteLedgerHotRawStore"
+    )).toBe(false);
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      value.constructor?.name === "SqliteCanonicalStateStore"
     )).toBe(false);
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
@@ -104,6 +111,35 @@ describe("ContextCompilerCore boundary", () => {
         source_session_id: "core-session",
       }],
     });
+    const canonicalState = core.commitCanonicalState({
+      scope: { namespace: "authority", stream_id: "canonical-stream" },
+      state_commit_id: "canonical-state-1",
+      commit_mode: "immediate_authority",
+      expected_state_revision: 0,
+      proposal: {
+        schema_version: 1,
+        upsert_items: [{
+          item_id: "canonical-goal",
+          kind: "GOAL",
+          content: "Preserve explicit authority",
+          status: "ACTIVE",
+          source_event_ids: ["canonical-event-1"],
+          metadata: {},
+        }],
+      },
+      policy_hash: CANONICAL_STATE_POLICY_HASH,
+      provenance_event_ids: ["canonical-event-1"],
+    });
+    expect(canonicalState.state_revision).toBe(1);
+    expect(core.readCanonicalState({
+      namespace: "authority", stream_id: "canonical-stream",
+    })).toMatchObject({
+      state_revision: 1,
+      state: { items: [{ item_id: "canonical-goal" }] },
+    });
+    expect(core.readCanonicalStateRevision({
+      namespace: "authority", stream_id: "canonical-stream",
+    }, 1)).toEqual(canonicalState);
 
     const prepared = unwrap(core.call("prepare_state_update", {
       session_id: "core-session",
@@ -126,6 +162,9 @@ describe("ContextCompilerCore boundary", () => {
       items: [],
       relations: [],
     });
+    expect(core.getRevisionVector({
+      namespace: "authority", stream_id: "core-session",
+    }).state_revision).toBe(0);
 
     const headline = unwrap(core.call("create_headline", {
       session_id: "core-session",
@@ -197,6 +236,11 @@ describe("ContextCompilerCore boundary", () => {
       expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
     );
     expect(() => core.rebuildHotRaw({
+      namespace: "authority", stream_id: "closed",
+    })).toThrowError(
+      expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
+    );
+    expect(() => core.readCanonicalState({
       namespace: "authority", stream_id: "closed",
     })).toThrowError(
       expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })

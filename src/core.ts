@@ -33,6 +33,13 @@ import {
   type RawSourceProjectionInput,
 } from "./ledger-hot-raw.js";
 import {
+  CanonicalStateError,
+  SqliteCanonicalStateStore,
+  type CanonicalStateCommitInput,
+  type CanonicalStateProjection,
+  type CommittedCanonicalStateRevision,
+} from "./canonical-state.js";
+import {
   SqliteRawHistoryStore,
   estimateTokens,
   normalizeDenseEmbedding,
@@ -128,6 +135,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   private readonly ledgerStore: SqliteExperienceLedgerStore;
   readonly #revisionSubstrate: SqliteRevisionSubstrate;
   readonly #hotRawStore: SqliteLedgerHotRawStore;
+  readonly #canonicalStateStore: SqliteCanonicalStateStore;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -141,6 +149,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let ledgerStore: SqliteExperienceLedgerStore | undefined;
     let revisionSubstrate: SqliteRevisionSubstrate | undefined;
     let hotRawStore: SqliteLedgerHotRawStore | undefined;
+    let canonicalStateStore: SqliteCanonicalStateStore | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
@@ -148,7 +157,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
       ledgerStore = new SqliteExperienceLedgerStore(databasePath);
       revisionSubstrate = new SqliteRevisionSubstrate(databasePath);
       hotRawStore = new SqliteLedgerHotRawStore(databasePath, revisionSubstrate);
+      canonicalStateStore = new SqliteCanonicalStateStore(databasePath, revisionSubstrate);
     } catch {
+      try { canonicalStateStore?.close(); } catch { /* preserve stable startup failure */ }
       try { hotRawStore?.close(); } catch { /* preserve stable startup failure */ }
       try { revisionSubstrate?.close(); } catch { /* preserve stable startup failure */ }
       try { recallStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -164,6 +175,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.ledgerStore = ledgerStore;
     this.#revisionSubstrate = revisionSubstrate;
     this.#hotRawStore = hotRawStore;
+    this.#canonicalStateStore = canonicalStateStore;
   }
 
   call(
@@ -256,11 +268,50 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Commits one proposal-validated Canonical State revision; not an MCP command. */
+  commitCanonicalState(
+    input: CanonicalStateCommitInput
+  ): CommittedCanonicalStateRevision {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "canonical state commit input");
+      return this.#canonicalStateStore.commit(input);
+    } catch (error) {
+      throw mapCanonicalStateError(error);
+    }
+  }
+
+  /** Reads the latest same-scope Canonical State without changing authority. */
+  readCanonicalState(scope: RevisionScope): CanonicalStateProjection {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical state scope");
+      return this.#canonicalStateStore.readLatest(scope);
+    } catch (error) {
+      throw mapCanonicalStateError(error);
+    }
+  }
+
+  /** Reads one exact immutable Canonical State revision. */
+  readCanonicalStateRevision(
+    scope: RevisionScope,
+    stateRevision: number
+  ): CommittedCanonicalStateRevision {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical state scope");
+      return this.#canonicalStateStore.readRevision(scope, stateRevision);
+    } catch (error) {
+      throw mapCanonicalStateError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
     for (const store of [
+      this.#canonicalStateStore,
       this.#hotRawStore,
       this.#revisionSubstrate,
       this.ledgerStore,
@@ -533,6 +584,16 @@ function mapLedgerHotRawError(error: unknown): ContextCompilerCoreError {
     return new ContextCompilerCoreError("INTERNAL_FAILURE");
   }
   if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
+  return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapCanonicalStateError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof CanonicalStateError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "NOT_FOUND") return new ContextCompilerCoreError("NOT_FOUND");
   if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
   return new ContextCompilerCoreError("STORAGE_FAILURE");
 }

@@ -22,6 +22,25 @@ export {
 } from "./ledger-hot-raw.js";
 
 export {
+  CANONICAL_STATE_COMMIT_MODES,
+  CANONICAL_STATE_ITEM_KINDS,
+  CANONICAL_STATE_POLICY_HASH,
+  CANONICAL_STATE_POLICY_VERSION,
+  CANONICAL_STATE_SCHEMA_VERSION,
+  CanonicalStateError,
+  type CanonicalState,
+  type CanonicalStateCommitInput,
+  type CanonicalStateCommitMode,
+  type CanonicalStateErrorCode,
+  type CanonicalStateItem,
+  type CanonicalStateItemKind,
+  type CanonicalStateItemStatus,
+  type CanonicalStateProjection,
+  type CanonicalStateProposal,
+  type CommittedCanonicalStateRevision,
+} from "./canonical-state.js";
+
+export {
   EXPERIENCE_LEDGER_KINDS,
   PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,
