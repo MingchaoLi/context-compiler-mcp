@@ -19,6 +19,45 @@ WO-04C 的影响。它不是 Architecture Contract、Umbrella Plan 或未来 Chi
 4. downstream 输入在独立的后续 docs/work-order authority 步骤中再 promotion 到
    Contract/Umbrella/WO-05+，不得混入 WO-04C source candidate。
 
+## Preservation and Complexity Gate
+
+本轮调整的目标是减少不必要的项目复杂度与测试维度，但目标是“最小正确闭环”，不是
+最少模块、最少代码或最少能力。任何 downstream promotion 必须先区分：
+
+```text
+remove duplicated implementation                    allowed with equivalence proof
+default-off an unproven operational policy           reversible evidence-gated change
+remove an accepted capability or weaken a contract   prohibited without explicit gate
+```
+
+每项简化候选必须在 future work order 中同时冻结：
+
+1. 现有能力、authority level 与它防御的具体 counterexample；
+2. 哪部分只 default-off，哪部分会物理删除或改变 public/schema/policy behavior；
+3. 简化后明确放弃的能力、适用场景与风险；
+4. 同一 frozen input world 下的 old-vs-simple ablation；
+5. correctness、context cost、runtime cost 与 test-matrix complexity 指标；
+6. 失败时恢复旧策略的兼容/shadow/rollback 路径；
+7. 是否需要新的 schema/policy version、migration、promotion 与 Independent QA。
+
+复杂度比较至少报告：
+
+```text
+number of authority writers / transaction boundaries
+number of persisted schemas, status axes and policy branches
+number of runtime decision branches and implicit heuristics
+number of focused fixtures / adversarial counterexample classes
+cross-product dimensions in crash/concurrency/replay tests
+incremental Context tokens / latency / model calls
+```
+
+LOC、模块数量或单次 happy-path 测试不能单独证明方案更简单。已经 accepted/frozen 的能力
+在新候选通过预注册 ablation、回放与 Independent QA 前，只能保留为 compatibility/shadow
+路径，不得物理删除或由下层文档静默弱化。
+
+如果简化方案不能保持同等 correctness，必须把 capability loss 明示为用户可接受的产品
+trade-off；未获得明确接受时，以现有上层 Contract 为准。
+
 ---
 
 ## DA-01 — Raw Retention 与 Targeted Evidence Recovery 分离
@@ -475,3 +514,112 @@ Promotion work order 必须在查看新结果前预注册 decision threshold 和
 
 任何测试驱动调整只修改未来 WO-05/06 policy proposal；不得回写 WO-04C candidate 或静默
 改动 frozen v0。
+
+---
+
+## DA-05 — Closure Responsibility Narrowing + Grace Tail Experiment
+
+**用户状态：** 已接受 Preservation Gate；同意未来拿现有方式与简化候选对比，目标是降低
+复杂度和测试难度，而不是无证据删除已完善能力。
+
+**登记状态：** RECORDED / PRESERVE EXISTING CONTRACT / EXPERIMENT CANDIDATE ONLY / NOT
+YET PROMOTED
+
+**WO-04C impact：** NONE under the selected routing — Grace Tail 只作为 upstream proposal/
+compactor scheduling 候选，不进入 WO-04C transaction、Frontier grammar 或 policy hash。
+
+**Routing：** Future State proposal scheduling / compactor policy experiment；Strong Constraint
+沿用 accepted Immediate Authority；长期 Open/Closed 使用既有 State lifecycle；若未来形成
+Snapshot input 约束，再由独立 WO-05 planning authority 接收。
+
+### Responsibility split
+
+必须分离三种职责：
+
+```text
+Semantic lifecycle
+  Decision/Goal/OpenQuestion/Constraint 的 kind-specific current status
+
+Commit mode
+  immediate_authority / lazy_historical / targeted_on_demand
+
+Proposal eligibility / scheduling
+  当前 Raw/segment 是否进入 proposal/compaction candidate
+```
+
+当前 frozen v0 的约 15 轮阈值属于 dormant placement telemetry，不是 closure 判断、State
+lifecycle 或 Raw Frontier 规则。本调整不得复用该数字冒充 Grace Tail 默认值。
+
+### Capabilities that must be preserved
+
+- 讨论中的方案不能因局部语句被过早提交为 final Decision；
+- unresolved OpenQuestion/Goal 不能因年龄或窗口移动而静默消失；
+- explicit Strong Constraint 必须通过 `immediate_authority` fast path 及时生效；
+- later correction/supersession 必须能产生新的显式 proposal/commit，不能协调覆盖历史；
+- Raw provenance、Committed State revision、exact replay 与 Targeted Recovery 保持；
+- Validator 只检查 contract/authority，不成长为预测未来对话的智能 Closure Judge。
+
+### Grace Tail candidate
+
+Grace Tail 的候选职责只限于：
+
+> 在普通 lazy/compaction proposal producer 选择输入时，机械保护一个最近 suffix，降低短期
+> 限定、否定或自我修正被窗口切开的概率。
+
+它不是 correctness guarantee，也不是 State status、Authority、Frontier 或删除规则。固定
+turn/token count 不能成为 Raw Frontier 的唯一边界；Core stream 可跨 session，Ledger 还含
+tool/file/external events，因而 future experiment 必须明确所用稳定单位和 projection policy。
+
+Strong Constraint fast path 不受 Grace Tail 阻塞：Constraint 可立即形成独立 State commit，
+同时其 Raw Event 继续留在 Hot Raw。长期 Open topic 依靠显式 OpenQuestion/Goal 或继续留在
+Hot Raw，而不是不断扩大 Grace Tail。
+
+### Comparison direction
+
+Future pre-registered experiment 在同一 frozen Raw/State world 比较：
+
+```text
+C0 = existing semantic proposal eligibility, no mechanical protected suffix
+C1 = C0 + bounded Grace Tail used only by proposal scheduling
+```
+
+至少固定以下 counterexamples：
+
+```text
+initial affirmation followed by immediate negation
+joke/self-correction or limiting qualifier across a boundary
+"先这样" followed by continued discussion
+long-running unresolved OpenQuestion
+explicit Strong Constraint requiring immediate effect
+clear final Decision where delay is unnecessary
+later global revocation beyond the Grace Tail negative control
+```
+
+指标至少包含：
+
+```text
+premature_authority_commit_count
+strong_constraint_activation_latency
+valid_decision_commit_delay
+unresolved_item_loss
+later_correction_or_supersession_rate
+protected_hot_raw_tokens / events
+proposal/validator/reducer branch count
+focused and adversarial fixture count
+```
+
+第一阶段可以用固定 Gold proposal/eligibility fixture 测机械 scheduling，不调用模型。若要
+测试自然语言 closure/extractor correctness，必须另开固定 input/provider/prompt 与人工 Gold
+合同，不能用 Grace Tail 的机械通过率替代语义正确性。
+
+### Promotion and stop conditions
+
+- C1 降低 premature commit，且 Constraint latency/Decision delay/Hot Raw cost 在预注册门内：
+  可 promotion 为 future proposal scheduling default；
+- C1 只是把错误延后、显著拖慢明确 Decision 或扩大 Context：保持 C0，不启用 Grace Tail；
+- 问题主要来自 Extractor closure semantics：返回独立 Extractor evaluation，不扩大 Tail；
+- 若要求 WO-04C writer 强制最近 N turn/token 不可 Takeover：停止，重开 Composition Gate、
+  policy hash 与 baseline 评估；不得用本登记隐式授权。
+
+无论实验结果如何，Closed/Open lifecycle、Strong Constraint Immediate Authority 与 Raw
+Retention 都不得由 Grace Tail 替代。
