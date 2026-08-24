@@ -1,6 +1,6 @@
 # WO-ARCH-00 — Architecture v3.1.1 docs-only import
 
-状态：IMPLEMENTED — PENDING INDEPENDENT QA
+状态：ACCEPTED / COMPLETE
 
 ## 单一结果
 
@@ -51,15 +51,19 @@
 
 ## Acceptance
 
-- [ ] 三份目标文档均进入 repository authority，版本统一为 v3.1.1。
-- [ ] 八项协议封口全部可在文本中机械定位。
-- [ ] Contract / Umbrella / WO-01 无已知冲突。
-- [ ] WO-V0-15 继续 `ACCEPTED / FROZEN`，WO-DG-01 继续 `ACCEPTED / COMPLETE`。
-- [ ] WO-01 明确 `PLANNED / NOT STARTED`，没有 Execution Baseline、Inventory 或产品实现。
-- [ ] Builder 只写 handoff；独立 QA 另写 `docs/qa/WO-ARCH-00-v3.1.1-docs-import.md`。
-- [ ] Builder candidate 相对起点只包含本工单允许的 docs-only 文件。
-- [ ] `git diff --check` 通过，提交后工作树 clean。
+- [x] 三份目标文档均进入 repository authority，版本统一为 v3.1.1。
+- [x] 八项协议封口全部可在文本中机械定位。
+- [x] Contract / Umbrella / WO-01 无已知冲突。
+- [x] WO-V0-15 继续 `ACCEPTED / FROZEN`，WO-DG-01 继续 `ACCEPTED / COMPLETE`。
+- [x] WO-01 明确 `PLANNED / NOT STARTED`，没有 Execution Baseline、Inventory 或产品实现。
+- [x] Builder 只写 handoff；独立 QA 另写 `docs/qa/WO-ARCH-00-v3.1.1-docs-import.md`。
+- [x] Builder candidate 相对起点只包含本工单允许的 docs-only 文件。
+- [x] `git diff --check` 通过，提交后工作树 clean。
 
 ## QA 边界
 
 独立 QA 只做机械文档 QA：固定 candidate/parent/clean、文件清单、关键词/合同一致性、旧冻结状态、路由、diff 与 clean。不得启动 WO-01，不得修改生产代码，不需要新的宏观架构 Challenge。
+
+## Independent QA Acceptance
+
+固定 Builder candidate `b27b5300f3a6acba84d09f55e43fc93feeaf80f0` 已通过独立机械 QA；完整证据见 `docs/qa/WO-ARCH-00-v3.1.1-docs-import.md`。该接受不启动 WO-01；`source_baseline_HEAD` 与 Execution Baseline 仍未冻结。

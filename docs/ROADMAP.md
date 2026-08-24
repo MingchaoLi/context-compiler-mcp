@@ -12,7 +12,7 @@ Work proceeds in this order:
 8. **Context / State infrastructure freeze. COMPLETE.** correctness、兼容、provenance、迁移、并发、回放和生产打包合同已独立接受；不再开发新 Context 算法、复杂 ontology、PACE/mem0 对比或 retrieval 调参，5/8/15 仍只是配置实验参数。
 9. **真实使用与 Experience Formation 数据准备。 WO-DG-01 ACCEPTED / COMPLETE.** 首个 bounded observation 使用当前 Codex 超长项目历史的 123 个 Git outcome commits 与 20 条脱敏 directive reconstruction，比较原生宿主继承、冻结 v0 compile_context upper bound 与确定性 Ground Truth。它记录 B 的 broad DSH_HOME miss、targeted recovery、检索污染、D0/D1/D2 原始成本与 writer latency；没有修改冻结基础设施，也没有产生 Action/Outcome/Feedback 或自动 Experience。
 10. **Host formal mode consideration.** Formal Host Mode 仍需新的明确工单；本次收口不授权宿主集成或修改其他仓库。
-11. **WO-ARCH-00 — Architecture v3.1.1 docs-only repository import. IMPLEMENTED — PENDING INDEPENDENT QA.** 单一候选只导入 Contract、Umbrella 与 WO-01，更新必要路由，不修改产品、schema、evaluation 或 frozen artifacts。独立 QA 只做机械一致性、固定 diff 与 clean 验证。
-12. **WO-01 — Current Architecture Inventory. PLANNED / NOT STARTED.** 只有 WO-ARCH-00 独立 QA PASS 后，才能另行冻结 `source_baseline_HEAD` 与 Execution Baseline Manifest；当前不允许扫描、实现、重构或建立 Runtime substrate。
+11. **WO-ARCH-00 — Architecture v3.1.1 docs-only repository import. ACCEPTED / COMPLETE.** 固定 Builder candidate `b27b5300f3a6acba84d09f55e43fc93feeaf80f0` 已通过独立机械 QA；Contract、Umbrella 与 WO-01 已进入 repository authority，没有修改产品、schema、evaluation 或 frozen artifacts。
+12. **WO-01 — Current Architecture Inventory. PLANNED / NOT STARTED.** `source_baseline_HEAD` 与 Execution Baseline Manifest 尚未冻结；启动前必须另行固定执行边界。当前不允许扫描、实现、重构或建立 Runtime substrate。
 
 Automatic headline generation 仍未实现，也不由既有工单隐含授权。WO-V0-15 的 Context / State 行为与算法线继续冻结；v3.1.1 只是新的目标协议与有序 Child WO 路线，当前未授权 Runtime、Host、Retrieval 或 State 行为实现。
