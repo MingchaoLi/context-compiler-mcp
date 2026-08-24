@@ -1,7 +1,8 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** PLANNED / NOT STARTED — EXECUTION BASELINE NOT FROZEN<br>
+**状态：** IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE SNAPSHOT COMPOSITION GATE
+FROZEN；SOURCE NOT STARTED<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -55,6 +56,11 @@ manifest 至少固定 repository/branch/source baseline/planning authority/expec
 status/submodules、四个 accepted dependency candidate + QA、root/src/test/config fingerprints 与
 freeze time。
 
+Gate 已由 standalone commit `18a2ab3dc02657200e5d96eec3bfc9a715c316e6`
+冻结；固定 `source_baseline_HEAD` 与 planning authority 为
+`0dbff6a8a148f37fcabef7accf7f71d057e1a90f`。该 baseline commit 只新增 manifest，
+没有 source/schema/test/config 漂移。
+
 硬 Gate：
 
 - `main`、HEAD、parent 与 clean policy 精确记录；
@@ -92,6 +98,19 @@ docs/inventory/WO-05/snapshot-composition-schema-map.md
 并在同一个 pre-source architecture commit 中冻结 exact manifest grammar、canonical bytes/hash、
 projection/assembly policy descriptor + hash、cost estimator/config identity、closed inclusion reason、
 overflow/error contract、transaction order、retry identity 与最大 source/test allowlist。
+
+Gate 选择已冻结在：
+
+```text
+docs/architecture/WO-05-context-snapshot-contract.md
+docs/inventory/WO-05/snapshot-composition-schema-map.md
+```
+
+选择为一个新的 Core-private `context-snapshot` owner：它在自己的单连接 `BEGIN IMMEDIATE`
+中调用 Ledger/State/Fact/Relation/Takeover owner 的只读 same-handle seam，确定性投影/组装后
+原子写 immutable Snapshot + AttemptStarted receipt。Snapshot axis-neutral，不修改 shared
+substrate 或任何 accepted authority table；当前 substrate 足够。existing v0 assembler/
+operational context 保持隔离不变。
 
 ---
 
@@ -218,17 +237,28 @@ refs、inclusion reasons、revision vector 与 policy identities。规则：
 
 # 8. CAN CHANGE
 
-Planning 阶段仅允许：
+Composition Gate 冻结后的 exact maximum allowlist：
 
 ```text
+src/context-snapshot.ts
+src/ledger-hot-raw.ts                 # 仅 Core-private read seam
+src/canonical-state.ts                # 仅 Core-private projection seam
+src/canonical-fact-relation.ts        # 仅 Core-private projection seam
+src/core.ts
+src/index.ts
+test/context-snapshot.test.ts
+test/core-boundary.test.ts
+docs/architecture/WO-05-context-snapshot-contract.md
+docs/inventory/WO-05/**
+docs/handoffs/WO-05-context-snapshot-contract.md
 docs/work-orders/WO-05-context-snapshot-contract.md
 docs/PROJECT_STATE.md
 docs/ROADMAP.md
 ```
 
-Baseline 与 pre-source Gate 完成后，source/test maximum allowlist 必须由机械 inventory 和
-transaction proof 冻结在本 WO 与 architecture/schema-map 中；冻结前不预授权任何 source、
-schema、test 或 config path。Builder 可以少改但不得越界。
+Builder 可以少改但不得新增 source/test/config path。`src/revision-substrate.ts`、
+`src/semantic-takeover.ts`、`src/authority-transaction-coordinator.ts`、`src/assembler.ts`、
+`src/operational-context.ts`、MCP、package/config/evaluation 与 official artifacts 均冻结。
 
 ---
 
@@ -284,9 +314,9 @@ schema、test 或 config path。Builder 可以少改但不得越界。
 
 # 12. ACCEPTANCE
 
-- [ ] Execution Baseline fixed in a standalone pre-source commit.
-- [ ] Snapshot Composition Gate mechanically proven and frozen before source.
-- [ ] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
+- [x] Execution Baseline fixed in a standalone pre-source commit.
+- [x] Snapshot Composition Gate mechanically proven and frozen before source.
+- [x] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
 - [ ] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
 - [ ] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
 - [ ] Current Authority Projection pure/deterministic；Canonical State v1 不变.
@@ -310,4 +340,6 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 单独写 QA 文件/commit。失败必须回到同一 append-only implementation chain 修复；不得重写已
 提交历史或边 QA 边实现。
 
-当前只建立工单权威；Execution Baseline 尚未冻结，source/schema/test 尚未授权开始。
+Execution Baseline 与 pre-source Snapshot Composition Gate 已冻结；source 尚未开始。Builder
+只能按 exact allowlist 实现该有界合同，不得把 Gate 解释为 Host、WO-06/07、MCP 或 frozen
+v0 改写授权。
