@@ -16,6 +16,10 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
+Architecture v3.1.1 的方向已由用户冻结，当前正在执行单一 docs-only repository import：`WO-ARCH-00` 已实现、等待独立机械 QA。候选只导入统一 Architecture Contract、Umbrella Implementation Plan 与 `WO-01 Current Architecture Inventory`，并补齐 ActionStarted durable ACK、Outbox lease/recovery、Frontier revision/position 双轴、Child WO ownership、Execution Baseline 与确定性扫描合同。WO-V0-15 继续 **ACCEPTED / FROZEN**，WO-DG-01 继续 **ACCEPTED / COMPLETE**；WO-01 保持 **PLANNED / NOT STARTED**，尚未建立 `source_baseline_HEAD`，没有开始 Inventory 或任何生产实现。
+
+跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
+
 WO-DG-01 已由独立 QA 接受并完成。它保持 WO-V0-15 `ACCEPTED / FROZEN`，比较 A=最小 repo refresh 后的当前 Codex 原生继承、B=人工 Oracle-State 的冻结 v0 `compile_context` upper bound、C=固定 Git/docs/QA Ground Truth。独立语义复核为 A `10 pass / 2 partial / 0 miss`、B `10 pass / 1 partial / 1 miss`；B 的 P09/DSH_HOME broad miss 在 verified-failure targeted recovery 中恢复。D0/D1/D2 原始 tokens 为 `3056/710/1511`，D2 比 D0 少约 50.6%、比 D1 多约 112.8%。没有修改 core、权重、dormant、ontology、storage 或 Experience Formation；宿主 opaque compaction 仍不可检查，A 的真实输入 token 与 compaction latency仍为 `not_observable`。QA 另记录报告的一处非阻塞尾随空白；不影响观测结论。
 
 WO-V0-15 的全部历史返回与接受证据继续 append-only 保留。第六个 compile telemetry 线性化 fix 已在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA，关闭首 trace 提交前跨实例 no-id compile 穿越 origin 的 TOCTOU P1；当前状态恢复为 **ACCEPTED / FROZEN**。完整 state/raw/ledger 读取、assembly、首 trace/hits 与 commit 处于同一可回滚 `BEGIN IMMEDIATE` boundary，竞争 raw/state writer 与 no-id compile 只能落在 origin 一侧。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval、Context 语义收益与 Experience Formation 效果都未评估。
@@ -105,4 +109,4 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-DS-14 已完成并经独立 QA 接受其 reducer conformance 与 ST-02 capture/raw-scoring 完整性；ST-02 Extractor correctness 实验结果为失败。结果仅相对 accepted standardized-event-summary Gold：Predicted State 全空，unique recall 为 general `0/35`、critical `0/29`，其余 zero-eligibility capability 不可评价。它不能证明 reducer Operational Stability、其他模型/prompt、真实 raw-body 或 State Compiler 架构的一般表现；下一阶段未授权。
 - WO-V0-15 的首 trace commit 前跨实例 telemetry origin TOCTOU P1 已由第六个 fix 关闭，Context / State 基础设施恢复冻结。Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。下一阶段只通过真实使用积累可回放的 Event–Action–Outcome / Feedback 数据。
 
-WO-ST-01 through WO-ST-03、WO-EV-02 与 WO-V0-15 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED / FROZEN**。下一阶段只是真实使用与 Event–Action–Outcome / Feedback 数据积累；Formal Host Mode 仍不在范围内且未开始。
+WO-ST-01 through WO-ST-03、WO-EV-02 与 WO-V0-15 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED / FROZEN**。该 v0 行为与算法线继续只用于真实使用及 Event–Action–Outcome / Feedback 数据积累，不因 v3.1.1 目标协议导入而解冻或改写。v3.1.1 当前仍只有 docs-only import candidate，WO-01 尚未启动，任何 Runtime/Host 实现都必须等待后续 Child WO 与独立 QA；Formal Host Mode 仍未开始。
