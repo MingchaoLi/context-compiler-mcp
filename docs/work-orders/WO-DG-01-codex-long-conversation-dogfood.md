@@ -1,6 +1,6 @@
 # WO-DG-01 — Codex Long-Conversation Dogfood-01
 
-状态：PLANNED / OBSERVATION ONLY
+状态：PROTOCOL AMENDED / GROUND TRUTH FREEZE PENDING
 
 ## 目标
 
@@ -28,31 +28,34 @@
 
 ## 三条路径
 
-### A — Codex 原生长会话
+### A — Codex 原生长会话（最小 repo refresh 后）
 
-- 同一模型从当前主线程原生继承上下文。
+- condition 固定命名为 `A_native_host_after_minimal_repo_refresh`：它在 C/Gold 落盘前只执行一次，但当时主线程已经按项目规则读取 `AGENTS.md`、`PROJECT_STATE.md` 与 `ROADMAP.md`，因此不是 pure pre-task compaction probe。
+- 当前 collaboration boundary 不暴露 A 的精确 runtime model id 或 input tokens；记录为 `inherited_current_codex_model / not_observable`，不得假称与 B 是严格同模型控制实验。
 - 禁止读取 repo、调用工具或接收 B / C 内容。
-- 一次回答 12 个预注册探针；记录原始回答、condition、置信度，不自评分。
+- 一次回答固定顺序的 12 个预注册探针；这是 **1 个复合请求**，12 项不是独立样本。记录原始回答、condition、置信度，不自评分、不重跑。
+- 只能报告该条件下 observable answer correctness / omission；任何结果原因都记为 `not_attributable_to_opaque_compaction`。
 
 ### B — 冻结 v0 compile_context
 
-- 独立 fresh model session，不继承当前线程。
-- 只接收一次真实 compile_context 输出与相同 12 个探针。
+- 独立 fresh `gpt-5.6-sol` / medium / `fork_turns:none` session，不继承当前线程；一次、无 retry/follow-up/best-of。
+- 只接收一次真实 compile_context 输出与相同顺序的 12 个探针，12 题整体也是唯一 `current_input` 与一个复合样本。
 - Recent Raw 固定 N=3；normal multiplier=5、recovery multiplier=8、dormancy multiplier=15，均只作为冻结配置，不调参。
 - Dense 不由 core 生成；本轮 broad comparison 固定 BM25-only，以免把未校准向量引入主比较。
-- 另做 narrow normal / verified-failure targeted recovery，观察远期 `DSH_HOME` evidence 是否只在 recovery 中恢复。
+- 另做 narrow normal / verified-failure targeted recovery，观察远期 `DSH_HOME` evidence 是否只在 recovery 中恢复；该部分只作 context diagnostic，不新增模型回答，也不混入 A/B correctness。
 - 编译上下文、trace 与回答分开保存；回答模型不得看到 C 的 required / forbidden key。
 
 ### C — Deterministic Ground Truth
 
 - 12 个探针逐项记录 required facts、forbidden claims、critical 标记和 Git/path provenance。
+- C/Gold 必须由 `fork_turns:none`、未见 A/B capture 的独立路径仅从 baseline Git object/docs 生成，先提交并 hash；主控在 C freeze 后才可把既有 A capture 落盘。
 - 自动评分只做预注册的 normalized lexical assertion；任何同义但不能机械确认的项标记 `manual_required`，不得默认为通过。
 - authority 冲突以冻结文档/accepted QA/较新 decision 为准，不以 A 或 B 的多数意见为准。
 
 ## 宿主数据
 
-- Git event stream：从 `afff9367b2c46917e6f6a3483fc493966be63dc6` 后到 observation baseline 的 123 个真实提交，记录 commit SHA、author time 与 subject；运行时读 Git object，不复制整份日志为新的 Gold。
-- directive stream：只保存当前长会话中已经发生的去敏工程指令摘要，并以 `after_commit` 锚定顺序；不得保存逐字私聊。
+- Git event stream：从 `afff9367b2c46917e6f6a3483fc493966be63dc6` 后到 observation baseline 的 123 个真实 **outcome trace**，记录 commit SHA、author time 与 subject；运行时读 Git object，不复制整份日志为新的 Gold，也不把 commit 冒充 user conversation turn。
+- directive stream：只保存当前长会话中已经发生的 **retrospective sanitized reconstruction**，并以 `after_commit` 锚定顺序；它不是原始 host event stream，不得保存逐字私聊。
 - typed state：人工、显式、可审计地从 accepted docs 建立，专门用于观察 upper-bound host integration；必须标记 `oracle_typed_state`，不声称 extractor 已生成。
 - Experience Ledger：只观察 compile trace / retrieval hit；本工单不生成 Candidate Experience。
 
@@ -63,7 +66,7 @@
 ## 性能观察
 
 - 至少使用完整 123-commit + directive stream。
-- 单 session 顺序 compile、两 session 并发 compile、compile 与 ingest 竞争各报告 raw latency；不设 PASS threshold。
+- 固定本机 Node/runtime、冷启动 1 次（单列）、warm 顺序 compile 5 次、两 session 并发 compile 5 对、compile 与 ingest 竞争 5 对；报告每个 raw latency、失败码与样本数，不设 PASS threshold，不一般化到其他平台。
 - busy / lock / storage failure 只报告次数与样本；不优化。
 - A 的宿主 input token / compaction latency 不可见；B 报告 service 自带 D0/D1/D2 token estimate 和 compile latency。两者不可直接冒充 apples-to-apples 成本。
 
@@ -79,10 +82,22 @@
 - A/B/C 输入隔离可复核，C 不是由模型回答生成。
 - 空 probe、零分母、不可观察成本均显式表示，不得 vacuous pass。
 - A/B 使用同一 12 探针；B 只见 compiled context，不见 Gold。
+- A/B model identity 不是严格控制变量：A model id 不可观察、B 明确 pinned；报告不得把回答差异归因为 Context 路径本身之外的单一原因。
 - normal 与 targeted recovery 的远期证据差异来自真实 compile_context debug / event ids。
 - latency 记录运行环境、样本数、原始值与失败数，不建立新门槛。
 - 最终报告不声称 v0 优于 Codex、不声称 Codex App 内部 compaction 机制已被检查、不声称 Experience Formation 已验证。
 - 独立 QA PASS 前状态保持 `PENDING`；任何 correctness P0/P1 只记录并返回，不在本工单修复。
+
+## 计划级对抗审查处置
+
+`docs/adversarial-reviews/AR-2026-08-24-pre-dg01-dogfood.md` 给出 `Challenge`。主控接受其测量有效性修订：
+
+- A 降格为 minimal repo refresh 后的 observable answer condition，opaque compaction 因果一律不可归因；
+- B 降格为 `oracle_typed_state compiled upper bound`，不代表 extractor 或端到端 v0；
+- 123 commits 与 directive reconstruction 分别标记 outcome trace / retrospective reconstruction；
+- C 由未见 A/B 的独立路径先冻结，禁止主控看过 A 后事后适配 Gold；
+- authority conflict 固定为：旧 `DS-11/DS-13` 路线中的双真人盲评/继续 feasibility 记录，只是历史；较新的 `WO-DS-14` sealed baseline、`WO-V0-15` freeze 与 observation baseline `b7f00ce...` 为当前 authority。模型若采用旧路线即为错误恢复。
+- A/B 成本分栏，writer latency 只称本机 smoke。
 
 ## 路由文件
 
@@ -102,4 +117,3 @@
 - `src/state-update.ts`
 - `test/mcp-protocol.test.ts`
 - 新增的 `evaluation/codex-dogfood-01/**`、handoff、QA 与报告
-
