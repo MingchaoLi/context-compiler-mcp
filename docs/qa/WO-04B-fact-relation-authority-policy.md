@@ -392,3 +392,181 @@ reduction must agree. The frozen `src/canonical-state.ts` must remain unchanged.
 QA does not prescribe or implement the repair. It modified only this append-only
 QA record, did not modify Builder paths, PROJECT_STATE, ROADMAP or the work order,
 and did not begin WO-04C or WO-05.
+
+---
+
+# Second fresh Independent re-QA — second fixed candidate `8758f68b`
+
+Reviewed on 2026-08-24. The two `REJECTED` records above remain the immutable
+verdicts for candidates `3cecddd004fa7ab4df3eba6d4df9a7d63baf04c0` and
+`467bfb5f0797abe668c9cfa087c65a6ad96c1a84`. This section independently reviews
+the second append-only fixed Builder candidate.
+
+## 12. Re-QA verdict
+
+**ACCEPTED.** Candidate `8758f68bf4c6b604ae37fad13d15ca7e98c08bfc`
+closes B2 while retaining the direct B1 fix and the original green evidence.
+Within the same WO-04B SQLite transaction snapshot, the implementation validates
+every Canonical State authority revision from `1` through the exact observed
+`state_revision`. A corrupted predecessor, a direct row/marker mismatch, or an
+adjacent marker-vector regression now keeps WO-04B fail-closed across new
+commit, current, exact Fact, exact Relation, exact domain commit, replay and
+reopen paths without adding domain rows or changing any primary revision axis.
+
+## 13. Candidate, chain and frozen-path facts
+
+- The worktree was clean before re-QA writes. `HEAD` was exactly
+  `8758f68bf4c6b604ae37fad13d15ca7e98c08bfc` and `HEAD^` was exactly the
+  preserved re-QA rejection
+  `599da5005a414f46c0f621618a4d5da87afc36c9`. The first fixed candidate
+  `467bfb5f0797abe668c9cfa087c65a6ad96c1a84` remains an ancestor.
+- `599da500..8758f68b` changes exactly the permitted five Builder paths:
+  architecture, handoff, transaction map, `src/canonical-fact-relation.ts` and
+  `test/canonical-fact-relation.test.ts`.
+- The accepted WO-03A/03B/04A implementation and QA commits remain ancestors.
+  Scoped frozen/prohibited-path checks found no change to the revision
+  substrate, Raw owner, frozen State owner, legacy State/Relation, MCP,
+  package/config, evaluation/artifacts, PROJECT_STATE, ROADMAP or work order.
+- SHA-256 independently matched the handoff:
+  - `94df2a331ac6e1a1ec6a01890d702e67e7e3dcce39dd226c2aa370d93c8ba28a`
+    for `src/canonical-fact-relation.ts`;
+  - `740a4c374d0a5e4df6ca6d9345620b6c3b23f984e91d3e00200dc23ad2cff281`
+    for unchanged `src/canonical-state.ts`.
+- Recomputing the architecture policy descriptor as canonical JSON retained
+  `f9dc4c757d8ae4a558d29ecebd494323b5a8de55b78312b2423a14db0a4fb570`,
+  equal to the code-owned/runtime policy hash.
+
+## 14. Same-snapshot State authority-chain verification
+
+Static tracing and runtime fault injection agree on the following boundary:
+
+- WO-04B begins its existing read or `BEGIN IMMEDIATE` write transaction, reads
+  the observed five-axis vector, and calls the State authority verifier using
+  the same private `DatabaseSync`. There is no State Store construction, second
+  connection, nested transaction or post-transaction authority lookup, so the
+  chain proof and Fact/Relation decision share one SQLite snapshot.
+- The verifier iterates monotonically from State revision `1` through the exact
+  observed revision. For each revision it validates complete row grammar and
+  canonical JSON bytes, State hash, frozen State policy, exact proposal/state
+  shapes, provenance union, the matching `STATE / CANONICAL_STATE_COMMIT_V1`
+  marker, marker request bytes/fingerprint, marker result, previous/current
+  vectors, State-only `+1`, Raw provenance high-water, event-reference bound and
+  deterministic reduction from the already verified predecessor.
+- For every adjacent pair, the later marker's `previous.state_revision` equals
+  the preceding marker's `current.state_revision`, and every component of the
+  later `previous` vector is at or after the preceding `current` vector. Legal
+  Ledger/other-axis progress between State commits is allowed; regression is
+  rejected. Every marker current vector is also bounded by the observed vector.
+- The verified final State snapshot, not an unverified row-shaped endpoint, is
+  the only source of `STATE_ITEM` authority used by Relation validation.
+
+## 15. Independent negative and positive probes
+
+### 15.1 B2 predecessor laundering remains fail-closed
+
+QA reproduced the original B2 sequence in a fresh temporary SQLite database:
+
+1. committed one Raw Event, a valid State revision 1, and one legitimate
+   State-linked Fact/Relation domain commit;
+2. appended `zz-forged` to revision 1, recomputed only its canonical State hash,
+   preserved the original marker and restored the exact no-update trigger;
+3. confirmed direct WO-04A current and WO-04B current/exact Fact/exact
+   Relation/exact domain commit/replay/new commit rejected the mismatch;
+4. confirmed unchanged frozen WO-04A could nevertheless create and read State
+   revision 2 whose reduction retained `zz-forged`; and
+5. challenged the second fixed WO-04B again at observed State revision 2.
+
+After the State advance, WO-04B current, exact Fact, exact Relation, exact domain
+commit, replay, new commit and close/reopen current/exact commit all returned
+`CORRUPT_DATA`. The pre-existing counts remained exactly one domain commit, one
+Fact revision and one Relation revision. The five-axis vector remained exactly
+`ledger=1, state=2, raw_frontier=0, frontier_position=0, takeover=0` before and
+after all WO-04B challenges.
+
+This independently proves that a valid observed endpoint marker can no longer
+launder an invalid predecessor into WO-04B authority.
+
+### 15.2 Adjacent marker-vector regression is rejected
+
+QA created two otherwise valid State revisions after Ledger had reached 2, plus
+one legitimate domain commit. It then changed only revision 2's marker
+`previous/current.ledger_revision` from 2 to 1 and restored the exact immutable
+trigger. Frozen WO-04A still read revision 2, isolating the cross-revision link
+rather than a per-row grammar failure.
+
+Second-fixed WO-04B returned `CORRUPT_DATA` for current, exact Fact, exact
+Relation, exact domain commit, replay, new commit and reopen. Domain/Fact/Relation
+counts stayed `1/1/1`, and the full vector stayed `ledger=2, state=2, 0/0/0`.
+This demonstrates component-wise no-regression enforcement across adjacent
+State markers.
+
+### 15.3 Legal chain, intervening Ledger progress and 101-key metadata pass
+
+The positive control committed State revision 1 at Ledger 1, advanced Ledger to
+2 with a second Raw Event, and then committed State revision 2. The marker chain
+was:
+
+- revision 1: previous `ledger=1,state=0` -> current `ledger=1,state=1`;
+- revision 2: previous `ledger=2,state=1` -> current `ledger=2,state=2`.
+
+A WO-04B Fact/Relation commit referencing a revision-1 State Item then passed
+new commit, replay, current, all exact reads and close/reopen. WO-04B left the
+five-axis vector unchanged. A separate legitimate State endpoint carrying 101
+metadata keys also passed, confirming that WO-04B's 100-key metadata limit was
+not incorrectly applied to frozen WO-04A State metadata.
+
+## 16. Retained B1 and original green evidence
+
+The direct B1 regression remains closed: recomputing a tampered State row/hash
+without changing its marker causes frozen WO-04A and WO-04B reads to fail
+closed, and WO-04B adds no domain/Fact/Relation row or axis advance. The focused
+regression also preserves the intended frozen WO-04A behavior that a later
+State commit may reduce the row-shaped predecessor; WO-04B now independently
+rejects the resulting incomplete authority chain.
+
+The original green evidence was rechecked and retained: Fact four-axis and
+reason invariants; Relation pairings, confidence, endpoint isolation and graph
+bounds; strict grammar/NFC/accessor/bounds checks; policy/error classification;
+canonical request/result tamper detection; atomic rollback; concurrency;
+migration; Raw provenance; current/exact/replay/reopen consistency; root/private
+encapsulation; and MCP exact-nine. Runtime enumeration returned the same nine
+commands in the frozen order, and no Fact/Relation Store, migration function,
+generic revision writer or substrate capability was exported or recoverable by
+Core own-key reflection.
+
+## 17. Commands and results
+
+- Focused run: `npx vitest run test/canonical-fact-relation.test.ts
+  test/canonical-state.test.ts test/revision-substrate.test.ts
+  test/ledger-hot-raw.test.ts test/core-boundary.test.ts
+  test/mcp-service.test.ts` — PASS, **6 files / 53 tests**.
+- Full suite: `npm test` — PASS, **34 files passed, 1 skipped; 521 tests passed,
+  1 skipped**.
+- Build: `npm run build` — PASS (`tsc -p tsconfig.json`).
+- `git diff --check` for the second fix and the worktree — PASS.
+- Exact parent/ancestry, five-path second-fix allowlist, overall routed
+  allowlist, source/frozen hashes, policy hash, root/private, exact-nine and
+  frozen/prohibited-path audits — PASS.
+- Independent B2 laundering, adjacent-vector regression, legal Ledger-progress,
+  direct-B1 and 101-key probes used only fresh SQLite files under the system
+  temporary directory. Two preliminary QA-only adjacency fixtures stopped
+  before tamper assertions (an invalid Relation pairing and a diagnostic query
+  against a nonexistent ordering column); the corrected isolation probe above
+  then passed. An initial exact-nine script likewise used the wrong expected
+  order and was corrected against the frozen command list. None was a product
+  failure or changed repository files.
+- QA used no network, remote model, production data, credential, sibling Host
+  repository or destructive command.
+
+## 18. Disposition
+
+**ACCEPTED.** WO-04B is complete at Builder candidate
+`8758f68bf4c6b604ae37fad13d15ca7e98c08bfc`. The accepted implementation proves
+the full State authority chain from revision `1` through the exact observed
+revision within the same WO-04B SQLite snapshot, permits component-wise forward
+progress between State commits, rejects regression or any broken link, and
+keeps frozen `src/canonical-state.ts` unchanged.
+
+QA modified only this append-only QA record. It did not modify Builder paths,
+PROJECT_STATE, ROADMAP or the work order, did not implement a fix, and did not
+begin WO-04C or WO-05.
