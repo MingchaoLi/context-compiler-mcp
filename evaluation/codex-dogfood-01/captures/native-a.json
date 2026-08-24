@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "capture_id": "dg01-a-native-001",
+  "condition": "A_native_host_after_minimal_repo_refresh",
+  "request_id": "codex-dogfood-01-composite-p01-p12",
+  "sample_unit": "one_composite_request",
+  "assertion_units": 12,
+  "assertions_are_independent_samples": false,
+  "capture_order": "before_ground_truth_freeze",
+  "model": "inherited_current_codex_model",
+  "model_id_observable": false,
+  "reasoning_effort_requested": "medium",
+  "fork_turns": "all",
+  "attempt": 1,
+  "retry_count": 0,
+  "tool_use_allowed": false,
+  "minimal_repo_refresh_before_capture": [
+    "AGENTS.md",
+    "docs/PROJECT_STATE.md",
+    "docs/ROADMAP.md"
+  ],
+  "input_tokens": "not_observable",
+  "compaction_representation": "opaque_not_observable",
+  "causal_attribution": "not_attributable_to_opaque_compaction",
+  "answers": [
+    {
+      "probe_id": "P01",
+      "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
+      "confidence": "high",
+      "evidence_memory": "来自项目接管约束和独立核心迁移边界。"
+    },
+    {
+      "probe_id": "P02",
+      "answer": "当前精确暴露 9 个本地 stdio MCP 工具。",
+      "confidence": "high",
+      "evidence_memory": "来自 WO-V0-15 最终冻结验证结果。"
+    },
+    {
+      "probe_id": "P03",
+      "answer": "WO-V0-15 已 ACCEPTED / FROZEN；下一阶段唯一重心是真实长期使用并积累 Event–Action–Outcome / Feedback 数据，为 Experience Formation 实验准备材料。",
+      "confidence": "high",
+      "evidence_memory": "来自 v0 收口后的最终冻结状态。"
+    },
+    {
+      "probe_id": "P04",
+      "answer": "禁止继续开发新的 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 权重或 dormant 参数调优，以及顺手修改 storage 设计；本轮也不扩展 Evidence Paging、embedding 历史再激活或其他 Context 架构。",
+      "confidence": "high",
+      "evidence_memory": "来自用户的收口要求和最终 freeze 边界。"
+    },
+    {
+      "probe_id": "P05",
+      "answer": "WO-DS-14 ST-02 的真实 Extractor 实验结果是失败：预测 Active State 为空/持续为空，未证明 Extractor 的一般语义 correctness；工程测试通过不能替代这一失败结果。",
+      "confidence": "high",
+      "evidence_memory": "来自 DS-14 状态回放结论及后续冻结说明。"
+    },
+    {
+      "probe_id": "P06",
+      "answer": "feasibility-01 已直接封存，不再等待双真人盲评，不得重跑或修改 official artifact；它只作为 Oracle-State feasibility baseline，语义收益仍标记为未评估。",
+      "confidence": "high",
+      "evidence_memory": "来自 WO-DS-14 启动时的明确封存指令。"
+    },
+    {
+      "probe_id": "P07",
+      "answer": "Formal Host Mode 尚未实现，且不在当前冻结 v0 范围内。",
+      "confidence": "high",
+      "evidence_memory": "来自多轮明确的未实现清单和 scope freeze。"
+    },
+    {
+      "probe_id": "P08",
+      "answer": "PACE、Graph DB 和 Experience Formation 都没有进入 v0。v0 只加入了面向未来研究的 append-only Experience Ledger 基础；这不等于已经实现 Experience Formation。",
+      "confidence": "high",
+      "evidence_memory": "来自架构边界说明和 WO-V0-15 收口结果。"
+    },
+    {
+      "probe_id": "P09",
+      "answer": "legacy 数据库路径回退名称是 DSH_HOME。",
+      "confidence": "high",
+      "evidence_memory": "来自独立项目 QA 的数据库路径兼容结论。"
+    },
+    {
+      "probe_id": "P10",
+      "answer": "已知非阻塞风险是全数据库 writer boundary 在长历史、多 session 或真实并发下可能增加写竞争，表现为 lock/busy 或 latency；目前只要求用真实数据观察，不预优化。",
+      "confidence": "high",
+      "evidence_memory": "来自最终 QA/对抗审查保留的 operational observation。"
+    },
+    {
+      "probe_id": "P11",
+      "answer": "应采用较新的冻结状态：停止继续 Starlette 模型/盲评路线，转向真实使用并积累 E-A-O/Feedback 数据；旧记忆已经被新 Decision supersede。",
+      "confidence": "high",
+      "evidence_memory": "来自 v0 收口后的新阶段决策及 supersede 规则。"
+    },
+    {
+      "probe_id": "P12",
+      "answer": "至少应恢复两类事实：其一，fresh DB 与 legacy DB 的并发初始化/增量 schema migration 已专门验证，需避免多实例同时迁移造成 duplicate-column 或不一致；其二，legacy Raw Event 向 ledger EVENT 的迁移/backfill 必须确定性、幂等且不产生重复记录。另有跨实例 compile telemetry 已通过 SQLite 事务线性化以关闭 telemetry-origin TOCTOU。",
+      "confidence": "medium",
+      "evidence_memory": "来自 WO-V0-15 ledger、Dense schema 迁移和最终并发 QA 的长期会话记忆；具体测试名称未保留。"
+    }
+  ]
+}

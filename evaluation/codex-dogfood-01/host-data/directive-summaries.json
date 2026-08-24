@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "data_kind": "retrospective_sanitized_reconstruction",
+  "raw_private_conversation_included": false,
+  "directives": [
+    {
+      "directive_id": "D01",
+      "after_commit": "4ef722387a00fafb2743af9a3c2877988515c5bb",
+      "summary": "只在独立 context-compiler-mcp 项目目录工作，不读取或修改同级宿主仓库；核心只能通过稳定适配接口与宿主集成。"
+    },
+    {
+      "directive_id": "D02",
+      "after_commit": "4ef722387a00fafb2743af9a3c2877988515c5bb",
+      "summary": "独立迁移 QA 保留显式 CONTEXT_COMPILER_DB_PATH 优先级，并保留 legacy DSH_HOME fallback。"
+    },
+    {
+      "directive_id": "D03",
+      "after_commit": "9e14c4d095f0dfc4720c5ca96336b647c26056d2",
+      "summary": "关键节点需要独立对抗审查；实现与独立 QA 分离，后续落地文档优先使用中文。"
+    },
+    {
+      "directive_id": "D04",
+      "after_commit": "bbe35722b772895f2773c71987c8f7d58a9e0a7a",
+      "summary": "下一实验阶段转向 Starlette 真实轨迹，先校准 evaluator，再筛候选，不为证明 D2 优秀而挑数据。"
+    },
+    {
+      "directive_id": "D05",
+      "after_commit": "2f8fe94168e7bda42ac5c28a88631e7a197f19db",
+      "summary": "真实轨迹必须按时间切片，禁止 future leakage；Gold、Decision Reference 与 Outcome Anchor 物理隔离。"
+    },
+    {
+      "directive_id": "D06",
+      "after_commit": "6a3e3289dda409ed0d8ac5357c4fd10b4f360718",
+      "summary": "schema/canary gate 通过不等于正式 freeze、D0/D1/D2 或模型授权，继续一工单一结果。"
+    },
+    {
+      "directive_id": "D07",
+      "after_commit": "c6261bd65b89fd703aa7282a01c3050c6f92a2b2",
+      "summary": "接线冒烟只证明 evaluator parser 可消费数据，不得外推为 Context Compiler 效果。"
+    },
+    {
+      "directive_id": "D08",
+      "after_commit": "e73b6189c43a5c5dfac5181b43087022be33294a",
+      "summary": "promotion audit 必须固定 accepted-source Git contract，协调重写不能靠可变 hash 清单自证。"
+    },
+    {
+      "directive_id": "D09",
+      "after_commit": "eb8caa579ee6c23b5195f4af305bdc005f183f92",
+      "summary": "STR-06 只接受 source/Gold checkpoint；有限环境成功不能冒充跨环境问题完全解决。"
+    },
+    {
+      "directive_id": "D10",
+      "after_commit": "ea7b850f9db1de61fcbf9e1a2f19bc165c999742",
+      "summary": "STR-07 保留未合并 patch、workaround 与未决 release/docs 状态，不把 tracker close 混成 semantic resolution。"
+    },
+    {
+      "directive_id": "D11",
+      "after_commit": "519acc1dd593fbd41934e39a70f819f86bb524fb",
+      "summary": "STR-01 checkpoint 区分宽方案搁置与窄修复合并；数据接受不授权模型或 aggregate。"
+    },
+    {
+      "directive_id": "D12",
+      "after_commit": "2012961d9409f6c957d344c5432a701a1c15f8e7",
+      "summary": "六案 canonical promotion 仍不是正式效果 freeze，0 medium 限制任何一般化解释。"
+    },
+    {
+      "directive_id": "D13",
+      "after_commit": "44c9756b041601fa7f287c834157439ac77fec3f",
+      "summary": "协议 canary 只冻结少量 lexical diagnostics 与 answer rubric，不运行模型、不创建综合分。"
+    },
+    {
+      "directive_id": "D14",
+      "after_commit": "30e44261c119e03390fd1b7d5af6b480fe2d5180",
+      "summary": "DS-12 只接受未评分 capture integrity；回答格式有效不等于语义正确。"
+    },
+    {
+      "directive_id": "D15",
+      "after_commit": "ca62440b8843fef3961c1383c466227b744b65a9",
+      "summary": "PACE 只保留为未来 Evidence Layer 研究候选；当前不引入多级摘要、glimpse、Graph DB 或 Experience abstraction。"
+    },
+    {
+      "directive_id": "D16",
+      "after_commit": "86a56fdf09e258b0dd40aaffd0f489ba3618f363",
+      "summary": "历史路线曾要求两名 condition-blind 人类完成 Starlette feasibility 语义盲评后再判断 D2。"
+    },
+    {
+      "directive_id": "D17",
+      "after_commit": "ec82cfcdaa8ccd58471377251ddd77377e0f1a29",
+      "summary": "WO-DS-14 封存 feasibility-01，不再等待或补填双真人盲评；ST-02 Extractor correctness 明确失败，Predicted State 全空。"
+    },
+    {
+      "directive_id": "D18",
+      "after_commit": "7c529af3987e9fde8a769a6bc69f62d57ecf2e13",
+      "summary": "项目长期目标回到 Experience Formation；Context/State 只作为长期运行与积累 Event-Action-Outcome/Feedback 数据的基础设施。"
+    },
+    {
+      "directive_id": "D19",
+      "after_commit": "e90c05f0cc091bdef6f4943dca9277bd992db635",
+      "summary": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。"
+    },
+    {
+      "directive_id": "D20",
+      "after_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+      "summary": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。"
+    }
+  ]
+}
