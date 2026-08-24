@@ -1616,3 +1616,226 @@ Schema validity、reducer conformance 与 semantic correctness 分开报告。`N
 - 需要 personality、deep intent、scope inference、multi-pass agent、unbounded history/retrieval
   才能过测试：停止该 v1 候选，不扩大 Core；
 - 任何 provider/prompt 结果只适用于被固定的 input/policy/capture，不宣称一般模型能力。
+
+---
+
+## DA-12 — Current Authority Projection over Canonical State v1
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED PROJECTION DIRECTION / PRESERVE CANONICAL STATE V1 /
+STATE V2 EVENT-LOG CANDIDATE LONG-HORIZON ONLY / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — Takeover v1 继续绑定 frozen Canonical State v1 exact authority ref/
+policy hash，不修改 State grammar/status/reducer/revision、04C transaction、coverage、Artifact、
+source/schema/test allowlist 或工期估算。
+
+**Routing：** WO-05 deterministic Current Authority projection/ContextSnapshot manifest；future
+standalone Canonical State v2 evidence gate only if real storage/replay pressure appears。不得在
+WO-04C、Extractor 或 Host integration 中顺便重写 State v1。
+
+### Premise correction and preservation boundary
+
+Canonical State v1 已经不是 `kind × shared generic status enum`。它使用 closed kind-specific
+initial/transition table：
+
+```text
+GOAL
+  ACTIVE -> COMPLETED | SUPERSEDED
+
+CONSTRAINT
+  ACTIVE -> SUPERSEDED
+
+DECISION
+  ACTIVE -> SUPERSEDED
+
+OPEN_QUESTION
+  OPEN -> DEFERRED | RESOLVED
+  DEFERRED -> OPEN | RESOLVED
+
+REJECTED_ALTERNATIVE
+  REJECTED
+```
+
+通用 `INVALID`、`DORMANT`、`UNCERTAIN`、`CONFLICTING` 不属于 v1。非法的 Goal+OPEN、
+Decision+OPEN、Constraint+RESOLVED 等组合不能进入 Authority。当前 v1 complete State、
+immutable proposal/row/hash、Raw provenance、policy identity、revision marker、no-delete、
+monotonic item refs 与 exact replay 全部保留。
+
+因此本调整不是 capability removal，也不授权删除 `REJECTED_ALTERNATIVE`、`DEFERRED`、
+`COMPLETED` 或 terminal history。其目标只是在 Context 路径上不重复呈现非当前项目。
+
+### Three-layer model
+
+未来保持三层分离：
+
+```text
+Layer 1  Complete Canonical State Authority v1
+  exact immutable State revision including current and terminal items
+
+Layer 2  Current Authority Projection
+  deterministic view of operative/open items at one exact state_revision
+
+Layer 3  ContextSnapshot Projection
+  placement + required inclusion/dependency closure + budget
+```
+
+Layer 2 候选默认选择：
+
+```text
+GOAL + ACTIVE
+CONSTRAINT + ACTIVE
+DECISION + ACTIVE
+OPEN_QUESTION + OPEN
+```
+
+候选默认不选择：
+
+```text
+GOAL + COMPLETED / SUPERSEDED
+CONSTRAINT + SUPERSEDED
+DECISION + SUPERSEDED
+OPEN_QUESTION + RESOLVED
+OPEN_QUESTION + DEFERRED
+REJECTED_ALTERNATIVE
+```
+
+`DEFERRED` 仍是 canonical nonterminal lifecycle，可通过 explicit State proposal 更新回 `OPEN`；
+default projection exclusion 不等于 resolved、deleted 或失去历史 Authority。RejectedAlternative
+沿用 DA-06 的 explicit/why-not/reproposal Recovery policy，不进入默认 Working Context。
+
+### Presence semantics are view-local
+
+在 Layer 2 Current Authority Projection 内，可以使用：
+
+> Presence = currently operative/open under the exact projection policy.
+
+但不能推广为：
+
+> Absence from one Snapshot = no Authority.
+
+一个当前有效 item 可能因 Layer 3 placement、scope、budget 或 required-context policy 未被某次
+Snapshot 选择；这不改变其 Canonical Authority。Terminal item 也仍具有“当时曾成立/如何结束”
+的历史审计意义，只是不再是当前 operative instruction。
+
+Working Context 正文可以省略冗余的 `Decision.status=ACTIVE`、`OpenQuestion.status=OPEN` 文本，
+但 Snapshot 必须绑定 exact `state_revision`、selected/excluded item refs、projection policy/hash、
+placement/inclusion reasons 与 final context hash，保证 replay 与审计。
+
+Current Authority Projection 初期作为 pure derived result，不新增 table、revision axis、writer、
+background refresh 或 independent materialized-view authority。它必须能从 exact Canonical State
+revision 确定性重建。
+
+### Why no second Delta Log now
+
+当前 Canonical State revision 已持久绑定：
+
+```text
+normalized proposal
+complete reduced State
+state hash
+policy hash
+same-scope Raw provenance
+previous/current revision vector
+immutable substrate marker/result
+```
+
+新增 lifecycle Delta Log + Active materialized view 会增加新的 schema、writer、atomic update、
+idempotency、view rebuild、corruption proof、migration 与 Snapshot reference choice。它不会消除
+kind-specific legality，只会把它从 status table 搬到 operation table，并增加 crash/concurrency/
+replay cross-product。
+
+原建议的 `UPSERT / SUPERSEDE / RESOLVE / INVALIDATE` 也不是闭合替代：还需要 Goal
+`COMPLETE`、OpenQuestion `DEFER/REOPEN`，且通用 `INVALIDATE` 当前没有 accepted State 语义。
+因此继续遵循 DA-02：v1 只使用 `proposal.upsert_items[] + kind-specific status transition + no
+delete`，不新增通用 lifecycle operation protocol。
+
+### Historical explanation and explicit links
+
+Canonical revision/Raw provenance 可以证明某 item 何时创建、何时在 proposal 中变为 terminal，
+但同一 commit 中“D17 superseded + D31 created”不能机械证明 D31 就是 D17 的 replacement。
+
+Current Relation v1 的 `SUPERSEDES` 只接受 `FACT -> FACT`，不接受
+`STATE_ITEM -> STATE_ITEM`。若真实 Recovery/QA 需要 exact State replacement link，必须另开
+Relation/State policy version，冻结 replacement identity/provenance/acyclicity；禁止根据同 revision
+co-occurrence、文本相似或 Extractor guess 隐式建立。
+
+### Future projection comparison
+
+WO-05 在同一 exact State revision/world 中至少比较：
+
+```text
+P0 = complete Canonical State v1 supplied to assembly
+P1 = deterministic Current Authority Projection
+     + explicit required/historical inclusion when triggered
+```
+
+至少覆盖：
+
+```text
+active Goal / Constraint / Decision retained
+OPEN question retained
+DEFERRED question default-excluded then explicitly reopened
+COMPLETED Goal and RESOLVED question excluded from current view
+SUPERSEDED Decision/Constraint excluded but exact Recovery succeeds
+RejectedAlternative default-excluded and why-not/reproposal inclusion
+terminal item explicitly required as historical Evidence
+placement/budget exclusion does not change Canonical Authority
+permutation/reopen produces byte-stable selected refs/hash
+Snapshot references exact state_revision and projection policy
+```
+
+指标至少包含：
+
+```text
+current_projection_items / tokens
+terminal_or_rejected_tokens_removed
+current_authority_loss
+historical_recovery_success
+false_reopening / stale_constraint_injection
+projection determinism
+policy branch and fixture count
+```
+
+P1 必须 fail-closed on unknown kind/status/policy version；不得把未知 future State 当作 current，
+也不得通过字符串规则猜测 lifecycle。
+
+### Long-horizon Canonical State v2 gate
+
+只有真实数据证明下列压力持续存在，才允许规划 event-log + materialized current view：
+
+```text
+terminal/current item ratio remains high
+complete State canonical JSON/storage amplification is material
+State commit/reopen/replay latency becomes a bottleneck
+projection alone cannot absorb the cost
+```
+
+独立 v2 work order 必须预注册比较：
+
+```text
+S0 = Canonical State v1 complete immutable revisions
+     + deterministic Current Authority Projection
+
+S1 = type-specific lifecycle event log
+     + atomically maintained current materialized view
+```
+
+至少测 total/current/terminal item count、revision bytes、storage amplification、commit/reopen/
+replay latency、view rebuild/corruption、crash/concurrency cases、migration、old Snapshot replay 与
+test-matrix complexity。减少一个 status 字段或 Active View 行数不能单独证明 S1 更简单。
+
+任何 v2 必须继续表达 type-specific `COMPLETE/SUPERSEDE/DEFER/REOPEN/RESOLVE` 语义，迁移 v1
+history，给出 stable revision/Snapshot compatibility，并经过 shadow/promotion 与 Independent QA。
+它不能原地改变 v1 policy hash，也不能回写已经绑定 v1 的 WO-04C Takeover。
+
+### Promotion and stop conditions
+
+- P1 保留所有 current Authority、显著减少 terminal/rejected Context，并维持 exact Recovery/
+  replay：可 promotion 为 WO-05 deterministic default projection；
+- P1 因 DEFERRED/terminal exclusion 造成 required history loss：增加 closed explicit inclusion
+  reason，不恢复 complete State 默认注入，也不改变 lifecycle Authority；
+- projection 无法确定性重建或 Snapshot 未绑定 exact refs/policy：停止 promotion；
+- 仅为“schema 看起来更小”要求新 Delta Log/materialized writer：拒绝，保持 v1；
+- 真实规模证据达到 v2 Gate：另开独立 architecture/schema/migration work order，不扩大当前
+  WO-04C/05。
