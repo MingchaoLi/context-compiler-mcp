@@ -238,3 +238,157 @@ reads, replay or reopen.
 QA did not modify Builder source, tests, architecture, inventory, handoff, work
 order, PROJECT_STATE, ROADMAP or artifacts, did not implement a fix, and did not
 begin WO-04C or WO-05.
+
+---
+
+# Fresh Independent re-QA — fixed candidate `467bfb5f`
+
+Reviewed on 2026-08-24. The original `REJECTED` record above remains the verdict
+for Builder candidate `3cecddd004fa7ab4df3eba6d4df9a7d63baf04c0` and is retained
+without modification. This section independently reviews the append-only fixed
+Builder candidate.
+
+## 6. Re-QA verdict
+
+**REJECTED.** Fixed candidate
+`467bfb5f0797abe668c9cfa087c65a6ad96c1a84` closes the original direct B1
+counterexample at the exact observed State revision, but its authority proof is
+not revision-chain closed. A corrupted earlier State row can be incorporated
+into a later WO-04A revision with a valid new marker; WO-04B then accepts the
+injected State Item through new commit, current, exact, replay and reopen paths.
+
+This violates the re-QA requirement that a State row/revision-marker mismatch
+remain fail-closed across the new-commit path and cannot be accepted merely
+because a later revision deterministically reduces from the corrupted row/hash.
+
+## 7. Candidate, ancestry and frozen-path facts
+
+- The worktree was clean before re-QA writes. Branch was `main`; `HEAD` was
+  exactly fixed candidate `467bfb5f...`, its parent was the preserved QA
+  rejection `4dccaa82...`, and original Builder candidate `3cecddd0...` was the
+  next Builder ancestor.
+- `4dccaa82..467bfb5f` contains exactly the required five paths:
+  - `docs/architecture/WO-04B-fact-relation-authority-policy.md`;
+  - `docs/handoffs/WO-04B-fact-relation-authority-policy.md`;
+  - `docs/inventory/WO-04B/fact-relation-schema-transaction-map.md`;
+  - `src/canonical-fact-relation.ts`; and
+  - `test/canonical-fact-relation.test.ts`.
+- The WO-03A/03B/04A implementation and QA commits are all ancestors. The
+  planning-baseline scoped audit found no drift in frozen substrate, Raw, State,
+  their direct tests, legacy State/Relation, MCP, package/config, evaluator,
+  official artifacts, PROJECT_STATE, ROADMAP or the work order.
+- SHA-256 independently matched the fixed handoff:
+  - `18afdd3fbf88a829233a68b7115a9d1768e1f280d8f55c81d44c085d449fb587`
+    for `src/canonical-fact-relation.ts`;
+  - `740a4c374d0a5e4df6ca6d9345620b6c3b23f984e91d3e00200dc23ad2cff281`
+    for frozen `src/canonical-state.ts`.
+- Rebuilding the pre-source policy descriptor as canonical JSON produced
+  `f9dc4c757d8ae4a558d29ecebd494323b5a8de55b78312b2423a14db0a4fb570`,
+  equal to the runtime code-owned policy hash.
+
+## 8. Confirmed fixed behavior and retained regression evidence
+
+Static tracing confirms that fixed WO-04B uses its existing `DatabaseSync` and
+the caller's `BEGIN IMMEDIATE`/`BEGIN` transaction. It opens no second State
+Store, connection or transaction. For the exact observed State revision it now
+checks complete row grammar and canonical bytes, State hash and frozen policy,
+proposal/provenance union, the exact `STATE / CANONICAL_STATE_COMMIT_V1` marker,
+request bytes/fingerprint, complete result, previous/current vectors, State-only
+`+1`, Raw provenance high-water and deterministic reduction.
+
+An independent temporary-database replay of the original B1 attack passed the
+intended fixed boundary:
+
+- a valid WO-04A State with **101 metadata keys** successfully backed a legitimate
+  State-linked Relation, proving WO-04B's separate 100-key metadata limit was not
+  applied to accepted WO-04A State metadata;
+- after appending a forged item to revision 1, recomputing only `state_hash`,
+  preserving the original marker and restoring the exact update trigger,
+  WO-04A current and WO-04B new commit/current/exact Fact/exact Relation/exact
+  domain commit/replay/reopen all returned `CORRUPT_DATA`;
+- the rejected forged batch left the one pre-existing domain marker, Fact row and
+  Relation row unchanged, and all five revision-vector components were
+  byte-equivalent.
+
+The original QA's other green evidence also remained green: Fact four-axis and
+reason invariants, Relation pairings/confidence/endpoint isolation, policy
+classification, strict input/Cc/NFC/accessor/cycle/bounds checks, atomic rollback,
+concurrency, migration, coordinated Fact/Relation substitutions, root/private
+boundary and exact-nine MCP. Runtime enumeration returned the same nine commands
+in order; no Store/migration/generic writer was exported or recoverable by Core
+own-key reflection.
+
+## 9. Acceptance blocker
+
+### B2 — a new WO-04A revision launders a corrupted predecessor into WO-04B authority
+
+**Required contract:** when any State row disagrees with its immutable revision
+marker, the mismatch must remain fail-closed across new commit, current, exact,
+replay and reopen. WO-04B must not accept a `STATE_ITEM` that entered the observed
+State through such a corrupted predecessor.
+
+**Source facts:** frozen WO-04A new-commit reduction loads the previous revision
+through `#readStateInsideTransaction` (`src/canonical-state.ts:325-327`). That
+helper validates only the previous `state_json` and recomputed `state_hash`
+(`src/canonical-state.ts:529-544`), not the previous revision marker. The fixed
+WO-04B verifier validates the exact observed revision's row and marker, but its
+deterministic reduction likewise loads the predecessor through
+`readCanonicalStateSnapshot` (`src/canonical-fact-relation.ts:1622-1629`), which
+again checks only canonical State bytes and hash
+(`src/canonical-fact-relation.ts:1635-1652`). The proof therefore stops at the
+observed revision and does not prove its State ancestry.
+
+**Independent counterexample:** QA created a fresh temporary database and:
+
+1. committed one canonical Raw Event and valid WO-04A State revision 1;
+2. temporarily removed only the State no-update trigger, appended item
+   `zz-forged` to revision 1, recomputed the canonical State hash, preserved its
+   original marker, restored the exact trigger SQL, closed and reopened;
+3. confirmed WO-04A current/exact/replay and WO-04B current/new commit all
+   returned `CORRUPT_DATA` before laundering;
+4. submitted a distinct valid WO-04A commit at expected revision 1 that added an
+   unrelated legitimate item. It succeeded as State revision 2 and preserved
+   `zz-forged` from the row-shaped predecessor;
+5. after reopen, WO-04A current, exact revision 2 and exact replay all accepted
+   revision 2 and returned `zz-forged`; and
+6. committed a new WO-04B Fact plus `DEPENDS_ON` Relation whose source was
+   `{ type: "STATE_ITEM", id: "zz-forged" }`.
+
+The WO-04B commit succeeded. Current projection, exact Fact, exact Relation,
+exact domain commit, exact replay and close/reopen all accepted the forged
+endpoint. Audit found one new domain marker, one Fact row and one Relation row.
+The five-component vector was byte-identical immediately before and after the
+WO-04B commit; the failure is authority-chain validation, not WO-04B revision
+allocation or TOCTOU.
+
+## 10. Commands and results
+
+- Focused run: `npx vitest run test/canonical-fact-relation.test.ts
+  test/canonical-state.test.ts test/revision-substrate.test.ts
+  test/ledger-hot-raw.test.ts test/core-boundary.test.ts
+  test/mcp-service.test.ts` — PASS, **6 files / 53 tests**.
+- Full suite: `npm test` — PASS, **34 files passed, 1 skipped; 521 tests passed,
+  1 skipped**.
+- Build: `npm run build` — PASS (`tsc -p tsconfig.json`).
+- `git diff --check` for both the fixed commit and the overall Builder candidate
+  — PASS.
+- Exact five-path fix allowlist, overall routed allowlist, ancestry, source/config
+  hashes, frozen/prohibited paths, policy hash, root/private and exact-nine audits
+  — PASS.
+- Independent direct-B1/101-key and revision-chain laundering probes used only
+  fresh SQLite files below the system temporary directory. QA used no network,
+  remote model, production data, credential, sibling Host repository or
+  destructive command.
+
+## 11. Disposition
+
+**REJECTED.** Return WO-04B to Builder for an append-only fix. WO-04B must, in
+the same SQLite transaction/read snapshot, validate the complete Canonical State
+authority chain revision by revision from `1` through the exact observed
+`state_revision`: every row grammar/canonical bytes/hash/policy/provenance,
+matching marker request/fingerprint/result/vector, Raw bound and deterministic
+reduction must agree. The frozen `src/canonical-state.ts` must remain unchanged.
+
+QA does not prescribe or implement the repair. It modified only this append-only
+QA record, did not modify Builder paths, PROJECT_STATE, ROADMAP or the work order,
+and did not begin WO-04C or WO-05.
