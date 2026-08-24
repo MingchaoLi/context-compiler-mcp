@@ -1,7 +1,7 @@
 # WO-04D — Current Semantic Takeover Read Seam
 ## Context Compiler Core
 
-**状态：** BUILDER COMPLETE / AWAITING INDEPENDENT QA<br>
+**状态：** ACCEPTED / COMPLETE<br>
 **类型：** Accepted owner read-seam correctness fix  
 **依赖：** WO-04C Builder `6642e4c04f4b7a5ff684c0399e4f83be075724f5` + QA
 `d33f52281e2af857c16a79768c7d3fcde816da42`  
@@ -109,7 +109,10 @@ docs/ROADMAP.md
 - [x] schema/migration/trigger 与 public package/MCP surface 无变化；
 - [x] focused tests、`npm test`、`npm run build` 通过；
 - [x] Builder handoff 已写，且 Builder 不自批；
-- [ ] Independent QA 在物理分离任务中给出 PASS/FAIL。
+- [x] Independent QA 在物理分离任务中给出 PASS/FAIL。
+
+Independent QA fixed candidate `39334f94cb1c5ac37587cc261b261b427d2ba1b6` and accepted it in
+QA commit `583cefaf12308229b3f3daa24982777bb884922b`。WO-04D 已封口；WO-05 可恢复。
 
 ## 9. Required checks
 

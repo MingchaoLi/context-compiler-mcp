@@ -1,8 +1,8 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** PAUSED — EXECUTION BASELINE + PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN；
-WAITING FOR WO-04D OWNER READ-SEAM FIX<br>
+**状态：** IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN；
+SOURCE IMPLEMENTATION RESUMED AFTER WO-04D<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -19,8 +19,9 @@ Operation/Action lifecycle、Extractor、Retrieval 调参或 MCP 新工具。
 
 > 2026-08-25 source spike 证明 accepted `readCurrentSemanticTakeoverInsideCore` 在 Takeover 后
 > 任一合法 Raw advance 时错误要求完整五轴向量全等并返回 `CORRUPT_DATA`。WO-05 source 草稿
-> 已隔离保存；唯一当前工单暂切换为有界 WO-04D。WO-04D 不改变写入语义，通过独立 QA 后
-> WO-05 才可恢复。
+> 曾隔离保存；有界 WO-04D candidate `39334f94cb1c5ac37587cc261b261b427d2ba1b6`
+> 已由 Independent QA commit `583cefaf12308229b3f3daa24982777bb884922b` 接受。修复不改变
+> 写入语义，WO-05 现恢复。
 
 ---
 
