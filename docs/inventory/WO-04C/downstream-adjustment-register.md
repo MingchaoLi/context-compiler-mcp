@@ -344,3 +344,134 @@ placement 与 compile-local reactivation。本调整不删除、不关闭、不�
 
 如果未来决定替换 frozen v0 placement，必须以独立 compatibility/promotion work order、
 回放证据与 Independent QA 完成，不能由 WO-05/06 顺便改写。
+
+---
+
+## DA-04 — Future Canonical Broad Retrieval Default-off + Ablation Gate
+
+**用户状态：** 已接受修正版方向，并要求把最小裁决实验记录为后续测试方向；测试发现
+问题时按证据调整。
+
+**登记状态：** RECORDED / ACCEPTED DIRECTION / PENDING FUTURE EVIDENCE GATE / NOT YET
+PROMOTED
+
+**WO-04C impact：** NONE — 不修改当前 source/schema/test allowlist、Composition Gate 或
+工期估算。
+
+**Routing：** WO-05 optional EvidenceBundle input；WO-06 opt-in Normal Retrieval、Targeted
+Recovery 与独立 ablation work order。当前 frozen v0 保留为 compatibility/shadow comparator。
+
+### Accepted future default
+
+Future canonical Snapshot 的默认主路径候选为：
+
+```text
+Current Input
++ Recent Raw
++ Committed State
++ mechanically required dependency closure
+-> ContextSnapshot
+```
+
+没有显式触发时不默认执行 broad historical retrieval，也不把 Historical Evidence 强制注入
+每个 Snapshot。以下任一 closed trigger 才允许进入 bounded Evidence Recovery：
+
+```text
+EXPLICIT_HISTORY_REFERENCE
+PROVENANCE_DETAIL_REQUEST
+REQUIRED_FIELD_MISSING
+HIGH_RISK_REQUIRED_EVIDENCE
+VERIFIED_FAILURE
+```
+
+对于可能 dispatch Tool side effect 的 high-risk operation，不允许先执行/失败后再恢复；
+required evidence 缺失必须在 dispatch 前触发 Recovery 或阻止执行。
+
+### What remains available
+
+本调整不删除 Evidence/Retrieval architecture。Normal broad retrieval 保留为：
+
+```text
+explicit opt-in
+shadow/dogfood comparator
+diagnostic evidence request
+```
+
+Targeted Recovery、exact provenance fetch 与 Raw Retention 必须保留。当前 accepted/frozen
+v0 bounded BM25/caller-Dense、dormant telemetry 与 recovery behavior 不关闭、不调参、
+不重写；DG-01 仅挑战 future default-on 的必要性。
+
+### Evidence interpretation boundary
+
+DG-01 是一个 BM25-only、单复合请求的 observation：它记录 broad miss/pollution、部分有用
+evidence、Targeted Recovery success 与 token cost，但没有提供 caller Dense，因此没有评估
+Hybrid semantic leg，也不支持“一般情况下 broad 无价值”的结论。
+
+当前可接受的结论仅为：
+
+> broad historical injection 的净收益尚未证明，因此 future canonical default-on 需要先过
+> evidence gate。
+
+### Future ablation test direction
+
+未来必须在独立、预注册、固定 input 的测试工单中比较同一个 Snapshot/query world：
+
+```text
+M0 = Recent Raw + Committed State + required dependency closure
+M1 = M0 + bounded broad BM25
+M2 = M0 + bounded broad hybrid
+     only when frozen caller-supplied query/candidate Dense fully qualifies
+```
+
+如果没有同 space、同维、query/candidate 全覆盖且非零 norm 的 caller Dense，M2 必须报告
+`not_evaluable`，不能用 BM25-only 结果代替 Hybrid 结论。
+
+测试输入至少分开预注册：
+
+```text
+single-intent distant detail
+multi-intent / query-dilution
+explicit historical reference
+ambiguous reference
+superseded/rejected historical pollution
+required evidence before high-risk action
+Recent Raw + State already sufficient negative control
+```
+
+所有条件共享 exact scope、ledger/state/fact/relation revisions、Recent Raw boundary、query、
+candidate world、policy/budget 与 Gold evidence requirements。禁止按结果调权重、拆 query、
+换案例、扩大 Top-K 或加入 Ripple；这些只能由后续独立实验处理。
+
+### Metrics to freeze before the run
+
+至少记录：
+
+```text
+broad_only_required_evidence_gain
+required_evidence_miss
+irrelevant_evidence_count / tokens
+superseded_or_forbidden_evidence_injection
+incremental_context_tokens over M0
+recovery_required_rate
+bounded_recovery_success_rate
+recovery additional tokens / latency / attempts
+first-attempt insufficiency
+```
+
+第一阶段优先做 deterministic EvidenceBundle/ref-level ablation，不调用远端模型，不用模型
+自评。若要比较最终回答 correctness，必须另开固定 provider/model/prompt/fresh-session 与
+盲化评分合同，不能混入 Evidence eligibility test。
+
+### Decision rule ownership
+
+Promotion work order 必须在查看新结果前预注册 decision threshold 和 fallback：
+
+- broad-only 必要证据增益不足且污染/成本明显：保持 future default-off；
+- 某类预注册场景有稳定、不可由 bounded Recovery 接受地替代的 broad-only 增益：只为该
+  显式场景建立 risk-gated/opt-in policy；
+- default-off 导致 high-risk required evidence 漏检：优先加强 pre-dispatch deterministic
+  trigger/Recovery，不直接恢复全请求 broad default-on；
+- 数据不足或 Dense 不可评价：保持 candidate 状态，不宣称 Hybrid 胜负。
+
+任何测试驱动调整只修改未来 WO-05/06 policy proposal；不得回写 WO-04C candidate 或静默
+改动 frozen v0。
