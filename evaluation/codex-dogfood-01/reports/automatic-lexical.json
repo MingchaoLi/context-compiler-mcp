@@ -1,0 +1,558 @@
+{
+  "schema_version": 1,
+  "report_id": "codex-dogfood-01-automatic-lexical-v1",
+  "ground_truth_id": "codex-dogfood-01-c-v1",
+  "measurement_unit": "one_composite_request_with_12_nonindependent_assertions",
+  "scoring_scope": "normalized_lexical_confirmation_only",
+  "semantic_equivalence_automatic": false,
+  "empty_probe_count": 0,
+  "vacuous_pass_possible": false,
+  "conditions": [
+    {
+      "condition": "A_native_host_after_minimal_repo_refresh",
+      "sample_units": 1,
+      "assertion_units": 12,
+      "assertions_are_independent_samples": false,
+      "required_groups_confirmed": 3,
+      "required_groups_total": 21,
+      "probes_all_required_groups_confirmed": 1,
+      "critical_probes_all_required_groups_confirmed": 1,
+      "critical_probes_total": 11,
+      "forbidden_claims_detected": 0,
+      "aggregate_pass_threshold": "not_defined",
+      "probes": [
+        {
+          "probe_id": "P01",
+          "critical": true,
+          "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
+          "required_groups": [
+            {
+              "group_id": "P01-G01",
+              "description": "唯一允许读写的项目目录",
+              "lexically_confirmed": true,
+              "matched_assertion": "context-compiler-mcp"
+            },
+            {
+              "group_id": "P01-G02",
+              "description": "禁止重新引入宿主依赖",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 1,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P02",
+          "critical": true,
+          "answer": "当前精确暴露 9 个本地 stdio MCP 工具。",
+          "required_groups": [
+            {
+              "group_id": "P02-G01",
+              "description": "精确工具数",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P03",
+          "critical": true,
+          "answer": "WO-V0-15 已 ACCEPTED / FROZEN；下一阶段唯一重心是真实长期使用并积累 Event–Action–Outcome / Feedback 数据，为 Experience Formation 实验准备材料。",
+          "required_groups": [
+            {
+              "group_id": "P03-G01",
+              "description": "WO-V0-15 当前状态",
+              "lexically_confirmed": true,
+              "matched_assertion": "ACCEPTED / FROZEN"
+            },
+            {
+              "group_id": "P03-G02",
+              "description": "下一阶段重心",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 1,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P04",
+          "critical": true,
+          "answer": "禁止继续开发新的 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 权重或 dormant 参数调优，以及顺手修改 storage 设计；本轮也不扩展 Evidence Paging、embedding 历史再激活或其他 Context 架构。",
+          "required_groups": [
+            {
+              "group_id": "P04-G01",
+              "description": "默认冻结的 Context 范围",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P05",
+          "critical": true,
+          "answer": "WO-DS-14 ST-02 的真实 Extractor 实验结果是失败：预测 Active State 为空/持续为空，未证明 Extractor 的一般语义 correctness；工程测试通过不能替代这一失败结果。",
+          "required_groups": [
+            {
+              "group_id": "P05-G01",
+              "description": "Extractor correctness 真实结果为失败",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P05-G02",
+              "description": "Predicted State 全空",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P06",
+          "critical": true,
+          "answer": "feasibility-01 已直接封存，不再等待双真人盲评，不得重跑或修改 official artifact；它只作为 Oracle-State feasibility baseline，语义收益仍标记为未评估。",
+          "required_groups": [
+            {
+              "group_id": "P06-G01",
+              "description": "不再等待双真人",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P06-G02",
+              "description": "既有 baseline 不能重跑",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P07",
+          "critical": true,
+          "answer": "Formal Host Mode 尚未实现，且不在当前冻结 v0 范围内。",
+          "required_groups": [
+            {
+              "group_id": "P07-G01",
+              "description": "当前未开始未授权",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P08",
+          "critical": true,
+          "answer": "PACE、Graph DB 和 Experience Formation 都没有进入 v0。v0 只加入了面向未来研究的 append-only Experience Ledger 基础；这不等于已经实现 Experience Formation。",
+          "required_groups": [
+            {
+              "group_id": "P08-G01",
+              "description": "PACE 范围",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P08-G02",
+              "description": "Graph DB 排除",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P08-G03",
+              "description": "Experience Formation 未实现未评估",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 3,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P09",
+          "critical": true,
+          "answer": "legacy 数据库路径回退名称是 DSH_HOME。",
+          "required_groups": [
+            {
+              "group_id": "P09-G01",
+              "description": "legacy DB fallback 名称",
+              "lexically_confirmed": true,
+              "matched_assertion": "DSH_HOME"
+            }
+          ],
+          "required_groups_confirmed": 1,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "all_required_groups_confirmed"
+        },
+        {
+          "probe_id": "P10",
+          "critical": false,
+          "answer": "已知非阻塞风险是全数据库 writer boundary 在长历史、多 session 或真实并发下可能增加写竞争，表现为 lock/busy 或 latency；目前只要求用真实数据观察，不预优化。",
+          "required_groups": [
+            {
+              "group_id": "P10-G01",
+              "description": "跨 session writer 串行化性能风险",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P10-G02",
+              "description": "当前风险为非阻塞",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P11",
+          "critical": true,
+          "answer": "应采用较新的冻结状态：停止继续 Starlette 模型/盲评路线，转向真实使用并积累 E-A-O/Feedback 数据；旧记忆已经被新 Decision supersede。",
+          "required_groups": [
+            {
+              "group_id": "P11-G01",
+              "description": "旧路线只是历史",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P11-G02",
+              "description": "较新的 sealed baseline 与真实使用路线是当前 authority",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P12",
+          "critical": true,
+          "answer": "至少应恢复两类事实：其一，fresh DB 与 legacy DB 的并发初始化/增量 schema migration 已专门验证，需避免多实例同时迁移造成 duplicate-column 或不一致；其二，legacy Raw Event 向 ledger EVENT 的迁移/backfill 必须确定性、幂等且不产生重复记录。另有跨实例 compile telemetry 已通过 SQLite 事务线性化以关闭 telemetry-origin TOCTOU。",
+          "required_groups": [
+            {
+              "group_id": "P12-G01",
+              "description": "fresh DB 双实例并发初始化",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P12-G02",
+              "description": "legacy 缺 Dense 列并发迁移",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        }
+      ]
+    },
+    {
+      "condition": "B_oracle_typed_state_compiled_upper_bound",
+      "sample_units": 1,
+      "assertion_units": 12,
+      "assertions_are_independent_samples": false,
+      "required_groups_confirmed": 4,
+      "required_groups_total": 21,
+      "probes_all_required_groups_confirmed": 1,
+      "critical_probes_all_required_groups_confirmed": 1,
+      "critical_probes_total": 11,
+      "forbidden_claims_detected": 0,
+      "aggregate_pass_threshold": "not_defined",
+      "probes": [
+        {
+          "probe_id": "P01",
+          "critical": true,
+          "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；禁止核心重新导入任何 sibling host repositories（同级宿主仓库）依赖。",
+          "required_groups": [
+            {
+              "group_id": "P01-G01",
+              "description": "唯一允许读写的项目目录",
+              "lexically_confirmed": true,
+              "matched_assertion": "context-compiler-mcp"
+            },
+            {
+              "group_id": "P01-G02",
+              "description": "禁止重新引入宿主依赖",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 1,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P02",
+          "critical": true,
+          "answer": "精确为 9 个工具。",
+          "required_groups": [
+            {
+              "group_id": "P02-G01",
+              "description": "精确工具数",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P03",
+          "critical": true,
+          "answer": "WO-V0-15 已 ACCEPTED/FROZEN。下一阶段唯一重心是真实长期使用，并积累 Event-Action-Outcome/Feedback 数据，为未来 Experience Formation 研究提供基础。",
+          "required_groups": [
+            {
+              "group_id": "P03-G01",
+              "description": "WO-V0-15 当前状态",
+              "lexically_confirmed": true,
+              "matched_assertion": "ACCEPTED / FROZEN"
+            },
+            {
+              "group_id": "P03-G02",
+              "description": "下一阶段重心",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 1,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P04",
+          "critical": true,
+          "answer": "当前禁止继续修改或开发 Context 算法、权重、dormant policy、ontology 和 storage；本次 dogfood 仅可观察、捕获、评估和报告。",
+          "required_groups": [
+            {
+              "group_id": "P04-G01",
+              "description": "默认冻结的 Context 范围",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P05",
+          "critical": true,
+          "answer": "WO-DS-14 ST-02 的 Extractor correctness 明确失败，且 Predicted State 全空。",
+          "required_groups": [
+            {
+              "group_id": "P05-G01",
+              "description": "Extractor correctness 真实结果为失败",
+              "lexically_confirmed": true,
+              "matched_assertion": "Extractor correctness 明确失败"
+            },
+            {
+              "group_id": "P05-G02",
+              "description": "Predicted State 全空",
+              "lexically_confirmed": true,
+              "matched_assertion": "Predicted State 全空"
+            }
+          ],
+          "required_groups_confirmed": 2,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "all_required_groups_confirmed"
+        },
+        {
+          "probe_id": "P06",
+          "critical": true,
+          "answer": "不再等待或补填双真人盲评；feasibility-01 已封存，因此按当前权威状态不能重跑。",
+          "required_groups": [
+            {
+              "group_id": "P06-G01",
+              "description": "不再等待双真人",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P06-G02",
+              "description": "既有 baseline 不能重跑",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P07",
+          "critical": true,
+          "answer": "Formal Host Mode 当前未实施；本次 dogfood 明确禁止实现，宿主集成必须等待单独、明确且有边界的 work order。",
+          "required_groups": [
+            {
+              "group_id": "P07-G01",
+              "description": "当前未开始未授权",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P08",
+          "critical": true,
+          "answer": "均未进入 v0。PACE 仅保留为未来 Evidence Layer 研究候选；Graph DB 与 Experience Formation/abstraction 不引入冻结的 v0 基础设施。",
+          "required_groups": [
+            {
+              "group_id": "P08-G01",
+              "description": "PACE 范围",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P08-G02",
+              "description": "Graph DB 排除",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P08-G03",
+              "description": "Experience Formation 未实现未评估",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 3,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P09",
+          "critical": true,
+          "answer": "未知；compiled_context 未提供 legacy DB fallback 的名称。",
+          "required_groups": [
+            {
+              "group_id": "P09-G01",
+              "description": "legacy DB fallback 名称",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 1,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P10",
+          "critical": false,
+          "answer": "当前非阻塞 performance 风险是：全数据库 compile writer 边界在真实长历史和多 session 下，是否会产生实质性的锁竞争、busy 或延迟成本；该事项仍未评估定论。",
+          "required_groups": [
+            {
+              "group_id": "P10-G01",
+              "description": "跨 session writer 串行化性能风险",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P10-G02",
+              "description": "当前风险为非阻塞",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P11",
+          "critical": true,
+          "answer": "当前 authority 是新的真实长期使用与 Event-Action-Outcome/Feedback 数据积累路线，以及 WO-V0-15 的 ACCEPTED/FROZEN 决策；旧 Starlette feasibility 与等待双真人盲评路线已被 supersede。",
+          "required_groups": [
+            {
+              "group_id": "P11-G01",
+              "description": "旧路线只是历史",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P11-G02",
+              "description": "较新的 sealed baseline 与真实使用路线是当前 authority",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        },
+        {
+          "probe_id": "P12",
+          "critical": true,
+          "answer": "至少包括两类并发迁移事实：其一，fresh DB 初始化竞态已通过重试处理并关闭；其二，legacy raw schema/Dense 列迁移已序列化，且 legacy EVENT backfill 的并发问题已关闭。",
+          "required_groups": [
+            {
+              "group_id": "P12-G01",
+              "description": "fresh DB 双实例并发初始化",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            },
+            {
+              "group_id": "P12-G02",
+              "description": "legacy 缺 Dense 列并发迁移",
+              "lexically_confirmed": false,
+              "matched_assertion": null
+            }
+          ],
+          "required_groups_confirmed": 0,
+          "required_groups_total": 2,
+          "forbidden_claims_detected": [],
+          "lexical_status": "manual_semantic_review_required"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "observation_id": "codex-long-conversation-dogfood-01",
+  "source_observation_sha256": "af8e58ba64844a4b400ec03b7b210525b32f1d8308421b1596c35abb43c0f136",
+  "database_committed": false,
+  "query_scope": "aggregate counts only",
+  "total_counts": {
+    "CONTEXT_COMPILE": 25,
+    "EVENT": 435,
+    "RETRIEVAL_HIT": 38
+  },
+  "session_counts": [
+    {
+      "session_id": "codex-dogfood-01-cold",
+      "CONTEXT_COMPILE": 1,
+      "EVENT": 143,
+      "RETRIEVAL_HIT": 0
+    },
+    {
+      "session_id": "codex-dogfood-01-primary",
+      "CONTEXT_COMPILE": 19,
+      "EVENT": 144,
+      "RETRIEVAL_HIT": 38
+    },
+    {
+      "session_id": "codex-dogfood-01-secondary",
+      "CONTEXT_COMPILE": 5,
+      "EVENT": 148,
+      "RETRIEVAL_HIT": 0
+    }
+  ],
+  "research_kinds_not_observed": [
+    "ACTION",
+    "OUTCOME",
+    "FEEDBACK",
+    "CANDIDATE_EXPERIENCE"
+  ],
+  "interpretation": "本轮只观察 EVENT mirror、compile trace 与 retrieval hit；没有形成 Event-Action-Outcome/Feedback 链，不能用于 Experience Formation 效果判断。"
+}

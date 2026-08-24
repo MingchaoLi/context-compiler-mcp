@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "capture_id": "dg01-b-compiled-001",
+  "condition": "B_oracle_typed_state_compiled_upper_bound",
+  "request_id": "codex-dogfood-01-composite-p01-p12",
+  "sample_unit": "one_composite_request",
+  "assertion_units": 12,
+  "assertions_are_independent_samples": false,
+  "packet_commit": "05da8cd0107c954c1c19b3f5909328bd356dc87f",
+  "packet_id": "dg01-b-oracle-state-compiled-001",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "attempt": 1,
+  "retry_count": 0,
+  "packet_delivery": "single_read_of_frozen_local_packet",
+  "packet_delivery_tool_call_count": 1,
+  "post_delivery_tool_call_count": 0,
+  "repo_evidence_lookup": false,
+  "ground_truth_visible": false,
+  "answers": [
+    {
+      "probe_id": "P01",
+      "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；禁止核心重新导入任何 sibling host repositories（同级宿主仓库）依赖。",
+      "confidence": "high",
+      "evidence_context": "active_constraints 明确限定唯一目录，并规定 core must not import sibling host repositories。"
+    },
+    {
+      "probe_id": "P02",
+      "answer": "精确为 9 个工具。",
+      "confidence": "high",
+      "evidence_context": "active_constraints 明确写明 local stdio MCP surface remains exactly nine tools。"
+    },
+    {
+      "probe_id": "P03",
+      "answer": "WO-V0-15 已 ACCEPTED/FROZEN。下一阶段唯一重心是真实长期使用，并积累 Event-Action-Outcome/Feedback 数据，为未来 Experience Formation 研究提供基础。",
+      "confidence": "high",
+      "evidence_context": "active_decisions 直接给出 WO-V0-15 状态及下一阶段方向。"
+    },
+    {
+      "probe_id": "P04",
+      "answer": "当前禁止继续修改或开发 Context 算法、权重、dormant policy、ontology 和 storage；本次 dogfood 仅可观察、捕获、评估和报告。",
+      "confidence": "high",
+      "evidence_context": "active_constraints 的冻结边界逐项列出 algorithms、weights、dormant policy、ontology、storage。"
+    },
+    {
+      "probe_id": "P05",
+      "answer": "WO-DS-14 ST-02 的 Extractor correctness 明确失败，且 Predicted State 全空。",
+      "confidence": "high",
+      "evidence_context": "retrieved_history 中 D17 明确记录 Extractor correctness 失败及 Predicted State 全空。"
+    },
+    {
+      "probe_id": "P06",
+      "answer": "不再等待或补填双真人盲评；feasibility-01 已封存，因此按当前权威状态不能重跑。",
+      "confidence": "high",
+      "evidence_context": "retrieved_history 中 D17 明确写明封存 feasibility-01，不再等待或补填双真人盲评。"
+    },
+    {
+      "probe_id": "P07",
+      "answer": "Formal Host Mode 当前未实施；本次 dogfood 明确禁止实现，宿主集成必须等待单独、明确且有边界的 work order。",
+      "confidence": "high",
+      "evidence_context": "compact_historical_notes 将本次实现 Formal Host Mode 标为 REJECTED_ALTERNATIVE，并给出单独 work order 的 reopen 条件。"
+    },
+    {
+      "probe_id": "P08",
+      "answer": "均未进入 v0。PACE 仅保留为未来 Evidence Layer 研究候选；Graph DB 与 Experience Formation/abstraction 不引入冻结的 v0 基础设施。",
+      "confidence": "high",
+      "evidence_context": "compact_historical_notes 与 retrieved_history D15 明确排除 PACE、多级摘要、Graph DB 和 Experience abstraction。"
+    },
+    {
+      "probe_id": "P09",
+      "answer": "未知；compiled_context 未提供 legacy DB fallback 的名称。",
+      "confidence": "low",
+      "evidence_context": "compiled_context 仅提及 legacy migration、Dense 列迁移和 EVENT backfill，没有给出 fallback 名称。"
+    },
+    {
+      "probe_id": "P10",
+      "answer": "当前非阻塞 performance 风险是：全数据库 compile writer 边界在真实长历史和多 session 下，是否会产生实质性的锁竞争、busy 或延迟成本；该事项仍未评估定论。",
+      "confidence": "high",
+      "evidence_context": "open_questions 唯一条目直接描述该 lock、busy、latency 风险。"
+    },
+    {
+      "probe_id": "P11",
+      "answer": "当前 authority 是新的真实长期使用与 Event-Action-Outcome/Feedback 数据积累路线，以及 WO-V0-15 的 ACCEPTED/FROZEN 决策；旧 Starlette feasibility 与等待双真人盲评路线已被 supersede。",
+      "confidence": "high",
+      "evidence_context": "active_decisions 给出当前路线；compact_historical_notes 将 Starlette/双真人路线标为 SUPERSEDED。"
+    },
+    {
+      "probe_id": "P12",
+      "answer": "至少包括两类并发迁移事实：其一，fresh DB 初始化竞态已通过重试处理并关闭；其二，legacy raw schema/Dense 列迁移已序列化，且 legacy EVENT backfill 的并发问题已关闭。",
+      "confidence": "high",
+      "evidence_context": "recent_conversation 记录 fresh SQLite initialization race 修复、serialize legacy raw schema migration，并由 D19 汇总确认 fresh DB、legacy Dense 列迁移与 EVENT backfill 并发问题均已关闭。"
+    }
+  ]
+}

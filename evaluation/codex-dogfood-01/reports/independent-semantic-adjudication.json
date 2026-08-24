@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "adjudication_id": "dg01-independent-semantic-adjudication-001",
+  "sample_unit": "one_composite_request",
+  "assertion_units": 12,
+  "assertions_are_independent_samples": false,
+  "overall_pass_threshold": null,
+  "overall_pass_threshold_status": "not_defined",
+  "adjudications": [
+    {
+      "probe_id": "P01",
+      "A": {
+        "verdict": "pass",
+        "reason": "准确给出唯一项目目录，并明确核心不得重新引入同级宿主、UI、Tauri 或编排宿主依赖。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "准确给出唯一项目目录，并以禁止导入任何 sibling host repository 依赖概括宿主边界。"
+      }
+    },
+    {
+      "probe_id": "P02",
+      "A": {
+        "verdict": "pass",
+        "reason": "明确回答本地 stdio MCP 精确为 9 个工具。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "明确回答精确为 9 个工具。"
+      }
+    },
+    {
+      "probe_id": "P03",
+      "A": {
+        "verdict": "pass",
+        "reason": "正确给出 ACCEPTED / FROZEN 状态和真实长期使用、积累 E-A-O/Feedback 数据的唯一下一阶段重心。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "正确给出 ACCEPTED/FROZEN 状态和真实长期使用、积累 E-A-O/Feedback 数据的唯一下一阶段重心。"
+      }
+    },
+    {
+      "probe_id": "P04",
+      "A": {
+        "verdict": "partial",
+        "reason": "正确覆盖 Context 算法、ontology、PACE/mem0、retrieval 与 dormant 调参等主要冻结范围，但未明确覆盖 Graph DB 和 Experience Formation。"
+      },
+      "B": {
+        "verdict": "partial",
+        "reason": "正确覆盖 Context 算法、权重、dormant policy、ontology 和 storage，但未明确覆盖 PACE/mem0、Graph DB 与 Experience Formation。"
+      }
+    },
+    {
+      "probe_id": "P05",
+      "A": {
+        "verdict": "pass",
+        "reason": "明确指出 Extractor 实验失败、预测 Active State 持续为空，并说明工程测试通过不能替代真实失败结果。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "明确指出 Extractor correctness 失败且 Predicted State 全空。"
+      }
+    },
+    {
+      "probe_id": "P06",
+      "A": {
+        "verdict": "pass",
+        "reason": "明确说明不再等待双真人盲评，且 official baseline 不得重跑或修改。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "明确说明不再等待或补填双真人盲评，且当前权威状态下不能重跑。"
+      }
+    },
+    {
+      "probe_id": "P07",
+      "A": {
+        "verdict": "pass",
+        "reason": "准确说明 Formal Host Mode 尚未实现且不在当前冻结 v0 范围内。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "准确说明 Formal Host Mode 未实施、当前禁止实现，并需等待独立工单。"
+      }
+    },
+    {
+      "probe_id": "P08",
+      "A": {
+        "verdict": "pass",
+        "reason": "明确说明 PACE、Graph DB 和 Experience Formation 均未进入 v0，并正确区分 Experience Ledger 与 Experience Formation。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "明确说明三者均未进入 v0，并将 PACE 限定为未来研究候选。"
+      }
+    },
+    {
+      "probe_id": "P09",
+      "A": {
+        "verdict": "pass",
+        "reason": "准确给出 legacy DB fallback 名称 DSH_HOME。"
+      },
+      "B": {
+        "verdict": "miss",
+        "reason": "明确回答未知，未提供题目所要求的 fallback 名称 DSH_HOME。"
+      }
+    },
+    {
+      "probe_id": "P10",
+      "A": {
+        "verdict": "pass",
+        "reason": "准确识别全数据库 writer boundary 在长历史和多 session 下的 lock、busy 与 latency 风险，并正确标为观察而非阻塞优化项。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "准确识别全数据库 compile writer boundary 的锁竞争、busy 和延迟风险，并说明尚无定论。"
+      }
+    },
+    {
+      "probe_id": "P11",
+      "A": {
+        "verdict": "pass",
+        "reason": "正确判定较新的冻结状态和真实使用路线 supersede 旧 Starlette／盲评路线。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "正确以 WO-V0-15 的冻结决策和真实数据积累路线为当前 authority，并明确旧路线已被 supersede。"
+      }
+    },
+    {
+      "probe_id": "P12",
+      "A": {
+        "verdict": "partial",
+        "reason": "识别了 fresh DB、legacy schema migration 和 EVENT backfill 等并发兼容类别，但没有清楚说明 fresh 初始化与缺 Dense 列迁移均已成功关闭。"
+      },
+      "B": {
+        "verdict": "pass",
+        "reason": "明确给出 fresh DB 初始化竞态关闭和 legacy raw schema／Dense 列迁移序列化关闭两类事实。"
+      }
+    }
+  ]
+}
