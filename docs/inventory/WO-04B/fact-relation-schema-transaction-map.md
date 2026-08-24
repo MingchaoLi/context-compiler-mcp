@@ -11,7 +11,7 @@ Pre-source contract commit:
 | --- | --- | --- | --- |
 | Explicit namespace/stream and five-component vector | `src/revision-substrate.ts` | Same-scope identity and observed high-water snapshot | Read only; every component remains unchanged |
 | Canonical Raw Event | `src/ledger-hot-raw.ts` | Fact/Relation provenance and `RAW_EVENT` endpoint existence | Read only; event revision must be no later than observed Ledger high-water |
-| Canonical State | `src/canonical-state.ts` | `STATE_ITEM` endpoint existence at exact observed State revision after full WO-04A row/marker/result/vector/reduction proof | Read only; row/hash alone and legacy State never qualify |
+| Canonical State | `src/canonical-state.ts` | `STATE_ITEM` endpoint existence after full row/marker/result/vector/reduction proof for every revision `1..observed state_revision` | Read only; row/hash alone, later-revision laundering and legacy State never qualify |
 | Legacy State/Relation | `src/state-store.ts`, `src/reducer.ts` | Compatibility regression only | No read, backfill, mirror or write from the new authority |
 
 Fact/Relation revisions are object/domain revisions. The new writer does not call
@@ -78,8 +78,9 @@ ContextCompilerCore.commitCanonicalFactsAndRelations
 → read observed WO-03A vector without materializing a stream
 → load current Fact/Relation objects
 → apply exact per-object CAS and deterministic transitions
-→ validate same-scope Raw/Fact endpoints and reconstruct the exact observed
-  Canonical State row/marker/request/result/vector/provenance/reduction proof
+→ validate same-scope Raw/Fact endpoints and reconstruct every Canonical State
+  row/marker/request/result/vector/provenance/reduction link from revision 1
+  through the exact observed revision; adjacent marker vectors cannot regress
 → validate State endpoints, reason edges, active-edge uniqueness and bounded
   SUPERSEDES/DEPENDS_ON acyclicity
 → insert domain marker, Fact revisions and Relation revisions
@@ -96,9 +97,9 @@ route to the library writer.
 
 | Reader | Snapshot and binding |
 | --- | --- |
-| Current scope | One `BEGIN` reads live vector, latest Fact/Relation row per object and unique domain markers; validates hashes, request/result reconstruction, event bounds, endpoints, graph and reason invariants; observed State is accepted only after the full frozen WO-04A proof |
+| Current scope | One `BEGIN` reads live vector, latest Fact/Relation row per object and unique domain markers; validates hashes, request/result reconstruction, event bounds, endpoints, graph and reason invariants; observed State is accepted only after the full revision-1-through-observed WO-04A proof chain |
 | Exact Fact revision | One `BEGIN` reads the exact row, its domain marker, original request, previous Fact revision and live vector; if that marker also committed a State-linked Relation, the exact State proof must pass |
-| Exact Relation revision | One `BEGIN` reads the exact row, marker, original request, previous Relation revision and live vector; every `STATE_ITEM` endpoint is revalidated against the exact observed WO-04A authority |
+| Exact Relation revision | One `BEGIN` reads the exact row, marker, original request, previous Relation revision and live vector; every `STATE_ITEM` endpoint is revalidated against the complete WO-04A authority chain through its exact observed revision |
 | Exact domain commit | One `BEGIN` reconstructs every changed row from request + previous object revision, validates maps/result/vector and State endpoint authority, and requires historical vectors component-wise no later than live |
 | Absent scope | Explicit empty Fact/Relation projection + zero vector; no row materialized |
 
@@ -118,9 +119,10 @@ identity, so corruption cannot be downgraded to a benign conflict.
   lexical, unique and monotonic.
 - Relation endpoint/type pairing is code-owned. Same-scope `RAW_EVENT`, `FACT`
   and exact-revision `STATE_ITEM` are the only endpoint authorities. State
-  row/hash is insufficient: exact WO-04A marker request/result, State-only
-  vector advance, provenance bound and deterministic reduction must agree in
-  the same transaction snapshot.
+  row/hash is insufficient: for every revision `1..observed`, exact WO-04A
+  marker request/result, State-only vector advance, inter-marker vector
+  monotonicity, provenance bound and deterministic reduction must agree in the
+  same transaction snapshot.
 - Active semantic edge tuples are unique; self-edges and bounded cycles fail the
   whole batch.
 - `model_inferred` requires confidence `[0,1]`; every other origin forbids it.
@@ -140,6 +142,7 @@ identity, so corruption cannot be downgraded to a benign conflict.
 | disjoint object commits | SQLite serialization; independent object revisions remain contiguous |
 | row/request/result/vector substitution | `CORRUPT_DATA`; never accepted authority |
 | coordinated Canonical State row/hash replacement with unchanged WO-04A marker | `CORRUPT_DATA` on commit/current/exact/replay/reopen; zero new domain rows |
+| later valid State revision built from a row/hash predecessor whose marker disagrees | complete chain remains `CORRUPT_DATA`; later marker cannot launder the predecessor into a `STATE_ITEM` authority |
 | fresh/legacy concurrent first-open | one exact completed schema; no legacy backfill |
 | partial collision / forged completion | constructor `STORAGE_FAILURE` |
 

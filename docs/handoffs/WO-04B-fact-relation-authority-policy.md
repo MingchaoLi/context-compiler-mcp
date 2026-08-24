@@ -9,7 +9,11 @@ Pre-source baseline/grammar commit: `4471ce3`<br>
 Original Builder candidate: `3cecddd004fa7ab4df3eba6d4df9a7d63baf04c0`<br>
 Independent QA rejection:
 `4dccaa824d47e2abda3333536dc54df0dcbe7f33`<br>
-Fixed Builder candidate HEAD: the append-only commit containing this handoff;<br>
+First fixed Builder candidate:
+`467bfb5f0797abe668c9cfa087c65a6ad96c1a84`<br>
+Fresh re-QA rejection:
+`599da5005a414f46c0f621618a4d5da87afc36c9`<br>
+Second fixed Builder candidate HEAD: the append-only commit containing this handoff;<br>
 WO-04A fixed candidate / QA:
 `98e02ef898587b013ad588cf7ab2f182afa276e3` /
 `74d39636e112054f7a4ea2b9a2e1be0b3728cdd7`<br>
@@ -70,6 +74,37 @@ existing one marker, one Fact and one Relation unchanged and leaves all five
 WO-03A axes byte-equivalent. `src/canonical-state.ts` remains byte-identical to
 the accepted WO-04A source.
 
+## Fresh re-QA return and revision-chain fix
+
+Fresh re-QA confirmed that the first fix closed the direct row/marker mismatch,
+but found a second authority-chain blocker. Frozen WO-04A can create revision 2
+from a revision-1 row/hash whose revision-1 marker disagrees, because its new
+commit path reads only the preceding State snapshot. Revision 2 then has a
+locally valid row/marker and the first WO-04B fix, which stopped at the observed
+revision, accepted an item inherited from the inconsistent predecessor.
+
+The second append-only fix keeps `src/canonical-state.ts` frozen and strengthens
+only WO-04B endpoint qualification:
+
+- the existing WO-04B transaction now validates every Canonical State revision
+  from `1` through `observed.state_revision`, not only the final row;
+- every link must pass the complete row/canonical bytes/hash/policy,
+  proposal-provenance, marker request/fingerprint/result, Raw bound and
+  deterministic reduction checks;
+- each later marker's previous vector must retain the preceding State revision
+  and be component-wise at or after the preceding marker's current vector;
+  legitimate non-State progress between State commits is allowed, regression is
+  not; and
+- the State carried forward for the next reduction is therefore already proven
+  authority, so a later valid marker cannot launder an inconsistent predecessor.
+
+The focused regression explicitly preserves the frozen WO-04A behavior: it
+shows revision 2 can be created and read after the predecessor row/hash change,
+then requires WO-04B current and new commit to remain `CORRUPT_DATA`, with no
+new Fact/Relation domain rows and no WO-04B vector mutation. This is a stricter
+cross-domain qualification rule inside WO-04B, not a change to WO-04A ownership
+or a new primary-axis writer.
+
 ## Execution baseline and exact paths
 
 The clean baseline manifest froze `main` at `eb7a45b...`, including dependency
@@ -98,7 +133,7 @@ package/config/dependencies, evaluation and official artifacts are unchanged.
 ## Source and policy fingerprints
 
 ```text
-18afdd3fbf88a829233a68b7115a9d1768e1f280d8f55c81d44c085d449fb587  src/canonical-fact-relation.ts (fixed)
+94df2a331ac6e1a1ec6a01890d702e67e7e3dcce39dd226c2aa370d93c8ba28a  src/canonical-fact-relation.ts (second fix)
 891928617190d3721e7424c40429e71730e2542370102db03d899a6ddf54ad3b  src/core.ts
 2c467acbc99d52936a5f72d08dfe17ece190991187e42b92f825d47d0dfec761  src/index.ts
 9ab332bbf3c53555cafb9d90c6709e6c371ccf8bb3ccc68afe48be85697c9599  src/revision-substrate.ts (frozen)
@@ -277,11 +312,11 @@ git diff --check
   PASS
 ```
 
-The new test is the exact B1 regression. It also uses valid WO-04A State
-metadata with 101 object keys to prove that the reused State authority parser
-does not accidentally impose WO-04B's separate 100-key Fact/Relation metadata
-bound. No network, remote model, sibling Host code or non-temporary diagnostic
-database was used.
+The focused State-authority test covers both the direct B1 regression and B2
+revision-chain laundering. It also uses valid WO-04A State metadata with 101
+object keys to prove that the reused State authority parser does not accidentally
+impose WO-04B's separate 100-key Fact/Relation metadata bound. No network,
+remote model, sibling Host code or non-temporary diagnostic database was used.
 
 ## Known limits and deferred work
 
@@ -308,19 +343,23 @@ The Builder does not approve this candidate. Independent QA must:
 5. reproduce row+result, request+fingerprint and vector+row+result substitutions
    against latest, exact and replay;
 6. independently reproduce the accepted-State-row/hash replacement with the
-   original WO-04A marker left unchanged; require WO-04A and WO-04B commit,
-   current, exact, replay and reopen reads to fail closed with zero new domain
-   rows and unchanged five-axis vector;
-7. inject marker/Fact/Relation/actual-COMMIT failure and verify total rollback;
-8. reproduce per-object CAS winner and same-identity exact retry races;
-9. challenge contested/superseded/retracted reason orphaning, verified dispute,
+   original WO-04A marker left unchanged; before any later State revision,
+   require WO-04A current and WO-04B commit/current/exact/replay/reopen to fail
+   closed with zero new domain rows and unchanged five-axis vector;
+7. then reproduce a later valid WO-04A revision built from that predecessor;
+   despite frozen WO-04A accepting the later revision, require WO-04B to reject
+   its complete `1..observed` chain on new/current/exact/replay/reopen paths,
+   with zero new domain rows and no WO-04B vector mutation;
+8. inject marker/Fact/Relation/actual-COMMIT failure and verify total rollback;
+9. reproduce per-object CAS winner and same-identity exact retry races;
+10. challenge contested/superseded/retracted reason orphaning, verified dispute,
    duplicate edge, self-edge and cycles;
-10. challenge empty/no-op/overflow, all Unicode `Cc`, non-NFC, accessor, cycle,
+11. challenge empty/no-op/overflow, all Unicode `Cc`, non-NFC, accessor, cycle,
    exotic/sparse/extra-key and bounds input before mutation;
-11. challenge fresh/legacy concurrent migration, exact SQL collision and forged
+12. challenge fresh/legacy concurrent migration, exact SQL collision and forged
     completion;
-12. rerun focused, `npm test`, `npm run build`, exact-nine/root reflection,
+13. rerun focused, `npm test`, `npm run build`, exact-nine/root reflection,
     `git diff --check` and frozen/prohibited-path audits;
-13. append to only `docs/qa/WO-04B-fact-relation-authority-policy.md`, make a separate
+14. append to only `docs/qa/WO-04B-fact-relation-authority-policy.md`, make a separate
     QA commit and return ACCEPTED or REJECTED without implementing fixes or
     starting WO-04C/WO-05.

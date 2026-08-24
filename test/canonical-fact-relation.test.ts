@@ -207,6 +207,26 @@ describe("WO-04B canonical Fact / Relation authority", () => {
       policy_hash: CANONICAL_STATE_POLICY_HASH,
       provenance_event_ids: ["event-1"],
     });
+    appendEvent(opened, scope, "event-3");
+    opened.state.commit({
+      scope,
+      state_commit_id: "state-2",
+      commit_mode: "immediate_authority",
+      expected_state_revision: 1,
+      proposal: {
+        schema_version: 1,
+        upsert_items: [{
+          item_id: "state-item-2",
+          kind: "GOAL",
+          content: "Later State endpoint",
+          status: "ACTIVE",
+          source_event_ids: ["event-3"],
+          metadata: {},
+        }],
+      },
+      policy_hash: CANONICAL_STATE_POLICY_HASH,
+      provenance_event_ids: ["event-3"],
+    });
     opened.knowledge.commit(commitInput(scope, "base", [
       createFact("fact-a", "A", "event-1"),
       createFact("fact-b", "B", "event-2"),
@@ -334,7 +354,7 @@ describe("WO-04B canonical Fact / Relation authority", () => {
       .toThrowError(code("CORRUPT_DATA"));
     expect(() => challenged.knowledge.commit(legitimateInput))
       .toThrowError(code("CORRUPT_DATA"));
-    expect(() => challenged.knowledge.commit(commitInput(scope, "forged", [
+    const inconsistentAuthorityInput = commitInput(scope, "inconsistent-authority", [
       createFact("fact-forged", "Must not persist", "event-1"),
     ], [
       createRelation(
@@ -344,8 +364,43 @@ describe("WO-04B canonical Fact / Relation authority", () => {
         { type: "FACT", id: "fact-forged" },
         "event-1"
       ),
-    ]))).toThrowError(code("CORRUPT_DATA"));
+    ]);
+    expect(() => challenged.knowledge.commit(inconsistentAuthorityInput))
+      .toThrowError(code("CORRUPT_DATA"));
     expect(challenged.substrate.getRevisionVector(scope)).toEqual(beforeTamper);
+
+    const laterState = challenged.state.commit({
+      scope,
+      state_commit_id: "state-2",
+      commit_mode: "immediate_authority",
+      expected_state_revision: 1,
+      proposal: {
+        schema_version: 1,
+        upsert_items: [{
+          item_id: "later-legitimate-item",
+          kind: "GOAL",
+          content: "A later legitimate item",
+          status: "ACTIVE",
+          source_event_ids: ["event-1"],
+          metadata: {},
+        }],
+      },
+      policy_hash: CANONICAL_STATE_POLICY_HASH,
+      provenance_event_ids: ["event-1"],
+    });
+    expect(laterState.state.items.some(
+      (item) => item.item_id === "zz-forged-state-item"
+    )).toBe(true);
+    expect(challenged.state.readLatest(scope).state.items.some(
+      (item) => item.item_id === "zz-forged-state-item"
+    )).toBe(true);
+    const afterStateAdvance = challenged.substrate.getRevisionVector(scope);
+    expect(afterStateAdvance.state_revision).toBe(2);
+    expect(() => challenged.knowledge.readCurrent(scope))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.commit(inconsistentAuthorityInput))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(challenged.substrate.getRevisionVector(scope)).toEqual(afterStateAdvance);
 
     const after = new DatabaseSync(database);
     expect(after.prepare(

@@ -229,8 +229,9 @@ never an endpoint authority.
 
 A Canonical State row plus a locally recomputed `state_hash` is not sufficient
 authority for `STATE_ITEM`. Before an endpoint qualifies, WO-04B reconstructs
-the frozen WO-04A proof from the exact observed revision without opening a
-second connection or transaction:
+the frozen WO-04A proof revision-by-revision from `1` through the exact observed
+revision without opening a second connection or transaction. For every link it
+verifies:
 
 - exact State row grammar, canonical proposal/state bytes, State hash, frozen
   policy hash, commit mode, timestamp and exact proposal-provenance union;
@@ -241,6 +242,12 @@ second connection or transaction:
   the marker vector component-wise no later than WO-04B's observed vector; and
 - deterministic reduction from the exact previous State snapshot to the
   committed State.
+
+For adjacent State revisions, the later marker's previous vector must retain
+the preceding State revision and be component-wise at or after the preceding
+marker's current vector. Non-State axes may legitimately advance between State
+commits, but no axis may move backward. A later well-formed State row/marker
+therefore cannot make an inconsistent predecessor authoritative.
 
 The same proof is required on new commit, current projection, exact
 Fact/Relation revision, exact domain commit, exact replay and reopen whenever
@@ -387,7 +394,8 @@ fail constructor open as `STORAGE_FAILURE`.
    transaction.
 5. Read the complete five-component scope vector without materializing a stream.
 6. Load exact current Fact/Relation objects and Canonical State endpoints in the
-   same snapshot; reconstruct the complete frozen WO-04A State authority proof,
+   same snapshot; reconstruct the complete WO-04A State authority chain from
+   revision `1` through the observed revision,
    then validate expected object revisions, Raw/Event provenance, endpoint
    existence, transitions, graph/reason invariants and active-edge uniqueness.
 7. Insert all new Fact revisions, Relation revisions and the exact domain marker.
@@ -418,8 +426,9 @@ current object rows and their domain markers. Exact object and commit reads also
 use one snapshot and reject a historical observed vector greater than any live
 vector component. Row hash, domain request, object revision transition and result
 must all agree. Stored authorities containing a `STATE_ITEM` also reconstruct
-the exact observed WO-04A State proof in that same read snapshot; coordinated
-replacement is `CORRUPT_DATA`.
+the full WO-04A State authority chain through their exact observed revision in
+that same read snapshot; coordinated replacement or predecessor laundering is
+`CORRUPT_DATA`.
 
 Absent scope returns an explicit empty current projection plus zero vector and
 does not materialize any row. Missing exact identity/revision is `NOT_FOUND`.

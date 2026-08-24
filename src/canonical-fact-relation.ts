@@ -1572,6 +1572,31 @@ function readCanonicalStateAuthority(
   stateRevision: number,
   observed: RevisionVector
 ): CommittedCanonicalStateRevision {
+  let previousState: CanonicalState = { schema_version: 1, items: [] };
+  let previousMarkerCurrent: RevisionVector | undefined;
+  for (let revision = 1; ; revision += 1) {
+    const validated = readCanonicalStateAuthorityRevision(
+      database,
+      scope,
+      revision,
+      observed,
+      previousState,
+      previousMarkerCurrent
+    );
+    if (revision === stateRevision) return validated.committed;
+    previousState = validated.committed.state;
+    previousMarkerCurrent = validated.current;
+  }
+}
+
+function readCanonicalStateAuthorityRevision(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  stateRevision: number,
+  observed: RevisionVector,
+  previousState: CanonicalState,
+  previousMarkerCurrent: RevisionVector | undefined
+): { committed: CommittedCanonicalStateRevision; current: RevisionVector } {
   const row = database.prepare(
     `SELECT namespace, stream_id, state_revision, state_commit_id, commit_mode,
             previous_state_revision, proposal_json, state_json, state_hash,
@@ -1604,6 +1629,9 @@ function readCanonicalStateAuthority(
       current.state_revision !== previous.state_revision + 1 ||
       !sameCanonicalStateNonStateAxes(previous, current) ||
       !vectorAtOrAfter(observed, current)) corrupt();
+  if (previousMarkerCurrent !== undefined &&
+      (previous.state_revision !== previousMarkerCurrent.state_revision ||
+        !vectorAtOrAfter(previous, previousMarkerCurrent))) corrupt();
 
   const requestJson = canonicalStateJson(canonicalStateMarkerRequest(committed));
   if (marker.request_json !== requestJson ||
@@ -1619,37 +1647,10 @@ function readCanonicalStateAuthority(
     corrupt();
   }
 
-  const previousState = committed.previous_state_revision === 0
-    ? ({ schema_version: 1, items: [] } as CanonicalState)
-    : readCanonicalStateSnapshot(
-      database,
-      scope,
-      committed.previous_state_revision
-    );
   const reduced = reduceStoredCanonicalState(previousState, committed.proposal);
   if (canonicalStateJson(canonicalStateAsJson(reduced)) !==
       canonicalStateJson(canonicalStateAsJson(committed.state))) corrupt();
-  return committed;
-}
-
-function readCanonicalStateSnapshot(
-  database: DatabaseSync,
-  scope: RevisionScope,
-  stateRevision: number
-): CanonicalState {
-  const row = database.prepare(
-    `SELECT state_json, state_hash FROM cc_canonical_state_revisions
-     WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
-  ).get(scope.namespace, scope.stream_id, stateRevision) as {
-    state_json: string;
-    state_hash: string;
-  } | undefined;
-  if (row === undefined) corrupt();
-  const state = parseStoredCanonicalState(row.state_json);
-  if (storedHash(row.state_hash) !== sha256(canonicalStateJson(canonicalStateAsJson(state)))) {
-    corrupt();
-  }
-  return state;
+  return { committed, current };
 }
 
 function canonicalStateCommittedFromRow(
