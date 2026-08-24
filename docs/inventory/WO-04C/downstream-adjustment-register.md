@@ -1336,3 +1336,283 @@ rejection、provenance integrity failures、replay determinism 与 selector-adde
   proposal 走 Preservation Gate 与 Independent QA；
 - 要求物理删除 Raw 或外置 payload：停止普通实现，先完成 governance、migration、integrity、
   compatibility 与 recovery 合同。
+
+---
+
+## DA-11 — Conservative Optional State Extractor + Shadow-first Promotion Gate
+
+**用户状态：** 已接受修正版方向，并明确其不是短期实施内容；先登记供未来独立规划。
+
+**登记状态：** RECORDED / LONG-HORIZON RESEARCH + PROMOTION CANDIDATE / SHADOW-FIRST /
+NOT SCHEDULED / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — 当前 Takeover v1 继续只读 exact committed State authority，不调用
+Extractor、不接收 State proposal、不新增 State apply seam，也不修改 Frontier、Artifact、
+transaction、policy hash、source/schema/test allowlist 或工期估算。
+
+**Routing：** Future standalone Extractor evaluation/promotion work order only。不得由 WO-05
+Snapshot、WO-06 Recovery、Host adapter 或其他短期工单顺便实现/启用。Canonical State writer、
+provider-neutral transport 与 Raw/Frontier contracts 原样保留。
+
+### Repository evidence boundary
+
+当前 repository authority 已记录唯一一次 ST-02 Extractor correctness 实验失败：
+
+```text
+12 INVALID_SCHEMA fallback
+16 strict-valid empty on Gold-nonempty
+2 strict-valid empty true negative
+general unique recall  = 0 / 35
+critical unique recall = 0 / 29
+```
+
+该证据只适用于当时 accepted standardized-event-summary input、固定一次 provider/model/prompt/
+capture，不证明所有模型、真实 Raw segment 或 Extractor architecture 普遍失败；但它明确禁止把
+“一个保守 prompt/transport”视为已证明可用。下一次尝试必须重新过独立 semantic evidence
+gate，transport lifecycle、schema parser 或 reducer conformance 均不能替代 Extractor correctness。
+
+### Architectural role
+
+Automated State Extractor 是自动历史编译的可选 Proposal Producer，不是 State Authority Core
+的必要 trust root。Core 在没有自动 Extractor 时仍可接受 explicit caller/manual proposal，并
+通过同一个 Canonical State owner 完成 Authority commit。
+
+未来逻辑路径保持：
+
+```text
+Explicit Authority Detector       narrow per-Event fast path
+Historical State Extractor        bounded safe segment; shadow-first
+Explicit caller/manual proposal   no automatic extraction dependency
+               ↓
+shared untrusted proposal envelope
+               ↓
+strict Parser / Normalizer
+               ↓
+transaction-bound Validator
+               ↓
+deterministic Reducer
+               ↓
+Canonical State Authority Commit
+```
+
+三条 producer path 不建立三套 State schema/writer。Extractor/Detector 不获得 database handle、
+revision allocator、Authority mutation、Frontier mutation、retrieval loop 或任意 callback 能力。
+
+### Closed producer outcomes
+
+未来 producer envelope 使用闭合的 operational outcome，而不是自我认证的 confidence：
+
+```text
+PROPOSE
+  carries an untrusted Canonical State proposal candidate
+
+DEFER
+  possible State transition but insufficient explicitness/closure/evidence
+
+NO_PROPOSAL
+  producer found no eligible State transition in the frozen input
+
+PRODUCER_ERROR / INVALID_OUTPUT
+  timeout, transport, schema, parse or unsupported-policy failure
+```
+
+`EXPLICIT` 不能成为绕过 Validator 的标签；即使 producer 声称 explicit，结果仍是 untrusted。
+不持久化 continuous confidence，不增加 threshold/calibration lifecycle。`DEFER`、
+`NO_PROPOSAL` 与 error 都是 proposal-production outcome，不是 Canonical State v1 empty proposal
+或 Authority revision。
+
+必须分开：
+
+```text
+NO_PROPOSAL by producer
+  no candidate was emitted
+
+Reducer no-op / byte-identical result
+  current Canonical State v1 conflict; no revision consumed
+
+INVALID_OUTPUT / producer unavailable
+  fail closed; never converted to NO_PROPOSAL
+```
+
+Diagnostics 可以作为 non-authoritative evaluation telemetry，但不能进入 State content/metadata
+或改变 commit eligibility。
+
+### Frontier coupling is the primary safety gate
+
+Extractor outcome 不能暗中决定 Raw 已被安全接管：
+
+```text
+DEFER (including ambiguous evidence) / PRODUCER_ERROR / INVALID_OUTPUT
+-> affected direct-successor prefix cannot advance Frontier
+-> cannot map to artifact_only / no_semantic_delta
+
+NO_PROPOSAL before semantic promotion evidence
+-> shadow observation only
+-> cannot authorize artifact_only or Frontier movement
+```
+
+否则 missed Decision/Constraint 会随错误 `artifact_only` coverage 退出默认 Hot Raw。只有 future
+promotion work order 在查看结果前冻结 evidence threshold、policy/version identity 与 rollback
+path，并通过 Independent QA 后，指定 policy 的 `NO_PROPOSAL` 才可被评估为 closed
+`no_semantic_delta` input；04C transaction 仍只做机械 coverage validation，不运行 Extractor。
+
+如果 ambiguity 长期阻塞 Frontier，这是明确的 head-of-line trade-off。允许的初始处置只有保持
+Raw Hot、等待后续明确 Event/用户澄清或 bounded reevaluation；不得为追求 compaction rate 把
+ambiguity 改写成成功。
+
+### Risk policy by State kind
+
+不能对所有 State kind 使用无差别的 `precision > recall`：
+
+```text
+Goal / Decision / OpenQuestion historical extraction
+  precision-first; ambiguous material remains Raw
+
+Explicit Hard Constraint / revocation / final authority
+  Immediate Authority fast path
+  both false promotion and missed explicit transition are critical
+```
+
+Hot Raw/Recent projection 只能缓解 State lag，不能替代 Hard Constraint commit。Future promotion
+必须分别报告 kind/transition slice；总体 accuracy 或大量 `NO_PROPOSAL` 不能掩盖 critical miss。
+
+### Frozen extractor input world
+
+初始 future candidate 输入应保持 bounded、exact、可重放：
+
+```text
+explicit scope { namespace, stream_id }
+ledger_as_of_revision
+exact bounded source Event refs + canonical Raw segment
+base_state_revision
+complete exact Canonical State at that revision
+extractor input/policy/transport identity
+```
+
+初期提供完整 exact Canonical State，而不是先增加 State retrieval/semantic selector。Producer
+需要 current/terminal items 才能识别已有 `item_id`、legal update、supersession、resolved question
+与 duplicate/no-op。State 真实规模造成输入压力后，才可另开 deterministic candidate-selection
+ablation；缺少证据时不引入 relevance scoring。
+
+不向 producer 隐式发送完整长期 Raw History、unbounded retrieval、personality profile、Host
+project guess 或 provider-private state。Summary/Artifact 可以作为显式辅助材料，但 Authority
+proposal 必须继续落回 exact Raw provenance refs。
+
+### Durable item identity and race policy
+
+自动 Extractor 进入 Authority path 前必须单独冻结 item identity/reconciliation：
+
+- existing item 只能引用输入 State 中存在的 exact `item_id`，并遵循 kind/status transition；
+- new item identity 必须由可重放 orchestration/identity policy 稳定分配，不能让模型自由发明；
+- transport retry、crash recovery 与 identical frozen input 必须有稳定 candidate/commit identity；
+- producer 输出后若 State revision 已变化，expected-revision CAS 必须失败；不得将 stale proposal
+  自动 patch 到新 State；
+- conflict 后只能在新的 frozen State/Raw world 中 bounded reevaluate，或显式 defer；
+- 禁止用 semantic similarity 私自协调、合并或覆盖两个 Authority items。
+
+Identity policy 未冻结前，Extractor只能产生 shadow/evaluation candidate，不能自动提交。
+
+### Canonical State vocabulary boundary
+
+Extractor 不新增 `ADD / UPDATE / INVALIDATE / SUPERSEDE / RESOLVE / KEEP` operation protocol。
+Authority writer 继续使用 frozen Canonical State v1：
+
+```text
+proposal.upsert_items[]
++ kind-specific initial/status transition table
++ no delete
+```
+
+Future automatic producer 的最小默认输出 subset 可限制为：
+
+```text
+GOAL
+CONSTRAINT
+DECISION
+OPEN_QUESTION
+```
+
+这是可逆 Producer policy，不删除 v1 `REJECTED_ALTERNATIVE` kind 或 explicit proposal
+capability。Experience、Personality、Preference、Summary、inferred dependency graph、scope rule、
+confidence evolution 与 causal rationale 不进入 State Extractor。
+
+Automated proposal 的 metadata profile 必须 closed、versioned 且尽量为空；禁止利用自由 metadata
+偷渡新 schema/lifecycle/dependency semantics。显式“一跳关系”如未来需要，必须由独立
+RelationProposal/owner contract 表达，State Extractor 不推断隐含 dependency graph。
+
+### Provider and review boundary
+
+Core 只拥有 plain-data input/output contract、strict parser、policy identity、stable error mapping
+与 Authority validation。实际 intelligence 可以来自 local rule、explicit caller 或外部
+`ExtractorTransport`；Core 不选择 provider/model，不持有 credential，不隐式联网，也不自动
+发送长期私有 Raw。
+
+当前 accepted provider-neutral subprocess transport 只证明 child lifecycle、boundary、SQLite
+conflict 与 packaging；不证明语义提取可用。未来 transport failure 必须 fail closed。
+
+不默认调用第二个 LLM Reviewer，不设计 reviewer disagreement arbitration。Reviewer/alternative
+producer 只允许作为 isolated shadow comparator；其一致/不一致不能直接提高 Authority。
+
+### Future pre-registered evaluation
+
+独立 Extractor work order 至少比较：
+
+```text
+E0 = explicit-rule/caller proposal only
+E1 = conservative bounded Extractor in shadow
+```
+
+输入必须包含 exact base State 与真实 bounded Raw segment。第一阶段可使用 sanitized synthetic/
+adversarial fixtures；Raw private dogfood capture、credential、log 或 database 不进入 Git。不能只
+使用已经替模型完成语义标准化的 summary 并将其结果推广到真实 Raw。
+
+至少覆盖：
+
+```text
+explicit Decision versus tentative brainstorming
+quoted or hypothetical authority
+sarcasm / negation / immediate self-correction
+transition closing across multiple Events
+explicit Constraint / revocation / final decision
+existing-item update / supersede / resolve
+duplicate and reducer no-op
+new-item identity and retry stability
+multi-intent Event with exact provenance
+ambiguous segment requiring DEFER
+timeout / invalid schema / unsupported output
+State revision race after extraction
+DEFER never advances Frontier
+false NO_PROPOSAL never silently authorizes Takeover during shadow
+```
+
+指标至少按 kind/transition slice 记录：
+
+```text
+false_authority_promotion
+missed_explicit_transition
+critical_constraint_miss
+wrong kind / status / item identity
+provenance_integrity_error
+DEFER / NO_PROPOSAL / invalid-output rate
+duplicate/no-op proposal rate
+constraint activation latency
+unsafe artifact_only / Frontier advancement
+Hot Raw head-of-line stall
+incremental tokens / latency / model calls
+```
+
+Schema validity、reducer conformance 与 semantic correctness 分开报告。`NO_PROPOSAL` 占比、
+总体 accuracy 或低 model-call cost 不能单独构成 promotion evidence。若比较最终回答质量，必须
+另开固定 provider/model/prompt/fresh-session 与盲化评分合同。
+
+### Promotion and stop conditions
+
+- E1 在预注册 transition-level precision/recall、critical Constraint、identity、provenance、race
+  与 Frontier safety 门内稳定通过：才可提议从 shadow 晋升 bounded producer policy；
+- semantic precision 足够但 recall 不足：只允许保持显式/caller path 或更长 Hot Raw，不得用
+  `NO_PROPOSAL` 推进 Frontier；
+- schema/transport failure 仍显著：先关闭机械 contract，不增加第二模型 Reviewer；
+- identity/reconciliation 或 stale-State handling 未闭合：保持 shadow，不提交 Authority；
+- 需要 personality、deep intent、scope inference、multi-pass agent、unbounded history/retrieval
+  才能过测试：停止该 v1 候选，不扩大 Core；
+- 任何 provider/prompt 结果只适用于被固定的 input/policy/capture，不宣称一般模型能力。
