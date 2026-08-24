@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 
 const boundary = new Int32Array(workerData.boundary);
 const moduleUrl = pathToFileURL(join(workerData.root, "dist", "index.js")).href;
-const { ContextCompilerMcpService } = await import(moduleUrl);
+const { ContextCompilerCore, ContextCompilerMcpService } = await import(moduleUrl);
 
 const emptyDelta = () => ({
   new_goals: [],
@@ -26,9 +26,10 @@ const unwrap = (response, label) => {
 
 let service;
 try {
-  service = new ContextCompilerMcpService(workerData.database);
+  const core = new ContextCompilerCore(workerData.database);
+  service = new ContextCompilerMcpService(core);
   if (workerData.kind === "origin") {
-    const ledgerStore = service.ledgerStore;
+    const ledgerStore = core.ledgerStore;
     const appendSymbol = Object.getOwnPropertySymbols(Object.getPrototypeOf(ledgerStore))
       .find((symbol) => symbol.description === "appendContextCompileTrace");
     if (appendSymbol === undefined) throw new Error("compile trace hook not found");
@@ -52,7 +53,7 @@ try {
     });
     parentPort.postMessage({ type: "origin_result", response });
   } else if (workerData.kind === "contender") {
-    const rawStore = service.rawStore;
+    const rawStore = core.rawStore;
     const ingest = rawStore.ingest;
     rawStore.ingest = function (input) {
       Atomics.store(boundary, 4, 1);

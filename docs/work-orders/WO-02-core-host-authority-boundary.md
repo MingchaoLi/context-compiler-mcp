@@ -115,6 +115,8 @@ src/runtime-state-update.ts         # 仅在需要改为稳定 Core 委托时
 test/core-boundary.test.ts          # 新边界/所有权/兼容性证明
 test/mcp-service.test.ts            # 若现有服务合同需直接回归
 test/mcp-protocol.test.ts           # 仅九工具/协议兼容回归所需
+test/fixtures/compile-telemetry-boundary-worker.mjs
+                                     # 仅将既有内部并发注入点迁至 Core owner
 docs/architecture/WO-02-core-host-authority-boundary.md
 docs/inventory/WO-02/**
 docs/handoffs/WO-02-core-host-authority-boundary.md
@@ -122,6 +124,11 @@ docs/handoffs/WO-02-core-host-authority-boundary.md
 
 若实现证明需要修改未列出的 source/test 文件，必须先更新本工单，说明
 call-chain 与验收必要性，再继续。
+
+Builder amendment (2026-08-24): 全量协议回归证明既有 compile telemetry
+并发测试通过直接访问原 service 私有 Store 注入 commit/rollback 边界。Store
+ownership 移入 Core 后，该 fixture 必须随 owner 迁移注入点；测试语义、生产
+接口与故障行为不变。因此在修改 fixture 前将其加入本工单 allowlist。
 
 ---
 

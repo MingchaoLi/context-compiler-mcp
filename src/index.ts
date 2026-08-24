@@ -138,6 +138,21 @@ export {
 } from "./recall.js";
 
 export {
+  CONTEXT_COMPILER_COMMANDS,
+  CONTEXT_COMPILER_CORE_VERSION,
+  ContextCompilerCore,
+  ContextCompilerCoreError,
+  type CompileContextMetrics as CoreCompileContextMetrics,
+  type CompileContextResult as CoreCompileContextResult,
+  type ContextCompilerCommandName,
+  type ContextCompilerCommandPort,
+  type ContextCompilerCoreErrorCode,
+  type ContextCompilerCoreFailure,
+  type ContextCompilerCoreResponse,
+  type ContextCompilerCoreSuccess,
+} from "./core.js";
+
+export {
   CONTEXT_COMPILER_CAPABILITIES,
   CONTEXT_COMPILER_SERVICE_VERSION,
   ContextCompilerMcpService,

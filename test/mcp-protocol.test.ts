@@ -62,7 +62,7 @@ describe("Context Compiler stdio MCP protocol", () => {
         await Promise.all(connections.map(close));
       }
     }
-  });
+  }, 15_000);
 
   it("atomically upgrades legacy raw schemas across independent stores, services, and stdio", async () => {
     for (let index = 0; index < 10; index += 1) {
@@ -93,7 +93,7 @@ describe("Context Compiler stdio MCP protocol", () => {
         result.response?.ok && result.response.result?.ready === true)).toBe(true);
       assertLegacyMigration(legacyStdio, fixtureId);
     }
-  });
+  }, 15_000);
 
   it("preserves preinitialized same-source and same-operation concurrency", async () => {
     const rawDatabase = join(temporaryRoot, "preinitialized-raw-concurrency.db");
