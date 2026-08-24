@@ -1839,3 +1839,241 @@ history，给出 stable revision/Snapshot compatibility，并经过 shadow/promo
 - 仅为“schema 看起来更小”要求新 Delta Log/materialized writer：拒绝，保持 v1；
 - 真实规模证据达到 v2 Gate：另开独立 architecture/schema/migration work order，不扩大当前
   WO-04C/05。
+
+---
+
+## DA-13 — Hard-Constraint Automatic Fast Path + On-demand Decisions
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED DEFAULT-POLICY CANDIDATE / PRESERVE EXISTING IMMEDIATE
+CAPABILITY / PENDING FUTURE ABLATION / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — Immediate Authority 继续使用 standalone Canonical State writer，
+不移动 Frontier；04C Takeover v1 只引用 fresh exact committed State authority。不修改 04C
+grammar、transaction、coverage、Artifact、policy hash、source/schema/test allowlist 或工期估算。
+
+**Routing：** Future standalone Authority Detector/producer policy ablation；WO-05 P0 mandatory
+Constraint projection；future Attempt/Host orchestration 使用 existing targeted-on-demand and
+Interrupt contracts。不得由 WO-04C 或短期 Host adapter 顺便删除现有 Immediate capability。
+
+### Timing mode is not an Authority hierarchy
+
+Canonical State v1 已冻结三种 commit mode：
+
+```text
+immediate_authority
+lazy_historical
+targeted_on_demand
+```
+
+三者使用完全相同的 proposal grammar、Validator、Reducer、policy hash、revision substrate 与
+Authority commit。`immediate_authority` 只表示低延迟提交路径，不表示更高真值、confidence、
+precedence 或永久性。相同 active Constraint/Decision 一旦 committed，其 Authority 不因产生模式
+而不同。
+
+本调整拒绝 continuous authority score、preference hierarchy、confidence threshold、模型
+arbitration 或“高 Authority 文本”通用分类器。
+
+### Accepted future default policy
+
+Future automatic producer 候选默认：
+
+```text
+explicit Hard Constraint create
+or exact active Constraint supersession/revocation
+-> immediate_authority candidate
+
+ordinary Goal / Decision / OpenQuestion
+-> Raw-first + lazy_historical by default
+
+Goal/Decision/Question required before a formal operation
+-> targeted_on_demand proposal/commit
+-> only then freeze an executable Snapshot/Attempt
+```
+
+当前 Contract 中 explicit final Decision 的 Immediate capability 不物理删除。Explicit caller
+仍可发起合法 `immediate_authority` State proposal；automatic Decision fast path 只作为 future
+default-off/shadow candidate。只有预注册 Decision Fast Path ON/OFF 证据与 Independent QA 才能
+修改上层 Contract wording。
+
+Current Input 仍属于 Snapshot P0 mandatory input，Frontier-bound Hot Raw 提供短期语境缓冲；但
+二者不能替代 required structured Authority。若后续 Tool/Attempt 必须依赖“最终使用 B”，必须
+在 dispatch 前使用 targeted-on-demand，而不是只让模型从 Raw 自行解释。
+
+### No new PIN / REVOKE State protocol
+
+Fast Path 继续复用 Canonical State v1 `proposal.upsert_items[]`：
+
+```text
+create hard Constraint
+-> new CONSTRAINT item with ACTIVE status
+
+explicitly revoke/supersede exact Constraint
+-> upsert existing exact item_id
+-> ACTIVE -> SUPERSEDED
+```
+
+不新增 `PIN`、`REVOKE`、`INVALIDATE` operation/status。`Pinned` 只表示 active Constraint 在
+DA-07 Context Assembly 中属于 P0 mandatory inclusion，不是 Canonical State lifecycle。
+
+Constraint `SUPERSEDED` 在 v1 是 terminal；如果用户以后重新建立同一行为规则，应产生新的
+Constraint identity/provenance，不能把旧 item 恢复为 ACTIVE，也不能改写旧 revision。
+
+### Narrow producer input and outcome
+
+Future automatic detector 输入保持 bounded、exact：
+
+```text
+explicit scope
+current canonical Raw Event
+base_state_revision
+exact active Constraint item refs/content at that revision
+detector input/policy/transport identity
+```
+
+不读取完整长期历史、不执行 retrieval、不猜 Host Project/scope、不推断 personality/preference。
+现有 active Constraint 只用于 exact revocation target 与 duplicate/conflict candidate detection，
+不能让 producer 通过语义相似度自动协调 Authority。
+
+输出沿用 DA-11：
+
+```text
+PROPOSE
+  exact new Constraint candidate
+  or exact existing Constraint -> SUPERSEDED candidate
+
+DEFER
+  possible behavioral constraint/revocation but scope or target is ambiguous
+
+NO_PROPOSAL
+  no eligible explicit Hard Constraint transition found
+
+PRODUCER_ERROR / INVALID_OUTPUT
+  fail-closed transport/schema/policy outcome
+```
+
+`PROPOSE` 仍是不可信输入，必须通过 Parser/Normalizer、transaction Validator 和 deterministic
+Reducer。Detector/Extractor 不获得 State/Frontier writer、database handle 或 Tool-dispatch 能力。
+
+### Precision and recall are both critical for Constraints
+
+Hard Constraint 不能只使用无条件 `precision > recall`：
+
+```text
+false active Constraint
+-> blocks or distorts permitted work
+
+missed explicit Constraint
+-> may permit forbidden work
+```
+
+两者都必须作为 critical Gate。Current Input/Hot Raw 是防御层，不是允许 detector 漏检的证明。
+未来不得用总体 accuracy、`NO_PROPOSAL` 占比或普通 Decision precision 掩盖 Constraint slice。
+
+如果 explicit caller/Host 已明确标注该 Event 是 required Hard Constraint，producer/commit 失败时
+必须阻止依赖它的 executable Attempt；不能把 error 当作 NO_PROPOSAL。Automatic detector 没有
+命中时的 residual risk 必须通过 adversarial fixtures、Raw inclusion 与 dogfood telemetry 明示，
+不能宣称绝对安全。
+
+### Revocation and conflict boundary
+
+Revocation 必须定位 exact active `item_id`。例如“取消 C17”或 future contract 提供一个唯一
+resolved ref，才允许 ACTIVE -> SUPERSEDED。自然语言“刚才那个限制取消”如果可指向多个
+Constraint，必须 DEFER/请求澄清；不允许按 recency、embedding 或文本相似自动选择。
+
+新 Constraint 与既有 Constraint 可能语义冲突时，Fast Path 不做 deep conflict resolution。
+只有用户同一 proposal/明确 refs 显式 supersede 旧 item 时才更新；否则不能静默删除旧规则或
+假设新规则覆盖旧规则。Validator 继续只验证 deterministic contract，不假装判断语言真值。
+
+### Decision and action-safety routing
+
+普通 explicit Decision 默认 Lazy，但以下边界必须分开：
+
+```text
+Decision only affects later planning
+-> Hot Raw + lazy compilation
+
+Decision is required by the next formal Attempt
+-> targeted_on_demand commit before executable Snapshot
+
+"stop/cancel plan A" before ActionStarted
+-> immediate Constraint may block future dispatch
+-> operation cancellation contract may mark cancelled-before-dispatch
+
+Action has crossed ActionStarted
+-> State Authority commit cannot undo possible side effect
+-> Interrupt / cancellation / reconciliation contract applies
+```
+
+Authority 不等于 Interrupt。Fast Constraint 只能约束尚未发生的后续行为；已经可能发生的外部
+效果必须由 stable action identity、durable lifecycle 与 Host/Executor reconciliation 处理。
+
+也不得为了让 Decision 立即生效而伪造永久 Constraint。只有它确实表达“下一步必须/禁止怎样
+行动”时才可产生独立 Constraint；长期方案记录仍由 Decision proposal/lifecycle 管理。
+
+### Future ablation direction
+
+在同一 frozen Raw/State/operation world 比较：
+
+```text
+F0 = existing eligible Immediate Authority policy
+     including explicit Constraint/revocation/final Decision
+
+F1 = automatic immediate only for explicit Constraint create/supersede
+     + Decision lazy by default
+     + targeted-on-demand when a formal Attempt requires it
+
+F2 = no automatic Fast Path
+     negative control; current input/Raw only
+```
+
+现有 capability 在 promotion 前保留为 compatibility/shadow comparator。至少覆盖：
+
+```text
+explicit no-write directory constraint immediately before Tool use
+mandatory independent QA rule
+exact revocation of one active Constraint
+ambiguous "cancel that rule" with multiple candidates
+quoted / hypothetical / negated / sarcastic prohibition
+same-Event and next-Event self-correction
+scope-limited "only in tests do not modify X"
+ordinary final Decision with no immediate action
+final Decision required by the next Tool/Attempt
+new candidate conflicting with an active Constraint
+State revision race during immediate commit
+producer/commit failure before executable Attempt
+stop Event before versus after ActionStarted
+subtask/Snapshot missing optional Raw but retaining committed P0 Constraint
+```
+
+指标至少包含：
+
+```text
+false_constraint_activation
+missed_explicit_constraint
+constraint activation latency before Snapshot/Attempt
+constraint supersession/revocation latency
+stale_constraint_after_revoke
+ambiguous_target / conflict rate
+Decision authority commit delay
+targeted_on_demand rate / success / latency
+unsafe Tool dispatch
+State revisions / Context tokens / producer calls
+```
+
+第一阶段使用 fixed event/state/operation fixtures 测 proposal与 dispatch eligibility，不调用远端
+模型。未来若评估 rule/model producer，必须固定 input/provider/model/prompt/fresh-session，并把
+producer semantic correctness 与 State/Attempt mechanical correctness 分开。
+
+### Promotion and stop conditions
+
+- F1 保留 Constraint create/revocation safety，Decision delay 可由 Current Input/Hot Raw/
+  targeted-on-demand 吸收，并降低 producer branches/model calls：可提议 future default；
+- F1 导致 required Decision 未在 dispatch 前结构化：修复 required targeted-on-demand trigger，
+  不直接恢复所有 Decision automatic fast path；
+- false/missed Constraint 任一 critical Gate 未通过：保持现有 policy，不 promotion；
+- revocation 无 exact target、存在语义冲突或 scope 不明：DEFER，不扩大 detector intelligence；
+- 已发生副作用问题被错误归因于 State：返回 Interrupt/Action lifecycle，不扩大 Fast Path；
+- 要求删除 existing `immediate_authority` capability 或改变 Canonical State v1 grammar：另开
+  Architecture Contract/policy-version work order，不由本登记隐式授权。
