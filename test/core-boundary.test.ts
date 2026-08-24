@@ -28,6 +28,21 @@ describe("ContextCompilerCore boundary", () => {
     expect("commitLedgerRevisionInsideCore" in publicSurface).toBe(false);
     expect("commitStateRevisionInsideCore" in publicSurface).toBe(false);
     expect("compareAndAdvanceFrontierInsideCore" in publicSurface).toBe(false);
+
+    const core = new ContextCompilerCore(databasePath());
+    const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));
+    expect(Reflect.ownKeys(core)).not.toContain("revisionSubstrate");
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      value.constructor?.name === "SqliteRevisionSubstrate"
+    )).toBe(false);
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      Reflect.ownKeys(Object.getPrototypeOf(value)).some((key) =>
+        typeof key === "symbol" && key.description === "commitRevisionInsideCore"
+      )
+    )).toBe(false);
+    core.close();
   });
 
   it("covers current commands and research records without Store imports", () => {

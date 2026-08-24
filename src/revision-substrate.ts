@@ -137,17 +137,122 @@ interface NormalizedCommitInput {
 const MAX_IDENTIFIER_LENGTH = 500;
 const MAX_KIND_LENGTH = 100;
 const MAX_SAFE_REVISION = Number.MAX_SAFE_INTEGER;
-const COMMIT_INSIDE_CORE = Symbol("commitRevisionInsideCore");
+type CoreCommitCapability = (
+  input: unknown,
+  operation: RevisionCommitOperation,
+  apply: RevisionTransactionOperation
+) => RevisionCommitRecord;
+const CORE_COMMIT_CAPABILITIES = new WeakMap<SqliteRevisionSubstrate, CoreCommitCapability>();
+
+const SUBSTRATE_SCHEMA_OBJECTS = [
+  {
+    type: "table",
+    name: "cc_revision_substrate_schema",
+    sql: `CREATE TABLE cc_revision_substrate_schema (
+      version INTEGER PRIMARY KEY CHECK (version > 0),
+      completed_at TEXT NOT NULL
+    )`,
+  },
+  {
+    type: "table",
+    name: "cc_revision_streams",
+    sql: `CREATE TABLE cc_revision_streams (
+      namespace TEXT NOT NULL CHECK (length(namespace) > 0 AND length(namespace) <= 500),
+      stream_id TEXT NOT NULL CHECK (length(stream_id) > 0 AND length(stream_id) <= 500),
+      ledger_revision INTEGER NOT NULL CHECK (
+        ledger_revision >= 0 AND ledger_revision <= 9007199254740991
+      ),
+      state_revision INTEGER NOT NULL CHECK (
+        state_revision >= 0 AND state_revision <= 9007199254740991
+      ),
+      raw_frontier_revision INTEGER NOT NULL CHECK (
+        raw_frontier_revision >= 0 AND raw_frontier_revision <= 9007199254740991
+      ),
+      frontier_position INTEGER NOT NULL CHECK (
+        frontier_position >= 0 AND frontier_position <= 9007199254740991
+      ),
+      takeover_commit_revision INTEGER NOT NULL CHECK (
+        takeover_commit_revision >= 0 AND takeover_commit_revision <= 9007199254740991
+      ),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (namespace, stream_id),
+      CHECK (frontier_position <= ledger_revision)
+    )`,
+  },
+  {
+    type: "table",
+    name: "cc_revision_commits",
+    sql: `CREATE TABLE cc_revision_commits (
+      namespace TEXT NOT NULL,
+      stream_id TEXT NOT NULL,
+      commit_id TEXT NOT NULL CHECK (length(commit_id) > 0 AND length(commit_id) <= 500),
+      operation TEXT NOT NULL CHECK (
+        operation IN ('LEDGER','STATE','FRONTIER','TAKEOVER','TAKEOVER_FRONTIER')
+      ),
+      kind TEXT NOT NULL CHECK (length(kind) > 0 AND length(kind) <= 100),
+      request_fingerprint TEXT NOT NULL CHECK (
+        length(request_fingerprint) = 64 AND
+        request_fingerprint NOT GLOB '*[^0-9a-f]*'
+      ),
+      request_json TEXT NOT NULL CHECK (json_valid(request_json)),
+      previous_json TEXT NOT NULL CHECK (json_valid(previous_json)),
+      current_json TEXT NOT NULL CHECK (json_valid(current_json)),
+      result_json TEXT NOT NULL CHECK (json_valid(result_json)),
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (namespace, stream_id, commit_id),
+      FOREIGN KEY (namespace, stream_id)
+        REFERENCES cc_revision_streams(namespace, stream_id)
+    )`,
+  },
+  {
+    type: "trigger",
+    name: "cc_revision_commits_no_update",
+    sql: `CREATE TRIGGER cc_revision_commits_no_update
+      BEFORE UPDATE ON cc_revision_commits
+      BEGIN
+        SELECT RAISE(ABORT, 'revision commit markers are immutable');
+      END`,
+  },
+  {
+    type: "trigger",
+    name: "cc_revision_commits_no_delete",
+    sql: `CREATE TRIGGER cc_revision_commits_no_delete
+      BEFORE DELETE ON cc_revision_commits
+      BEGIN
+        SELECT RAISE(ABORT, 'revision commit markers are append-only');
+      END`,
+  },
+  {
+    type: "trigger",
+    name: "cc_revision_schema_no_update",
+    sql: `CREATE TRIGGER cc_revision_schema_no_update
+      BEFORE UPDATE ON cc_revision_substrate_schema
+      BEGIN
+        SELECT RAISE(ABORT, 'revision schema markers are immutable');
+      END`,
+  },
+  {
+    type: "trigger",
+    name: "cc_revision_schema_no_delete",
+    sql: `CREATE TRIGGER cc_revision_schema_no_delete
+      BEFORE DELETE ON cc_revision_substrate_schema
+      BEGIN
+        SELECT RAISE(ABORT, 'revision schema markers are append-only');
+      END`,
+  },
+] as const;
 
 /**
  * Core-owned persistence for the v3.1.1 namespace/stream/revision substrate.
- * Mutation is symbol-gated so Host/MCP adapters cannot obtain a generic writer
- * or SQLite handle from the stable Core surface.
+ * Mutation uses a module-private capability and JavaScript private method so
+ * Host/MCP adapters cannot discover a generic writer or SQLite handle by
+ * reflecting over the stable Core surface.
  */
 export class SqliteRevisionSubstrate {
-  private readonly database: DatabaseSync;
-  private closed = false;
-  private transactionOpen = false;
+  readonly #database: DatabaseSync;
+  #closed = false;
+  #transactionOpen = false;
 
   constructor(databasePath: string) {
     if (typeof databasePath !== "string" || databasePath.length === 0) {
@@ -160,7 +265,11 @@ export class SqliteRevisionSubstrate {
       initializeSqliteConnection(database, databasePath, () => {
         migrateRevisionSubstrate(database!);
       });
-      this.database = database;
+      this.#database = database;
+      CORE_COMMIT_CAPABILITIES.set(
+        this,
+        (input, operation, apply) => this.#commitInsideCore(input, operation, apply)
+      );
     } catch {
       try { database?.close(); } catch { /* preserve stable constructor failure */ }
       throw new RevisionSubstrateError("STORAGE_FAILURE");
@@ -168,10 +277,10 @@ export class SqliteRevisionSubstrate {
   }
 
   getRevisionVector(scope: RevisionScope): RevisionVector {
-    this.assertOpen();
+    this.#assertOpen();
     const normalized = normalizeScope(scope);
     try {
-      const row = this.database.prepare(
+      const row = this.#database.prepare(
         `SELECT namespace, stream_id, ledger_revision, state_revision,
                 raw_frontier_revision, frontier_position, takeover_commit_revision
          FROM cc_revision_streams
@@ -185,11 +294,11 @@ export class SqliteRevisionSubstrate {
   }
 
   getCommit(scope: RevisionScope, commitId: string): RevisionCommitRecord | undefined {
-    this.assertOpen();
+    this.#assertOpen();
     const normalizedScope = normalizeScope(scope);
     const normalizedCommitId = validateIdentifier(commitId, "commit_id");
     try {
-      const row = this.database.prepare(
+      const row = this.#database.prepare(
         `SELECT namespace, stream_id, commit_id, operation, kind,
                 request_fingerprint, request_json, previous_json, current_json,
                 result_json, created_at
@@ -208,52 +317,52 @@ export class SqliteRevisionSubstrate {
   }
 
   close(): void {
-    if (this.closed) return;
-    if (this.transactionOpen) throw new RevisionSubstrateError("CONFLICT");
+    if (this.#closed) return;
+    if (this.#transactionOpen) throw new RevisionSubstrateError("CONFLICT");
     try {
-      this.database.close();
-      this.closed = true;
+      this.#database.close();
+      this.#closed = true;
     } catch {
       throw new RevisionSubstrateError("STORAGE_FAILURE");
     }
   }
 
-  [COMMIT_INSIDE_CORE](
+  #commitInsideCore(
     input: unknown,
     operation: RevisionCommitOperation,
     apply: RevisionTransactionOperation
   ): RevisionCommitRecord {
-    this.assertOpen();
+    this.#assertOpen();
     const normalized = normalizeCommitInput(input, operation);
-    if (this.transactionOpen) throw new RevisionSubstrateError("CONFLICT");
+    if (this.#transactionOpen) throw new RevisionSubstrateError("CONFLICT");
 
     try {
-      this.database.exec("BEGIN IMMEDIATE;");
-      this.transactionOpen = true;
-      const existing = this.findCommitInsideTransaction(
+      this.#database.exec("BEGIN IMMEDIATE;");
+      this.#transactionOpen = true;
+      const existing = this.#findCommitInsideTransaction(
         normalized.scope,
         normalized.commit_id
       );
       if (existing !== undefined) {
         assertCompatibleReplay(existing.record, existing.requestJson, normalized);
-        this.database.exec("COMMIT;");
+        this.#database.exec("COMMIT;");
         return existing.record;
       }
 
       const timestamp = new Date().toISOString();
-      this.ensureStreamInsideTransaction(normalized.scope, timestamp);
-      const previous = this.readVectorInsideTransaction(normalized.scope);
+      this.#ensureStreamInsideTransaction(normalized.scope, timestamp);
+      const previous = this.#readVectorInsideTransaction(normalized.scope);
       const current = computeNextVector(previous, normalized);
       const rawResult = apply({
         scope: { ...normalized.scope },
         previous: cloneVector(previous),
         current: cloneVector(current),
-        database: this.database,
+        database: this.#database,
       });
       const result = normalizeJsonValue(rawResult, "result");
       const resultJson = canonicalJson(result);
 
-      const update = this.database.prepare(
+      const update = this.#database.prepare(
         `UPDATE cc_revision_streams
          SET ledger_revision = ?, state_revision = ?, raw_frontier_revision = ?,
              frontier_position = ?, takeover_commit_revision = ?, updated_at = ?
@@ -290,7 +399,7 @@ export class SqliteRevisionSubstrate {
         result,
         created_at: timestamp,
       };
-      this.database.prepare(
+      this.#database.prepare(
         `INSERT INTO cc_revision_commits (
            namespace, stream_id, commit_id, operation, kind,
            request_fingerprint, request_json, previous_json, current_json,
@@ -309,21 +418,21 @@ export class SqliteRevisionSubstrate {
         resultJson,
         record.created_at
       );
-      this.database.exec("COMMIT;");
+      this.#database.exec("COMMIT;");
       return cloneCommit(record);
     } catch (error) {
-      rollback(this.database);
+      rollback(this.#database);
       throw error;
     } finally {
-      this.transactionOpen = false;
+      this.#transactionOpen = false;
     }
   }
 
-  private findCommitInsideTransaction(
+  #findCommitInsideTransaction(
     scope: RevisionScope,
     commitId: string
   ): StoredCommit | undefined {
-    const row = this.database.prepare(
+    const row = this.#database.prepare(
       `SELECT namespace, stream_id, commit_id, operation, kind,
               request_fingerprint, request_json, previous_json, current_json,
               result_json, created_at
@@ -336,8 +445,8 @@ export class SqliteRevisionSubstrate {
     };
   }
 
-  private ensureStreamInsideTransaction(scope: RevisionScope, timestamp: string): void {
-    this.database.prepare(
+  #ensureStreamInsideTransaction(scope: RevisionScope, timestamp: string): void {
+    this.#database.prepare(
       `INSERT OR IGNORE INTO cc_revision_streams (
          namespace, stream_id, ledger_revision, state_revision,
          raw_frontier_revision, frontier_position, takeover_commit_revision,
@@ -346,8 +455,8 @@ export class SqliteRevisionSubstrate {
     ).run(scope.namespace, scope.stream_id, timestamp, timestamp);
   }
 
-  private readVectorInsideTransaction(scope: RevisionScope): RevisionVector {
-    const row = this.database.prepare(
+  #readVectorInsideTransaction(scope: RevisionScope): RevisionVector {
+    const row = this.#database.prepare(
       `SELECT namespace, stream_id, ledger_revision, state_revision,
               raw_frontier_revision, frontier_position, takeover_commit_revision
        FROM cc_revision_streams
@@ -357,8 +466,8 @@ export class SqliteRevisionSubstrate {
     return vectorFromRow(row);
   }
 
-  private assertOpen(): void {
-    if (this.closed) throw new RevisionSubstrateError("CLOSED");
+  #assertOpen(): void {
+    if (this.#closed) throw new RevisionSubstrateError("CLOSED");
   }
 }
 
@@ -367,7 +476,7 @@ export function commitLedgerRevisionInsideCore(
   input: LedgerRevisionCommitInput,
   operation: RevisionTransactionOperation = () => null
 ): RevisionCommitRecord {
-  return substrate[COMMIT_INSIDE_CORE](input, "LEDGER", operation);
+  return coreCommitCapability(substrate)(input, "LEDGER", operation);
 }
 
 export function commitStateRevisionInsideCore(
@@ -375,7 +484,7 @@ export function commitStateRevisionInsideCore(
   input: StateRevisionCommitInput,
   operation: RevisionTransactionOperation = () => null
 ): RevisionCommitRecord {
-  return substrate[COMMIT_INSIDE_CORE](input, "STATE", operation);
+  return coreCommitCapability(substrate)(input, "STATE", operation);
 }
 
 export function compareAndAdvanceFrontierInsideCore(
@@ -383,7 +492,7 @@ export function compareAndAdvanceFrontierInsideCore(
   input: FrontierRevisionCommitInput,
   operation: RevisionTransactionOperation = () => null
 ): RevisionCommitRecord {
-  return substrate[COMMIT_INSIDE_CORE](input, "FRONTIER", operation);
+  return coreCommitCapability(substrate)(input, "FRONTIER", operation);
 }
 
 export function commitTakeoverRevisionInsideCore(
@@ -391,7 +500,7 @@ export function commitTakeoverRevisionInsideCore(
   input: TakeoverRevisionCommitInput,
   operation: RevisionTransactionOperation = () => null
 ): RevisionCommitRecord {
-  return substrate[COMMIT_INSIDE_CORE](input, "TAKEOVER", operation);
+  return coreCommitCapability(substrate)(input, "TAKEOVER", operation);
 }
 
 export function commitTakeoverFrontierInsideCore(
@@ -399,7 +508,13 @@ export function commitTakeoverFrontierInsideCore(
   input: TakeoverFrontierCommitInput,
   operation: RevisionTransactionOperation = () => null
 ): RevisionCommitRecord {
-  return substrate[COMMIT_INSIDE_CORE](input, "TAKEOVER_FRONTIER", operation);
+  return coreCommitCapability(substrate)(input, "TAKEOVER_FRONTIER", operation);
+}
+
+function coreCommitCapability(substrate: SqliteRevisionSubstrate): CoreCommitCapability {
+  const capability = CORE_COMMIT_CAPABILITIES.get(substrate);
+  if (capability === undefined) invalid();
+  return capability;
 }
 
 export function migrateRevisionSubstrate(database: DatabaseSync): void {
@@ -423,82 +538,7 @@ export function migrateRevisionSubstrate(database: DatabaseSync): void {
         throw new RevisionSubstrateError("CORRUPT_DATA");
       }
     }
-    database.exec(`
-      CREATE TABLE IF NOT EXISTS cc_revision_substrate_schema (
-        version INTEGER PRIMARY KEY CHECK (version > 0),
-        completed_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS cc_revision_streams (
-        namespace TEXT NOT NULL CHECK (length(namespace) > 0 AND length(namespace) <= 500),
-        stream_id TEXT NOT NULL CHECK (length(stream_id) > 0 AND length(stream_id) <= 500),
-        ledger_revision INTEGER NOT NULL CHECK (
-          ledger_revision >= 0 AND ledger_revision <= 9007199254740991
-        ),
-        state_revision INTEGER NOT NULL CHECK (
-          state_revision >= 0 AND state_revision <= 9007199254740991
-        ),
-        raw_frontier_revision INTEGER NOT NULL CHECK (
-          raw_frontier_revision >= 0 AND raw_frontier_revision <= 9007199254740991
-        ),
-        frontier_position INTEGER NOT NULL CHECK (
-          frontier_position >= 0 AND frontier_position <= 9007199254740991
-        ),
-        takeover_commit_revision INTEGER NOT NULL CHECK (
-          takeover_commit_revision >= 0 AND takeover_commit_revision <= 9007199254740991
-        ),
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        PRIMARY KEY (namespace, stream_id),
-        CHECK (frontier_position <= ledger_revision)
-      );
-
-      CREATE TABLE IF NOT EXISTS cc_revision_commits (
-        namespace TEXT NOT NULL,
-        stream_id TEXT NOT NULL,
-        commit_id TEXT NOT NULL CHECK (length(commit_id) > 0 AND length(commit_id) <= 500),
-        operation TEXT NOT NULL CHECK (
-          operation IN ('LEDGER','STATE','FRONTIER','TAKEOVER','TAKEOVER_FRONTIER')
-        ),
-        kind TEXT NOT NULL CHECK (length(kind) > 0 AND length(kind) <= 100),
-        request_fingerprint TEXT NOT NULL CHECK (
-          length(request_fingerprint) = 64 AND
-          request_fingerprint NOT GLOB '*[^0-9a-f]*'
-        ),
-        request_json TEXT NOT NULL CHECK (json_valid(request_json)),
-        previous_json TEXT NOT NULL CHECK (json_valid(previous_json)),
-        current_json TEXT NOT NULL CHECK (json_valid(current_json)),
-        result_json TEXT NOT NULL CHECK (json_valid(result_json)),
-        created_at TEXT NOT NULL,
-        PRIMARY KEY (namespace, stream_id, commit_id),
-        FOREIGN KEY (namespace, stream_id)
-          REFERENCES cc_revision_streams(namespace, stream_id)
-      );
-
-      CREATE TRIGGER IF NOT EXISTS cc_revision_commits_no_update
-      BEFORE UPDATE ON cc_revision_commits
-      BEGIN
-        SELECT RAISE(ABORT, 'revision commit markers are immutable');
-      END;
-
-      CREATE TRIGGER IF NOT EXISTS cc_revision_commits_no_delete
-      BEFORE DELETE ON cc_revision_commits
-      BEGIN
-        SELECT RAISE(ABORT, 'revision commit markers are append-only');
-      END;
-
-      CREATE TRIGGER IF NOT EXISTS cc_revision_schema_no_update
-      BEFORE UPDATE ON cc_revision_substrate_schema
-      BEGIN
-        SELECT RAISE(ABORT, 'revision schema markers are immutable');
-      END;
-
-      CREATE TRIGGER IF NOT EXISTS cc_revision_schema_no_delete
-      BEFORE DELETE ON cc_revision_substrate_schema
-      BEGIN
-        SELECT RAISE(ABORT, 'revision schema markers are append-only');
-      END;
-    `);
+    database.exec(SUBSTRATE_SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n"));
     validateSubstrateSchema(database);
     database.prepare(
       "INSERT INTO cc_revision_substrate_schema (version, completed_at) VALUES (?, ?)"
@@ -573,6 +613,44 @@ function normalizeCommitInput(
   normalized.requestJson = canonicalJson(descriptor);
   normalized.requestFingerprint = fingerprint(normalized.requestJson);
   return normalized;
+}
+
+function normalizeStoredCommitDescriptor(
+  value: JsonValue,
+  operation: RevisionCommitOperation
+): NormalizedCommitInput {
+  const baseKeys = ["scope", "commit_id", "operation", "kind", "request"];
+  const frontierKeys = [
+    "expected_frontier_revision",
+    "expected_frontier_position",
+    "next_frontier_position",
+  ];
+  const expectedKeys = operation === "STATE"
+    ? [...baseKeys, "expected_state_revision"]
+    : operation === "FRONTIER" || operation === "TAKEOVER_FRONTIER"
+      ? [...baseKeys, ...frontierKeys]
+      : baseKeys;
+  try {
+    const descriptor = readExactObject(value, expectedKeys);
+    if (descriptor.operation !== operation) corrupt();
+    const input: Record<string, unknown> = {
+      scope: descriptor.scope,
+      commit_id: descriptor.commit_id,
+      kind: descriptor.kind,
+      request: descriptor.request,
+    };
+    if (operation === "STATE") {
+      input.expected_state_revision = descriptor.expected_state_revision;
+    }
+    if (operation === "FRONTIER" || operation === "TAKEOVER_FRONTIER") {
+      input.expected_frontier_revision = descriptor.expected_frontier_revision;
+      input.expected_frontier_position = descriptor.expected_frontier_position;
+      input.next_frontier_position = descriptor.next_frontier_position;
+    }
+    return normalizeCommitInput(input, operation);
+  } catch {
+    corrupt();
+  }
 }
 
 function computeNextVector(
@@ -655,7 +733,7 @@ function validateIdentifier(value: unknown, _name: string): string {
     value.length > MAX_IDENTIFIER_LENGTH ||
     value.trim().length === 0 ||
     value !== value.normalize("NFC") ||
-    /[\u0000-\u001f\u007f]/u.test(value)
+    /\p{Cc}/u.test(value)
   ) invalid();
   return value;
 }
@@ -718,24 +796,57 @@ function commitFromRow(row: CommitRow): RevisionCommitRecord {
   ].includes(row.operation)) corrupt();
   if (!/^[0-9a-f]{64}$/u.test(row.request_fingerprint)) corrupt();
   const storedRequest = parseStoredJson(row.request_json);
+  const normalizedDescriptor = normalizeStoredCommitDescriptor(storedRequest, row.operation);
   const canonicalRequest = canonicalJson(storedRequest);
   if (canonicalRequest !== row.request_json) corrupt();
   if (fingerprint(canonicalRequest) !== row.request_fingerprint) corrupt();
+  const commitId = validateIdentifier(row.commit_id, "commit_id");
+  const kind = validateKind(row.kind);
+  if (
+    normalizedDescriptor.requestJson !== row.request_json ||
+    normalizedDescriptor.requestFingerprint !== row.request_fingerprint ||
+    normalizedDescriptor.scope.namespace !== scope.namespace ||
+    normalizedDescriptor.scope.stream_id !== scope.stream_id ||
+    normalizedDescriptor.commit_id !== commitId ||
+    normalizedDescriptor.kind !== kind
+  ) corrupt();
   const previous = parseStoredVector(row.previous_json, scope);
   const current = parseStoredVector(row.current_json, scope);
   assertStoredTransition(previous, current, row.operation);
+  assertStoredDescriptorTransition(normalizedDescriptor, previous, current);
   const result = parseStoredJson(row.result_json);
   return {
     ...scope,
-    commit_id: validateIdentifier(row.commit_id, "commit_id"),
+    commit_id: commitId,
     operation: row.operation,
-    kind: validateKind(row.kind),
+    kind,
     request_fingerprint: row.request_fingerprint,
     previous,
     current,
     result,
     created_at: validateIdentifier(row.created_at, "created_at"),
   };
+}
+
+function assertStoredDescriptorTransition(
+  descriptor: NormalizedCommitInput,
+  previous: RevisionVector,
+  current: RevisionVector
+): void {
+  if (
+    descriptor.operation === "STATE" &&
+    descriptor.expectedStateRevision !== previous.state_revision
+  ) corrupt();
+  if (
+    descriptor.operation === "FRONTIER" ||
+    descriptor.operation === "TAKEOVER_FRONTIER"
+  ) {
+    if (
+      descriptor.expectedFrontierRevision !== previous.raw_frontier_revision ||
+      descriptor.expectedFrontierPosition !== previous.frontier_position ||
+      descriptor.nextFrontierPosition !== current.frontier_position
+    ) corrupt();
+  }
 }
 
 function assertStoredTransition(
@@ -913,17 +1024,25 @@ function validateSubstrateSchema(database: DatabaseSync): void {
     "request_fingerprint", "request_json", "previous_json", "current_json",
     "result_json", "created_at",
   ]);
-  for (const trigger of [
-    "cc_revision_commits_no_update",
-    "cc_revision_commits_no_delete",
-    "cc_revision_schema_no_update",
-    "cc_revision_schema_no_delete",
-  ]) {
+  for (const expected of SUBSTRATE_SCHEMA_OBJECTS) {
     const row = database.prepare(
-      "SELECT name FROM sqlite_master WHERE type = 'trigger' AND name = ?"
-    ).get(trigger) as { name: string } | undefined;
-    if (row?.name !== trigger) throw new RevisionSubstrateError("CORRUPT_DATA");
+      "SELECT type, name, sql FROM sqlite_master WHERE type = ? AND name = ?"
+    ).get(expected.type, expected.name) as {
+      type: string;
+      name: string;
+      sql: string | null;
+    } | undefined;
+    if (
+      row?.type !== expected.type ||
+      row.name !== expected.name ||
+      typeof row.sql !== "string" ||
+      normalizeSchemaSql(row.sql) !== normalizeSchemaSql(expected.sql)
+    ) throw new RevisionSubstrateError("CORRUPT_DATA");
   }
+}
+
+function normalizeSchemaSql(sql: string): string {
+  return sql.trim().replace(/\s+/gu, " ").replace(/;$/u, "");
 }
 
 function assertCurrentSchemaVersion(database: DatabaseSync): void {

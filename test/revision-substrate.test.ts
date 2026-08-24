@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -39,6 +40,11 @@ describe("WO-03A shared revision substrate", () => {
     const substrate = new SqliteRevisionSubstrate(database);
     const authority = { namespace: "authority", stream_id: "project-A" };
     const shadow = { namespace: "shadow:experiment-1", stream_id: "project-A" };
+
+    expect(Reflect.ownKeys(substrate)).toEqual([]);
+    expect(Reflect.ownKeys(SqliteRevisionSubstrate.prototype)).toEqual([
+      "constructor", "getRevisionVector", "getCommit", "close",
+    ]);
 
     expect(substrate.getRevisionVector(authority)).toEqual(vector(authority));
     expect(substrate.getRevisionVector(shadow)).toEqual(vector(shadow));
@@ -123,6 +129,69 @@ describe("WO-03A shared revision substrate", () => {
     tamper.close();
     expect(() => substrate.getCommit(scope, "same-key")).toThrowError(code("CORRUPT_DATA"));
     substrate.close();
+  });
+
+  it("rejects a coordinated stored CAS descriptor substitution", () => {
+    const database = databasePath();
+    const scope = { namespace: "authority", stream_id: "stored-descriptor" };
+    const substrate = new SqliteRevisionSubstrate(database);
+    commitStateRevisionInsideCore(substrate, {
+      scope,
+      commit_id: "state-marker",
+      kind: "TEST_STATE",
+      expected_state_revision: 0,
+      request: { delta: "one" },
+    });
+    substrate.close();
+
+    const tamperedJson = JSON.stringify({
+      commit_id: "state-marker",
+      expected_state_revision: 99,
+      kind: "TEST_STATE",
+      operation: "STATE",
+      request: { delta: "one" },
+      scope: { namespace: "authority", stream_id: "stored-descriptor" },
+    });
+    const tamperedFingerprint = createHash("sha256").update(tamperedJson).digest("hex");
+    const tamper = new DatabaseSync(database);
+    tamper.exec("DROP TRIGGER cc_revision_commits_no_update;");
+    tamper.prepare(
+      `UPDATE cc_revision_commits
+       SET request_json = ?, request_fingerprint = ?
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).run(
+      tamperedJson,
+      tamperedFingerprint,
+      scope.namespace,
+      scope.stream_id,
+      "state-marker"
+    );
+    tamper.exec(`
+      CREATE TRIGGER cc_revision_commits_no_update
+      BEFORE UPDATE ON cc_revision_commits
+      BEGIN
+        SELECT RAISE(ABORT, 'revision commit markers are immutable');
+      END;
+    `);
+    tamper.close();
+
+    const reopened = new SqliteRevisionSubstrate(database);
+    expect(() => reopened.getCommit(scope, "state-marker")).toThrowError(
+      code("CORRUPT_DATA")
+    );
+    let callbackCount = 0;
+    expect(() => commitStateRevisionInsideCore(reopened, {
+      scope,
+      commit_id: "state-marker",
+      kind: "TEST_STATE",
+      expected_state_revision: 99,
+      request: { delta: "one" },
+    }, () => {
+      callbackCount += 1;
+      return null;
+    })).toThrowError(code("CORRUPT_DATA"));
+    expect(callbackCount).toBe(0);
+    reopened.close();
   });
 
   it("double-CASes Frontier and keeps takeover identity separate from ordering", () => {
@@ -273,6 +342,8 @@ describe("WO-03A shared revision substrate", () => {
       { scope: { namespace: "invalid", stream_id: "x" }, commit_id: "1", kind: "TEST", request: {} },
       { scope: { namespace: "shadow:   ", stream_id: "x" }, commit_id: "1b", kind: "TEST", request: {} },
       { scope: { namespace: "authority", stream_id: " " }, commit_id: "2", kind: "TEST", request: {} },
+      { scope: { namespace: "authority", stream_id: "c1-\u0085" }, commit_id: "2b", kind: "TEST", request: {} },
+      { scope: { namespace: "authority", stream_id: "c1-\u009f" }, commit_id: "2c", kind: "TEST", request: {} },
       { scope: valid, commit_id: "3", kind: "TEST", request: cyclic },
       { scope: valid, commit_id: "4", kind: "TEST", request: accessor },
       { scope: valid, commit_id: "4b", kind: "TEST", request: exoticArray },
@@ -351,6 +422,35 @@ describe("WO-03A shared revision substrate", () => {
     expect(collisionAudit.prepare("PRAGMA table_info(cc_revision_streams)").all())
       .toMatchObject([{ name: "wrong_column" }]);
     collisionAudit.close();
+
+    const forged = databasePath();
+    const incomplete = new DatabaseSync(forged);
+    incomplete.exec(`
+      CREATE TABLE cc_revision_substrate_schema (version INTEGER, completed_at TEXT);
+      CREATE TABLE cc_revision_streams (
+        namespace TEXT, stream_id TEXT, ledger_revision INTEGER,
+        state_revision INTEGER, raw_frontier_revision INTEGER,
+        frontier_position INTEGER, takeover_commit_revision INTEGER,
+        created_at TEXT, updated_at TEXT
+      );
+      CREATE TABLE cc_revision_commits (
+        namespace TEXT, stream_id TEXT, commit_id TEXT, operation TEXT, kind TEXT,
+        request_fingerprint TEXT, request_json TEXT, previous_json TEXT,
+        current_json TEXT, result_json TEXT, created_at TEXT
+      );
+      CREATE TRIGGER cc_revision_commits_no_update
+        AFTER INSERT ON cc_revision_commits BEGIN SELECT 1; END;
+      CREATE TRIGGER cc_revision_commits_no_delete
+        AFTER INSERT ON cc_revision_commits BEGIN SELECT 1; END;
+      CREATE TRIGGER cc_revision_schema_no_update
+        AFTER INSERT ON cc_revision_substrate_schema BEGIN SELECT 1; END;
+      CREATE TRIGGER cc_revision_schema_no_delete
+        AFTER INSERT ON cc_revision_substrate_schema BEGIN SELECT 1; END;
+      INSERT INTO cc_revision_substrate_schema (version, completed_at)
+        VALUES (1, 'forged');
+    `);
+    incomplete.close();
+    expect(() => new SqliteRevisionSubstrate(forged)).toThrowError(code("STORAGE_FAILURE"));
   });
 
   it("serializes concurrent first-open migration for fresh and legacy databases", async () => {

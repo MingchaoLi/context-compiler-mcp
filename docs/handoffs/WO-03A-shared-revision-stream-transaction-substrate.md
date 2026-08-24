@@ -1,6 +1,6 @@
 # WO-03A Builder Handoff — Shared Revision / Stream / Transaction Substrate
 
-Status: **BUILDER COMPLETE / AWAITING INDEPENDENT QA**<br>
+Status: **BUILDER FIX COMPLETE / AWAITING INDEPENDENT RE-QA**<br>
 Work order:
 `docs/work-orders/WO-03A-shared-revision-stream-transaction-substrate.md`<br>
 Source baseline HEAD: `94f18b702b7eceda9e8afac7cc3d88abddbfb7da`<br>
@@ -8,6 +8,37 @@ Planning authority commit: `94f18b702b7eceda9e8afac7cc3d88abddbfb7da`<br>
 Expected parent: `8204ccc484cdc2a36218dc5f4a350f5d1c607f50`<br>
 Builder candidate HEAD: the commit containing this handoff; Independent QA must
 resolve and pin that exact commit before review.
+
+Original Builder candidate:
+`37765798c9be061d3dfe38adc7484d691a3f1ea8`<br>
+Independent QA rejection commit:
+`99ab4445d7568c2b89c2550af739a1a49766adc2`<br>
+Fixed candidate HEAD: the append-only commit containing this updated handoff;
+Independent re-QA must resolve and pin that exact commit before review.
+
+## Append-only QA-return fix
+
+Independent QA confirmed the baseline, allowlist, main transaction path,
+four-axis behavior, current compatibility, focused 18-test run, full 486-test
+run, and build, but rejected the original candidate with four reproducible
+contract counterexamples. This fix closes exactly those findings:
+
+1. Core now owns the substrate in a JavaScript private field. Substrate mutation
+   uses a module-private WeakMap capability backed by a JavaScript private
+   method, so runtime reflection over public Core/substrate instances exposes no
+   substrate property or generic mutation symbol/SQLite callback path.
+2. Stored descriptor validation now binds descriptor scope, commit ID,
+   operation, and kind to marker columns and binds State/Frontier CAS plus next
+   position to the persisted previous/current vectors. A coordinated descriptor
+   plus fingerprint substitution fails `CORRUPT_DATA`.
+3. Reopen validates normalized `sqlite_master` SQL for every schema table and
+   immutable trigger, in addition to column order and version. A same-name fake
+   completion lacking PK/FK/CHECK/NOT NULL or real trigger bodies fails closed.
+4. Scope validation rejects the complete Unicode `Cc` control category,
+   including C1 U+0085 and U+009F, before mutation.
+
+Regression coverage reproduces all four QA attacks. The retained rejection is
+an audit commit; this Builder fix is append-only and does not rewrite it.
 
 ## Bounded result
 
@@ -57,7 +88,7 @@ No other path is part of the Builder candidate.
 
 ## Schema and migration fingerprint
 
-Final source fingerprints before the Builder commit:
+Original candidate source fingerprints before the rejection:
 
 ```text
 ce297f950c8e4f819772a8718872633bb883ac63e962898fad67fa5e29d386bd  src/revision-substrate.ts
@@ -70,6 +101,21 @@ The SHA-256 of the final `migrateRevisionSubstrate` function source fragment
 
 ```text
 b7fd5f8098b9851b6c8229291caf493de90dc052f3bb4ead3fbf20a34261d552
+```
+
+Fixed-candidate source fingerprints after the QA-return changes:
+
+```text
+9ab332bbf3c53555cafb9d90c6709e6c371ccf8bb3ccc68afe48be85697c9599  src/revision-substrate.ts
+2c0a0e8e1dd41c8221c0cf44804876b5ca6e58ab1f1b0272c19f73fe28f57453  src/core.ts
+f5d9c57a895ec863ce4b66ea28590d2f78a0ff255d57fe027a6cc59244994a78  src/index.ts
+```
+
+Fixed schema-definition and migration-function source-fragment fingerprints:
+
+```text
+648cef491a043ac4357646427457535b08f0702b510364e0106e7b7ae3dd1821  schema definitions
+7756f0b2f849ea22430e89e6689e9cf7535e80db6188c08ad162aedca26ee9b2  migration function
 ```
 
 Schema version is `1`. Its objects are:
@@ -85,8 +131,8 @@ cc_revision_schema_no_delete
 ```
 
 The migration is additive and does not alter/backfill legacy tables. DDL,
-validation, and the completion row share one transaction; a substrate-name
-collision before completion fails closed.
+exact schema SQL validation, and the completion row share one transaction; a
+substrate-name collision or forged completion fails closed.
 
 ## Scope and axis contract
 
@@ -134,15 +180,18 @@ and canonical bytes, returns the original marker/result, does not rerun the
 callback, and does not advance a revision. Any substitution conflicts.
 
 Callback, result-normalization, vector-CAS, marker, or commit failure rolls back
-all callback rows and substrate writes. Marker reads recompute the fingerprint
-and validate the stored transition; inconsistency fails as `CORRUPT_DATA`.
+all callback rows and substrate writes. Marker reads recompute the fingerprint,
+bind descriptor identity fields to marker columns, and validate CAS fields
+against the stored transition; inconsistency fails as `CORRUPT_DATA`.
 
 ## Boundary and compatibility proof
 
 - The stable package root exports read types/constants and the substrate error,
   but not the SQLite substrate class, mutation helpers, or transaction context.
-- `ContextCompilerCore` owns the fifth SQLite resource and exposes only
-  `getRevisionVector(scope)` beyond its accepted command/research surface.
+- `ContextCompilerCore` owns the fifth SQLite resource in a JavaScript private
+  field and exposes only `getRevisionVector(scope)` beyond its accepted
+  command/research surface. Reflection reveals no substrate or generic mutation
+  method/symbol.
 - MCP continues to expose exactly these nine commands in accepted order:
   `health`, `ingest_event`, `compile_context`, `get_state`,
   `prepare_state_update`, `apply_state_delta`, `create_headline`,
@@ -191,12 +240,61 @@ No remote model, network, credential, production database, destructive command,
 or sibling Host repository was used or accessed. Generated build output was not
 added to the candidate.
 
+## Post-rejection fix verification
+
+Final fix verification completed at `2026-08-24T10:25:33Z`:
+
+```text
+npm test
+  PASS — 31 files passed, 1 skipped; 487 tests passed, 1 skipped
+
+npm run build
+  PASS — tsc -p tsconfig.json
+
+focused revision/Core/MCP service run
+  PASS — 3 files, 19 tests
+
+B1 public-Core/substrate reflection replay
+  PASS — no owned substrate, database field, internal transaction method, or mutation symbol
+
+B2 coordinated State CAS descriptor + fingerprint substitution
+  PASS — reopen validates schema; marker read/replay fails CORRUPT_DATA; callback count 0
+
+B3 same-name incomplete completion schema
+  PASS — constructor fails closed
+
+B4 U+0085 / U+009F scope mutation
+  PASS — INVALID_INPUT before vector allocation
+
+git diff --check
+  PASS
+
+prohibited-path and retained-QA diff
+  PASS — no package/config/existing Store/MCP/evaluator/QA-record change
+```
+
+The append-only fix changes exactly these seven authorized paths relative to
+the rejection commit:
+
+```text
+docs/architecture/WO-03A-shared-revision-stream-transaction-substrate.md
+docs/handoffs/WO-03A-shared-revision-stream-transaction-substrate.md
+docs/inventory/WO-03A/substrate-schema-transaction-map.md
+src/core.ts
+src/revision-substrate.ts
+test/core-boundary.test.ts
+test/revision-substrate.test.ts
+```
+
+The QA rejection record remains byte-identical. Re-QA, not the Builder, decides
+whether B1–B4 are closed.
+
 ## Known risks and deferred work
 
 - Schema version 1 does not implement future-version upgrades.
-- Schema validation verifies the expected column layout, required immutable
-  trigger names, and the single completion version; broader database integrity
-  and full-system crash recovery remain later responsibilities.
+- Schema validation verifies exact normalized table/trigger SQL, expected column
+  layout, and the single completion version; full-system crash recovery remains
+  a later responsibility.
 - Shadow support is storage isolation only; no routing, comparison, or promotion.
 - Current v0 business writers remain intentionally separate. WO-03B/WO-04 must
   choose explicit scope and domain invariants rather than infer a mapping.

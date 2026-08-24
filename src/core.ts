@@ -119,7 +119,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   private readonly stateUpdate: StateUpdateCoordinator;
   private readonly recallStore: SqliteHistoryRecallStore;
   private readonly ledgerStore: SqliteExperienceLedgerStore;
-  private readonly revisionSubstrate: SqliteRevisionSubstrate;
+  readonly #revisionSubstrate: SqliteRevisionSubstrate;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -151,7 +151,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.stateUpdate = new StateUpdateCoordinator(stateStore);
     this.recallStore = recallStore;
     this.ledgerStore = ledgerStore;
-    this.revisionSubstrate = revisionSubstrate;
+    this.#revisionSubstrate = revisionSubstrate;
   }
 
   call(
@@ -216,7 +216,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.assertOpen();
     try {
       assertPlainData(scope, "revision scope");
-      return this.revisionSubstrate.getRevisionVector(scope);
+      return this.#revisionSubstrate.getRevisionVector(scope);
     } catch (error) {
       throw mapRevisionSubstrateError(error);
     }
@@ -227,7 +227,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.closed = true;
     let failed = false;
     for (const store of [
-      this.revisionSubstrate,
+      this.#revisionSubstrate,
       this.ledgerStore,
       this.recallStore,
       this.stateStore,

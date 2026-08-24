@@ -25,7 +25,9 @@ evidence, not authority for WO-03B or WO-04 business semantics.
 | `completed_at` | completion timestamp | non-null text |
 
 Triggers `cc_revision_schema_no_update` and
-`cc_revision_schema_no_delete` make the completion proof immutable.
+`cc_revision_schema_no_delete` make the completion proof immutable. Reopen also
+compares the normalized `sqlite_master` SQL for this table and both triggers to
+the code-owned definitions.
 
 ### `cc_revision_streams`
 
@@ -57,7 +59,9 @@ checks `frontier_position <= ledger_revision`.
 
 The marker references the stream composite key. Triggers
 `cc_revision_commits_no_update` and `cc_revision_commits_no_delete` prevent
-ordinary mutation or deletion.
+ordinary mutation or deletion. Schema validation checks the full normalized SQL
+for all three tables and four triggers, including PK/FK/CHECK/NOT NULL clauses
+and trigger bodies; matching names and columns alone are insufficient.
 
 ## 3. Mutation primitive map
 
@@ -85,7 +89,7 @@ All five route through the same symbol-gated transaction method. The full-vector
 | marker insert/trigger fails | callback rows and vector update rollback |
 | exact replay | stored record returned; callback not rerun; no axis advances |
 | conflicting scoped commit ID reuse | stable `CONFLICT`; no mutation |
-| malformed persisted vector/marker | fail closed as `CORRUPT_DATA` |
+| malformed persisted vector/marker or descriptor/transition mismatch | fail closed as `CORRUPT_DATA` |
 | close repeated | no-op after first successful close |
 
 ## 5. Initialization map
@@ -95,7 +99,7 @@ open connection
 → foreign keys / busy timeout / FULL synchronous / WAL
 → BEGIN IMMEDIATE
 → completion marker exists?
-   yes: validate tables, triggers, and version
+   yes: validate exact table/trigger SQL, columns, and version
    no: reject any substrate-name collision
        → create version table, streams, commits, triggers
        → validate structure
@@ -126,7 +130,9 @@ next_frontier_position                  # FRONTIER / TAKEOVER_FRONTIER
 
 Caller-supplied hashes are not accepted. Canonical keys are recursively sorted,
 and the same normalized descriptor must match both stored bytes and the computed
-fingerprint.
+fingerprint. Descriptor scope/key/operation/kind must also match marker columns;
+stored State/Frontier CAS values and next position must match the persisted
+previous/current transition.
 
 ## 7. Compatibility/no-write map
 
@@ -149,7 +155,7 @@ read query. All business mutations remain deferred.
 | Claim | Focused evidence |
 | --- | --- |
 | four independent axes and authority/shadow isolation | `test/revision-substrate.test.ts` axis/scope case |
-| exact replay, substitution rejection, marker integrity | replay/tamper case |
+| exact replay, substitution rejection, coordinated CAS-marker integrity | replay/tamper cases |
 | frontier double-CAS and takeover identity/order | frontier/takeover case |
 | callback and marker rollback | injected failure case |
 | input and overflow fail-closed | validation/overflow case |
@@ -157,4 +163,7 @@ read query. All business mutations remain deferred.
 | concurrent fresh/legacy initialization | worker first-open case |
 | one concurrent State CAS winner | two-connection worker case |
 | no root generic mutation and lifecycle preservation | `test/core-boundary.test.ts` |
+| no reflected Core substrate or prototype mutation symbol | Core runtime reflection case |
+| forged same-name completion schema rejected | legacy/collision case |
+| Unicode C1 controls rejected before mutation | validation case |
 | exactly-nine adapter compatibility | MCP and protocol regression suites |

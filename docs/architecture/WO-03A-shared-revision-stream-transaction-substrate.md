@@ -1,6 +1,6 @@
 # WO-03A Shared Revision / Stream / Transaction Substrate
 
-Status: BUILDER DESIGN — AWAITING INDEPENDENT QA
+Status: BUILDER FIX COMPLETE — AWAITING INDEPENDENT RE-QA
 
 Authority baseline:
 `94f18b702b7eceda9e8afac7cc3d88abddbfb7da`
@@ -37,7 +37,8 @@ interface RevisionScope {
 
 Accepted namespaces are exactly `authority` and `shadow:<experiment_id>`, where
 the shadow suffix is non-blank. Both identifiers must be NFC strings, non-empty,
-non-whitespace, at most 500 code units, and free of ASCII control characters.
+non-whitespace, at most 500 code units, and free of every Unicode general-category
+`Cc` control character.
 `stream_id` is an opaque logical-continuity identifier. No code path reads Host
 identity or provides a `session_id` fallback.
 
@@ -106,9 +107,12 @@ Callback failure, CAS failure, marker failure, or commit failure rolls back the
 domain rows, vector allocation, frontier position, and marker together. The
 substrate rejects a nested substrate transaction on the same instance.
 
-The callback context is intentionally available only from the internal module;
-the stable package root and the MCP command port expose neither the SQLite handle
-nor a generic mutation operation.
+The callback context is intentionally available only through a module-private
+WeakMap capability backed by a JavaScript private substrate method. Core stores
+the substrate in a JavaScript private field. Reflecting over a public Core or
+substrate instance therefore reveals neither the owned substrate, a generic
+mutation method/symbol, nor the SQLite callback context. The stable package root
+and MCP command port expose none of these capabilities.
 
 ## 6. Exact replay and corruption behavior
 
@@ -124,15 +128,19 @@ Object keys are sorted recursively. Exact replay requires all three to agree:
 3. canonical descriptor bytes stored in the marker.
 
 The callback is not rerun on replay. The stored fingerprint is recomputed on
-read, previous/current vectors are validated against the operation transition,
-and malformed or inconsistent marker content produces `CORRUPT_DATA`.
+read; descriptor scope/key/operation/kind must equal the marker columns; stored
+CAS expectations and next position must agree with the previous/current
+transition. Malformed or inconsistent marker content produces `CORRUPT_DATA`.
 
 ## 7. Migration and concurrency
 
 Migration runs under `BEGIN IMMEDIATE`. If the version table is absent, any
 pre-existing substrate table or trigger name is treated as a collision and the
 transaction rolls back. If the completion table exists, the expected columns,
-required triggers, and single supported version must validate before use.
+single supported version, and normalized `sqlite_master` SQL for every table and
+trigger must match the code-owned schema before use. This validates primary and
+foreign keys, checks, nullability, and immutable trigger bodies rather than only
+their names.
 
 SQLite busy/locked initialization races use the existing bounded retry policy.
 Two independent connections can therefore open a fresh or legacy database
@@ -142,8 +150,9 @@ produce one winner and one stable conflict.
 
 ## 8. Core and adapter boundary
 
-`ContextCompilerCore` owns the substrate lifecycle alongside the current Stores
-and exposes only `getRevisionVector(scope)` as a read query. Root exports contain
+`ContextCompilerCore` owns the substrate lifecycle in a JavaScript private field
+alongside the current Stores and exposes only `getRevisionVector(scope)` as a
+read query. Root exports contain
 the read types, constants, and stable error type, but not
 `SqliteRevisionSubstrate`, mutation helpers, or a database context. MCP remains a
 thin adapter over exactly the existing nine commands.
