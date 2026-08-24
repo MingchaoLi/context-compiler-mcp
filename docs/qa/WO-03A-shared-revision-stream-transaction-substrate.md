@@ -184,3 +184,140 @@ committed successfully and each allocated `ledger_revision: 1`.
 close B1–B4 and add regression coverage for each counterexample. QA did not
 modify Builder source, tests, architecture, inventory, handoff, work order,
 PROJECT_STATE, or ROADMAP, and did not start WO-03B or WO-04.
+
+---
+
+## 6. Independent re-QA — fixed candidate
+
+**Re-QA verdict: ACCEPTED**
+
+**Re-QA date:** 2026-08-24
+
+**Fixed Builder candidate:** `c93072dc5e4b5c89464b003e716bbb688b072b89`
+
+**Fixed candidate parent / retained QA rejection:**
+`99ab4445d7568c2b89c2550af739a1a49766adc2`
+
+The original `REJECTED` record above remains the historical verdict for Builder
+candidate `37765798c9be061d3dfe38adc7484d691a3f1ea8`. This append-only re-QA
+independently accepts only the fixed candidate pinned above.
+
+### 6.1 Fixed chain and change-scope facts
+
+- Branch was `main`; pre-write `HEAD` was exactly the fixed candidate, `HEAD^`
+  was exactly the retained QA rejection, and the worktree was clean.
+- `99ab444..c93072d` is one append-only Builder fix commit and changes exactly
+  the seven paths listed in the updated handoff:
+  - `docs/architecture/WO-03A-shared-revision-stream-transaction-substrate.md`;
+  - `docs/handoffs/WO-03A-shared-revision-stream-transaction-substrate.md`;
+  - `docs/inventory/WO-03A/substrate-schema-transaction-map.md`;
+  - `src/core.ts` and `src/revision-substrate.ts`;
+  - `test/core-boundary.test.ts` and `test/revision-substrate.test.ts`.
+- The retained QA file's Git blob was
+  `5f7d16b351ba11f71e78f30a0ada05398099143c` at both the rejection and fixed
+  candidate commits. Builder did not edit the rejection record.
+- The fixed source SHA-256 values independently matched the handoff:
+  `9ab332bb...c9599` for `src/revision-substrate.ts`,
+  `2c0a0e8e...f57453` for `src/core.ts`, and the unchanged
+  `f5d9c57a...44994a78` for `src/index.ts`.
+- Package/config/dependency, existing Raw/State/Recall/Experience/MCP/schema
+  owners, evaluation, official artifacts, PROJECT_STATE, ROADMAP, work order,
+  and every non-authorized path were unchanged by the fix.
+
+### 6.2 B1–B4 closure evidence
+
+#### B1 — Core/substrate runtime reflection boundary: CLOSED
+
+`ContextCompilerCore` now owns the substrate in JavaScript private field
+`#revisionSubstrate`. Direct substrate storage, transaction state, and mutation
+are JavaScript private; Core-only mutation helpers reach the private method via
+a module-private `WeakMap` capability.
+
+Independent reflection from the public root found:
+
+- no `revisionSubstrate` property and no `SqliteRevisionSubstrate` value among
+  `Reflect.ownKeys(core)` values;
+- no Core prototype mutation symbol;
+- no own key on a direct substrate instance;
+- only `constructor`, `getRevisionVector`, `getCommit`, and `close` on the
+  substrate prototype;
+- no `database`/`transactionOpen` property or prototype symbol; and
+- no substrate class, generic mutation helper, or transaction context on the
+  package root.
+
+The original public-Core reflection bypass could not be reproduced. MCP remains
+a command-port adapter and exposes no generic revision writer.
+
+#### B2 — stored descriptor and replay integrity: CLOSED
+
+Stored descriptors are now re-normalized and checked against marker row scope,
+commit ID, operation, kind, fingerprint, and canonical bytes. State expected
+revision and Frontier expected revision/position plus next position are checked
+against the persisted previous/current transition.
+
+Independent temporary-database attacks replaced the descriptor and matching
+SHA-256 for eight cases: scope, commit key, operation, kind, State CAS, Frontier
+revision, Frontier position, and Frontier next position. The exact immutable
+trigger was restored so schema reopen remained valid. Every marker read failed
+`CORRUPT_DATA`; every applicable retry also failed `CORRUPT_DATA`; all callback
+counts remained zero. A normal same-key/different-request retry independently
+remained `CONFLICT` with callback count zero.
+
+#### B3 — schema completion proof: CLOSED
+
+Reopen now compares whitespace-normalized `sqlite_master` SQL for the three
+tables and four triggers against code-owned definitions, in addition to exact
+column order and the single supported version row.
+
+Two independent temporary-database attacks failed closed as `STORAGE_FAILURE`:
+
+- a same-name/version schema missing PK, FK, CHECK, NOT NULL, and genuine
+  immutable trigger bodies; and
+- an otherwise valid substrate whose update trigger was replaced by a same-name
+  no-op INSERT trigger.
+
+The original duplicate-scope/forged-completion counterexample no longer opens.
+Fresh/legacy concurrent initialization and compatible idempotent reopen remain
+green in the focused suite.
+
+#### B4 — Unicode control scope validation: CLOSED
+
+Identifier validation now rejects Unicode general category `Cc` with
+`\p{Cc}`. Independent enumeration found 65 `Cc` code points (U+0000 through
+U+009F ranges); mutations placing every one in `stream_id` all failed
+`INVALID_INPUT` before allocation. Explicit U+0085 and U+009F shadow-namespace
+mutations also failed `INVALID_INPUT`, and the untouched control vector remained
+zero.
+
+### 6.3 Regression and compatibility results
+
+- Focused command:
+  `./node_modules/.bin/vitest run test/revision-substrate.test.ts test/core-boundary.test.ts test/mcp-service.test.ts --reporter=verbose`
+  — PASS, 3 files and 19 tests.
+- Full suite: `npm test` — PASS, 31 files passed and 1 skipped; 487 tests passed
+  and 1 skipped.
+- Build: `npm run build` — PASS (`tsc -p tsconfig.json`).
+- `git diff --check 99ab444..c93072d` — PASS.
+- Runtime exact-nine audit — PASS: command and capability counts are both 9,
+  the accepted order is unchanged, and forbidden generic root exports are
+  absent.
+- Prohibited-path audit — PASS. Current Raw/Event, State, Recall, Experience,
+  telemetry, evaluation/artifacts, package/config, MCP service/protocol, and
+  existing initialization owner have no fix-range diff.
+- Focused regression retains the previously accepted four-axis isolation,
+  State CAS, Frontier double-CAS, takeover identity/order and combined atomic
+  transition, callback/marker rollback, exact replay, concurrent first-open,
+  one-winner State race, legacy no-backfill, overflow, close, and lifecycle
+  evidence.
+
+All independent database diagnostics used only `:memory:` or `mkdtempSync`
+paths under the system temporary directory. No network, remote model,
+production database, sibling Host repository, destructive command, WO-03B, or
+WO-04 work was used or started.
+
+### 6.4 Re-QA disposition
+
+**ACCEPTED.** B1–B4 are closed at fixed candidate
+`c93072dc5e4b5c89464b003e716bbb688b072b89`, and no regression or remaining
+WO-03A blocker was found. This acceptance does not authorize or begin WO-03B or
+WO-04 and does not modify any Builder artifact.
