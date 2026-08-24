@@ -1,0 +1,1777 @@
+{
+  "schema_version": 1,
+  "observation_id": "codex-long-conversation-dogfood-01",
+  "input_contract_commit": "47eafe6178783d0976399fe118c37d783684c70d",
+  "source_candidate": "ad94f9350482be37f1a38538cf6b624fb69a2b9a",
+  "observation_baseline": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+  "host_data": {
+    "git_outcome_trace_count": 123,
+    "directive_reconstruction_count": 20,
+    "raw_private_conversation_included": false,
+    "primary_raw_event_count_before_feedback": 143,
+    "typed_state_kind": "oracle_typed_state_compiled_upper_bound",
+    "primary_state_revision": 2,
+    "historical_decision_id": "718a4acc-d180-47c3-ac59-d504f481f683",
+    "current_decision_id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+    "secondary_raw_event_count": 143,
+    "cold_raw_event_count": 143
+  },
+  "broad_composite": {
+    "wall_latency_ms": 8.12733399999999,
+    "context": {
+      "session_id": "codex-dogfood-01-primary",
+      "current_input": "请仅依据项目的当前权威材料作答。按 P01 至 P12 的固定顺序逐项回答；这是 1 个复合请求中的 12 个非独立 assertions，不得把它们报告成 12 个独立样本。对未知或未评估事项明确写未知或未评估，不得用推断补齐。\nP01: 当前唯一允许读写的项目目录及禁止重新引入的宿主依赖边界是什么？\nP02: 当前本地 stdio MCP 的精确工具数量是多少？\nP03: WO-V0-15 的状态及下一阶段唯一重心是什么？\nP04: Context / State 当前禁止继续开发的范围是什么？\nP05: WO-DS-14 ST-02 的 Extractor 真实结果是什么？不能只说测试通过。\nP06: feasibility-01 是否还等双真人，能否重跑？\nP07: Formal Host Mode 当前是什么状态？\nP08: PACE、Graph DB、Experience Formation 是否进入 v0？\nP09: legacy DB fallback 的名称是什么？\nP10: 当前非阻塞 performance 风险是什么？\nP11: 旧 Starlette／盲评路线与新的真实使用路线发生冲突时，当前 authority 是什么？\nP12: legacy DB 兼容至少有哪些两类并发迁移事实？",
+      "active_goals": [
+        {
+          "id": "c146664f-e959-4e85-a03d-b16884b36435",
+          "type": "GOAL",
+          "status": "ACTIVE",
+          "content": "Complete Codex Long-Conversation Dogfood-01 as observation-only evidence, then stop without modifying frozen core.",
+          "source_refs": [
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "active_constraints": [
+        {
+          "id": "12037bf1-c8ef-4411-9016-1bc606c53047",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "The local stdio MCP surface remains exactly nine tools.",
+          "source_refs": [
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+          ]
+        },
+        {
+          "id": "380249c7-8770-4222-bfa6-35e56b5b4470",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+          "source_refs": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        },
+        {
+          "id": "dc4e6a17-4fb8-46b5-bfd5-0e06476a8d66",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "WO-V0-15 remains frozen; this dogfood may observe, capture, evaluate, and report only, without changing Context algorithms, weights, dormant policy, ontology, or storage.",
+          "source_refs": [
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "active_decisions": [
+        {
+          "id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+          "type": "DECISION",
+          "status": "ACTIVE",
+          "content": "WO-V0-15 is ACCEPTED/FROZEN; the next phase is real long-term use and Event-Action-Outcome/Feedback data accumulation for future Experience Formation research.",
+          "source_refs": [
+            "b164ce64-c148-474d-83f0-1183a94e2eef",
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "open_questions": [
+        {
+          "id": "ab1280f0-39cf-410f-a3b0-519aaa3a81bc",
+          "type": "OPEN_QUESTION",
+          "status": "OPEN",
+          "content": "Does the full-database compile writer boundary create material lock, busy, or latency cost under real long history and multiple sessions?",
+          "source_refs": [
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+          ]
+        }
+      ],
+      "rejected_alternatives": [],
+      "compact_historical_notes": [
+        {
+          "id": "718a4acc-d180-47c3-ac59-d504f481f683",
+          "type": "DECISION",
+          "status": "SUPERSEDED",
+          "content": "Continue the Starlette feasibility route and wait for two condition-blind human reviewers before selecting the next phase.",
+          "reason": "Historical DS-11/DS-13 route",
+          "provenance_handles": [
+            "331a45c4-e3e7-440f-a3bb-895e1edd31fd"
+          ]
+        },
+        {
+          "id": "14638418-2e6b-4973-9ad1-26af1bebb9a8",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not add PACE-style paging or multi-granularity summaries to frozen v0.",
+          "reason": "Research backlog only",
+          "reopen_if": "A separate post-freeze research work order is approved",
+          "provenance_handles": [
+            "6eeba7ef-69e5-457a-bc98-b367d284752c"
+          ]
+        },
+        {
+          "id": "a45e286c-4a6b-47cc-850c-c7384b6b3163",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not introduce Graph DB or Experience Formation into the frozen infrastructure.",
+          "reason": "SQLite ledger is sufficient for data accumulation",
+          "reopen_if": "Real Experience experiments produce a concrete requirement",
+          "provenance_handles": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "6eeba7ef-69e5-457a-bc98-b367d284752c"
+          ]
+        },
+        {
+          "id": "d0c5231b-36bf-4564-af37-cd1803e2b2ba",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not implement Formal Host Mode in this dogfood observation.",
+          "reason": "Host integration requires a separate explicit work order",
+          "reopen_if": "A bounded host-adapter work order is approved",
+          "provenance_handles": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "recent_conversation": [
+        {
+          "id": "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "seq": 118,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "项目长期目标回到 Experience Formation；Context/State 只作为长期运行与积累 Event-Action-Outcome/Feedback 数据的基础设施。",
+          "source_event_id": "directive:D18"
+        },
+        {
+          "id": "04f330de-61a4-4ef8-a802-a3536d8ba9c3",
+          "seq": 119,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome c380f27f7518: docs: define v0 experience-ready foundation freeze",
+          "source_event_id": "git:c380f27f751801375582d0e9d17bc7396f288b1d"
+        },
+        {
+          "id": "a60a266e-e257-4422-bb34-e2e5d7c71fe7",
+          "seq": 120,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 2c666fc85c0b: docs: review WO-V0-15 foundation plan",
+          "source_event_id": "git:2c666fc85c0bac5362ad7fc63652782885173286"
+        },
+        {
+          "id": "f8552e84-9c1c-4987-a6f2-d4e2ffd4c1d6",
+          "seq": 121,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 21876b5364d0: docs: disposition v0 foundation plan review",
+          "source_event_id": "git:21876b5364d0cc83188d95db7b0d6175e232dc18"
+        },
+        {
+          "id": "dd3108bc-2d98-42f2-8632-de679c2c6609",
+          "seq": 122,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome c5405dc3065a: feat: close current-event extractor contract",
+          "source_event_id": "git:c5405dc3065a9eabf7ffb5351a6325757a8e66ff"
+        },
+        {
+          "id": "11caa7cf-1db4-4bd8-9bef-c8908212b4d8",
+          "seq": 123,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 314d309dff78: feat: add append-only experience ledger",
+          "source_event_id": "git:314d309dff7806633943d5b4796c2804c9cc9ba2"
+        },
+        {
+          "id": "74630826-a939-4f55-a154-9a69996f257b",
+          "seq": 124,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome e0d9af3acd32: feat: close operational context policy",
+          "source_event_id": "git:e0d9af3acd3273d592007f7cae273b2820807b36"
+        },
+        {
+          "id": "59a0868f-7ed2-4f98-ac9a-b8c0ace35739",
+          "seq": 125,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome c625e1632de7: docs: return WO-V0-15 from independent QA",
+          "source_event_id": "git:c625e1632de76e63d05ddfa68c787d19dc6fe2a7"
+        },
+        {
+          "id": "34c73a2f-0ba9-418f-973f-86308f246b9f",
+          "seq": 126,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 1d987a54dd81: fix: close WO-V0-15 QA correctness gaps",
+          "source_event_id": "git:1d987a54dd81ae09013d624a0ad9e107bf239d69"
+        },
+        {
+          "id": "a10f6d15-f00a-45b4-9ffb-90e93bac80bc",
+          "seq": 127,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 4e366f3bd154: qa: return WO-V0-15 fresh-db startup race",
+          "source_event_id": "git:4e366f3bd1545c1e9870de0f640195d0de232363"
+        },
+        {
+          "id": "5f1d1a74-efb9-475f-a950-a7e11cfaca9f",
+          "seq": 128,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 2739bc5251c2: fix: retry fresh SQLite initialization races",
+          "source_event_id": "git:2739bc5251c2a0b80d6b76b3977fb3903792a7e7"
+        },
+        {
+          "id": "5a6ce6a0-46a7-42b7-a95e-616b98f60233",
+          "seq": 129,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome d59feeb2e855: qa: return WO-V0-15 legacy migration race",
+          "source_event_id": "git:d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+        },
+        {
+          "id": "dab4e24e-bcf3-4c88-a1a7-05e929ed0a08",
+          "seq": 130,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 76169d8f99e6: fix: serialize legacy raw schema migration",
+          "source_event_id": "git:76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+        },
+        {
+          "id": "ae9df727-1eb6-4297-a2a5-e963baf1b6e5",
+          "seq": 131,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 87f6d4909723: qa: accept and freeze WO-V0-15",
+          "source_event_id": "git:87f6d49097234726aff973d54271f238e7ce8340"
+        },
+        {
+          "id": "06a46a31-6f5f-4f10-a8bd-de2fa881dcc3",
+          "seq": 132,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 4ccb4a2d1e3f: docs: challenge WO-V0-15 final freeze",
+          "source_event_id": "git:4ccb4a2d1e3fc51ce4e2aa960e97c26f4ea6af4e"
+        },
+        {
+          "id": "8186bf23-021d-4aaa-8be8-c5badc6ff574",
+          "seq": 133,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 7567ac1219db: fix: rebaseline dormancy after state updates",
+          "source_event_id": "git:7567ac1219db65886bdc157af969c51a379a9fb9"
+        },
+        {
+          "id": "9944a765-4379-4447-94dd-c1bef9f3fc26",
+          "seq": 134,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 69b803bc9490: docs: accept and freeze WO-V0-15 after final re-QA",
+          "source_event_id": "git:69b803bc94903bef277759df1d38c466485e80ae"
+        },
+        {
+          "id": "31dcf22e-68a8-499f-a9ca-f71cfb7e3ced",
+          "seq": 135,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome c016813ea261: docs: recheck WO-V0-15 freeze return",
+          "source_event_id": "git:c016813ea26134dedbd1ce09bfdcd6a1d73ea848"
+        },
+        {
+          "id": "736d1553-6c10-41a8-aa13-15a699a6cc5d",
+          "seq": 136,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome cdd1d7944645: fix: require global telemetry coverage for dormancy",
+          "source_event_id": "git:cdd1d79446453b3593f5486570a1f7c031af8ddb"
+        },
+        {
+          "id": "975c3339-d25b-49ac-8972-476ca12e781d",
+          "seq": 137,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 9883747fcffd: docs: return WO-V0-15 telemetry origin race",
+          "source_event_id": "git:9883747fcffdc6bdc6d01da31363ee3edf6f47d1"
+        },
+        {
+          "id": "04fdc323-e5db-4ca8-96ae-6205e024b839",
+          "seq": 138,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome ad94f9350482: fix: linearize compile telemetry origin",
+          "source_event_id": "git:ad94f9350482be37f1a38538cf6b624fb69a2b9a"
+        },
+        {
+          "id": "470b7b27-7ec0-4496-aef5-245559374d2c",
+          "seq": 139,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome e90c05f0cc09: docs: accept WO-V0-15 compile telemetry linearization",
+          "source_event_id": "git:e90c05f0cc091bdef6f4943dca9277bd992db635"
+        },
+        {
+          "id": "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "seq": 140,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。",
+          "source_event_id": "directive:D19"
+        },
+        {
+          "id": "09783ead-0d58-4477-a4ff-260059cbcc38",
+          "seq": 141,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 5d0b55331900: docs: review WO-V0-15 telemetry linearization",
+          "source_event_id": "git:5d0b5533190077bc49ff66b73998c5bf7a5217de"
+        },
+        {
+          "id": "f788d3d6-2f57-47d6-b699-96bf5da22923",
+          "seq": 142,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome b7f00cefe809: docs: align v0 freeze status",
+          "source_event_id": "git:b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+        },
+        {
+          "id": "48cea42f-83fc-4fe0-93e2-45e7f5e9547e",
+          "seq": 143,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。",
+          "source_event_id": "directive:D20"
+        }
+      ],
+      "retrieved_history": [
+        {
+          "id": "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "seq": 91,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "PACE 只保留为未来 Evidence Layer 研究候选；当前不引入多级摘要、glimpse、Graph DB 或 Experience abstraction。",
+          "source_event_id": "directive:D15"
+        },
+        {
+          "id": "b164ce64-c148-474d-83f0-1183a94e2eef",
+          "seq": 116,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "WO-DS-14 封存 feasibility-01，不再等待或补填双真人盲评；ST-02 Extractor correctness 明确失败，Predicted State 全空。",
+          "source_event_id": "directive:D17"
+        },
+        {
+          "id": "8d4d66ab-f093-418f-8ecd-0dd824b0c2dc",
+          "seq": 90,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome ca62440b8843: docs: freeze v0 state compilation scope",
+          "source_event_id": "git:ca62440b8843fef3961c1383c466227b744b65a9"
+        },
+        {
+          "id": "299fc626-7062-40dc-a3c9-84df399ea7ca",
+          "seq": 85,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 18a332fd06d7: evaluation: capture DS-12 feasibility answers",
+          "source_event_id": "git:18a332fd06d7ebdfc8c0007ae1e9250db14c82cf"
+        },
+        {
+          "id": "6c578302-d9ed-4c6f-88ef-be320d0184cf",
+          "seq": 27,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 2f8fe94168e7: docs(qa): accept WO-DS-02 schema pilot",
+          "source_event_id": "git:2f8fe94168e7bda42ac5c28a88631e7a197f19db"
+        },
+        {
+          "id": "0ca2b9a1-2a5f-4e6f-a30e-731cfc52d3e4",
+          "seq": 23,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 0226a754cb4d: docs(qa): fail WO-DS-02 pilot audit",
+          "source_event_id": "git:0226a754cb4d7cd24d2aa9d8599bb152b8835b13"
+        },
+        {
+          "id": "5d3d46d0-1730-46b7-90c9-af563219cbea",
+          "seq": 25,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome ad2ac608825d: docs(qa): record WO-DS-02 re-QA failure",
+          "source_event_id": "git:ad2ac608825d7e284e08fd015a73e89dc168fc30"
+        },
+        {
+          "id": "b50b63f9-6e30-4ccf-baa4-2cbdaf377dea",
+          "seq": 106,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome daa012c4d6f0: docs: accept DS-14 ST-01 re-QA",
+          "source_event_id": "git:daa012c4d6f09919e798edc3771cf090bd5dd188"
+        }
+      ],
+      "operational_debug": {
+        "mode": "normal",
+        "dense_availability": "dense_unavailable_query_missing",
+        "candidate_turn_count": 15,
+        "candidate_seq_start": 13,
+        "candidate_seq_end": 117,
+        "retrieval_limit": 8,
+        "retrieved_event_ids": [
+          "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "b164ce64-c148-474d-83f0-1183a94e2eef",
+          "8d4d66ab-f093-418f-8ecd-0dd824b0c2dc",
+          "299fc626-7062-40dc-a3c9-84df399ea7ca",
+          "6c578302-d9ed-4c6f-88ef-be320d0184cf",
+          "0ca2b9a1-2a5f-4e6f-a30e-731cfc52d3e4",
+          "5d3d46d0-1730-46b7-90c9-af563219cbea",
+          "b50b63f9-6e30-4ccf-baa4-2cbdaf377dea"
+        ],
+        "retrieved_tokens": 142,
+        "telemetry_complete": true,
+        "dormancy_enabled": false,
+        "dormant_state_ids": [],
+        "reactivated_state_ids": [],
+        "compile_trace_seq": 144
+      }
+    },
+    "metrics": {
+      "full_context_tokens": 3056,
+      "compiled_context_tokens": 1511,
+      "recent_window_tokens": 710,
+      "active_state_tokens": 193,
+      "retrieved_tokens": 142,
+      "compile_latency_ms": 8.024417,
+      "extractor_latency_ms": 0,
+      "active_state_items": 6,
+      "suppressed_items": 0
+    }
+  },
+  "targeted_recall": {
+    "normal": {
+      "metrics": {
+        "full_context_tokens": 2922,
+        "compiled_context_tokens": 1228,
+        "recent_window_tokens": 575,
+        "active_state_tokens": 193,
+        "retrieved_tokens": 21,
+        "compile_latency_ms": 4.072249999999997,
+        "extractor_latency_ms": 0,
+        "active_state_items": 6,
+        "suppressed_items": 0
+      },
+      "operational_debug": {
+        "mode": "normal",
+        "dense_availability": "dense_unavailable_query_missing",
+        "candidate_turn_count": 15,
+        "candidate_seq_start": 13,
+        "candidate_seq_end": 117,
+        "retrieval_limit": 8,
+        "retrieved_event_ids": [
+          "6eeba7ef-69e5-457a-bc98-b367d284752c"
+        ],
+        "retrieved_tokens": 21,
+        "telemetry_complete": true,
+        "dormancy_enabled": true,
+        "dormant_state_ids": [],
+        "reactivated_state_ids": [],
+        "compile_trace_seq": 159
+      },
+      "dsh_home_present": false,
+      "recent_conversation": [
+        {
+          "id": "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 118,
+          "role": "user",
+          "content": "项目长期目标回到 Experience Formation；Context/State 只作为长期运行与积累 Event-Action-Outcome/Feedback 数据的基础设施。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T15:27:14.001Z",
+          "token_count": 24,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D18",
+            "after_commit": "7c529af3987e9fde8a769a6bc69f62d57ecf2e13"
+          },
+          "source_event_id": "directive:D18"
+        },
+        {
+          "id": "04f330de-61a4-4ef8-a802-a3536d8ba9c3",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 119,
+          "role": "tool",
+          "content": "Git outcome c380f27f7518: docs: define v0 experience-ready foundation freeze",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T16:25:48.000Z",
+          "token_count": 19,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "c380f27f751801375582d0e9d17bc7396f288b1d"
+          },
+          "source_event_id": "git:c380f27f751801375582d0e9d17bc7396f288b1d"
+        },
+        {
+          "id": "a60a266e-e257-4422-bb34-e2e5d7c71fe7",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 120,
+          "role": "tool",
+          "content": "Git outcome 2c666fc85c0b: docs: review WO-V0-15 foundation plan",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T16:31:40.000Z",
+          "token_count": 16,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "2c666fc85c0bac5362ad7fc63652782885173286"
+          },
+          "source_event_id": "git:2c666fc85c0bac5362ad7fc63652782885173286"
+        },
+        {
+          "id": "f8552e84-9c1c-4987-a6f2-d4e2ffd4c1d6",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 121,
+          "role": "tool",
+          "content": "Git outcome 21876b5364d0: docs: disposition v0 foundation plan review",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T16:33:55.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "21876b5364d0cc83188d95db7b0d6175e232dc18"
+          },
+          "source_event_id": "git:21876b5364d0cc83188d95db7b0d6175e232dc18"
+        },
+        {
+          "id": "dd3108bc-2d98-42f2-8632-de679c2c6609",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 122,
+          "role": "tool",
+          "content": "Git outcome c5405dc3065a: feat: close current-event extractor contract",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T16:49:55.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "c5405dc3065a9eabf7ffb5351a6325757a8e66ff"
+          },
+          "source_event_id": "git:c5405dc3065a9eabf7ffb5351a6325757a8e66ff"
+        },
+        {
+          "id": "11caa7cf-1db4-4bd8-9bef-c8908212b4d8",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 123,
+          "role": "tool",
+          "content": "Git outcome 314d309dff78: feat: add append-only experience ledger",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T17:00:37.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "314d309dff7806633943d5b4796c2804c9cc9ba2"
+          },
+          "source_event_id": "git:314d309dff7806633943d5b4796c2804c9cc9ba2"
+        },
+        {
+          "id": "74630826-a939-4f55-a154-9a69996f257b",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 124,
+          "role": "tool",
+          "content": "Git outcome e0d9af3acd32: feat: close operational context policy",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T17:25:50.000Z",
+          "token_count": 16,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "e0d9af3acd3273d592007f7cae273b2820807b36"
+          },
+          "source_event_id": "git:e0d9af3acd3273d592007f7cae273b2820807b36"
+        },
+        {
+          "id": "59a0868f-7ed2-4f98-ac9a-b8c0ace35739",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 125,
+          "role": "tool",
+          "content": "Git outcome c625e1632de7: docs: return WO-V0-15 from independent QA",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T17:38:18.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "c625e1632de76e63d05ddfa68c787d19dc6fe2a7"
+          },
+          "source_event_id": "git:c625e1632de76e63d05ddfa68c787d19dc6fe2a7"
+        },
+        {
+          "id": "34c73a2f-0ba9-418f-973f-86308f246b9f",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 126,
+          "role": "tool",
+          "content": "Git outcome 1d987a54dd81: fix: close WO-V0-15 QA correctness gaps",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T17:58:37.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "1d987a54dd81ae09013d624a0ad9e107bf239d69"
+          },
+          "source_event_id": "git:1d987a54dd81ae09013d624a0ad9e107bf239d69"
+        },
+        {
+          "id": "a10f6d15-f00a-45b4-9ffb-90e93bac80bc",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 127,
+          "role": "tool",
+          "content": "Git outcome 4e366f3bd154: qa: return WO-V0-15 fresh-db startup race",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:08:02.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "4e366f3bd1545c1e9870de0f640195d0de232363"
+          },
+          "source_event_id": "git:4e366f3bd1545c1e9870de0f640195d0de232363"
+        },
+        {
+          "id": "5f1d1a74-efb9-475f-a950-a7e11cfaca9f",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 128,
+          "role": "tool",
+          "content": "Git outcome 2739bc5251c2: fix: retry fresh SQLite initialization races",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:16:21.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "2739bc5251c2a0b80d6b76b3977fb3903792a7e7"
+          },
+          "source_event_id": "git:2739bc5251c2a0b80d6b76b3977fb3903792a7e7"
+        },
+        {
+          "id": "5a6ce6a0-46a7-42b7-a95e-616b98f60233",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 129,
+          "role": "tool",
+          "content": "Git outcome d59feeb2e855: qa: return WO-V0-15 legacy migration race",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:24:05.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+          },
+          "source_event_id": "git:d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+        },
+        {
+          "id": "dab4e24e-bcf3-4c88-a1a7-05e929ed0a08",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 130,
+          "role": "tool",
+          "content": "Git outcome 76169d8f99e6: fix: serialize legacy raw schema migration",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:29:02.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+          },
+          "source_event_id": "git:76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+        },
+        {
+          "id": "ae9df727-1eb6-4297-a2a5-e963baf1b6e5",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 131,
+          "role": "tool",
+          "content": "Git outcome 87f6d4909723: qa: accept and freeze WO-V0-15",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:36:43.000Z",
+          "token_count": 14,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "87f6d49097234726aff973d54271f238e7ce8340"
+          },
+          "source_event_id": "git:87f6d49097234726aff973d54271f238e7ce8340"
+        },
+        {
+          "id": "06a46a31-6f5f-4f10-a8bd-de2fa881dcc3",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 132,
+          "role": "tool",
+          "content": "Git outcome 4ccb4a2d1e3f: docs: challenge WO-V0-15 final freeze",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:42:52.000Z",
+          "token_count": 16,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "4ccb4a2d1e3fc51ce4e2aa960e97c26f4ea6af4e"
+          },
+          "source_event_id": "git:4ccb4a2d1e3fc51ce4e2aa960e97c26f4ea6af4e"
+        },
+        {
+          "id": "8186bf23-021d-4aaa-8be8-c5badc6ff574",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 133,
+          "role": "tool",
+          "content": "Git outcome 7567ac1219db: fix: rebaseline dormancy after state updates",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:53:32.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "7567ac1219db65886bdc157af969c51a379a9fb9"
+          },
+          "source_event_id": "git:7567ac1219db65886bdc157af969c51a379a9fb9"
+        },
+        {
+          "id": "9944a765-4379-4447-94dd-c1bef9f3fc26",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 134,
+          "role": "tool",
+          "content": "Git outcome 69b803bc9490: docs: accept and freeze WO-V0-15 after final re-QA",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:00:21.000Z",
+          "token_count": 19,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "69b803bc94903bef277759df1d38c466485e80ae"
+          },
+          "source_event_id": "git:69b803bc94903bef277759df1d38c466485e80ae"
+        },
+        {
+          "id": "31dcf22e-68a8-499f-a9ca-f71cfb7e3ced",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 135,
+          "role": "tool",
+          "content": "Git outcome c016813ea261: docs: recheck WO-V0-15 freeze return",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:07:16.000Z",
+          "token_count": 16,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "c016813ea26134dedbd1ce09bfdcd6a1d73ea848"
+          },
+          "source_event_id": "git:c016813ea26134dedbd1ce09bfdcd6a1d73ea848"
+        },
+        {
+          "id": "736d1553-6c10-41a8-aa13-15a699a6cc5d",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 136,
+          "role": "tool",
+          "content": "Git outcome cdd1d7944645: fix: require global telemetry coverage for dormancy",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:21:17.000Z",
+          "token_count": 20,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "cdd1d79446453b3593f5486570a1f7c031af8ddb"
+          },
+          "source_event_id": "git:cdd1d79446453b3593f5486570a1f7c031af8ddb"
+        },
+        {
+          "id": "975c3339-d25b-49ac-8972-476ca12e781d",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 137,
+          "role": "tool",
+          "content": "Git outcome 9883747fcffd: docs: return WO-V0-15 telemetry origin race",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:32:23.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "9883747fcffdc6bdc6d01da31363ee3edf6f47d1"
+          },
+          "source_event_id": "git:9883747fcffdc6bdc6d01da31363ee3edf6f47d1"
+        },
+        {
+          "id": "04fdc323-e5db-4ca8-96ae-6205e024b839",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 138,
+          "role": "tool",
+          "content": "Git outcome ad94f9350482: fix: linearize compile telemetry origin",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:44:56.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "ad94f9350482be37f1a38538cf6b624fb69a2b9a"
+          },
+          "source_event_id": "git:ad94f9350482be37f1a38538cf6b624fb69a2b9a"
+        },
+        {
+          "id": "470b7b27-7ec0-4496-aef5-245559374d2c",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 139,
+          "role": "tool",
+          "content": "Git outcome e90c05f0cc09: docs: accept WO-V0-15 compile telemetry linearization",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T19:53:59.000Z",
+          "token_count": 20,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "e90c05f0cc091bdef6f4943dca9277bd992db635"
+          },
+          "source_event_id": "git:e90c05f0cc091bdef6f4943dca9277bd992db635"
+        },
+        {
+          "id": "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 140,
+          "role": "user",
+          "content": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T19:53:59.001Z",
+          "token_count": 21,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D19",
+            "after_commit": "e90c05f0cc091bdef6f4943dca9277bd992db635"
+          },
+          "source_event_id": "directive:D19"
+        },
+        {
+          "id": "09783ead-0d58-4477-a4ff-260059cbcc38",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 141,
+          "role": "tool",
+          "content": "Git outcome 5d0b55331900: docs: review WO-V0-15 telemetry linearization",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T20:02:00.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "5d0b5533190077bc49ff66b73998c5bf7a5217de"
+          },
+          "source_event_id": "git:5d0b5533190077bc49ff66b73998c5bf7a5217de"
+        },
+        {
+          "id": "f788d3d6-2f57-47d6-b699-96bf5da22923",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 142,
+          "role": "tool",
+          "content": "Git outcome b7f00cefe809: docs: align v0 freeze status",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T20:02:39.000Z",
+          "token_count": 14,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+          },
+          "source_event_id": "git:b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+        },
+        {
+          "id": "48cea42f-83fc-4fe0-93e2-45e7f5e9547e",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 143,
+          "role": "user",
+          "content": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T20:02:39.001Z",
+          "token_count": 28,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D20",
+            "after_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+          },
+          "source_event_id": "directive:D20"
+        }
+      ],
+      "retrieved_history": [
+        {
+          "id": "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 91,
+          "role": "user",
+          "content": "PACE 只保留为未来 Evidence Layer 研究候选；当前不引入多级摘要、glimpse、Graph DB 或 Experience abstraction。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T10:34:50.001Z",
+          "token_count": 21,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D15",
+            "after_commit": "ca62440b8843fef3961c1383c466227b744b65a9"
+          },
+          "source_event_id": "directive:D15"
+        }
+      ]
+    },
+    "verified_failure_event_id": "59ea3d67-04dd-4a34-aa9f-4cd156558850",
+    "recovery": {
+      "metrics": {
+        "full_context_tokens": 2954,
+        "compiled_context_tokens": 868,
+        "recent_window_tokens": 140,
+        "active_state_tokens": 193,
+        "retrieved_tokens": 91,
+        "compile_latency_ms": 3.7342919999999964,
+        "extractor_latency_ms": 0,
+        "active_state_items": 6,
+        "suppressed_items": 0
+      },
+      "operational_debug": {
+        "mode": "targeted_recovery",
+        "dense_availability": "dense_unavailable_query_missing",
+        "candidate_turn_count": 18,
+        "candidate_seq_start": 3,
+        "candidate_seq_end": 139,
+        "retrieval_limit": 16,
+        "retrieved_event_ids": [
+          "42f175e3-c14a-4c87-925b-bb4bf1df2857",
+          "dab4e24e-bcf3-4c88-a1a7-05e929ed0a08",
+          "a10f6d15-f00a-45b4-9ffb-90e93bac80bc",
+          "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "5a6ce6a0-46a7-42b7-a95e-616b98f60233"
+        ],
+        "retrieved_tokens": 91,
+        "telemetry_complete": true,
+        "dormancy_enabled": true,
+        "dormant_state_ids": [],
+        "reactivated_state_ids": [],
+        "compile_trace_seq": 162
+      },
+      "dsh_home_present": true,
+      "recent_conversation": [
+        {
+          "id": "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 140,
+          "role": "user",
+          "content": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T19:53:59.001Z",
+          "token_count": 21,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D19",
+            "after_commit": "e90c05f0cc091bdef6f4943dca9277bd992db635"
+          },
+          "source_event_id": "directive:D19"
+        },
+        {
+          "id": "09783ead-0d58-4477-a4ff-260059cbcc38",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 141,
+          "role": "tool",
+          "content": "Git outcome 5d0b55331900: docs: review WO-V0-15 telemetry linearization",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T20:02:00.000Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "5d0b5533190077bc49ff66b73998c5bf7a5217de"
+          },
+          "source_event_id": "git:5d0b5533190077bc49ff66b73998c5bf7a5217de"
+        },
+        {
+          "id": "f788d3d6-2f57-47d6-b699-96bf5da22923",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 142,
+          "role": "tool",
+          "content": "Git outcome b7f00cefe809: docs: align v0 freeze status",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T20:02:39.000Z",
+          "token_count": 14,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+          },
+          "source_event_id": "git:b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+        },
+        {
+          "id": "48cea42f-83fc-4fe0-93e2-45e7f5e9547e",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 143,
+          "role": "user",
+          "content": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T20:02:39.001Z",
+          "token_count": 28,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D20",
+            "after_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+          },
+          "source_event_id": "directive:D20"
+        },
+        {
+          "id": "59ea3d67-04dd-4a34-aa9f-4cd156558850",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 144,
+          "role": "user",
+          "content": "Verified failure: the preceding normal bounded compile did not recover the requested legacy database fallback fact.",
+          "event_type": "verified_failure",
+          "created_at": "2026-08-24T00:40:34.433Z",
+          "token_count": 29,
+          "metadata": {
+            "source_kind": "dogfood_observation_feedback",
+            "related_operation_id": "dg01-recall-normal"
+          },
+          "source_event_id": "dg01:verified-failure:legacy-fallback"
+        }
+      ],
+      "retrieved_history": [
+        {
+          "id": "42f175e3-c14a-4c87-925b-bb4bf1df2857",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 4,
+          "role": "user",
+          "content": "独立迁移 QA 保留显式 CONTEXT_COMPILER_DB_PATH 优先级，并保留 legacy DSH_HOME fallback。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-22T17:20:57.002Z",
+          "token_count": 18,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D02",
+            "after_commit": "4ef722387a00fafb2743af9a3c2877988515c5bb"
+          },
+          "source_event_id": "directive:D02"
+        },
+        {
+          "id": "dab4e24e-bcf3-4c88-a1a7-05e929ed0a08",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 130,
+          "role": "tool",
+          "content": "Git outcome 76169d8f99e6: fix: serialize legacy raw schema migration",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:29:02.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+          },
+          "source_event_id": "git:76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+        },
+        {
+          "id": "a10f6d15-f00a-45b4-9ffb-90e93bac80bc",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 127,
+          "role": "tool",
+          "content": "Git outcome 4e366f3bd154: qa: return WO-V0-15 fresh-db startup race",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:08:02.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "4e366f3bd1545c1e9870de0f640195d0de232363"
+          },
+          "source_event_id": "git:4e366f3bd1545c1e9870de0f640195d0de232363"
+        },
+        {
+          "id": "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 91,
+          "role": "user",
+          "content": "PACE 只保留为未来 Evidence Layer 研究候选；当前不引入多级摘要、glimpse、Graph DB 或 Experience abstraction。",
+          "event_type": "host_directive_summary",
+          "created_at": "2026-08-23T10:34:50.001Z",
+          "token_count": 21,
+          "metadata": {
+            "source_kind": "retrospective_sanitized_reconstruction",
+            "directive_id": "D15",
+            "after_commit": "ca62440b8843fef3961c1383c466227b744b65a9"
+          },
+          "source_event_id": "directive:D15"
+        },
+        {
+          "id": "5a6ce6a0-46a7-42b7-a95e-616b98f60233",
+          "session_id": "codex-dogfood-01-primary",
+          "seq": 129,
+          "role": "tool",
+          "content": "Git outcome d59feeb2e855: qa: return WO-V0-15 legacy migration race",
+          "event_type": "git_commit",
+          "created_at": "2026-08-23T18:24:05.000Z",
+          "token_count": 17,
+          "metadata": {
+            "source_kind": "git_outcome_trace",
+            "commit_sha": "d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+          },
+          "source_event_id": "git:d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+        }
+      ]
+    }
+  },
+  "authority_diagnostic": {
+    "context": {
+      "session_id": "codex-dogfood-01-primary",
+      "current_input": "当前下一阶段唯一重心是什么？不要恢复已被 supersede 的旧 Starlette／双真人盲评路线。",
+      "active_goals": [
+        {
+          "id": "c146664f-e959-4e85-a03d-b16884b36435",
+          "type": "GOAL",
+          "status": "ACTIVE",
+          "content": "Complete Codex Long-Conversation Dogfood-01 as observation-only evidence, then stop without modifying frozen core.",
+          "source_refs": [
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "active_constraints": [
+        {
+          "id": "12037bf1-c8ef-4411-9016-1bc606c53047",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "The local stdio MCP surface remains exactly nine tools.",
+          "source_refs": [
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+          ]
+        },
+        {
+          "id": "380249c7-8770-4222-bfa6-35e56b5b4470",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+          "source_refs": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        },
+        {
+          "id": "dc4e6a17-4fb8-46b5-bfd5-0e06476a8d66",
+          "type": "CONSTRAINT",
+          "status": "ACTIVE",
+          "content": "WO-V0-15 remains frozen; this dogfood may observe, capture, evaluate, and report only, without changing Context algorithms, weights, dormant policy, ontology, or storage.",
+          "source_refs": [
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "active_decisions": [
+        {
+          "id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+          "type": "DECISION",
+          "status": "ACTIVE",
+          "content": "WO-V0-15 is ACCEPTED/FROZEN; the next phase is real long-term use and Event-Action-Outcome/Feedback data accumulation for future Experience Formation research.",
+          "source_refs": [
+            "b164ce64-c148-474d-83f0-1183a94e2eef",
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "open_questions": [
+        {
+          "id": "ab1280f0-39cf-410f-a3b0-519aaa3a81bc",
+          "type": "OPEN_QUESTION",
+          "status": "OPEN",
+          "content": "Does the full-database compile writer boundary create material lock, busy, or latency cost under real long history and multiple sessions?",
+          "source_refs": [
+            "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+          ]
+        }
+      ],
+      "rejected_alternatives": [],
+      "compact_historical_notes": [
+        {
+          "id": "718a4acc-d180-47c3-ac59-d504f481f683",
+          "type": "DECISION",
+          "status": "SUPERSEDED",
+          "content": "Continue the Starlette feasibility route and wait for two condition-blind human reviewers before selecting the next phase.",
+          "reason": "Historical DS-11/DS-13 route",
+          "provenance_handles": [
+            "331a45c4-e3e7-440f-a3bb-895e1edd31fd"
+          ]
+        },
+        {
+          "id": "14638418-2e6b-4973-9ad1-26af1bebb9a8",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not add PACE-style paging or multi-granularity summaries to frozen v0.",
+          "reason": "Research backlog only",
+          "reopen_if": "A separate post-freeze research work order is approved",
+          "provenance_handles": [
+            "6eeba7ef-69e5-457a-bc98-b367d284752c"
+          ]
+        },
+        {
+          "id": "a45e286c-4a6b-47cc-850c-c7384b6b3163",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not introduce Graph DB or Experience Formation into the frozen infrastructure.",
+          "reason": "SQLite ledger is sufficient for data accumulation",
+          "reopen_if": "Real Experience experiments produce a concrete requirement",
+          "provenance_handles": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "6eeba7ef-69e5-457a-bc98-b367d284752c"
+          ]
+        },
+        {
+          "id": "d0c5231b-36bf-4564-af37-cd1803e2b2ba",
+          "type": "REJECTED_ALTERNATIVE",
+          "status": "REJECTED",
+          "content": "Do not implement Formal Host Mode in this dogfood observation.",
+          "reason": "Host integration requires a separate explicit work order",
+          "reopen_if": "A bounded host-adapter work order is approved",
+          "provenance_handles": [
+            "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+            "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+          ]
+        }
+      ],
+      "recent_conversation": [
+        {
+          "id": "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "seq": 140,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。",
+          "source_event_id": "directive:D19"
+        },
+        {
+          "id": "09783ead-0d58-4477-a4ff-260059cbcc38",
+          "seq": 141,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 5d0b55331900: docs: review WO-V0-15 telemetry linearization",
+          "source_event_id": "git:5d0b5533190077bc49ff66b73998c5bf7a5217de"
+        },
+        {
+          "id": "f788d3d6-2f57-47d6-b699-96bf5da22923",
+          "seq": 142,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome b7f00cefe809: docs: align v0 freeze status",
+          "source_event_id": "git:b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+        },
+        {
+          "id": "48cea42f-83fc-4fe0-93e2-45e7f5e9547e",
+          "seq": 143,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。",
+          "source_event_id": "directive:D20"
+        },
+        {
+          "id": "59ea3d67-04dd-4a34-aa9f-4cd156558850",
+          "seq": 144,
+          "role": "user",
+          "event_type": "verified_failure",
+          "content": "Verified failure: the preceding normal bounded compile did not recover the requested legacy database fallback fact.",
+          "source_event_id": "dg01:verified-failure:legacy-fallback"
+        }
+      ],
+      "retrieved_history": [
+        {
+          "id": "331a45c4-e3e7-440f-a3bb-895e1edd31fd",
+          "seq": 99,
+          "role": "user",
+          "event_type": "host_directive_summary",
+          "content": "历史路线曾要求两名 condition-blind 人类完成 Starlette feasibility 语义盲评后再判断 D2。",
+          "source_event_id": "directive:D16"
+        },
+        {
+          "id": "aeca178c-cabb-4b94-99bc-d96a5691334b",
+          "seq": 78,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome bc78c42505c3: eval: preregister Starlette protocol canary",
+          "source_event_id": "git:bc78c42505c34ae6f3220db49b2e5a5af905d0eb"
+        },
+        {
+          "id": "da0fb4c5-31cc-4b02-a6b0-3472a424d619",
+          "seq": 49,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 4c6e740cddc7: docs: define Starlette promotion audit",
+          "source_event_id": "git:4c6e740cddc794e90a310f4c3ee60e739e339fe7"
+        },
+        {
+          "id": "007032c1-0d72-4621-97e6-c4307046e51f",
+          "seq": 41,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome fe2a3bb86991: docs: define Starlette wiring smoke",
+          "source_event_id": "git:fe2a3bb869918712dce5dcb3d62cc4ebbd006618"
+        },
+        {
+          "id": "b21704d2-8148-4aeb-8186-d720f94b1922",
+          "seq": 35,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 1d7b2d0d4032: feat: add Starlette long canary",
+          "source_event_id": "git:1d7b2d0d4032659c7b08cca3adadb296802840ce"
+        },
+        {
+          "id": "f31ca0e4-e849-42a7-8b0f-28d161a2c9b2",
+          "seq": 31,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 7537f5c5bef7: docs: amend Starlette tier preflight",
+          "source_event_id": "git:7537f5c5bef7faa6e90ed5ff77a81a9fc876a4b5"
+        },
+        {
+          "id": "305fd779-9837-46c1-8a5e-73f9b78ed544",
+          "seq": 29,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 97e571cc3caf: docs: review Starlette schema pilot",
+          "source_event_id": "git:97e571cc3cafba65f8d160739b31e56370ed6bbd"
+        },
+        {
+          "id": "7f696bd6-035c-449d-89ed-ec3f3bbbe7f9",
+          "seq": 22,
+          "role": "tool",
+          "event_type": "git_commit",
+          "content": "Git outcome 7424b3086354: feat: add Starlette schema pilot",
+          "source_event_id": "git:7424b308635489ff2d6c814a231c14d905242476"
+        }
+      ],
+      "operational_debug": {
+        "mode": "normal",
+        "dense_availability": "dense_unavailable_query_missing",
+        "candidate_turn_count": 15,
+        "candidate_seq_start": 17,
+        "candidate_seq_end": 139,
+        "retrieval_limit": 8,
+        "retrieved_event_ids": [
+          "331a45c4-e3e7-440f-a3bb-895e1edd31fd",
+          "aeca178c-cabb-4b94-99bc-d96a5691334b",
+          "da0fb4c5-31cc-4b02-a6b0-3472a424d619",
+          "007032c1-0d72-4621-97e6-c4307046e51f",
+          "b21704d2-8148-4aeb-8186-d720f94b1922",
+          "f31ca0e4-e849-42a7-8b0f-28d161a2c9b2",
+          "305fd779-9837-46c1-8a5e-73f9b78ed544",
+          "7f696bd6-035c-449d-89ed-ec3f3bbbe7f9"
+        ],
+        "retrieved_tokens": 126,
+        "telemetry_complete": true,
+        "dormancy_enabled": true,
+        "dormant_state_ids": [],
+        "reactivated_state_ids": [],
+        "compile_trace_seq": 168
+      }
+    },
+    "metrics": {
+      "full_context_tokens": 2961,
+      "compiled_context_tokens": 921,
+      "recent_window_tokens": 146,
+      "active_state_tokens": 193,
+      "retrieved_tokens": 126,
+      "compile_latency_ms": 4.113625000000013,
+      "extractor_latency_ms": 0,
+      "active_state_items": 6,
+      "suppressed_items": 0
+    },
+    "old_route_raw_present": true,
+    "current_route_state_present": true
+  },
+  "state_audit": {
+    "revision": 2,
+    "items": [
+      {
+        "id": "12037bf1-c8ef-4411-9016-1bc606c53047",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "The local stdio MCP surface remains exactly nine tools.",
+        "source_refs": [
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+        ]
+      },
+      {
+        "id": "380249c7-8770-4222-bfa6-35e56b5b4470",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+        "source_refs": [
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      },
+      {
+        "id": "718a4acc-d180-47c3-ac59-d504f481f683",
+        "type": "DECISION",
+        "status": "SUPERSEDED",
+        "content": "Continue the Starlette feasibility route and wait for two condition-blind human reviewers before selecting the next phase.",
+        "source_refs": [
+          "331a45c4-e3e7-440f-a3bb-895e1edd31fd"
+        ]
+      },
+      {
+        "id": "ab1280f0-39cf-410f-a3b0-519aaa3a81bc",
+        "type": "OPEN_QUESTION",
+        "status": "OPEN",
+        "content": "Does the full-database compile writer boundary create material lock, busy, or latency cost under real long history and multiple sessions?",
+        "source_refs": [
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+        ]
+      },
+      {
+        "id": "dc4e6a17-4fb8-46b5-bfd5-0e06476a8d66",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "WO-V0-15 remains frozen; this dogfood may observe, capture, evaluate, and report only, without changing Context algorithms, weights, dormant policy, ontology, or storage.",
+        "source_refs": [
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      },
+      {
+        "id": "14638418-2e6b-4973-9ad1-26af1bebb9a8",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not add PACE-style paging or multi-granularity summaries to frozen v0.",
+        "source_refs": [
+          "6eeba7ef-69e5-457a-bc98-b367d284752c"
+        ]
+      },
+      {
+        "id": "a45e286c-4a6b-47cc-850c-c7384b6b3163",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not introduce Graph DB or Experience Formation into the frozen infrastructure.",
+        "source_refs": [
+          "6eeba7ef-69e5-457a-bc98-b367d284752c",
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3"
+        ]
+      },
+      {
+        "id": "d0c5231b-36bf-4564-af37-cd1803e2b2ba",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not implement Formal Host Mode in this dogfood observation.",
+        "source_refs": [
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      },
+      {
+        "id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+        "type": "DECISION",
+        "status": "ACTIVE",
+        "content": "WO-V0-15 is ACCEPTED/FROZEN; the next phase is real long-term use and Event-Action-Outcome/Feedback data accumulation for future Experience Formation research.",
+        "source_refs": [
+          "b164ce64-c148-474d-83f0-1183a94e2eef",
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      },
+      {
+        "id": "c146664f-e959-4e85-a03d-b16884b36435",
+        "type": "GOAL",
+        "status": "ACTIVE",
+        "content": "Complete Codex Long-Conversation Dogfood-01 as observation-only evidence, then stop without modifying frozen core.",
+        "source_refs": [
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      }
+    ],
+    "lifecycle_relations": [
+      {
+        "session_id": "codex-dogfood-01-primary",
+        "source_id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+        "relation_type": "SUPERSEDES",
+        "target_id": "718a4acc-d180-47c3-ac59-d504f481f683",
+        "created_at": "2026-08-24T00:40:34.421Z"
+      }
+    ],
+    "relation_counts": {
+      "DERIVED_FROM": 16,
+      "SUPERSEDES": 1
+    }
+  },
+  "latency_observation": {
+    "environment": {
+      "node": "v25.6.1",
+      "platform": "darwin",
+      "arch": "arm64",
+      "scope": "single_machine_smoke_not_sla"
+    },
+    "cold_service_open_ms": 19.707458000000088,
+    "cold_compile_wall_ms": 2.6620410000000447,
+    "cold_compile_service_ms": 2.643332999999984,
+    "warm_sequential": [
+      {
+        "run": 1,
+        "wall_latency_ms": 3.6384589999999974,
+        "service_compile_latency_ms": 3.6241660000000024,
+        "ok": true
+      },
+      {
+        "run": 2,
+        "wall_latency_ms": 3.3680419999999884,
+        "service_compile_latency_ms": 3.358209000000002,
+        "ok": true
+      },
+      {
+        "run": 3,
+        "wall_latency_ms": 3.536958999999996,
+        "service_compile_latency_ms": 3.524291000000005,
+        "ok": true
+      },
+      {
+        "run": 4,
+        "wall_latency_ms": 3.04049999999998,
+        "service_compile_latency_ms": 3.0192910000000097,
+        "ok": true
+      },
+      {
+        "run": 5,
+        "wall_latency_ms": 3.1599999999999966,
+        "service_compile_latency_ms": 3.14945800000001,
+        "ok": true
+      }
+    ],
+    "concurrent_two_session_pairs": [
+      {
+        "startup_ms": [
+          21.48962499999999,
+          48.854750000000024
+        ],
+        "calls": [
+          {
+            "startup_ms": 21.48962499999999,
+            "call_ms": 19.490875000000017,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 19.25174999999996,
+            "compile_trace_seq": 192,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 48.854750000000024,
+            "call_ms": 6.525582999999983,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 6.307374999999979,
+            "compile_trace_seq": 144,
+            "ingested_seq": null
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          20.796333000000004,
+          47.59058300000004
+        ],
+        "calls": [
+          {
+            "startup_ms": 20.796333000000004,
+            "call_ms": 19.392583000000002,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 19.168624999999963,
+            "compile_trace_seq": 193,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 47.59058300000004,
+            "call_ms": 6.772541999999987,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 6.556292000000042,
+            "compile_trace_seq": 145,
+            "ingested_seq": null
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          20.759792000000004,
+          47.713708
+        ],
+        "calls": [
+          {
+            "startup_ms": 20.759792000000004,
+            "call_ms": 19.49112500000001,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 19.265417000000014,
+            "compile_trace_seq": 194,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 47.713708,
+            "call_ms": 6.755791999999985,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 6.55070900000004,
+            "compile_trace_seq": 146,
+            "ingested_seq": null
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          20.74254099999996,
+          47.690292000000056
+        ],
+        "calls": [
+          {
+            "startup_ms": 20.74254099999996,
+            "call_ms": 7.609375,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.396792000000005,
+            "compile_trace_seq": 195,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 47.690292000000056,
+            "call_ms": 18.71625000000006,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 18.49120800000003,
+            "compile_trace_seq": 147,
+            "ingested_seq": null
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          47.54237499999999,
+          20.69237499999997
+        ],
+        "calls": [
+          {
+            "startup_ms": 47.54237499999999,
+            "call_ms": 19.405500000000075,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 19.188458000000082,
+            "compile_trace_seq": 196,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 20.69237499999997,
+            "call_ms": 7.0206249999999955,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 6.806874999999991,
+            "compile_trace_seq": 148,
+            "ingested_seq": null
+          }
+        ]
+      }
+    ],
+    "compile_ingest_competition_pairs": [
+      {
+        "startup_ms": [
+          47.610374999999976,
+          20.627415999999926
+        ],
+        "calls": [
+          {
+            "startup_ms": 47.610374999999976,
+            "call_ms": 7.581999999999994,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.36466699999994,
+            "compile_trace_seq": 197,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 20.627415999999926,
+            "call_ms": 12.866291000000047,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": null,
+            "compile_trace_seq": null,
+            "ingested_seq": 144
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          47.64716699999997,
+          20.497583000000077
+        ],
+        "calls": [
+          {
+            "startup_ms": 47.64716699999997,
+            "call_ms": 7.768040999999926,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.544582999999989,
+            "compile_trace_seq": 198,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 20.497583000000077,
+            "call_ms": 12.885874999999942,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": null,
+            "compile_trace_seq": null,
+            "ingested_seq": 145
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          20.863833999999997,
+          47.95579099999998
+        ],
+        "calls": [
+          {
+            "startup_ms": 20.863833999999997,
+            "call_ms": 7.846041000000014,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.634082999999919,
+            "compile_trace_seq": 199,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 47.95579099999998,
+            "call_ms": 12.836000000000013,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": null,
+            "compile_trace_seq": null,
+            "ingested_seq": 146
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          47.77662499999997,
+          20.672124999999937
+        ],
+        "calls": [
+          {
+            "startup_ms": 47.77662499999997,
+            "call_ms": 7.717333000000053,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.495542,
+            "compile_trace_seq": 200,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 20.672124999999937,
+            "call_ms": 12.871457999999961,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": null,
+            "compile_trace_seq": null,
+            "ingested_seq": 147
+          }
+        ]
+      },
+      {
+        "startup_ms": [
+          20.685834,
+          47.776917000000026
+        ],
+        "calls": [
+          {
+            "startup_ms": 20.685834,
+            "call_ms": 7.762166000000093,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": 7.550749999999994,
+            "compile_trace_seq": 201,
+            "ingested_seq": null
+          },
+          {
+            "startup_ms": 47.776917000000026,
+            "call_ms": 12.839415999999915,
+            "ok": true,
+            "error_code": null,
+            "service_compile_latency_ms": null,
+            "compile_trace_seq": null,
+            "ingested_seq": 148
+          }
+        ]
+      }
+    ]
+  }
+}

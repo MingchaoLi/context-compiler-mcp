@@ -1,0 +1,500 @@
+{
+  "schema_version": 1,
+  "packet_id": "dg01-b-oracle-state-compiled-001",
+  "condition": "B_oracle_typed_state_compiled_upper_bound",
+  "sample_unit": "one_composite_request",
+  "assertion_units": 12,
+  "assertions_are_independent_samples": false,
+  "input_contract_commit": "47eafe6178783d0976399fe118c37d783684c70d",
+  "source_candidate": "ad94f9350482be37f1a38538cf6b624fb69a2b9a",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "medium",
+  "fork_turns": "none",
+  "attempt": 1,
+  "retry_count": 0,
+  "tool_use_allowed": false,
+  "ground_truth_visible": false,
+  "request": {
+    "instructions": "请仅依据项目的当前权威材料作答。按 P01 至 P12 的固定顺序逐项回答；这是 1 个复合请求中的 12 个非独立 assertions，不得把它们报告成 12 个独立样本。对未知或未评估事项明确写未知或未评估，不得用推断补齐。",
+    "probes": [
+      {
+        "id": "P01",
+        "order": 1,
+        "question": "当前唯一允许读写的项目目录及禁止重新引入的宿主依赖边界是什么？"
+      },
+      {
+        "id": "P02",
+        "order": 2,
+        "question": "当前本地 stdio MCP 的精确工具数量是多少？"
+      },
+      {
+        "id": "P03",
+        "order": 3,
+        "question": "WO-V0-15 的状态及下一阶段唯一重心是什么？"
+      },
+      {
+        "id": "P04",
+        "order": 4,
+        "question": "Context / State 当前禁止继续开发的范围是什么？"
+      },
+      {
+        "id": "P05",
+        "order": 5,
+        "question": "WO-DS-14 ST-02 的 Extractor 真实结果是什么？不能只说测试通过。"
+      },
+      {
+        "id": "P06",
+        "order": 6,
+        "question": "feasibility-01 是否还等双真人，能否重跑？"
+      },
+      {
+        "id": "P07",
+        "order": 7,
+        "question": "Formal Host Mode 当前是什么状态？"
+      },
+      {
+        "id": "P08",
+        "order": 8,
+        "question": "PACE、Graph DB、Experience Formation 是否进入 v0？"
+      },
+      {
+        "id": "P09",
+        "order": 9,
+        "question": "legacy DB fallback 的名称是什么？"
+      },
+      {
+        "id": "P10",
+        "order": 10,
+        "question": "当前非阻塞 performance 风险是什么？"
+      },
+      {
+        "id": "P11",
+        "order": 11,
+        "question": "旧 Starlette／盲评路线与新的真实使用路线发生冲突时，当前 authority 是什么？"
+      },
+      {
+        "id": "P12",
+        "order": 12,
+        "question": "legacy DB 兼容至少有哪些两类并发迁移事实？"
+      }
+    ]
+  },
+  "compiled_context": {
+    "session_id": "codex-dogfood-01-primary",
+    "current_input": "请仅依据项目的当前权威材料作答。按 P01 至 P12 的固定顺序逐项回答；这是 1 个复合请求中的 12 个非独立 assertions，不得把它们报告成 12 个独立样本。对未知或未评估事项明确写未知或未评估，不得用推断补齐。\nP01: 当前唯一允许读写的项目目录及禁止重新引入的宿主依赖边界是什么？\nP02: 当前本地 stdio MCP 的精确工具数量是多少？\nP03: WO-V0-15 的状态及下一阶段唯一重心是什么？\nP04: Context / State 当前禁止继续开发的范围是什么？\nP05: WO-DS-14 ST-02 的 Extractor 真实结果是什么？不能只说测试通过。\nP06: feasibility-01 是否还等双真人，能否重跑？\nP07: Formal Host Mode 当前是什么状态？\nP08: PACE、Graph DB、Experience Formation 是否进入 v0？\nP09: legacy DB fallback 的名称是什么？\nP10: 当前非阻塞 performance 风险是什么？\nP11: 旧 Starlette／盲评路线与新的真实使用路线发生冲突时，当前 authority 是什么？\nP12: legacy DB 兼容至少有哪些两类并发迁移事实？",
+    "active_goals": [
+      {
+        "id": "c146664f-e959-4e85-a03d-b16884b36435",
+        "type": "GOAL",
+        "status": "ACTIVE",
+        "content": "Complete Codex Long-Conversation Dogfood-01 as observation-only evidence, then stop without modifying frozen core.",
+        "source_refs": [
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      }
+    ],
+    "active_constraints": [
+      {
+        "id": "12037bf1-c8ef-4411-9016-1bc606c53047",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "The local stdio MCP surface remains exactly nine tools.",
+        "source_refs": [
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+        ]
+      },
+      {
+        "id": "380249c7-8770-4222-bfa6-35e56b5b4470",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+        "source_refs": [
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      },
+      {
+        "id": "dc4e6a17-4fb8-46b5-bfd5-0e06476a8d66",
+        "type": "CONSTRAINT",
+        "status": "ACTIVE",
+        "content": "WO-V0-15 remains frozen; this dogfood may observe, capture, evaluate, and report only, without changing Context algorithms, weights, dormant policy, ontology, or storage.",
+        "source_refs": [
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      }
+    ],
+    "active_decisions": [
+      {
+        "id": "425a22ef-411a-4462-8ce3-acc30dae95ae",
+        "type": "DECISION",
+        "status": "ACTIVE",
+        "content": "WO-V0-15 is ACCEPTED/FROZEN; the next phase is real long-term use and Event-Action-Outcome/Feedback data accumulation for future Experience Formation research.",
+        "source_refs": [
+          "b164ce64-c148-474d-83f0-1183a94e2eef",
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "ab1280f0-39cf-410f-a3b0-519aaa3a81bc",
+        "type": "OPEN_QUESTION",
+        "status": "OPEN",
+        "content": "Does the full-database compile writer boundary create material lock, busy, or latency cost under real long history and multiple sessions?",
+        "source_refs": [
+          "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a"
+        ]
+      }
+    ],
+    "rejected_alternatives": [],
+    "compact_historical_notes": [
+      {
+        "id": "718a4acc-d180-47c3-ac59-d504f481f683",
+        "type": "DECISION",
+        "status": "SUPERSEDED",
+        "content": "Continue the Starlette feasibility route and wait for two condition-blind human reviewers before selecting the next phase.",
+        "reason": "Historical DS-11/DS-13 route",
+        "provenance_handles": [
+          "331a45c4-e3e7-440f-a3bb-895e1edd31fd"
+        ]
+      },
+      {
+        "id": "14638418-2e6b-4973-9ad1-26af1bebb9a8",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not add PACE-style paging or multi-granularity summaries to frozen v0.",
+        "reason": "Research backlog only",
+        "reopen_if": "A separate post-freeze research work order is approved",
+        "provenance_handles": [
+          "6eeba7ef-69e5-457a-bc98-b367d284752c"
+        ]
+      },
+      {
+        "id": "a45e286c-4a6b-47cc-850c-c7384b6b3163",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not introduce Graph DB or Experience Formation into the frozen infrastructure.",
+        "reason": "SQLite ledger is sufficient for data accumulation",
+        "reopen_if": "Real Experience experiments produce a concrete requirement",
+        "provenance_handles": [
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "6eeba7ef-69e5-457a-bc98-b367d284752c"
+        ]
+      },
+      {
+        "id": "d0c5231b-36bf-4564-af37-cd1803e2b2ba",
+        "type": "REJECTED_ALTERNATIVE",
+        "status": "REJECTED",
+        "content": "Do not implement Formal Host Mode in this dogfood observation.",
+        "reason": "Host integration requires a separate explicit work order",
+        "reopen_if": "A bounded host-adapter work order is approved",
+        "provenance_handles": [
+          "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+          "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"
+        ]
+      }
+    ],
+    "recent_conversation": [
+      {
+        "id": "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
+        "seq": 118,
+        "role": "user",
+        "event_type": "host_directive_summary",
+        "content": "项目长期目标回到 Experience Formation；Context/State 只作为长期运行与积累 Event-Action-Outcome/Feedback 数据的基础设施。",
+        "source_event_id": "directive:D18"
+      },
+      {
+        "id": "04f330de-61a4-4ef8-a802-a3536d8ba9c3",
+        "seq": 119,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome c380f27f7518: docs: define v0 experience-ready foundation freeze",
+        "source_event_id": "git:c380f27f751801375582d0e9d17bc7396f288b1d"
+      },
+      {
+        "id": "a60a266e-e257-4422-bb34-e2e5d7c71fe7",
+        "seq": 120,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 2c666fc85c0b: docs: review WO-V0-15 foundation plan",
+        "source_event_id": "git:2c666fc85c0bac5362ad7fc63652782885173286"
+      },
+      {
+        "id": "f8552e84-9c1c-4987-a6f2-d4e2ffd4c1d6",
+        "seq": 121,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 21876b5364d0: docs: disposition v0 foundation plan review",
+        "source_event_id": "git:21876b5364d0cc83188d95db7b0d6175e232dc18"
+      },
+      {
+        "id": "dd3108bc-2d98-42f2-8632-de679c2c6609",
+        "seq": 122,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome c5405dc3065a: feat: close current-event extractor contract",
+        "source_event_id": "git:c5405dc3065a9eabf7ffb5351a6325757a8e66ff"
+      },
+      {
+        "id": "11caa7cf-1db4-4bd8-9bef-c8908212b4d8",
+        "seq": 123,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 314d309dff78: feat: add append-only experience ledger",
+        "source_event_id": "git:314d309dff7806633943d5b4796c2804c9cc9ba2"
+      },
+      {
+        "id": "74630826-a939-4f55-a154-9a69996f257b",
+        "seq": 124,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome e0d9af3acd32: feat: close operational context policy",
+        "source_event_id": "git:e0d9af3acd3273d592007f7cae273b2820807b36"
+      },
+      {
+        "id": "59a0868f-7ed2-4f98-ac9a-b8c0ace35739",
+        "seq": 125,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome c625e1632de7: docs: return WO-V0-15 from independent QA",
+        "source_event_id": "git:c625e1632de76e63d05ddfa68c787d19dc6fe2a7"
+      },
+      {
+        "id": "34c73a2f-0ba9-418f-973f-86308f246b9f",
+        "seq": 126,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 1d987a54dd81: fix: close WO-V0-15 QA correctness gaps",
+        "source_event_id": "git:1d987a54dd81ae09013d624a0ad9e107bf239d69"
+      },
+      {
+        "id": "a10f6d15-f00a-45b4-9ffb-90e93bac80bc",
+        "seq": 127,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 4e366f3bd154: qa: return WO-V0-15 fresh-db startup race",
+        "source_event_id": "git:4e366f3bd1545c1e9870de0f640195d0de232363"
+      },
+      {
+        "id": "5f1d1a74-efb9-475f-a950-a7e11cfaca9f",
+        "seq": 128,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 2739bc5251c2: fix: retry fresh SQLite initialization races",
+        "source_event_id": "git:2739bc5251c2a0b80d6b76b3977fb3903792a7e7"
+      },
+      {
+        "id": "5a6ce6a0-46a7-42b7-a95e-616b98f60233",
+        "seq": 129,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome d59feeb2e855: qa: return WO-V0-15 legacy migration race",
+        "source_event_id": "git:d59feeb2e855f7f7ded729085e89e4559bf40c2d"
+      },
+      {
+        "id": "dab4e24e-bcf3-4c88-a1a7-05e929ed0a08",
+        "seq": 130,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 76169d8f99e6: fix: serialize legacy raw schema migration",
+        "source_event_id": "git:76169d8f99e6c0fbe7d99a640cd8d21c033cdf9e"
+      },
+      {
+        "id": "ae9df727-1eb6-4297-a2a5-e963baf1b6e5",
+        "seq": 131,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 87f6d4909723: qa: accept and freeze WO-V0-15",
+        "source_event_id": "git:87f6d49097234726aff973d54271f238e7ce8340"
+      },
+      {
+        "id": "06a46a31-6f5f-4f10-a8bd-de2fa881dcc3",
+        "seq": 132,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 4ccb4a2d1e3f: docs: challenge WO-V0-15 final freeze",
+        "source_event_id": "git:4ccb4a2d1e3fc51ce4e2aa960e97c26f4ea6af4e"
+      },
+      {
+        "id": "8186bf23-021d-4aaa-8be8-c5badc6ff574",
+        "seq": 133,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 7567ac1219db: fix: rebaseline dormancy after state updates",
+        "source_event_id": "git:7567ac1219db65886bdc157af969c51a379a9fb9"
+      },
+      {
+        "id": "9944a765-4379-4447-94dd-c1bef9f3fc26",
+        "seq": 134,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 69b803bc9490: docs: accept and freeze WO-V0-15 after final re-QA",
+        "source_event_id": "git:69b803bc94903bef277759df1d38c466485e80ae"
+      },
+      {
+        "id": "31dcf22e-68a8-499f-a9ca-f71cfb7e3ced",
+        "seq": 135,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome c016813ea261: docs: recheck WO-V0-15 freeze return",
+        "source_event_id": "git:c016813ea26134dedbd1ce09bfdcd6a1d73ea848"
+      },
+      {
+        "id": "736d1553-6c10-41a8-aa13-15a699a6cc5d",
+        "seq": 136,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome cdd1d7944645: fix: require global telemetry coverage for dormancy",
+        "source_event_id": "git:cdd1d79446453b3593f5486570a1f7c031af8ddb"
+      },
+      {
+        "id": "975c3339-d25b-49ac-8972-476ca12e781d",
+        "seq": 137,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 9883747fcffd: docs: return WO-V0-15 telemetry origin race",
+        "source_event_id": "git:9883747fcffdc6bdc6d01da31363ee3edf6f47d1"
+      },
+      {
+        "id": "04fdc323-e5db-4ca8-96ae-6205e024b839",
+        "seq": 138,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome ad94f9350482: fix: linearize compile telemetry origin",
+        "source_event_id": "git:ad94f9350482be37f1a38538cf6b624fb69a2b9a"
+      },
+      {
+        "id": "470b7b27-7ec0-4496-aef5-245559374d2c",
+        "seq": 139,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome e90c05f0cc09: docs: accept WO-V0-15 compile telemetry linearization",
+        "source_event_id": "git:e90c05f0cc091bdef6f4943dca9277bd992db635"
+      },
+      {
+        "id": "8a1d07b9-b0b9-49ba-bc77-55cac3b2d60a",
+        "seq": 140,
+        "role": "user",
+        "event_type": "host_directive_summary",
+        "content": "WO-V0-15 已独立 QA 接受并冻结，精确九工具保持；fresh DB 初始化、legacy Dense 列迁移与 EVENT backfill 并发问题已关闭。",
+        "source_event_id": "directive:D19"
+      },
+      {
+        "id": "09783ead-0d58-4477-a4ff-260059cbcc38",
+        "seq": 141,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 5d0b55331900: docs: review WO-V0-15 telemetry linearization",
+        "source_event_id": "git:5d0b5533190077bc49ff66b73998c5bf7a5217de"
+      },
+      {
+        "id": "f788d3d6-2f57-47d6-b699-96bf5da22923",
+        "seq": 142,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome b7f00cefe809: docs: align v0 freeze status",
+        "source_event_id": "git:b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed"
+      },
+      {
+        "id": "48cea42f-83fc-4fe0-93e2-45e7f5e9547e",
+        "seq": 143,
+        "role": "user",
+        "event_type": "host_directive_summary",
+        "content": "执行 Codex Long-Conversation Dogfood-01，只观察 A/B/C、检索与 writer latency；保持 v0 冻结，不修改算法、权重、dormant、ontology 或 storage。",
+        "source_event_id": "directive:D20"
+      }
+    ],
+    "retrieved_history": [
+      {
+        "id": "6eeba7ef-69e5-457a-bc98-b367d284752c",
+        "seq": 91,
+        "role": "user",
+        "event_type": "host_directive_summary",
+        "content": "PACE 只保留为未来 Evidence Layer 研究候选；当前不引入多级摘要、glimpse、Graph DB 或 Experience abstraction。",
+        "source_event_id": "directive:D15"
+      },
+      {
+        "id": "b164ce64-c148-474d-83f0-1183a94e2eef",
+        "seq": 116,
+        "role": "user",
+        "event_type": "host_directive_summary",
+        "content": "WO-DS-14 封存 feasibility-01，不再等待或补填双真人盲评；ST-02 Extractor correctness 明确失败，Predicted State 全空。",
+        "source_event_id": "directive:D17"
+      },
+      {
+        "id": "8d4d66ab-f093-418f-8ecd-0dd824b0c2dc",
+        "seq": 90,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome ca62440b8843: docs: freeze v0 state compilation scope",
+        "source_event_id": "git:ca62440b8843fef3961c1383c466227b744b65a9"
+      },
+      {
+        "id": "299fc626-7062-40dc-a3c9-84df399ea7ca",
+        "seq": 85,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 18a332fd06d7: evaluation: capture DS-12 feasibility answers",
+        "source_event_id": "git:18a332fd06d7ebdfc8c0007ae1e9250db14c82cf"
+      },
+      {
+        "id": "6c578302-d9ed-4c6f-88ef-be320d0184cf",
+        "seq": 27,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 2f8fe94168e7: docs(qa): accept WO-DS-02 schema pilot",
+        "source_event_id": "git:2f8fe94168e7bda42ac5c28a88631e7a197f19db"
+      },
+      {
+        "id": "0ca2b9a1-2a5f-4e6f-a30e-731cfc52d3e4",
+        "seq": 23,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome 0226a754cb4d: docs(qa): fail WO-DS-02 pilot audit",
+        "source_event_id": "git:0226a754cb4d7cd24d2aa9d8599bb152b8835b13"
+      },
+      {
+        "id": "5d3d46d0-1730-46b7-90c9-af563219cbea",
+        "seq": 25,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome ad2ac608825d: docs(qa): record WO-DS-02 re-QA failure",
+        "source_event_id": "git:ad2ac608825d7e284e08fd015a73e89dc168fc30"
+      },
+      {
+        "id": "b50b63f9-6e30-4ccf-baa4-2cbdaf377dea",
+        "seq": 106,
+        "role": "tool",
+        "event_type": "git_commit",
+        "content": "Git outcome daa012c4d6f0: docs: accept DS-14 ST-01 re-QA",
+        "source_event_id": "git:daa012c4d6f09919e798edc3771cf090bd5dd188"
+      }
+    ],
+    "operational_debug": {
+      "mode": "normal",
+      "dense_availability": "dense_unavailable_query_missing",
+      "candidate_turn_count": 15,
+      "candidate_seq_start": 13,
+      "candidate_seq_end": 117,
+      "retrieval_limit": 8,
+      "retrieved_event_ids": [
+        "6eeba7ef-69e5-457a-bc98-b367d284752c",
+        "b164ce64-c148-474d-83f0-1183a94e2eef",
+        "8d4d66ab-f093-418f-8ecd-0dd824b0c2dc",
+        "299fc626-7062-40dc-a3c9-84df399ea7ca",
+        "6c578302-d9ed-4c6f-88ef-be320d0184cf",
+        "0ca2b9a1-2a5f-4e6f-a30e-731cfc52d3e4",
+        "5d3d46d0-1730-46b7-90c9-af563219cbea",
+        "b50b63f9-6e30-4ccf-baa4-2cbdaf377dea"
+      ],
+      "retrieved_tokens": 142,
+      "telemetry_complete": true,
+      "dormancy_enabled": false,
+      "dormant_state_ids": [],
+      "reactivated_state_ids": [],
+      "compile_trace_seq": 144
+    }
+  }
+}
