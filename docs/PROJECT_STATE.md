@@ -16,7 +16,7 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
-WO-DG-01 已完成 observation/capture/report，等待独立 QA。它保持 WO-V0-15 `ACCEPTED / FROZEN`，比较 A=最小 repo refresh 后的当前 Codex 原生继承、B=人工 Oracle-State 的冻结 v0 `compile_context` upper bound、C=固定 Git/docs/QA Ground Truth。独立语义复核为 A `10 pass / 2 partial / 0 miss`、B `10 pass / 1 partial / 1 miss`；B 的 P09/DSH_HOME broad miss 在 verified-failure targeted recovery 中恢复。D0/D1/D2 原始 tokens 为 `3056/710/1511`，D2 比 D0 少约 50.6%、比 D1 多约 112.8%。没有修改 core、权重、dormant、ontology、storage 或 Experience Formation；宿主 opaque compaction 仍不可检查，A 的真实输入 token 与 compaction latency仍为 `not_observable`。
+WO-DG-01 已由独立 QA 接受并完成。它保持 WO-V0-15 `ACCEPTED / FROZEN`，比较 A=最小 repo refresh 后的当前 Codex 原生继承、B=人工 Oracle-State 的冻结 v0 `compile_context` upper bound、C=固定 Git/docs/QA Ground Truth。独立语义复核为 A `10 pass / 2 partial / 0 miss`、B `10 pass / 1 partial / 1 miss`；B 的 P09/DSH_HOME broad miss 在 verified-failure targeted recovery 中恢复。D0/D1/D2 原始 tokens 为 `3056/710/1511`，D2 比 D0 少约 50.6%、比 D1 多约 112.8%。没有修改 core、权重、dormant、ontology、storage 或 Experience Formation；宿主 opaque compaction 仍不可检查，A 的真实输入 token 与 compaction latency仍为 `not_observable`。QA 另记录报告的一处非阻塞尾随空白；不影响观测结论。
 
 WO-V0-15 的全部历史返回与接受证据继续 append-only 保留。第六个 compile telemetry 线性化 fix 已在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA，关闭首 trace 提交前跨实例 no-id compile 穿越 origin 的 TOCTOU P1；当前状态恢复为 **ACCEPTED / FROZEN**。完整 state/raw/ledger 读取、assembly、首 trace/hits 与 commit 处于同一可回滚 `BEGIN IMMEDIATE` boundary，竞争 raw/state writer 与 no-id compile 只能落在 origin 一侧。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval、Context 语义收益与 Experience Formation 效果都未评估。
 

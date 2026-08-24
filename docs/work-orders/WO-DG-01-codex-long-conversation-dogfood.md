@@ -1,6 +1,6 @@
 # WO-DG-01 — Codex Long-Conversation Dogfood-01
 
-状态：OBSERVATION COMPLETE — PENDING INDEPENDENT QA
+状态：ACCEPTED / COMPLETE
 
 ## 目标
 
