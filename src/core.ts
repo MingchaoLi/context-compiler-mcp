@@ -26,6 +26,13 @@ import {
   type KeywordRecallQuery,
 } from "./recall.js";
 import {
+  LedgerHotRawError,
+  SqliteLedgerHotRawStore,
+  type HotRawProjection,
+  type LedgerRawEvent,
+  type RawSourceProjectionInput,
+} from "./ledger-hot-raw.js";
+import {
   SqliteRawHistoryStore,
   estimateTokens,
   normalizeDenseEmbedding,
@@ -120,6 +127,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   private readonly recallStore: SqliteHistoryRecallStore;
   private readonly ledgerStore: SqliteExperienceLedgerStore;
   readonly #revisionSubstrate: SqliteRevisionSubstrate;
+  readonly #hotRawStore: SqliteLedgerHotRawStore;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -132,13 +140,16 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let recallStore: SqliteHistoryRecallStore | undefined;
     let ledgerStore: SqliteExperienceLedgerStore | undefined;
     let revisionSubstrate: SqliteRevisionSubstrate | undefined;
+    let hotRawStore: SqliteLedgerHotRawStore | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
       recallStore = new SqliteHistoryRecallStore(databasePath);
       ledgerStore = new SqliteExperienceLedgerStore(databasePath);
       revisionSubstrate = new SqliteRevisionSubstrate(databasePath);
+      hotRawStore = new SqliteLedgerHotRawStore(databasePath, revisionSubstrate);
     } catch {
+      try { hotRawStore?.close(); } catch { /* preserve stable startup failure */ }
       try { revisionSubstrate?.close(); } catch { /* preserve stable startup failure */ }
       try { recallStore?.close(); } catch { /* preserve stable startup failure */ }
       try { ledgerStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -152,6 +163,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.recallStore = recallStore;
     this.ledgerStore = ledgerStore;
     this.#revisionSubstrate = revisionSubstrate;
+    this.#hotRawStore = hotRawStore;
   }
 
   call(
@@ -222,11 +234,34 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Domain-specific Core append; not part of the MCP command port. */
+  appendRawSourceProjection(input: RawSourceProjectionInput): LedgerRawEvent {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "raw source projection input");
+      return this.#hotRawStore.append(input);
+    } catch (error) {
+      throw mapLedgerHotRawError(error);
+    }
+  }
+
+  /** Rebuilds the durable Hot Raw tail without advancing Frontier authority. */
+  rebuildHotRaw(scope: RevisionScope): HotRawProjection {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "hot raw scope");
+      return this.#hotRawStore.rebuild(scope);
+    } catch (error) {
+      throw mapLedgerHotRawError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
     for (const store of [
+      this.#hotRawStore,
       this.#revisionSubstrate,
       this.ledgerStore,
       this.recallStore,
@@ -486,6 +521,15 @@ function mapExperienceLedgerError(error: unknown): ContextCompilerCoreError {
 
 function mapRevisionSubstrateError(error: unknown): ContextCompilerCoreError {
   if (!(error instanceof RevisionSubstrateError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
+  return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapLedgerHotRawError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof LedgerHotRawError)) {
     return new ContextCompilerCoreError("INTERNAL_FAILURE");
   }
   if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");

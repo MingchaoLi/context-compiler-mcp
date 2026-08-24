@@ -11,6 +11,17 @@ export {
 } from "./raw-store.js";
 
 export {
+  LEDGER_HOT_RAW_SCHEMA_VERSION,
+  RAW_SOURCE_KINDS,
+  LedgerHotRawError,
+  type HotRawProjection,
+  type LedgerHotRawErrorCode,
+  type LedgerRawEvent,
+  type RawSourceKind,
+  type RawSourceProjectionInput,
+} from "./ledger-hot-raw.js";
+
+export {
   EXPERIENCE_LEDGER_KINDS,
   PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,

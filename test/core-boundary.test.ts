@@ -28,6 +28,8 @@ describe("ContextCompilerCore boundary", () => {
     expect("commitLedgerRevisionInsideCore" in publicSurface).toBe(false);
     expect("commitStateRevisionInsideCore" in publicSurface).toBe(false);
     expect("compareAndAdvanceFrontierInsideCore" in publicSurface).toBe(false);
+    expect("SqliteLedgerHotRawStore" in publicSurface).toBe(false);
+    expect("migrateLedgerHotRaw" in publicSurface).toBe(false);
 
     const core = new ContextCompilerCore(databasePath());
     const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));
@@ -35,6 +37,10 @@ describe("ContextCompilerCore boundary", () => {
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
       value.constructor?.name === "SqliteRevisionSubstrate"
+    )).toBe(false);
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      value.constructor?.name === "SqliteLedgerHotRawStore"
     )).toBe(false);
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
@@ -75,6 +81,29 @@ describe("ContextCompilerCore boundary", () => {
       namespace: "authority",
       stream_id: "core-session",
     }).ledger_revision).toBe(0);
+    const canonicalEvent = core.appendRawSourceProjection({
+      scope: { namespace: "authority", stream_id: "canonical-stream" },
+      event_id: "canonical-event-1",
+      source_kind: "user_input",
+      source_id: "core-event-source",
+      source_session_id: "core-session",
+      payload: { content: "explicit projection" },
+    });
+    expect(canonicalEvent.ledger_revision).toBe(1);
+    expect(core.getRevisionVector({
+      namespace: "authority",
+      stream_id: "core-session",
+    }).ledger_revision).toBe(0);
+    expect(core.rebuildHotRaw({
+      namespace: "authority",
+      stream_id: "canonical-stream",
+    })).toMatchObject({
+      ledger_high_water: 1,
+      events: [{
+        event_id: "canonical-event-1",
+        source_session_id: "core-session",
+      }],
+    });
 
     const prepared = unwrap(core.call("prepare_state_update", {
       session_id: "core-session",
@@ -155,6 +184,20 @@ describe("ContextCompilerCore boundary", () => {
     expect(() => core.getRevisionVector({
       namespace: "authority",
       stream_id: "core-session",
+    })).toThrowError(
+      expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
+    );
+    expect(() => core.appendRawSourceProjection({
+      scope: { namespace: "authority", stream_id: "closed" },
+      event_id: "closed-event",
+      source_kind: "file",
+      source_id: "closed",
+      payload: {},
+    })).toThrowError(
+      expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
+    );
+    expect(() => core.rebuildHotRaw({
+      namespace: "authority", stream_id: "closed",
     })).toThrowError(
       expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
     );
