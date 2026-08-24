@@ -75,6 +75,31 @@ export {
 } from "./canonical-fact-relation.js";
 
 export {
+  SEMANTIC_AUTHORITY_SCHEMA_VERSION,
+  SEMANTIC_TAKEOVER_ARTIFACT_ONLY_REASONS,
+  SEMANTIC_TAKEOVER_COVERAGE_DISPOSITIONS,
+  SEMANTIC_TAKEOVER_POLICY_HASH,
+  SEMANTIC_TAKEOVER_POLICY_VERSION,
+  SemanticTakeoverError,
+  type CompactionArtifact,
+  type CompactionArtifactInput,
+  type CurrentSemanticTakeoverAuthority,
+  type SemanticAuthorityManifest,
+  type SemanticEnrichmentCommit,
+  type SemanticEnrichmentCommitInput,
+  type SemanticEnrichmentSourceEventRef,
+  type SemanticFactRef,
+  type SemanticRelationRef,
+  type SemanticStateAuthorityRef,
+  type SemanticTakeoverArtifactOnlyReason,
+  type SemanticTakeoverCommit,
+  type SemanticTakeoverCommitInput,
+  type SemanticTakeoverCoverage,
+  type SemanticTakeoverCoverageDisposition,
+  type SemanticTakeoverErrorCode,
+} from "./semantic-takeover.js";
+
+export {
   EXPERIENCE_LEDGER_KINDS,
   PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,

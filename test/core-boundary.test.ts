@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -7,6 +8,7 @@ import {
   CONTEXT_COMPILER_COMMANDS,
   CANONICAL_FACT_RELATION_POLICY_HASH,
   CANONICAL_STATE_POLICY_HASH,
+  SEMANTIC_TAKEOVER_POLICY_HASH,
   ContextCompilerCore,
   ContextCompilerCoreError,
   ContextCompilerMcpService,
@@ -36,6 +38,12 @@ describe("ContextCompilerCore boundary", () => {
     expect("migrateCanonicalState" in publicSurface).toBe(false);
     expect("SqliteCanonicalFactRelationStore" in publicSurface).toBe(false);
     expect("migrateCanonicalFactRelation" in publicSurface).toBe(false);
+    expect("SqliteAuthorityTransactionCoordinator" in publicSurface).toBe(false);
+    expect("migrateSemanticAuthority" in publicSurface).toBe(false);
+    expect("executeSemanticTakeoverInsideCore" in publicSurface).toBe(false);
+    expect("executeSemanticEnrichmentInsideCore" in publicSurface).toBe(false);
+    expect("readCanonicalStateAuthorityInsideCore" in publicSurface).toBe(false);
+    expect("applyCanonicalFactRelationInsideCore" in publicSurface).toBe(false);
 
     const core = new ContextCompilerCore(databasePath());
     const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));
@@ -55,6 +63,10 @@ describe("ContextCompilerCore boundary", () => {
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
       value.constructor?.name === "SqliteCanonicalFactRelationStore"
+    )).toBe(false);
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      value.constructor?.name === "SqliteAuthorityTransactionCoordinator"
     )).toBe(false);
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
@@ -204,6 +216,120 @@ describe("ContextCompilerCore boundary", () => {
       namespace: "authority", stream_id: "canonical-stream",
     }, "canonical-knowledge-1")).toEqual(knowledge);
 
+    const semanticScope = { namespace: "authority", stream_id: "canonical-stream" };
+    const semanticBody = { summary: "Core library-only semantic Takeover" };
+    const semanticDescriptor = {
+      artifact_schema: "compaction-artifact/v1",
+      namespace: semanticScope.namespace,
+      stream_id: semanticScope.stream_id,
+      covered_raw_range: { start: 1, end: 1 },
+      generator_version: "core-boundary-test/v1",
+      policy_hash: SEMANTIC_TAKEOVER_POLICY_HASH,
+      provenance_event_ids: ["canonical-event-1"],
+      body: semanticBody,
+    };
+    const semanticTakeover = core.commitSemanticTakeover({
+      scope: semanticScope,
+      takeover_commit_id: "core-semantic-takeover-1",
+      ledger_base_revision: 1,
+      covered_raw_range: { start: 1, end: 1 },
+      expected_frontier_revision: 0,
+      expected_frontier_position: 0,
+      state_authority_ref: {
+        state_revision: 1,
+        state_commit_id: "canonical-state-1",
+        state_hash: canonicalState.state_hash,
+        required_item_ids: ["canonical-goal"],
+      },
+      existing_fact_refs: [{ fact_id: "canonical-fact", fact_revision: 1 }],
+      existing_relation_refs: [{
+        relation_id: "canonical-relation",
+        relation_revision: 1,
+      }],
+      coverage: [{
+        ledger_revision: 1,
+        event_id: "canonical-event-1",
+        disposition: "canonicalized",
+        state_item_refs: ["canonical-goal"],
+        fact_refs: [{ fact_id: "canonical-fact", fact_revision: 1 }],
+        relation_refs: [{ relation_id: "canonical-relation", relation_revision: 1 }],
+      }],
+      compaction_artifact: {
+        artifact_id: "core-artifact-1",
+        expected_artifact_hash: createHash("sha256")
+          .update(canonicalJson(semanticDescriptor), "utf8").digest("hex"),
+        generator_version: "core-boundary-test/v1",
+        body: semanticBody,
+      },
+      policy_hash: SEMANTIC_TAKEOVER_POLICY_HASH,
+      provenance_event_ids: ["canonical-event-1"],
+    });
+    expect(core.readSemanticTakeover(
+      semanticScope, "core-semantic-takeover-1"
+    )).toEqual(semanticTakeover);
+    expect(core.readCompactionArtifact(semanticScope, "core-artifact-1")).toMatchObject({
+      artifact_hash: semanticTakeover.artifact_hash,
+      covered_raw_range: { start: 1, end: 1 },
+    });
+    expect(core.readCurrentSemanticTakeover(semanticScope)).toMatchObject({
+      takeover: { takeover_commit_id: "core-semantic-takeover-1" },
+      revision_vector: {
+        state_revision: 1,
+        frontier_position: 1,
+        takeover_commit_revision: 1,
+      },
+    });
+    expect(core.rebuildHotRaw(semanticScope).events).toEqual([]);
+
+    core.appendRawSourceProjection({
+      scope: semanticScope,
+      event_id: "canonical-event-2",
+      source_kind: "tool_result",
+      source_id: "core-event-source-2",
+      payload: { content: "non-contiguous enrichment evidence" },
+    });
+    const beforeEnrichment = core.getRevisionVector(semanticScope);
+    const semanticEnrichment = core.commitSemanticEnrichment({
+      scope: semanticScope,
+      enrichment_commit_id: "core-semantic-enrichment-1",
+      source_event_refs: [
+        { ledger_revision: 1, event_id: "canonical-event-1" },
+        { ledger_revision: 2, event_id: "canonical-event-2" },
+      ],
+      state_authority_ref: {
+        state_revision: 1,
+        state_commit_id: "canonical-state-1",
+        state_hash: canonicalState.state_hash,
+        required_item_ids: ["canonical-goal"],
+      },
+      existing_fact_refs: [],
+      existing_relation_refs: [],
+      fact_relation_apply: {
+        scope: semanticScope,
+        authority_commit_id: "core-enrichment-authority-1",
+        policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+        fact_proposals: [{
+          op: "CREATE",
+          fact_id: "core-enrichment-fact",
+          statement: "Enrichment stays axis-neutral",
+          epistemic_origin: "tool_observed",
+          verification_status: "corroborated",
+          lifecycle_status: "active",
+          record_status: "live",
+          provenance_event_ids: ["canonical-event-1", "canonical-event-2"],
+          verification_event_ids: ["canonical-event-2"],
+          metadata: {},
+        }],
+        relation_proposals: [],
+      },
+      policy_hash: SEMANTIC_TAKEOVER_POLICY_HASH,
+      provenance_event_ids: ["canonical-event-1", "canonical-event-2"],
+    });
+    expect(core.readSemanticEnrichment(
+      semanticScope, "core-semantic-enrichment-1"
+    )).toEqual(semanticEnrichment);
+    expect(core.getRevisionVector(semanticScope)).toEqual(beforeEnrichment);
+
     const prepared = unwrap(core.call("prepare_state_update", {
       session_id: "core-session",
       newest_event_ids: [event.id],
@@ -350,4 +476,14 @@ function databasePath(): string {
 function unwrap(response: ContextCompilerCoreResponse): unknown {
   if (!response.ok) throw new Error(response.error.code);
   return response.result;
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`
+    ).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }

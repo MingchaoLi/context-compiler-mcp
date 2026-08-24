@@ -48,6 +48,16 @@ import {
   type CommittedCanonicalFact,
   type CommittedCanonicalRelation,
 } from "./canonical-fact-relation.js";
+import { SqliteAuthorityTransactionCoordinator } from "./authority-transaction-coordinator.js";
+import {
+  SemanticTakeoverError,
+  type CompactionArtifact,
+  type CurrentSemanticTakeoverAuthority,
+  type SemanticEnrichmentCommit,
+  type SemanticEnrichmentCommitInput,
+  type SemanticTakeoverCommit,
+  type SemanticTakeoverCommitInput,
+} from "./semantic-takeover.js";
 import {
   SqliteRawHistoryStore,
   estimateTokens,
@@ -146,6 +156,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   readonly #hotRawStore: SqliteLedgerHotRawStore;
   readonly #canonicalStateStore: SqliteCanonicalStateStore;
   readonly #canonicalFactRelationStore: SqliteCanonicalFactRelationStore;
+  readonly #authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -161,6 +172,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let hotRawStore: SqliteLedgerHotRawStore | undefined;
     let canonicalStateStore: SqliteCanonicalStateStore | undefined;
     let canonicalFactRelationStore: SqliteCanonicalFactRelationStore | undefined;
+    let authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
@@ -170,7 +182,12 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
       hotRawStore = new SqliteLedgerHotRawStore(databasePath, revisionSubstrate);
       canonicalStateStore = new SqliteCanonicalStateStore(databasePath, revisionSubstrate);
       canonicalFactRelationStore = new SqliteCanonicalFactRelationStore(databasePath);
+      authorityTransactionCoordinator = new SqliteAuthorityTransactionCoordinator(
+        databasePath,
+        revisionSubstrate
+      );
     } catch {
+      try { authorityTransactionCoordinator?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalFactRelationStore?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalStateStore?.close(); } catch { /* preserve stable startup failure */ }
       try { hotRawStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -190,6 +207,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.#hotRawStore = hotRawStore;
     this.#canonicalStateStore = canonicalStateStore;
     this.#canonicalFactRelationStore = canonicalFactRelationStore;
+    this.#authorityTransactionCoordinator = authorityTransactionCoordinator;
   }
 
   call(
@@ -398,11 +416,88 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Atomically commits one contiguous semantic Takeover and Frontier advance. */
+  commitSemanticTakeover(input: SemanticTakeoverCommitInput): SemanticTakeoverCommit {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "semantic Takeover input");
+      return this.#authorityTransactionCoordinator.commitTakeover(input);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
+  /** Commits one non-contiguous, axis-neutral semantic Enrichment. */
+  commitSemanticEnrichment(
+    input: SemanticEnrichmentCommitInput
+  ): SemanticEnrichmentCommit {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "semantic Enrichment input");
+      return this.#authorityTransactionCoordinator.commitEnrichment(input);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
+  /** Reads one exact immutable semantic Takeover commit. */
+  readSemanticTakeover(
+    scope: RevisionScope,
+    takeoverCommitId: string
+  ): SemanticTakeoverCommit {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "semantic Takeover scope");
+      return this.#authorityTransactionCoordinator.readTakeover(scope, takeoverCommitId);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
+  /** Reads one exact immutable semantic Enrichment commit. */
+  readSemanticEnrichment(
+    scope: RevisionScope,
+    enrichmentCommitId: string
+  ): SemanticEnrichmentCommit {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "semantic Enrichment scope");
+      return this.#authorityTransactionCoordinator.readEnrichment(scope, enrichmentCommitId);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
+  /** Reads one exact immutable Compaction Artifact. */
+  readCompactionArtifact(scope: RevisionScope, artifactId: string): CompactionArtifact {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "Compaction Artifact scope");
+      return this.#authorityTransactionCoordinator.readArtifact(scope, artifactId);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
+  /** Reads the current same-scope Frontier/Takeover authority binding. */
+  readCurrentSemanticTakeover(
+    scope: RevisionScope
+  ): CurrentSemanticTakeoverAuthority {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "current semantic Takeover scope");
+      return this.#authorityTransactionCoordinator.readCurrent(scope);
+    } catch (error) {
+      throw mapSemanticTakeoverError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
     for (const store of [
+      this.#authorityTransactionCoordinator,
       this.#canonicalFactRelationStore,
       this.#canonicalStateStore,
       this.#hotRawStore,
@@ -693,6 +788,16 @@ function mapCanonicalStateError(error: unknown): ContextCompilerCoreError {
 
 function mapCanonicalFactRelationError(error: unknown): ContextCompilerCoreError {
   if (!(error instanceof CanonicalFactRelationError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "NOT_FOUND") return new ContextCompilerCoreError("NOT_FOUND");
+  if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
+  return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapSemanticTakeoverError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof SemanticTakeoverError)) {
     return new ContextCompilerCoreError("INTERNAL_FAILURE");
   }
   if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");

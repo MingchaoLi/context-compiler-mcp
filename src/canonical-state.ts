@@ -104,6 +104,12 @@ export interface CanonicalStateProjection extends RevisionScope {
   };
 }
 
+/** @internal Exact same-handle State authority proof for Core composition owners. */
+export interface CanonicalStateAuthorityInsideCore {
+  committed: CommittedCanonicalStateRevision;
+  marker_current: RevisionVector;
+}
+
 export class CanonicalStateError extends Error {
   constructor(readonly code: CanonicalStateErrorCode) {
     super(code);
@@ -572,6 +578,101 @@ export function migrateCanonicalState(database: DatabaseSync): void {
     rollback(database);
     throw error;
   }
+}
+
+/**
+ * @internal Validates the complete scoped State authority chain from revision 1
+ * through the exact observed revision on a caller-owned SQLite snapshot.
+ */
+export function readCanonicalStateAuthorityInsideCore(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  stateRevision: number,
+  observed: RevisionVector
+): CanonicalStateAuthorityInsideCore {
+  const normalizedScope = normalizeScope(scope);
+  const normalizedRevision = validatePositiveRevision(stateRevision);
+  const normalizedObserved = vectorFromRow({
+    namespace: observed.namespace,
+    stream_id: observed.stream_id,
+    ledger_revision: observed.ledger_revision,
+    state_revision: observed.state_revision,
+    raw_frontier_revision: observed.raw_frontier_revision,
+    frontier_position: observed.frontier_position,
+    takeover_commit_revision: observed.takeover_commit_revision,
+  }, normalizedScope);
+  if (normalizedObserved.state_revision !== normalizedRevision) corrupt();
+
+  let previousState = cloneState(EMPTY_CANONICAL_STATE);
+  let previousMarkerCurrent: RevisionVector | undefined;
+  let authority: CanonicalStateAuthorityInsideCore | undefined;
+  for (let revision = 1; revision <= normalizedRevision; revision += 1) {
+    const row = database.prepare(
+      `SELECT namespace, stream_id, state_revision, state_commit_id, commit_mode,
+              previous_state_revision, proposal_json, state_json, state_hash,
+              policy_hash, provenance_event_ids_json, created_at
+       FROM cc_canonical_state_revisions
+       WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
+    ).get(
+      normalizedScope.namespace,
+      normalizedScope.stream_id,
+      revision
+    ) as StateRevisionRow | undefined;
+    if (row === undefined) corrupt();
+    const committed = committedFromRow(row, normalizedScope);
+    const marker = database.prepare(
+      `SELECT operation, kind, request_fingerprint, request_json,
+              previous_json, current_json, result_json
+       FROM cc_revision_commits
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).get(
+      normalizedScope.namespace,
+      normalizedScope.stream_id,
+      committed.state_commit_id
+    ) as CommitBindingRow | undefined;
+    if (marker === undefined || marker.operation !== "STATE" ||
+        marker.kind !== "CANONICAL_STATE_COMMIT_V1") corrupt();
+    const previous = parseStoredVector(marker.previous_json, normalizedScope);
+    const current = parseStoredVector(marker.current_json, normalizedScope);
+    if (
+      previous.state_revision !== committed.previous_state_revision ||
+      current.state_revision !== committed.state_revision ||
+      current.state_revision !== previous.state_revision + 1 ||
+      !sameNonStateAxes(previous, current) ||
+      !vectorAtOrAfter(normalizedObserved, current)
+    ) corrupt();
+    if (previousMarkerCurrent !== undefined && (
+      previous.state_revision !== previousMarkerCurrent.state_revision ||
+      !vectorAtOrAfter(previous, previousMarkerCurrent)
+    )) corrupt();
+
+    const expectedRequestJson = canonicalJson(canonicalStateMarkerRequest(committed));
+    if (
+      marker.request_json !== expectedRequestJson ||
+      storedHash(marker.request_fingerprint) !== sha256(expectedRequestJson)
+    ) corrupt();
+    assertStoredProvenanceBound(
+      database,
+      committed,
+      committed.provenance_event_ids,
+      current.ledger_revision
+    );
+    const markerResult = parseStoredJson(marker.result_json);
+    if (canonicalJson(markerResult) !== canonicalJson(committedAsJson(committed))) corrupt();
+
+    const reduced = reduceStoredState(previousState, committed.proposal);
+    if (canonicalJson(stateAsJson(reduced)) !== canonicalJson(stateAsJson(committed.state))) {
+      corrupt();
+    }
+    previousState = cloneState(committed.state);
+    previousMarkerCurrent = cloneVector(current);
+    authority = { committed, marker_current: cloneVector(current) };
+  }
+  if (authority === undefined) corrupt();
+  return {
+    committed: parseCommittedValue(committedAsJson(authority.committed)),
+    marker_current: cloneVector(authority.marker_current),
+  };
 }
 
 function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInput {
