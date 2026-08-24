@@ -6,6 +6,7 @@
   "sample_unit": "one_composite_request",
   "assertion_units": 12,
   "assertions_are_independent_samples": false,
+  "input_envelope_aligned": true,
   "created_from_model_output": false,
   "capture_visibility": "none",
   "probes": [
@@ -16,25 +17,16 @@
       "required_assertion_groups": [
         {
           "id": "P01-G01",
-          "description": "唯一项目与独立包身份",
+          "description": "唯一允许读写的项目目录",
           "any_of": [
             "context-compiler-mcp"
           ]
         },
         {
           "id": "P01-G02",
-          "description": "宿主适配器位于本仓库之外",
+          "description": "禁止重新引入宿主依赖",
           "any_of": [
-            "application adapters remain outside this repository",
-            "宿主 adapters 必须留在宿主仓库"
-          ]
-        },
-        {
-          "id": "P01-G03",
-          "description": "不得导入宿主代码或包",
-          "any_of": [
-            "no host code or package is imported",
-            "legacy 环境兼容也不能变成宿主代码或包依赖"
+            "不得重新引入桌面 UI、应用宿主、编排框架、消息或打包代码"
           ]
         }
       ],
@@ -43,7 +35,7 @@
         "依赖 DSH_HOME 意味着依赖宿主包",
         "核心可以导入 orchestration framework"
       ],
-      "canonical_answer": "唯一项目目录是 context-compiler-mcp，包身份也是独立的 context-compiler-mcp。它只拥有 model-independent Context Compiler core 与本地 stdio MCP service；桌面 UI、应用宿主、编排框架、消息与打包代码不在本仓库，宿主 adapters 必须留在宿主仓库，legacy 环境兼容也不能变成宿主代码或包依赖。",
+      "canonical_answer": "当前唯一允许读写的项目目录是 context-compiler-mcp。不得重新引入桌面 UI、应用宿主、编排框架、消息或打包代码；宿主 adapters 必须留在宿主仓库，legacy 环境兼容也不能变成宿主代码或包依赖。",
       "sources": [
         {
           "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
@@ -70,13 +62,6 @@
           "any_of": [
             "exactly nine tools",
             "精确暴露 9 个工具"
-          ]
-        },
-        {
-          "id": "P02-G02",
-          "description": "完整九工具清单",
-          "any_of": [
-            "health、ingest_event、compile_context、get_state、prepare_state_update、apply_state_delta、create_headline、recall_exact、recall_keyword"
           ]
         }
       ],
@@ -120,13 +105,6 @@
             "真实使用与 Experience Formation 数据准备",
             "真实长期使用积累可回放数据"
           ]
-        },
-        {
-          "id": "P03-G03",
-          "description": "下一阶段的数据链",
-          "any_of": [
-            "Event -> Action -> Outcome / Feedback -> Candidate Experience"
-          ]
         }
       ],
       "forbidden_claims": [
@@ -162,14 +140,6 @@
             "不再开发新的 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation",
             "no new Context algorithms, complex ontology, PACE/mem0 comparison, retrieval tuning, Graph DB, or Experience Formation"
           ]
-        },
-        {
-          "id": "P04-G02",
-          "description": "允许例外",
-          "any_of": [
-            "可复现 correctness 缺陷",
-            "新的明确工单和独立验证"
-          ]
         }
       ],
       "forbidden_claims": [
@@ -200,37 +170,18 @@
       "required_assertion_groups": [
         {
           "id": "P05-G01",
-          "description": "schema failure 与非空 Gold 上空预测",
+          "description": "Extractor correctness 真实结果为失败",
           "any_of": [
-            "12 个 INVALID_SCHEMA fallback，16 个 Gold-nonempty 上的 strict-valid empty"
+            "Extractor correctness 明确失败",
+            "Extractor 真实结果是失败"
           ]
         },
         {
           "id": "P05-G02",
-          "description": "true negative 与全空状态",
+          "description": "Predicted State 全空",
           "any_of": [
-            "2 个 strict-valid empty true negative；Predicted State 全空"
-          ]
-        },
-        {
-          "id": "P05-G03",
-          "description": "unique recall",
-          "any_of": [
-            "general / critical unique recall 为 0/35 / 0/29"
-          ]
-        },
-        {
-          "id": "P05-G04",
-          "description": "checkpoint exposure",
-          "any_of": [
-            "checkpoint exposure 为 0/253 / 0/192"
-          ]
-        },
-        {
-          "id": "P05-G05",
-          "description": "零 eligibility 指标不可评价",
-          "any_of": [
-            "precision、matcher、transition capability、stale/reactivation/dependency/provenance 因 zero eligibility 都是 not_evaluable"
+            "Predicted State 全空",
+            "预测状态全部为空"
           ]
         }
       ],
@@ -263,31 +214,18 @@
       "required_assertion_groups": [
         {
           "id": "P06-G01",
-          "description": "封存状态",
+          "description": "不再等待双真人",
           "any_of": [
-            "SEALED BASELINE",
-            "封存为 Oracle-State feasibility baseline"
+            "不再等待或填写双真人盲评",
+            "不再等双真人"
           ]
         },
         {
           "id": "P06-G02",
-          "description": "不再等待双真人",
+          "description": "既有 baseline 不能重跑",
           "any_of": [
-            "不再等待或填写双真人盲评"
-          ]
-        },
-        {
-          "id": "P06-G03",
-          "description": "语义收益状态",
-          "any_of": [
-            "answer semantic gain 永久保持 not_evaluated"
-          ]
-        },
-        {
-          "id": "P06-G04",
-          "description": "既有 baseline 不补填不重跑",
-          "any_of": [
-            "既有 baseline 不补填、不重跑"
+            "既有 baseline 不补填、不重跑",
+            "不能重跑既有 baseline"
           ]
         }
       ],
@@ -323,13 +261,6 @@
           "description": "当前未开始未授权",
           "any_of": [
             "Formal Host Mode 仍不在当前范围内、未开始，也未被 WO-V0-15 授权"
-          ]
-        },
-        {
-          "id": "P07-G02",
-          "description": "推进前置条件",
-          "any_of": [
-            "需要新的明确工单"
           ]
         }
       ],
@@ -379,13 +310,6 @@
           "any_of": [
             "Experience Formation 未实现且效果未评估"
           ]
-        },
-        {
-          "id": "P08-G04",
-          "description": "当前只积累数据",
-          "any_of": [
-            "当前只积累 Event -> Action -> Outcome / Feedback -> Candidate Experience 数据"
-          ]
         }
       ],
       "forbidden_claims": [
@@ -417,24 +341,9 @@
       "required_assertion_groups": [
         {
           "id": "P09-G01",
-          "description": "canonical 数据库配置",
+          "description": "legacy DB fallback 名称",
           "any_of": [
-            "CONTEXT_COMPILER_DB_PATH"
-          ]
-        },
-        {
-          "id": "P09-G02",
-          "description": "legacy fallback 精确路径",
-          "any_of": [
-            "DSH_HOME/sessions/context-compiler.db"
-          ]
-        },
-        {
-          "id": "P09-G03",
-          "description": "fallback 不形成宿主依赖",
-          "any_of": [
-            "no host code or package is imported",
-            "不导入任何宿主代码或 package"
+            "DSH_HOME"
           ]
         }
       ],
@@ -466,31 +375,18 @@
       "required_assertion_groups": [
         {
           "id": "P10-G01",
-          "description": "数据库级 writer boundary",
+          "description": "跨 session writer 串行化性能风险",
           "any_of": [
-            "这是数据库级、跨 session 的同步 writer serialization"
-          ]
-        },
-        {
-          "id": "P10-G02",
-          "description": "跨 session writer 串行化风险",
-          "any_of": [
+            "数据库级、跨 session 的同步 writer serialization",
             "慢 compile 可能拖延无关 raw/state/ledger writer"
           ]
         },
         {
-          "id": "P10-G03",
-          "description": "有界失败与可重试",
+          "id": "P10-G02",
+          "description": "当前风险为非阻塞",
           "any_of": [
-            "5 秒 busy 上界",
-            "可重试的 STORAGE_FAILURE"
-          ]
-        },
-        {
-          "id": "P10-G04",
-          "description": "当前解释边界",
-          "any_of": [
-            "尚未做真实长历史、同进程 stdio SLA 或跨平台负载"
+            "这是当前非阻塞 performance 风险",
+            "不是当前 correctness blocker"
           ]
         }
       ],
@@ -500,7 +396,7 @@
         "该风险要求立刻重构数据库",
         "A 与 B 的 latency 可直接比较"
       ],
-      "canonical_answer": "compile 在同一 SQLite 上用 BEGIN IMMEDIATE 覆盖完整 state/raw/ledger 读取、assembly、trace/hit 与 commit；这是数据库级、跨 session 的同步 writer serialization，不是 session-local lock。长历史或多 session 下，慢 compile 可能拖延无关 raw/state/ledger writer，约 5 秒 busy 上界后可能返回可重试 STORAGE_FAILURE。现有证据只说明等待有界、rollback 可恢复且无已知 correctness blocker；尚未做真实长历史、同进程 stdio SLA 或跨平台负载，不能一般化性能，也不应据此提前重构。",
+      "canonical_answer": "当前非阻塞 performance 风险是 compile 的数据库级、跨 session 同步 writer serialization：长历史或多 session 下，慢 compile 可能拖延无关 raw/state/ledger writer。这不是当前 correctness blocker。约 5 秒 busy 上界后可能返回可重试 STORAGE_FAILURE；尚未做真实长历史、同进程 stdio SLA 或跨平台负载，不能一般化性能，也不应据此提前重构。",
       "sources": [
         {
           "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
@@ -536,23 +432,9 @@
         },
         {
           "id": "P11-G02",
-          "description": "DS-14 sealed supersession",
+          "description": "较新的 sealed baseline 与真实使用路线是当前 authority",
           "any_of": [
-            "WO-DS-14 已把 feasibility-01 sealed 为 Oracle-State baseline"
-          ]
-        },
-        {
-          "id": "P11-G03",
-          "description": "V0-15 与 ROADMAP 当前 authority",
-          "any_of": [
-            "WO-V0-15 的最终冻结与 ROADMAP 又把下一步转为真实长期使用数据积累"
-          ]
-        },
-        {
-          "id": "P11-G04",
-          "description": "不得错误恢复旧路线",
-          "any_of": [
-            "不得恢复等待双真人、补填旧盲评或继续／重跑旧 feasibility-01"
+            "较新的 WO-DS-14 已把 feasibility-01 sealed 为 Oracle-State baseline，WO-V0-15 的最终冻结与 ROADMAP 又把下一步转为真实长期使用数据积累"
           ]
         }
       ],
@@ -595,13 +477,6 @@
           "description": "legacy 缺 Dense 列并发迁移",
           "any_of": [
             "从缺少 dense_embedding_json 的 legacy sessions/raw_events schema 同步启动两个实例"
-          ]
-        },
-        {
-          "id": "P12-G03",
-          "description": "迁移数据与结构不重复",
-          "any_of": [
-            "Dense 列精确一个，旧 raw 字节与 seq 保持不变，append-only update/delete trigger 各精确一个，EVENT backfill 恰好一条"
           ]
         }
       ],

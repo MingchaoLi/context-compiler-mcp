@@ -4,68 +4,69 @@
   "sample_unit": "one_composite_request",
   "assertion_units": 12,
   "assertions_are_independent_samples": false,
+  "input_envelope_aligned": true,
   "language": "zh-CN",
   "instructions": "请仅依据项目的当前权威材料作答。按 P01 至 P12 的固定顺序逐项回答；这是 1 个复合请求中的 12 个非独立 assertions，不得把它们报告成 12 个独立样本。对未知或未评估事项明确写未知或未评估，不得用推断补齐。",
   "probes": [
     {
       "id": "P01",
       "order": 1,
-      "question": "唯一项目目录、独立包身份，以及宿主依赖边界分别是什么？"
+      "question": "当前唯一允许读写的项目目录及禁止重新引入的宿主依赖边界是什么？"
     },
     {
       "id": "P02",
       "order": 2,
-      "question": "冻结基线的本地 stdio MCP 精确暴露多少个工具？请给出工具名。"
+      "question": "当前本地 stdio MCP 的精确工具数量是多少？"
     },
     {
       "id": "P03",
       "order": 3,
-      "question": "WO-V0-15 的当前状态是什么，路线图的下一重心是什么？"
+      "question": "WO-V0-15 的状态及下一阶段唯一重心是什么？"
     },
     {
       "id": "P04",
       "order": 4,
-      "question": "Context / State 冻结后，哪些 Context 范围默认禁止继续开发？允许的例外是什么？"
+      "question": "Context / State 当前禁止继续开发的范围是什么？"
     },
     {
       "id": "P05",
       "order": 5,
-      "question": "WO-DS-14 ST-02 的 Extractor correctness 真实结果是什么？哪些指标仍不可评价？"
+      "question": "WO-DS-14 ST-02 的 Extractor 真实结果是什么？不能只说测试通过。"
     },
     {
       "id": "P06",
       "order": 6,
-      "question": "Starlette v1 feasibility-01 现在是否仍等待双真人盲评，是否可以补填或重跑既有 baseline？"
+      "question": "feasibility-01 是否还等双真人，能否重跑？"
     },
     {
       "id": "P07",
       "order": 7,
-      "question": "Formal Host Mode 当前是否已开始或获授权？若要推进需要什么？"
+      "question": "Formal Host Mode 当前是什么状态？"
     },
     {
       "id": "P08",
       "order": 8,
-      "question": "PACE、Graph DB 与 Experience Formation 当前分别处于什么范围和实现状态？"
+      "question": "PACE、Graph DB、Experience Formation 是否进入 v0？"
     },
     {
       "id": "P09",
       "order": 9,
-      "question": "数据库路径的 canonical 配置和 legacy fallback 分别是什么？该 fallback 是否形成宿主代码依赖？"
+      "question": "legacy DB fallback 的名称是什么？"
     },
     {
       "id": "P10",
       "order": 10,
-      "question": "compile writer boundary 的已知性能风险是什么，目前能得出什么、不能得出什么结论？"
+      "question": "当前非阻塞 performance 风险是什么？"
     },
     {
       "id": "P11",
       "order": 11,
-      "question": "旧 Starlette／双真人盲评路线与新的真实使用路线发生冲突时，当前 authority 如何排序？"
+      "question": "旧 Starlette／盲评路线与新的真实使用路线发生冲突时，当前 authority 是什么？"
     },
     {
       "id": "P12",
       "order": 12,
-      "question": "legacy DB 兼容至少有哪些两类已经独立验证的并发迁移或初始化事实？"
+      "question": "legacy DB 兼容至少有哪些两类并发迁移事实？"
     }
   ]
 }

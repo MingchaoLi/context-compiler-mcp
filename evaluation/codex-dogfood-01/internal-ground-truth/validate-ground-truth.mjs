@@ -16,9 +16,24 @@ const SOURCE_CONTRACT = Object.freeze([
   Object.freeze({ path: "docs/adversarial-reviews/AR-2026-08-24-post-v0-15-linearization-final.md", blob_sha: "142bf41ee300b48ab45ec3f39818870b7fa26ad5" }),
   Object.freeze({ path: "src/mcp-service.ts", blob_sha: "70aacaa397af11480598476629f43b449ca7b3a6" })
 ]);
+const INPUT_ENVELOPE_QUESTIONS = Object.freeze([
+  "当前唯一允许读写的项目目录及禁止重新引入的宿主依赖边界是什么？",
+  "当前本地 stdio MCP 的精确工具数量是多少？",
+  "WO-V0-15 的状态及下一阶段唯一重心是什么？",
+  "Context / State 当前禁止继续开发的范围是什么？",
+  "WO-DS-14 ST-02 的 Extractor 真实结果是什么？不能只说测试通过。",
+  "feasibility-01 是否还等双真人，能否重跑？",
+  "Formal Host Mode 当前是什么状态？",
+  "PACE、Graph DB、Experience Formation 是否进入 v0？",
+  "legacy DB fallback 的名称是什么？",
+  "当前非阻塞 performance 风险是什么？",
+  "旧 Starlette／盲评路线与新的真实使用路线发生冲突时，当前 authority 是什么？",
+  "legacy DB 兼容至少有哪些两类并发迁移事实？"
+]);
+const INPUT_ENVELOPE_REQUIRED_GROUP_COUNTS = Object.freeze([2, 1, 2, 1, 2, 2, 1, 3, 1, 2, 2, 2]);
 const EXPECTED_PAYLOAD_SHA256 = Object.freeze({
-  "evaluation/codex-dogfood-01/protocol/composite-request.json": "f988f885ad099a2a9fbab5e1c72b4db7e6dfae91c2f94af03babbb19bc6b1abd",
-  "evaluation/codex-dogfood-01/internal-ground-truth/ground-truth.json": "42cd9aba0700dfdc7ba8b132dac3c5694c18829535d04171a5a9bd8a92f6df39"
+  "evaluation/codex-dogfood-01/protocol/composite-request.json": "dfba192a1154815ce30d789d6235fbfa49184148515f82f934352f3db6358946",
+  "evaluation/codex-dogfood-01/internal-ground-truth/ground-truth.json": "9fa1580882f71b7b2c2155d46199286a626d3a871e1fdbe9f33619cb4662eef3"
 });
 const EXPECTED_FILES = Object.freeze([
   "evaluation/codex-dogfood-01/protocol/composite-request.json",
@@ -136,11 +151,12 @@ function runGit(root, args) {
 function validateProtocol(protocol) {
   exactKeys(protocol, [
     "schema_version", "request_id", "sample_unit", "assertion_units",
-    "assertions_are_independent_samples", "language", "instructions", "probes"
+    "assertions_are_independent_samples", "input_envelope_aligned", "language", "instructions", "probes"
   ], "protocol");
   if (protocol.schema_version !== 1 || protocol.request_id !== "codex-dogfood-01-composite-p01-p12" ||
       protocol.sample_unit !== "one_composite_request" || protocol.assertion_units !== 12 ||
-      protocol.assertions_are_independent_samples !== false || protocol.language !== "zh-CN") {
+      protocol.assertions_are_independent_samples !== false || protocol.input_envelope_aligned !== true ||
+      protocol.language !== "zh-CN") {
     fail("protocol: frozen header mismatch");
   }
   nonEmptyString(protocol.instructions, "protocol.instructions");
@@ -149,20 +165,21 @@ function validateProtocol(protocol) {
     exactKeys(probe, ["id", "order", "question"], `protocol.probes[${index}]`);
     const id = `P${String(index + 1).padStart(2, "0")}`;
     if (probe.id !== id || probe.order !== index + 1) fail(`protocol: probe order mismatch at ${id}`);
-    nonEmptyString(probe.question, `${id}.question`);
+    if (probe.question !== INPUT_ENVELOPE_QUESTIONS[index]) fail(`${id}: input envelope question mismatch`);
   });
 }
 
 function validateGroundTruth(groundTruth, protocol) {
   exactKeys(groundTruth, [
     "schema_version", "ground_truth_id", "baseline_git_object", "request_id", "sample_unit",
-    "assertion_units", "assertions_are_independent_samples", "created_from_model_output",
+    "assertion_units", "assertions_are_independent_samples", "input_envelope_aligned", "created_from_model_output",
     "capture_visibility", "probes"
   ], "ground_truth");
   if (groundTruth.schema_version !== 1 || groundTruth.ground_truth_id !== "codex-dogfood-01-c-v1" ||
       groundTruth.baseline_git_object !== BASELINE || groundTruth.request_id !== protocol.request_id ||
       groundTruth.sample_unit !== "one_composite_request" || groundTruth.assertion_units !== 12 ||
       groundTruth.assertions_are_independent_samples !== false ||
+      groundTruth.input_envelope_aligned !== true ||
       groundTruth.created_from_model_output !== false || groundTruth.capture_visibility !== "none") {
     fail("ground_truth: frozen header mismatch");
   }
@@ -180,8 +197,9 @@ function validateGroundTruth(groundTruth, protocol) {
       fail(`ground_truth: probe order mismatch at ${id}`);
     }
     if (typeof probe.critical !== "boolean") fail(`${id}: critical must be boolean`);
-    if (!Array.isArray(probe.required_assertion_groups) || probe.required_assertion_groups.length === 0) {
-      fail(`${id}: empty required assertion groups`);
+    if (!Array.isArray(probe.required_assertion_groups) ||
+        probe.required_assertion_groups.length !== INPUT_ENVELOPE_REQUIRED_GROUP_COUNTS[index]) {
+      fail(`${id}: required assertion groups do not match input envelope`);
     }
     probe.required_assertion_groups.forEach((group, groupIndex) => {
       exactKeys(group, ["id", "description", "any_of"], `${id}.groups[${groupIndex}]`);

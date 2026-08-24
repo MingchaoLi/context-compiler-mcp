@@ -4,6 +4,8 @@
 
 冻结者没有看见、索取、读取或创建 A/B capture，也没有运行模型。`P01` 至 `P12` 是一个固定复合请求内的 12 个非独立 assertions；统计时样本数是 1，不是 12。
 
+Append-only protocol-alignment fix 将 `input_envelope_aligned` 固定为 `true`：问题和 required assertion groups 只覆盖预先发给 A 的原始提问语义。canonical answer 可以保留额外的确定事实作为解释，但这些未被询问的细节不得计为 required miss。本修正同样没有读取或借用 A/B capture 内容。
+
 文件职责：
 
 - `../protocol/composite-request.json`：唯一固定复合请求和 P01–P12 顺序。

@@ -4,19 +4,19 @@
   "files": [
     {
       "path": "evaluation/codex-dogfood-01/protocol/composite-request.json",
-      "sha256": "f988f885ad099a2a9fbab5e1c72b4db7e6dfae91c2f94af03babbb19bc6b1abd"
+      "sha256": "dfba192a1154815ce30d789d6235fbfa49184148515f82f934352f3db6358946"
     },
     {
       "path": "evaluation/codex-dogfood-01/internal-ground-truth/ground-truth.json",
-      "sha256": "42cd9aba0700dfdc7ba8b132dac3c5694c18829535d04171a5a9bd8a92f6df39"
+      "sha256": "9fa1580882f71b7b2c2155d46199286a626d3a871e1fdbe9f33619cb4662eef3"
     },
     {
       "path": "evaluation/codex-dogfood-01/internal-ground-truth/README.md",
-      "sha256": "a7f211da7fe3bc765f8b00916db9d36e6f0b03d98ea3cde6a31322f0d403c921"
+      "sha256": "51ed498f596d03ffda6a02c4d7744b35fa8cd9a9374b4dfb26beaaf10f381b12"
     },
     {
       "path": "evaluation/codex-dogfood-01/internal-ground-truth/validate-ground-truth.mjs",
-      "sha256": "87606edf79340beb4bfe35e12dd1df23e0f815d8412604f964e991335227f99c"
+      "sha256": "205b588f6129ed5b5c6b476a9b159b3b7bd33642d2f3638a41a47cac57861af4"
     }
   ]
 }
