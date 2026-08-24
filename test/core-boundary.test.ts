@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import * as publicSurface from "../src/index.js";
 import {
   CONTEXT_COMPILER_COMMANDS,
+  CANONICAL_FACT_RELATION_POLICY_HASH,
   CANONICAL_STATE_POLICY_HASH,
   ContextCompilerCore,
   ContextCompilerCoreError,
@@ -33,6 +34,8 @@ describe("ContextCompilerCore boundary", () => {
     expect("migrateLedgerHotRaw" in publicSurface).toBe(false);
     expect("SqliteCanonicalStateStore" in publicSurface).toBe(false);
     expect("migrateCanonicalState" in publicSurface).toBe(false);
+    expect("SqliteCanonicalFactRelationStore" in publicSurface).toBe(false);
+    expect("migrateCanonicalFactRelation" in publicSurface).toBe(false);
 
     const core = new ContextCompilerCore(databasePath());
     const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));
@@ -48,6 +51,10 @@ describe("ContextCompilerCore boundary", () => {
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
       value.constructor?.name === "SqliteCanonicalStateStore"
+    )).toBe(false);
+    expect(ownValues.some((value) =>
+      typeof value === "object" && value !== null &&
+      value.constructor?.name === "SqliteCanonicalFactRelationStore"
     )).toBe(false);
     expect(ownValues.some((value) =>
       typeof value === "object" && value !== null &&
@@ -140,6 +147,62 @@ describe("ContextCompilerCore boundary", () => {
     expect(core.readCanonicalStateRevision({
       namespace: "authority", stream_id: "canonical-stream",
     }, 1)).toEqual(canonicalState);
+    const knowledgeVector = core.getRevisionVector({
+      namespace: "authority", stream_id: "canonical-stream",
+    });
+    const knowledge = core.commitCanonicalFactsAndRelations({
+      scope: { namespace: "authority", stream_id: "canonical-stream" },
+      authority_commit_id: "canonical-knowledge-1",
+      policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+      fact_proposals: [{
+        op: "CREATE",
+        fact_id: "canonical-fact",
+        statement: "The explicit authority boundary is preserved",
+        epistemic_origin: "tool_observed",
+        verification_status: "corroborated",
+        lifecycle_status: "active",
+        record_status: "live",
+        provenance_event_ids: ["canonical-event-1"],
+        verification_event_ids: ["canonical-event-1"],
+        metadata: {},
+      }],
+      relation_proposals: [{
+        op: "CREATE",
+        relation_id: "canonical-relation",
+        source: { type: "STATE_ITEM", id: "canonical-goal" },
+        relation_type: "DEPENDS_ON",
+        target: { type: "FACT", id: "canonical-fact" },
+        origin: "tool_observed",
+        provenance_event_ids: ["canonical-event-1"],
+        status: "active",
+        metadata: {},
+      }],
+    });
+    expect(knowledge).toMatchObject({
+      authority_commit_id: "canonical-knowledge-1",
+      observed_revision_vector: knowledgeVector,
+      facts: [{ fact_id: "canonical-fact", fact_revision: 1 }],
+      relations: [{ relation_id: "canonical-relation", relation_revision: 1 }],
+    });
+    expect(core.getRevisionVector({
+      namespace: "authority", stream_id: "canonical-stream",
+    })).toEqual(knowledgeVector);
+    expect(core.readCanonicalFactsAndRelations({
+      namespace: "authority", stream_id: "canonical-stream",
+    })).toMatchObject({
+      revision_vector: knowledgeVector,
+      facts: [{ fact_id: "canonical-fact" }],
+      relations: [{ relation_id: "canonical-relation" }],
+    });
+    expect(core.readCanonicalFactRevision({
+      namespace: "authority", stream_id: "canonical-stream",
+    }, "canonical-fact", 1)).toEqual(knowledge.facts[0]);
+    expect(core.readCanonicalRelationRevision({
+      namespace: "authority", stream_id: "canonical-stream",
+    }, "canonical-relation", 1)).toEqual(knowledge.relations[0]);
+    expect(core.readCanonicalFactRelationCommit({
+      namespace: "authority", stream_id: "canonical-stream",
+    }, "canonical-knowledge-1")).toEqual(knowledge);
 
     const prepared = unwrap(core.call("prepare_state_update", {
       session_id: "core-session",

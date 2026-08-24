@@ -1,6 +1,6 @@
 # WO-04B — Canonical Fact / Relation Authority and Policy
 
-Status: FROZEN BUILDER INPUT — SOURCE IMPLEMENTATION NOT YET STARTED
+Status: IMPLEMENTED BUILDER CONTRACT — AWAITING INDEPENDENT QA
 
 ## 1. Scope and ownership
 
@@ -431,3 +431,26 @@ WO-04B does not implement:
 - any legacy State/Relation migration or backfill.
 
 Those remain explicit inputs to WO-04C, WO-05 or later work orders.
+
+## 12. Implementation mapping
+
+The frozen policy is implemented in `src/canonical-fact-relation.ts`. Core owns
+the Store through `#canonicalFactRelationStore` and exposes only the five
+library methods described above. `src/index.ts` exports policy/schema constants,
+plain types and `CanonicalFactRelationError`; it does not export the Store or
+migration.
+
+The implementation uses an additive domain marker rather than a WO-03A primary
+axis operation. Every commit captures and then rechecks the complete vector. Its
+reader independently reconstructs each changed object from the original marker
+request plus the exact prior object revision, so a coordinated row/result
+replacement cannot become authority. Same-identity policy substitution is
+classified before current-policy rejection, matching the accepted WO-04A replay
+rule.
+
+The pre-source descriptor above remains byte-authoritative. The production
+constant recomputes exactly:
+
+```text
+f9dc4c757d8ae4a558d29ecebd494323b5a8de55b78312b2423a14db0a4fb570
+```

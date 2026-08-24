@@ -40,6 +40,15 @@ import {
   type CommittedCanonicalStateRevision,
 } from "./canonical-state.js";
 import {
+  CanonicalFactRelationError,
+  SqliteCanonicalFactRelationStore,
+  type CanonicalFactRelationCommitInput,
+  type CanonicalFactRelationCommitResult,
+  type CanonicalFactRelationProjection,
+  type CommittedCanonicalFact,
+  type CommittedCanonicalRelation,
+} from "./canonical-fact-relation.js";
+import {
   SqliteRawHistoryStore,
   estimateTokens,
   normalizeDenseEmbedding,
@@ -136,6 +145,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   readonly #revisionSubstrate: SqliteRevisionSubstrate;
   readonly #hotRawStore: SqliteLedgerHotRawStore;
   readonly #canonicalStateStore: SqliteCanonicalStateStore;
+  readonly #canonicalFactRelationStore: SqliteCanonicalFactRelationStore;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -150,6 +160,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let revisionSubstrate: SqliteRevisionSubstrate | undefined;
     let hotRawStore: SqliteLedgerHotRawStore | undefined;
     let canonicalStateStore: SqliteCanonicalStateStore | undefined;
+    let canonicalFactRelationStore: SqliteCanonicalFactRelationStore | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
@@ -158,7 +169,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
       revisionSubstrate = new SqliteRevisionSubstrate(databasePath);
       hotRawStore = new SqliteLedgerHotRawStore(databasePath, revisionSubstrate);
       canonicalStateStore = new SqliteCanonicalStateStore(databasePath, revisionSubstrate);
+      canonicalFactRelationStore = new SqliteCanonicalFactRelationStore(databasePath);
     } catch {
+      try { canonicalFactRelationStore?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalStateStore?.close(); } catch { /* preserve stable startup failure */ }
       try { hotRawStore?.close(); } catch { /* preserve stable startup failure */ }
       try { revisionSubstrate?.close(); } catch { /* preserve stable startup failure */ }
@@ -176,6 +189,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.#revisionSubstrate = revisionSubstrate;
     this.#hotRawStore = hotRawStore;
     this.#canonicalStateStore = canonicalStateStore;
+    this.#canonicalFactRelationStore = canonicalFactRelationStore;
   }
 
   call(
@@ -306,11 +320,90 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Commits one policy-validated Fact / Relation authority batch; not an MCP command. */
+  commitCanonicalFactsAndRelations(
+    input: CanonicalFactRelationCommitInput
+  ): CanonicalFactRelationCommitResult {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "canonical fact/relation commit input");
+      return this.#canonicalFactRelationStore.commit(input);
+    } catch (error) {
+      throw mapCanonicalFactRelationError(error);
+    }
+  }
+
+  /** Reads the current same-scope Fact / Relation projection without mutation. */
+  readCanonicalFactsAndRelations(
+    scope: RevisionScope
+  ): CanonicalFactRelationProjection {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical fact/relation scope");
+      return this.#canonicalFactRelationStore.readCurrent(scope);
+    } catch (error) {
+      throw mapCanonicalFactRelationError(error);
+    }
+  }
+
+  /** Reads one exact immutable Canonical Fact object revision. */
+  readCanonicalFactRevision(
+    scope: RevisionScope,
+    factId: string,
+    factRevision: number
+  ): CommittedCanonicalFact {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical fact scope");
+      return this.#canonicalFactRelationStore.readFactRevision(
+        scope,
+        factId,
+        factRevision
+      );
+    } catch (error) {
+      throw mapCanonicalFactRelationError(error);
+    }
+  }
+
+  /** Reads one exact immutable Canonical Relation object revision. */
+  readCanonicalRelationRevision(
+    scope: RevisionScope,
+    relationId: string,
+    relationRevision: number
+  ): CommittedCanonicalRelation {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical relation scope");
+      return this.#canonicalFactRelationStore.readRelationRevision(
+        scope,
+        relationId,
+        relationRevision
+      );
+    } catch (error) {
+      throw mapCanonicalFactRelationError(error);
+    }
+  }
+
+  /** Reads one exact immutable Fact / Relation authority commit. */
+  readCanonicalFactRelationCommit(
+    scope: RevisionScope,
+    authorityCommitId: string
+  ): CanonicalFactRelationCommitResult {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "canonical fact/relation scope");
+      return this.#canonicalFactRelationStore.readCommit(scope, authorityCommitId);
+    } catch (error) {
+      throw mapCanonicalFactRelationError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
     for (const store of [
+      this.#canonicalFactRelationStore,
       this.#canonicalStateStore,
       this.#hotRawStore,
       this.#revisionSubstrate,
@@ -590,6 +683,16 @@ function mapLedgerHotRawError(error: unknown): ContextCompilerCoreError {
 
 function mapCanonicalStateError(error: unknown): ContextCompilerCoreError {
   if (!(error instanceof CanonicalStateError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "NOT_FOUND") return new ContextCompilerCoreError("NOT_FOUND");
+  if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
+  return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapCanonicalFactRelationError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof CanonicalFactRelationError)) {
     return new ContextCompilerCoreError("INTERNAL_FAILURE");
   }
   if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
