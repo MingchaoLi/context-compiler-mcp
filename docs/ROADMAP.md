@@ -10,7 +10,7 @@ Work proceeds in this order:
 6. **WO-DS-14 — State Compiler v0.1 时间状态回放。 ACCEPTED / COMPLETE.** 固定 30-step Reducer Conformance 与唯一一次 `gpt-5.6-terra` / medium ST-02 capture/raw scoring 均已通过独立 QA 的完整性验证。ST-02 Extractor correctness 实验结果为失败：12 schema failure fallback、16 strict-valid empty on Gold-nonempty、2 empty true negative，Predicted State 全空，general / critical unique recall 为 `0/35` / `0/29`。precision 与 lifecycle/relationship capability 因 zero eligibility 保持 `not_evaluable`；没有综合分、阈值或架构胜负。工单已按预定停止，下一阶段未授权。
 7. **WO-V0-15 — Experience-ready foundation closure. ACCEPTED / FROZEN.** 第六个 compile telemetry 线性化 fix 已于 2026-08-24 在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA，关闭首 trace commit 前跨实例 no-id compile 穿越 origin 的最后一个已知 correctness P1；历史返回与接受记录继续 append-only 保留。Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估。
 8. **Context / State infrastructure freeze. COMPLETE.** correctness、兼容、provenance、迁移、并发、回放和生产打包合同已独立接受；不再开发新 Context 算法、复杂 ontology、PACE/mem0 对比或 retrieval 调参，5/8/15 仍只是配置实验参数。
-9. **真实使用与 Experience Formation 数据准备。 NEXT.** 下一阶段通过真实长期运行积累可回放的 `Event -> Action -> Outcome / Feedback -> Candidate Experience` 数据；现阶段不自动抽象、promotion 或影响 Agent 决策。
+9. **真实使用与 Experience Formation 数据准备。 IN PROGRESS — WO-DG-01.** 首个 bounded observation 直接使用当前 Codex 超长项目会话与 123-commit 历史，比较原生宿主继承、冻结 v0 compile_context 与确定性 Ground Truth；只做 capture/evaluation/report，不修改冻结基础设施，也不自动抽象、promotion 或影响 Agent 决策。
 10. **Host formal mode consideration.** Formal Host Mode 仍需新的明确工单；本次收口不授权宿主集成或修改其他仓库。
 
 Automatic headline generation 仍未实现，也不由既有工单隐含授权；Context / State freeze 后不再作为默认路线图任务。

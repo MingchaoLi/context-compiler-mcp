@@ -16,6 +16,8 @@ Updated: 2026-08-24
 
 ## Latest delivery status
 
+WO-DG-01 已建立为 observation-only 的 Codex Long-Conversation Dogfood-01。它保持 WO-V0-15 `ACCEPTED / FROZEN`，只比较 A=当前 Codex 线程原生继承上下文、B=冻结 v0 `compile_context`、C=固定 Git/docs/QA Ground Truth；禁止修改 core、权重、dormant、ontology、storage 或 Experience Formation。宿主 opaque compaction 不可检查，A 的真实输入 token 与 compaction latency 记为 `not_observable`。当前状态为 `PLANNED / CAPTURE PENDING`。
+
 WO-V0-15 的全部历史返回与接受证据继续 append-only 保留。第六个 compile telemetry 线性化 fix 已在固定 source candidate `ad94f9350482be37f1a38538cf6b624fb69a2b9a` 通过独立 re-QA，关闭首 trace 提交前跨实例 no-id compile 穿越 origin 的 TOCTOU P1；当前状态恢复为 **ACCEPTED / FROZEN**。完整 state/raw/ledger 读取、assembly、首 trace/hits 与 commit 处于同一可回滚 `BEGIN IMMEDIATE` boundary，竞争 raw/state writer 与 no-id compile 只能落在 origin 一侧。Windows 和 exact Node.js 24 仍未单独复跑。Dense retrieval、Context 语义收益与 Experience Formation 效果都未评估。
 
 WO-EV-02 passed independent re-QA on 2026-08-23 at fixed source candidate `93b71dde1c660feb2671d974cbb6eedb3b58340a`. The accepted evaluator v2 preserves version 1 reproduction, rejects non-plain or untraceable Probe inputs before execution, represents empty rates explicitly as `not_evaluable`, excludes `current_input` from historical matching while retaining it in cost/latency inputs, and reports raw D2-vs-D1 token cost without adding a gate. The first QA return and append-only fix are retained in the QA report. The package and real stdio MCP were verified production-only with exactly nine tools. The QA matrix exercised macOS 26.5.1 / Darwin 25.5.0 arm64 with Node.js 25.6.1 and npm 11.9.0; Windows and exact Node.js 24 remain unverified.
