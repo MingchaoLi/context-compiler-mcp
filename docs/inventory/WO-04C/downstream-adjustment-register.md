@@ -1019,3 +1019,159 @@ policy branch count and fixture cross-product
 - 需要同一 Takeover 创建 State revision：停止，先审 bounded substrate extension；
 - 需要跳过未安全前缀、多 lane/speculative Frontier 或删除 Raw 才能满足性能：拒绝隐式
   promotion，另开有明确收益证据的架构工单。
+
+---
+
+## DA-09 — Deterministic Hot Raw Projection Target + Window Ablation
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED DIRECTION / PRESERVE HOT RAW + FRONTIER SEMANTICS /
+PENDING WO-05 PROMOTION + ABLATION / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — 不修改 Takeover range、Frontier、coverage、Artifact、transaction、
+policy hash、source/schema/test allowlist 或工期估算。
+
+**Routing：** WO-05 ContextSnapshot Hot Raw projection/manifest/budget；future deterministic
+window ablation work order。当前 frozen v0 Recent Raw behavior 保留为 compatibility comparator，
+不能由本登记静默改写。
+
+### Three distinct layers
+
+以下三个概念不能合并：
+
+```text
+Raw Ledger
+  append-only complete Event history and replay fact source
+
+Eligible Hot Raw
+  frontier_position < event.revision <= ledger_as_of_revision
+  all Raw Events not yet safely taken over in the frozen Snapshot world
+
+Snapshot Hot Raw projection
+  the exact Raw Event/segment projection selected for one Working Context
+```
+
+固定 token target 只允许作用于第三层。没有进入某次 Snapshot 的 eligible Event 仍然是 Hot
+Raw：不得变成 Cold、不得被视为 compacted、不得推进 Frontier，也不得从 Ledger 删除。它在
+后续 Snapshot、Targeted Recovery 或安全 Takeover 中继续可用。
+
+Snapshot 必须持久绑定实际纳入的 `hot_raw_event_refs`、`hot_raw_hash`、
+`ledger_as_of_revision`、Frontier vector、projection version 与 config/policy identity。完整
+eligible set 必须能由 Ledger + committed Frontier + as-of world 确定性重建。
+
+### Accepted future projection candidate
+
+Future WO-05 候选使用连续、机械、可审计的 Raw projection：
+
+```text
+rebuild eligible Hot Raw from Ledger + Frontier + as-of
+-> apply allowed deterministic structural projection/folding
+-> if projected cost <= raw soft target: include all
+-> otherwise select the latest contiguous suffix
+   on complete Raw Event or explicit segment boundaries
+-> allow bounded whole-object overshoot only below hard Context capacity
+-> freeze exact refs/hash/projection identity in Snapshot
+```
+
+禁止 semantic importance pruning、LLM message selection、topic-aware window、per-request adaptive
+scoring、精确拆分 Event 或为节省少量 token 重写 Raw。Chat message 只是 Raw Event 的一种；Tool
+Result、文件、external observation 与跨 session Event 必须遵循同一 stable boundary contract。
+
+如果已有显式 active-segment/closure marker，soft target 可以向更老方向扩展到完整 segment，
+但不能调用新的 LLM judge 猜测最佳边界。没有显式 marker 时只保证 complete Event boundary。
+窗口选择不参与 closure Authority、Compaction coverage 或 Frontier transition。
+
+### Soft target versus hard capacity
+
+`raw_projection_target` 是可实验的软目标，不是 Host hard limit。完整 Event/segment 可以造成
+有界 overshoot，但最终 Context 仍必须满足 DA-07 的 hard-cap contract：
+
+```text
+soft target crossed, hard capacity still valid
+  -> deterministic bounded overshoot is allowed and recorded
+
+mandatory Current Input / Authority / required refs / required Evidence exceed hard capacity
+  -> explicit BUDGET_INSUFFICIENT / overage diagnostic
+  -> no executable Snapshot/Attempt
+```
+
+Core 不按 provider/model 名称分支。Token/cost estimator、capacity 与 numeric target 必须使用
+显式 version/config identity；未来若 Host 提供不同模型容量，也只能作为 opaque、可重放输入，
+不能让 Core 隐式选择 provider 或猜模型能力。具体默认 token target 继续保持未冻结。
+
+### Authority and correctness boundary
+
+Hot Raw projection 是 State 提交滞后的 usability buffer，不是 Authority correctness guarantee。
+新 Raw 与旧 State 冲突时，不能依赖远端模型自行裁决；Hard Constraint、撤销、最终决定仍走
+Immediate Authority fast path，required Raw/Authority/Evidence 仍通过显式 inclusion reason 与
+dependency closure 提升到 mandatory context。
+
+窗口之外但本 Attempt required 的 Event 不应通过“智能扩大 Recent Raw”隐式找回；应使用 exact
+required ref、Targeted Recovery 或 EvidenceBundle，并保持 non-authoritative evidence 不自动
+获得 State Authority。
+
+### Future ablation direction
+
+在同一个 frozen Ledger/Frontier/as-of/State/Evidence world、同一 estimator/version、同一 hard
+capacity 和相同 mandatory set 中比较：
+
+```text
+H0 = all mechanically projected eligible Hot Raw
+H1 = 1k soft raw target
+H2 = 2k soft raw target
+H3 = 4k soft raw target
+H4 = 8k soft raw target
+```
+
+数值仅为预注册测试档，不是 architecture default。若 estimator 不使用这些单位，promotion
+work order 必须在看结果前冻结等价的 deterministic cost buckets。
+
+至少覆盖：
+
+```text
+short Hot Raw below every target
+one oversized Event and whole-object overshoot
+explicit active segment crossing the soft boundary
+no explicit segment marker at the boundary
+negation / correction / sarcasm across the boundary
+unresolved Goal or OpenQuestion older than the suffix
+new Raw contradicting stale State
+Immediate Hard Constraint near and outside the soft boundary
+cross-session and non-chat Raw Events
+Frontier unchanged while older eligible Hot Raw is omitted from one Snapshot
+required exact Event outside the suffix
+mandatory set already exceeds hard capacity
+permutation/reopen rebuild with byte-stable selected refs/hash
+```
+
+至少记录：
+
+```text
+working_context_raw_tokens and total reduction
+continuity_or_correction_loss
+unresolved_item_omission
+state_lag_exposure
+required_recovery_rate / success
+eligible_hot_raw_omitted_count / tokens
+soft_target_overshoot
+hard_capacity_failure_integrity
+Snapshot ref/hash determinism
+final-answer quality only in a separate fixed-model evaluation
+```
+
+第一阶段必须使用 fixed refs/Gold inclusion fixtures 测 projection correctness，不调用远端模型。
+最终回答质量另开固定 provider/model/prompt/fresh-session 与盲化评分合同，不能用模型波动选择
+projection policy。
+
+### Promotion and stop conditions
+
+- 某个 soft target 在预注册 continuity/required-context/recovery 门内取得稳定 reduction：可以
+  promotion 为 WO-05 configurable default；
+- 小窗口增加 correction loss、State lag exposure 或 Recovery 回补到抵消 token 收益：选择更大
+  target 或 H0，不引入智能 message ranker；
+- explicit segment extension 经常无限扩张或依赖不稳定 closure inference：退回 complete Event
+  boundary，不升级语义窗口优化器；
+- hard capacity 被 whole-object overshoot 穿透：停止 promotion，修复 explicit failure contract；
+- 需要 fixed recent-N 重新定义 Hot Raw、移动 Frontier 或删除 Raw 才能达成指标：拒绝该方案并
+  保持 canonical Hot Raw semantics。
