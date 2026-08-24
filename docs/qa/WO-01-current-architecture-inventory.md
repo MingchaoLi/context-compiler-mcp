@@ -170,3 +170,127 @@ repository, or external host code was used. `npm test` and `npm run build` were 
 run: the delivery is docs-only, representative source/test evidence was inspected,
 and no artifact-producing runtime check was necessary beyond the isolated in-memory
 probe.
+
+## Fresh independent re-QA — 2026-08-24
+
+### Result: ACCEPTED
+
+The original **REJECTED** record above is retained verbatim. Fresh independent
+re-QA accepts the append-only fixed candidate:
+
+```text
+source_baseline_HEAD:       f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52
+original_delivery_HEAD:     d53a8879acb8568be14dc5706efea01ec5e50732
+retained_QA_REJECTED_HEAD:  3cde42dace9dd5773525731d35f907b9d5752424
+fixed_candidate_HEAD:       ac6056c8c0ba2057866642d6785c1aee272af81b
+fixed_candidate_parent:     3cde42dace9dd5773525731d35f907b9d5752424
+branch_at_re-QA:             main
+```
+
+Before this QA append, `HEAD`, its parent, the branch, and an empty worktree were
+mechanically pinned. The fixed candidate therefore has the expected QA-return
+parent and no unreviewed working-tree input.
+
+### Facts and independent verification evidence
+
+#### Three-layer history and allowlist
+
+- `source_baseline_HEAD..original_delivery_HEAD` remains the original docs-only
+  delivery: eleven files under `docs/inventory/WO-01/**` plus the Builder handoff.
+- `original_delivery_HEAD..retained_QA_REJECTED_HEAD` contains only the independent
+  QA record at `docs/qa/WO-01-current-architecture-inventory.md`.
+- `retained_QA_REJECTED_HEAD..fixed_candidate_HEAD` modifies only the three
+  inventory documents named by the rejection and the Builder handoff:
+  `v3.1.1-gap-analysis.md`, `persistence-transaction-map.md`,
+  `crash-gap-matrix.md`, and the WO-01 handoff.
+- Source, schema, tests, evaluation assets, configuration, and official artifacts
+  are unchanged across the delivery chain. `git diff --check` passes for every
+  layer.
+
+#### v3.1.1 gap routing
+
+The corrected gap table was checked item by item against the Umbrella Registry,
+not against the Builder's conclusion:
+
+- WO-02 owns the Core/Host authority matrix.
+- WO-03A owns namespace/stream/shared revision/CAS/transaction substrate and the
+  `shadow:<experiment_id>` namespace substrate.
+- WO-03B owns ledger high-water, committed Frontier position, and Hot Raw replay.
+- WO-04 owns State revision, Fact/Relation authority, and Semantic
+  Takeover/Enrichment.
+- WO-05 owns immutable `ContextSnapshot` and `AttemptStarted`.
+- WO-06 owns Evidence Scope/Horizon, one-hop Ripple, and `EvidenceBundle`.
+- WO-07 owns Operation/Attempt/Action, `ToolResult`, interruption, idempotency, and
+  reconciliation.
+- WO-08 owns live verification, bounded recovery, `ResponsePrepared`, Outbox, and
+  delivery.
+- WO-09 owns full crash/concurrency/replay verification, including shadow-isolation
+  tests; it is explicitly verification-only and does not first implement shadow
+  storage or routing.
+- WO-10 owns shadow routing, side-by-side dogfood, and promotion evidence.
+
+The shadow split is consequently explicit: substrate in WO-03A, tests in WO-09,
+and routing/dogfood in WO-10. The Umbrella Registry does not allocate Background
+Maintenance authority to a child work order, so the inventory correctly preserves
+it as `UNASSIGNED / UNKNOWN` rather than inventing an owner.
+
+#### State schema initialization and crash behavior
+
+The corrected persistence and crash maps match the implementation:
+
+- `StateStore#migrate` executes a multi-statement `CREATE ... IF NOT EXISTS` batch
+  without an outer transaction.
+- `initializeSqliteConnection` applies PRAGMAs and retry handling but adds no
+  migration transaction.
+- A fresh no-file, in-memory SQLite probe forced a later statement to fail and
+  observed that the earlier DDL remained present:
+  `{"code":"ERR_SQLITE_ERROR","first_statement_persisted_after_second_failed":true}`.
+- On constructor failure, `StateStore` closes the connection and rethrows. A later
+  compatible reopen can idempotently replay the `CREATE IF NOT EXISTS` batch and
+  complete missing objects; an incompatible partial schema is not automatically
+  repaired.
+- No schema-version or schema-completion marker exists. The documents therefore do
+  not overstate initialization as atomic or durably complete.
+
+This accurately records the partial-DDL window, constructor failure behavior,
+compatible idempotent reopen, and the absence of a completion marker.
+
+#### Regression of the previously accepted inventory
+
+The eight previously accepted core inventory documents are byte-identical between
+the original delivery and the fixed candidate. The `src`, `test`, and `evaluation`
+Git trees are also identical between the source baseline and fixed candidate.
+Accordingly, the first-round source/test traces for Raw/Event atomic mirroring,
+State preparation/application, retrieval and assembly, compile telemetry,
+response/delivery absence, identity, crash gaps, Core/Host leakage, and Unknown
+classification remain valid and were not disturbed by the bounded documentation
+fix.
+
+The corrected documents now distinguish implemented facts, gaps, and unknown or
+unassigned authority sufficiently for direct use as WO-02 and WO-03A planning
+inputs. Acceptance of this inventory does not authorize starting either work
+order.
+
+### Deviations, risks, and decision
+
+No acceptance-blocking deviation remains. The documented State initialization
+partial-DDL window and lack of a schema completion marker remain production risks,
+but they are accurately classified as current behavior/gaps rather than silently
+treated as solved. Background Maintenance ownership likewise remains deliberately
+unassigned pending an explicit registry decision.
+
+The fixed candidate is **ACCEPTED** for WO-01. This verdict accepts the inventory,
+not any future implementation, host integration, or follow-on work order.
+
+### Fresh re-QA commands and execution boundary
+
+Representative checks included `git rev-parse`, `git branch --show-current`,
+`git status --porcelain`, layered `git log`/`git diff`/`git diff --check`, Git tree
+and blob comparisons, line-level `rg`/`nl`/`sed` inspection of the routed Contract,
+Umbrella Registry, State migration source, helper, tests, and fixed Builder
+documents, plus the isolated in-memory SQLite probe described above.
+
+No network, remote model, destructive command, production database, sibling host
+repository, or external host code was used. `npm test` and `npm run build` were not
+run because the fixed candidate contains no source change and those checks were
+unnecessary for this documentation-only re-QA.
