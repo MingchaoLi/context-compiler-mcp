@@ -117,3 +117,115 @@ Recovery-only，必须单独修改上层 Architecture Contract，而不能由 WO
 
 > 已越过 Frontier 的 Raw 不会自动重新进入 Working Context，但仍保留为审计、exact
 > replay 与未来显式 Evidence query 的事实源。
+
+---
+
+## DA-02 — State Proposal / Validation / Reduction / Authority Commit 骨架
+
+**用户状态：** 已接受评估后的修正版并要求纳入后续计划。
+
+**登记状态：** RECORDED / DOWNSTREAM CANDIDATE / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — Takeover v1 继续只读 exact State authority，不接收 State
+proposal、不获得 State apply seam、不推进 State axis。
+
+**Routing：** 已接受的 Canonical State Authority correctness contract；未来仅在新的
+Extractor、State policy/version 或 Host integration work order 中引用，不进入 WO-04C。
+
+### Accepted direction
+
+逻辑职责冻结为：
+
+```text
+optional Proposal Producer / Extractor
+-> untrusted StateDeltaProposal
+-> strict Parser + Normalizer
+-> transaction-bound Authority Validator
+-> deterministic pure Reducer
+-> Canonical State Authority Commit
+-> revision substrate allocates State revision + immutable marker
+```
+
+四项 correctness skeleton 保留：
+
+- Proposal producer 不拥有 Authority；
+- Validator 只验证 deterministic contract，不充当第二个模型或 world-truth judge；
+- explicit proposal/delta 是 audit、QA、replay 输入，不用整份模型生成 State 替代；
+- Reducer 只做确定性状态转换，不调用模型、embedding、retrieval、dependency guess 或
+  scope inference。
+
+逻辑职责分离不要求拆成多个服务；Parser、Validator 与 Reducer 可以在同一 Core domain
+module 内保持小而明确。
+
+### Exact corrections to the proposed wording
+
+Delta/Proposal 是 Extractor 的不可信输出，因此顺序不是
+`Extractor -> Validator -> Delta`，而是：
+
+```text
+Extractor/Detector -> untrusted Proposal -> validate/normalize -> reduce
+```
+
+Reducer 也不是 durable single writer。真正的唯一写入 Authority 是 Canonical State owner
+与 revision substrate transaction；Reducer 只计算 previous + normalized proposal 的唯一
+next State。
+
+### Validation split
+
+事务外只允许处理不依赖 Authority snapshot 的规则：
+
+```text
+plain-data shape
+exact keys
+NFC / Cc / bounds
+canonical ordering
+supported policy shape
+```
+
+事务内必须重新验证：
+
+```text
+expected State revision
+current item identity/kind/status
+legal lifecycle transition
+same-scope committed Raw provenance
+policy hash
+no-delete / monotonic provenance
+non-empty and non-no-op result
+```
+
+任何失败均不得部分写 State row、revision、marker 或其他 Authority。
+
+### Vocabulary decision
+
+不因本次调整新增 `UPSERT / SUPERSEDE / INVALIDATE / RESOLVE / KEEP` 操作语言。当前
+accepted Canonical State v1 继续使用：
+
+```text
+proposal.upsert_items[]
++ closed kind/status transition table
++ no delete
+```
+
+未被 proposal 提及的 item 自动保持不变；`KEEP` 不是 operation。现有 State kind/status/
+policy hash 已由 WO-04A 冻结。若未来要删除 `REJECTED_ALTERNATIVE`、减少 lifecycle 或改变
+transition vocabulary，必须建立新的 Canonical State policy/schema version 与独立迁移/
+promotion gate，不能原地改写 v1。
+
+### Idempotency and replay
+
+幂等身份属于 scoped `state_commit_id`：
+
+- same identity + exact normalized descriptor 返回原 immutable result；
+- same identity + substitution 稳定 conflict；
+- new identity 重复产生 byte-identical State 是 no-op/conflict，不消费 revision。
+
+完整 replay authority 不只是 Delta 序列，还必须绑定 policy hash、expected/previous/current
+revision、proposal bytes、same-scope Raw provenance、complete State/hash 与 substrate marker。
+
+### Extractor boundary
+
+Extractor/Detector 是 optional、provider-neutral、untrusted Proposal Producer，可以来自规则、
+显式调用或外部 transport；Canonical State commit 不依赖某个模型/provider。当前已记录的
+Extractor correctness 失败不授权扩大模型、prompt 或 transport 投入。未来若重开 Extractor
+实验，必须单独证明 proposal correctness，不能以 deterministic reducer conformance 代替。
