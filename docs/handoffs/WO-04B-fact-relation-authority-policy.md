@@ -1,16 +1,19 @@
 # WO-04B Builder Handoff — Fact / Relation Authority + Policy
 
-Status: **BUILDER COMPLETE / AWAITING INDEPENDENT QA**<br>
+Status: **APPEND-ONLY BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**<br>
 Work order: `docs/work-orders/WO-04B-fact-relation-authority-policy.md`<br>
 Source baseline / planning authority:
 `eb7a45bdfa09cd468581145e6270a22a471cf2f6`<br>
 Expected parent: `74d39636e112054f7a4ea2b9a2e1be0b3728cdd7`<br>
 Pre-source baseline/grammar commit: `4471ce3`<br>
+Original Builder candidate: `3cecddd004fa7ab4df3eba6d4df9a7d63baf04c0`<br>
+Independent QA rejection:
+`4dccaa824d47e2abda3333536dc54df0dcbe7f33`<br>
+Fixed Builder candidate HEAD: the append-only commit containing this handoff;<br>
 WO-04A fixed candidate / QA:
 `98e02ef898587b013ad588cf7ab2f182afa276e3` /
 `74d39636e112054f7a4ea2b9a2e1be0b3728cdd7`<br>
-Builder candidate HEAD: the commit containing this handoff; Independent QA must
-resolve and pin that exact commit before review.
+Independent re-QA must resolve and pin the fixed candidate before review.
 
 ## Bounded result
 
@@ -33,6 +36,39 @@ Frontier position and Takeover revision unchanged.
 The candidate does not migrate legacy `state_relations`, enter current compile /
 retrieval/assembly, implement Takeover/Enrichment/Frontier/Compaction/Snapshot,
 add Host/provider/network behavior, or begin WO-04C/WO-05.
+
+## Append-only QA return and bounded fix
+
+The first Independent QA passed the declared focused/full suites and every
+non-State attack, but rejected the original candidate on one blocker. WO-04B
+treated a canonical State row plus locally recomputed `state_hash` as sufficient
+`STATE_ITEM` authority. QA coordinated a State-row/hash replacement while
+leaving the accepted WO-04A substrate marker unchanged. Frozen WO-04A correctly
+returned `CORRUPT_DATA`, while the original WO-04B candidate accepted and
+persisted a Relation to the forged item.
+
+The append-only fix changes only the WO-04B owner and its focused regression:
+
+- no second connection or nested Store is opened; the exact observed State is
+  reconstructed inside the existing WO-04B SQLite transaction snapshot;
+- the verifier checks the complete State row grammar/canonical bytes/hash,
+  frozen WO-04A policy, proposal-provenance union, exact
+  `STATE / CANONICAL_STATE_COMMIT_V1` marker, request/fingerprint, complete
+  result, previous/current vector binding, Raw high-water and deterministic
+  reduction from the previous State snapshot;
+- the marker's current vector must be component-wise no later than WO-04B's
+  observed vector, while only State advances between its previous/current
+  vectors; and
+- stored commits containing a `STATE_ITEM` re-run the same proof, so current,
+  exact Fact, exact Relation, exact commit, replay and reopen all fail closed on
+  the QA counterexample.
+
+The regression first proves a legitimate State-linked Relation works, then
+reproduces QA's coordinated row/hash replacement. Both frozen WO-04A and fixed
+WO-04B return `CORRUPT_DATA`; an attempted forged Fact/Relation batch leaves the
+existing one marker, one Fact and one Relation unchanged and leaves all five
+WO-03A axes byte-equivalent. `src/canonical-state.ts` remains byte-identical to
+the accepted WO-04A source.
 
 ## Execution baseline and exact paths
 
@@ -62,7 +98,7 @@ package/config/dependencies, evaluation and official artifacts are unchanged.
 ## Source and policy fingerprints
 
 ```text
-8ed2689737dcfedc3c28db52c8019436b1d727a4b9b6ed2f0280f67fc23fc9d4  src/canonical-fact-relation.ts
+18afdd3fbf88a829233a68b7115a9d1768e1f280d8f55c81d44c085d449fb587  src/canonical-fact-relation.ts (fixed)
 891928617190d3721e7424c40429e71730e2542370102db03d899a6ddf54ad3b  src/core.ts
 2c467acbc99d52936a5f72d08dfe17ece190991187e42b92f825d47d0dfec761  src/index.ts
 9ab332bbf3c53555cafb9d90c6709e6c371ccf8bb3ccc68afe48be85697c9599  src/revision-substrate.ts (frozen)
@@ -175,7 +211,7 @@ exports policy/schema constants, public types and stable domain error only—not
 the Store, migration, SQLite connection or generic writer. MCP remains exactly
 nine commands.
 
-## Builder verification
+## Original Builder verification
 
 Completed on 2026-08-24:
 
@@ -223,6 +259,30 @@ No network, remote model, credential, production database, destructive command
 or sibling Host repository was used. All write diagnostics used isolated files
 under the system temporary directory.
 
+## Fixed Builder verification
+
+Completed after the append-only QA rejection on 2026-08-24:
+
+```text
+focused Fact/Relation + frozen State/substrate/Raw + Core/MCP run
+  PASS — 6 files, 53 tests
+
+npm test
+  PASS — 34 files passed, 1 skipped; 521 tests passed, 1 skipped
+
+npm run build
+  PASS — tsc -p tsconfig.json
+
+git diff --check
+  PASS
+```
+
+The new test is the exact B1 regression. It also uses valid WO-04A State
+metadata with 101 object keys to prove that the reused State authority parser
+does not accidentally impose WO-04B's separate 100-key Fact/Relation metadata
+bound. No network, remote model, sibling Host code or non-temporary diagnostic
+database was used.
+
 ## Known limits and deferred work
 
 - No detector/extractor/linker or automatic proposal source is selected.
@@ -247,16 +307,20 @@ The Builder does not approve this candidate. Independent QA must:
    missing Fact/State Item endpoints and shadow/authority isolation;
 5. reproduce row+result, request+fingerprint and vector+row+result substitutions
    against latest, exact and replay;
-6. inject marker/Fact/Relation/actual-COMMIT failure and verify total rollback;
-7. reproduce per-object CAS winner and same-identity exact retry races;
-8. challenge contested/superseded/retracted reason orphaning, verified dispute,
+6. independently reproduce the accepted-State-row/hash replacement with the
+   original WO-04A marker left unchanged; require WO-04A and WO-04B commit,
+   current, exact, replay and reopen reads to fail closed with zero new domain
+   rows and unchanged five-axis vector;
+7. inject marker/Fact/Relation/actual-COMMIT failure and verify total rollback;
+8. reproduce per-object CAS winner and same-identity exact retry races;
+9. challenge contested/superseded/retracted reason orphaning, verified dispute,
    duplicate edge, self-edge and cycles;
-9. challenge empty/no-op/overflow, all Unicode `Cc`, non-NFC, accessor, cycle,
+10. challenge empty/no-op/overflow, all Unicode `Cc`, non-NFC, accessor, cycle,
    exotic/sparse/extra-key and bounds input before mutation;
-10. challenge fresh/legacy concurrent migration, exact SQL collision and forged
+11. challenge fresh/legacy concurrent migration, exact SQL collision and forged
     completion;
-11. rerun focused, `npm test`, `npm run build`, exact-nine/root reflection,
+12. rerun focused, `npm test`, `npm run build`, exact-nine/root reflection,
     `git diff --check` and frozen/prohibited-path audits;
-12. write only `docs/qa/WO-04B-fact-relation-authority-policy.md`, make a separate
+13. append to only `docs/qa/WO-04B-fact-relation-authority-policy.md`, make a separate
     QA commit and return ACCEPTED or REJECTED without implementing fixes or
     starting WO-04C/WO-05.

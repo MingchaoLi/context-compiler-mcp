@@ -1,6 +1,6 @@
 # WO-04B — Canonical Fact / Relation Authority and Policy
 
-Status: IMPLEMENTED BUILDER CONTRACT — AWAITING INDEPENDENT QA
+Status: APPEND-ONLY BUILDER FIX IMPLEMENTED — AWAITING FRESH INDEPENDENT RE-QA
 
 ## 1. Scope and ownership
 
@@ -219,10 +219,35 @@ Endpoint existence is checked in the same commit transaction:
 - `FACT`: the current committed Fact, including a Fact created earlier in the
   same normalized batch;
 - `STATE_ITEM`: an item in the exact Canonical State revision named by observed
-  `state_revision`.
+  `state_revision`, after that revision passes the frozen WO-04A authority
+  binding in the same SQLite transaction snapshot.
 
 An observed zero State revision has no State item endpoints. Legacy State is
 never an endpoint authority.
+
+### 4.1 Canonical State authority reuse
+
+A Canonical State row plus a locally recomputed `state_hash` is not sufficient
+authority for `STATE_ITEM`. Before an endpoint qualifies, WO-04B reconstructs
+the frozen WO-04A proof from the exact observed revision without opening a
+second connection or transaction:
+
+- exact State row grammar, canonical proposal/state bytes, State hash, frozen
+  policy hash, commit mode, timestamp and exact proposal-provenance union;
+- corresponding `STATE / CANONICAL_STATE_COMMIT_V1` substrate marker;
+- exact marker request bytes/fingerprint, complete row-shaped marker result,
+  previous/current vector binding and State-only `+1`;
+- same-scope Raw provenance no later than the marker Ledger high-water, with
+  the marker vector component-wise no later than WO-04B's observed vector; and
+- deterministic reduction from the exact previous State snapshot to the
+  committed State.
+
+The same proof is required on new commit, current projection, exact
+Fact/Relation revision, exact domain commit, exact replay and reopen whenever
+the stored authority contains a `STATE_ITEM` endpoint. Any disagreement is
+`CORRUPT_DATA`; a forged endpoint cannot be downgraded to `CONFLICT` or accepted
+as row-shaped legacy data. This reuses frozen WO-04A semantics read-only and
+does not modify `src/canonical-state.ts` or advance any primary axis.
 
 ## 5. Normalization and bounds
 
@@ -362,9 +387,9 @@ fail constructor open as `STORAGE_FAILURE`.
    transaction.
 5. Read the complete five-component scope vector without materializing a stream.
 6. Load exact current Fact/Relation objects and Canonical State endpoints in the
-   same snapshot; validate expected object revisions, Raw/Event provenance,
-   endpoint existence, transitions, graph/reason invariants and active-edge
-   uniqueness.
+   same snapshot; reconstruct the complete frozen WO-04A State authority proof,
+   then validate expected object revisions, Raw/Event provenance, endpoint
+   existence, transitions, graph/reason invariants and active-edge uniqueness.
 7. Insert all new Fact revisions, Relation revisions and the exact domain marker.
    Re-read the scope vector and require byte equality.
 8. `COMMIT`; a deferred SQLite COMMIT failure rolls back all domain rows and the
@@ -392,7 +417,9 @@ Current projection begins one SQLite read transaction and binds live vector,
 current object rows and their domain markers. Exact object and commit reads also
 use one snapshot and reject a historical observed vector greater than any live
 vector component. Row hash, domain request, object revision transition and result
-must all agree; coordinated replacement is `CORRUPT_DATA`.
+must all agree. Stored authorities containing a `STATE_ITEM` also reconstruct
+the exact observed WO-04A State proof in that same read snapshot; coordinated
+replacement is `CORRUPT_DATA`.
 
 Absent scope returns an explicit empty current projection plus zero vector and
 does not materialize any row. Missing exact identity/revision is `NOT_FOUND`.

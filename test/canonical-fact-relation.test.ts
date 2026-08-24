@@ -257,6 +257,115 @@ describe("WO-04B canonical Fact / Relation authority", () => {
     closeStore(opened);
   });
 
+  it("rejects State Item authority when WO-04A rejects the coordinated State row", () => {
+    const database = databasePath();
+    const scope = { namespace: "authority", stream_id: "state-authority-binding" };
+    const opened = openStore(database);
+    appendEvent(opened, scope, "event-1");
+    opened.state.commit({
+      scope,
+      state_commit_id: "state-1",
+      commit_mode: "immediate_authority",
+      expected_state_revision: 0,
+      proposal: {
+        schema_version: 1,
+        upsert_items: [{
+          item_id: "real-state-item",
+          kind: "GOAL",
+          content: "Real State endpoint",
+          status: "ACTIVE",
+          source_event_ids: ["event-1"],
+          metadata: wideCanonicalStateMetadata(),
+        }],
+      },
+      policy_hash: CANONICAL_STATE_POLICY_HASH,
+      provenance_event_ids: ["event-1"],
+    });
+    const legitimateInput = commitInput(scope, "legitimate", [
+      createFact("fact-real", "Legitimate State relation", "event-1"),
+    ], [
+      createRelation(
+        "relation-real",
+        { type: "STATE_ITEM", id: "real-state-item" },
+        "DEPENDS_ON",
+        { type: "FACT", id: "fact-real" },
+        "event-1"
+      ),
+    ]);
+    opened.knowledge.commit(legitimateInput);
+    const beforeTamper = opened.substrate.getRevisionVector(scope);
+    closeStore(opened);
+
+    const audit = new DatabaseSync(database);
+    const stateTrigger = dropTrigger(audit, "cc_canonical_state_revisions_no_update");
+    const row = audit.prepare(
+      `SELECT state_json FROM cc_canonical_state_revisions
+       WHERE namespace = ? AND stream_id = ? AND state_revision = 1`
+    ).get(scope.namespace, scope.stream_id) as { state_json: string };
+    const state = JSON.parse(row.state_json) as {
+      schema_version: 1;
+      items: Array<Record<string, unknown>>;
+    };
+    state.items.push({
+      item_id: "zz-forged-state-item",
+      kind: "GOAL",
+      content: "Forged State endpoint",
+      status: "ACTIVE",
+      source_event_ids: ["event-1"],
+      metadata: {},
+    });
+    const stateJson = canonicalJson(state);
+    audit.prepare(
+      `UPDATE cc_canonical_state_revisions SET state_json = ?, state_hash = ?
+       WHERE namespace = ? AND stream_id = ? AND state_revision = 1`
+    ).run(stateJson, sha256(stateJson), scope.namespace, scope.stream_id);
+    audit.exec(`${stateTrigger};`);
+    audit.close();
+
+    const challenged = openStore(database);
+    expect(() => challenged.state.readLatest(scope)).toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.readCurrent(scope))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.readFactRevision(scope, "fact-real", 1))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.readRelationRevision(scope, "relation-real", 1))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.readCommit(scope, "legitimate"))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.commit(legitimateInput))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => challenged.knowledge.commit(commitInput(scope, "forged", [
+      createFact("fact-forged", "Must not persist", "event-1"),
+    ], [
+      createRelation(
+        "relation-forged",
+        { type: "STATE_ITEM", id: "zz-forged-state-item" },
+        "DEPENDS_ON",
+        { type: "FACT", id: "fact-forged" },
+        "event-1"
+      ),
+    ]))).toThrowError(code("CORRUPT_DATA"));
+    expect(challenged.substrate.getRevisionVector(scope)).toEqual(beforeTamper);
+
+    const after = new DatabaseSync(database);
+    expect(after.prepare(
+      "SELECT COUNT(*) AS count FROM cc_canonical_fact_relation_commits"
+    ).get()).toEqual({ count: 1 });
+    expect(after.prepare(
+      "SELECT COUNT(*) AS count FROM cc_canonical_fact_revisions"
+    ).get()).toEqual({ count: 1 });
+    expect(after.prepare(
+      "SELECT COUNT(*) AS count FROM cc_canonical_relation_revisions"
+    ).get()).toEqual({ count: 1 });
+    after.close();
+    closeStore(challenged);
+
+    const reopened = openStore(database);
+    expect(() => reopened.knowledge.readCurrent(scope))
+      .toThrowError(code("CORRUPT_DATA"));
+    closeStore(reopened);
+  });
+
   it("classifies exact identity substitution before new-identity policy rejection", () => {
     const database = databasePath();
     const opened = openStore(database);
@@ -710,6 +819,12 @@ function zeroVector(scope: RevisionScope) {
     frontier_position: 0,
     takeover_commit_revision: 0,
   };
+}
+
+function wideCanonicalStateMetadata(): Record<string, number> {
+  return Object.fromEntries(
+    Array.from({ length: 101 }, (_, index) => [`state-key-${index}`, index])
+  );
 }
 
 function code(expected: string) {

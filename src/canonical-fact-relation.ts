@@ -4,6 +4,18 @@ import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { JsonObject, JsonValue } from "./raw-store.js";
 import {
+  CANONICAL_STATE_COMMIT_MODES,
+  CANONICAL_STATE_ITEM_KINDS,
+  CANONICAL_STATE_POLICY_HASH,
+  type CanonicalState,
+  type CanonicalStateCommitMode,
+  type CanonicalStateItem,
+  type CanonicalStateItemKind,
+  type CanonicalStateItemStatus,
+  type CanonicalStateProposal,
+  type CommittedCanonicalStateRevision,
+} from "./canonical-state.js";
+import {
   AUTHORITY_NAMESPACE,
   SHADOW_NAMESPACE_PREFIX,
   type RevisionScope,
@@ -200,6 +212,10 @@ const MAX_RELATION_PROPOSALS = 200;
 const MAX_OBJECT_EVENT_IDS = 1_000;
 const MAX_GRAPH_NODES = 10_000;
 const MAX_SAFE_REVISION = Number.MAX_SAFE_INTEGER;
+const MAX_STATE_CONTENT_LENGTH = 10_000;
+const MAX_STATE_UPSERT_ITEMS = 100;
+const MAX_STATE_ITEM_EVENT_IDS = 100;
+const MAX_STATE_COMMIT_EVENT_IDS = 1_000;
 
 const POLICY_DESCRIPTOR: JsonValue = {
   bounds: {
@@ -368,6 +384,31 @@ interface CommitRow extends Record<string, unknown> {
   current_object_revisions_json: string;
   result_json: string;
   created_at: string;
+}
+
+interface CanonicalStateAuthorityRow extends Record<string, unknown> {
+  namespace: string;
+  stream_id: string;
+  state_revision: number;
+  state_commit_id: string;
+  commit_mode: string;
+  previous_state_revision: number;
+  proposal_json: string;
+  state_json: string;
+  state_hash: string;
+  policy_hash: string;
+  provenance_event_ids_json: string;
+  created_at: string;
+}
+
+interface CanonicalStateMarkerRow extends Record<string, unknown> {
+  operation: string;
+  kind: string;
+  request_fingerprint: string;
+  request_json: string;
+  previous_json: string;
+  current_json: string;
+  result_json: string;
 }
 
 interface ObjectRevisionEntry {
@@ -878,6 +919,7 @@ export class SqliteCanonicalFactRelationStore {
         result.created_at !== storedTimestamp(row.created_at) ||
         !sameVector(result.observed_revision_vector, observed)) corrupt();
     assertCommitRevisionMaps(request, result, previous, current);
+    let stateItems: Set<string> | undefined;
     for (let index = 0; index < result.facts.length; index += 1) {
       const fact = result.facts[index];
       const proposal = request.fact_proposals[index];
@@ -982,6 +1024,18 @@ export class SqliteCanonicalFactRelationStore {
         observed.ledger_revision,
         true
       );
+      if (relation.source.type === "STATE_ITEM" || relation.target.type === "STATE_ITEM") {
+        stateItems ??= readCanonicalStateItemIds(
+          this.#database,
+          scope,
+          observed.state_revision,
+          observed
+        );
+        if ((relation.source.type === "STATE_ITEM" && !stateItems.has(relation.source.id)) ||
+            (relation.target.type === "STATE_ITEM" && !stateItems.has(relation.target.id))) {
+          corrupt();
+        }
+      }
     }
     const live = readVector(this.#database, scope);
     if (!vectorAtOrAfter(live, observed)) corrupt();
@@ -1415,7 +1469,12 @@ function validateFinalAuthority(
 ): void {
   try {
     if (facts.size + relations.size > MAX_GRAPH_NODES) invalid();
-    const stateItems = readCanonicalStateItemIds(database, scope, observed.state_revision);
+    const stateItems = readCanonicalStateItemIds(
+      database,
+      scope,
+      observed.state_revision,
+      observed
+    );
     const activeEdges = new Map<string, string>();
     for (const relation of relations.values()) {
       if (!sameVector(relation.observed_revision_vector, observed) &&
@@ -1498,9 +1557,86 @@ function assertEndpointExists(
 function readCanonicalStateItemIds(
   database: DatabaseSync,
   scope: RevisionScope,
-  stateRevision: number
+  stateRevision: number,
+  observed: RevisionVector
 ): Set<string> {
   if (stateRevision === 0) return new Set();
+  if (observed.state_revision !== stateRevision) corrupt();
+  const committed = readCanonicalStateAuthority(database, scope, stateRevision, observed);
+  return new Set(committed.state.items.map((item) => item.item_id));
+}
+
+function readCanonicalStateAuthority(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  stateRevision: number,
+  observed: RevisionVector
+): CommittedCanonicalStateRevision {
+  const row = database.prepare(
+    `SELECT namespace, stream_id, state_revision, state_commit_id, commit_mode,
+            previous_state_revision, proposal_json, state_json, state_hash,
+            policy_hash, provenance_event_ids_json, created_at
+     FROM cc_canonical_state_revisions
+     WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
+  ).get(
+    scope.namespace,
+    scope.stream_id,
+    stateRevision
+  ) as CanonicalStateAuthorityRow | undefined;
+  if (row === undefined) corrupt();
+  const committed = canonicalStateCommittedFromRow(row, scope);
+  const marker = database.prepare(
+    `SELECT operation, kind, request_fingerprint, request_json,
+            previous_json, current_json, result_json
+     FROM cc_revision_commits
+     WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+  ).get(
+    scope.namespace,
+    scope.stream_id,
+    committed.state_commit_id
+  ) as CanonicalStateMarkerRow | undefined;
+  if (marker === undefined || marker.operation !== "STATE" ||
+      marker.kind !== "CANONICAL_STATE_COMMIT_V1") corrupt();
+  const previous = parseStoredVector(marker.previous_json, scope);
+  const current = parseStoredVector(marker.current_json, scope);
+  if (previous.state_revision !== committed.previous_state_revision ||
+      current.state_revision !== committed.state_revision ||
+      current.state_revision !== previous.state_revision + 1 ||
+      !sameCanonicalStateNonStateAxes(previous, current) ||
+      !vectorAtOrAfter(observed, current)) corrupt();
+
+  const requestJson = canonicalStateJson(canonicalStateMarkerRequest(committed));
+  if (marker.request_json !== requestJson ||
+      storedHash(marker.request_fingerprint) !== sha256(requestJson)) corrupt();
+  assertEventRefs(
+    database,
+    scope,
+    committed.provenance_event_ids,
+    current.ledger_revision,
+    true
+  );
+  if (marker.result_json !== canonicalStateJson(canonicalStateCommittedAsJson(committed))) {
+    corrupt();
+  }
+
+  const previousState = committed.previous_state_revision === 0
+    ? ({ schema_version: 1, items: [] } as CanonicalState)
+    : readCanonicalStateSnapshot(
+      database,
+      scope,
+      committed.previous_state_revision
+    );
+  const reduced = reduceStoredCanonicalState(previousState, committed.proposal);
+  if (canonicalStateJson(canonicalStateAsJson(reduced)) !==
+      canonicalStateJson(canonicalStateAsJson(committed.state))) corrupt();
+  return committed;
+}
+
+function readCanonicalStateSnapshot(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  stateRevision: number
+): CanonicalState {
   const row = database.prepare(
     `SELECT state_json, state_hash FROM cc_canonical_state_revisions
      WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
@@ -1509,19 +1645,399 @@ function readCanonicalStateItemIds(
     state_hash: string;
   } | undefined;
   if (row === undefined) corrupt();
-  const state = parseStoredJson(row.state_json);
-  if (storedHash(row.state_hash) !== sha256(canonicalJson(state))) corrupt();
-  const object = readExactObject(state, ["schema_version", "items"]);
-  if (object.schema_version !== 1 || !Array.isArray(object.items)) corrupt();
-  const ids = new Set<string>();
-  for (const value of object.items) {
-    const item = value as Record<string, unknown>;
-    if (typeof item !== "object" || item === null || Array.isArray(item)) corrupt();
-    const id = storedIdentifier(item.item_id);
-    if (ids.has(id)) corrupt();
-    ids.add(id);
+  const state = parseStoredCanonicalState(row.state_json);
+  if (storedHash(row.state_hash) !== sha256(canonicalStateJson(canonicalStateAsJson(state)))) {
+    corrupt();
+  }
+  return state;
+}
+
+function canonicalStateCommittedFromRow(
+  row: CanonicalStateAuthorityRow,
+  expectedScope: RevisionScope
+): CommittedCanonicalStateRevision {
+  try {
+    const scope = storedScope(row.namespace, row.stream_id);
+    if (!sameScope(scope, expectedScope)) corrupt();
+    const stateRevision = validateStoredRevision(row.state_revision, true);
+    const previousStateRevision = validateStoredRevision(row.previous_state_revision);
+    if (stateRevision !== previousStateRevision + 1) corrupt();
+    const proposal = parseStoredCanonicalStateProposal(row.proposal_json);
+    const state = parseStoredCanonicalState(row.state_json);
+    const stateHash = storedHash(row.state_hash);
+    if (stateHash !== sha256(canonicalStateJson(canonicalStateAsJson(state)))) corrupt();
+    const policyHash = storedHash(row.policy_hash);
+    if (policyHash !== CANONICAL_STATE_POLICY_HASH) corrupt();
+    const provenanceEventIds = parseStoredCanonicalStateIdentifierArray(
+      row.provenance_event_ids_json,
+      1,
+      MAX_STATE_COMMIT_EVENT_IDS
+    );
+    const proposalEventIds = [...new Set(
+      proposal.upsert_items.flatMap((item) => item.source_event_ids)
+    )].sort();
+    if (!sameStrings(provenanceEventIds, proposalEventIds)) corrupt();
+    return {
+      ...scope,
+      state_revision: stateRevision,
+      state_commit_id: storedIdentifier(row.state_commit_id),
+      commit_mode: storedCanonicalStateCommitMode(row.commit_mode),
+      previous_state_revision: previousStateRevision,
+      proposal,
+      state,
+      state_hash: stateHash,
+      policy_hash: policyHash,
+      provenance_event_ids: provenanceEventIds,
+      created_at: storedTimestamp(row.created_at),
+    };
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") {
+      throw error;
+    }
+    corrupt();
+  }
+}
+
+function parseStoredCanonicalStateProposal(json: string): CanonicalStateProposal {
+  try {
+    const proposal = normalizeStoredCanonicalStateProposal(JSON.parse(json));
+    if (canonicalStateJson(canonicalStateProposalAsJson(proposal)) !== json) corrupt();
+    return proposal;
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") {
+      throw error;
+    }
+    corrupt();
+  }
+}
+
+function parseStoredCanonicalState(json: string): CanonicalState {
+  try {
+    const state = normalizeStoredCanonicalState(JSON.parse(json));
+    if (canonicalStateJson(canonicalStateAsJson(state)) !== json) corrupt();
+    return state;
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") {
+      throw error;
+    }
+    corrupt();
+  }
+}
+
+function normalizeStoredCanonicalStateProposal(value: unknown): CanonicalStateProposal {
+  const proposal = readExactObject(value, ["schema_version", "upsert_items"]);
+  if (proposal.schema_version !== 1 || !Array.isArray(proposal.upsert_items)) corrupt();
+  assertDensePlainArray(proposal.upsert_items);
+  if (proposal.upsert_items.length < 1 ||
+      proposal.upsert_items.length > MAX_STATE_UPSERT_ITEMS) corrupt();
+  const items = proposal.upsert_items.map(normalizeStoredCanonicalStateItem)
+    .sort(compareCanonicalStateItems);
+  for (let index = 1; index < items.length; index += 1) {
+    if (items[index - 1]?.item_id === items[index]?.item_id) corrupt();
+  }
+  return { schema_version: 1, upsert_items: items };
+}
+
+function normalizeStoredCanonicalState(value: unknown): CanonicalState {
+  const state = readExactObject(value, ["schema_version", "items"]);
+  if (state.schema_version !== 1 || !Array.isArray(state.items)) corrupt();
+  assertDensePlainArray(state.items);
+  const items = state.items.map(normalizeStoredCanonicalStateItem);
+  if (items.length > MAX_SAFE_REVISION) corrupt();
+  const sorted = [...items].sort(compareCanonicalStateItems);
+  if (canonicalStateJson(items.map(canonicalStateItemAsJson)) !==
+      canonicalStateJson(sorted.map(canonicalStateItemAsJson))) corrupt();
+  for (let index = 1; index < items.length; index += 1) {
+    if (items[index - 1]?.item_id === items[index]?.item_id) corrupt();
+  }
+  return { schema_version: 1, items };
+}
+
+function normalizeStoredCanonicalStateItem(value: unknown): CanonicalStateItem {
+  const item = readExactObject(value, [
+    "item_id",
+    "kind",
+    "content",
+    "status",
+    "source_event_ids",
+    "metadata",
+  ]);
+  const itemId = storedIdentifier(item.item_id);
+  const kind = item.kind;
+  if (typeof kind !== "string" ||
+      !CANONICAL_STATE_ITEM_KINDS.includes(kind as CanonicalStateItemKind)) corrupt();
+  const content = storedText(item.content, MAX_STATE_CONTENT_LENGTH);
+  const status = item.status;
+  if (typeof status !== "string" ||
+      !isCanonicalStateStatus(kind as CanonicalStateItemKind, status)) corrupt();
+  return {
+    item_id: itemId,
+    kind: kind as CanonicalStateItemKind,
+    content,
+    status: status as CanonicalStateItemStatus,
+    source_event_ids: normalizeStoredCanonicalStateIdentifierArray(
+      item.source_event_ids,
+      1,
+      MAX_STATE_ITEM_EVENT_IDS
+    ),
+    metadata: normalizeStoredCanonicalStateMetadata(item.metadata),
+  };
+}
+
+function parseStoredCanonicalStateIdentifierArray(
+  json: string,
+  minimum: number,
+  maximum: number
+): string[] {
+  try {
+    const ids = normalizeStoredCanonicalStateIdentifierArray(
+      JSON.parse(json),
+      minimum,
+      maximum
+    );
+    if (canonicalStateJson(ids) !== json) corrupt();
+    return ids;
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") {
+      throw error;
+    }
+    corrupt();
+  }
+}
+
+function normalizeStoredCanonicalStateIdentifierArray(
+  value: unknown,
+  minimum: number,
+  maximum: number
+): string[] {
+  if (!Array.isArray(value)) corrupt();
+  assertDensePlainArray(value);
+  if (value.length < minimum || value.length > maximum) corrupt();
+  const ids = value.map(storedIdentifier).sort();
+  for (let index = 1; index < ids.length; index += 1) {
+    if (ids[index - 1] === ids[index]) corrupt();
   }
   return ids;
+}
+
+function normalizeStoredCanonicalStateMetadata(value: unknown): JsonObject {
+  const normalized = normalizeCanonicalStateJsonValue(value);
+  if (normalized === null || typeof normalized !== "object" || Array.isArray(normalized)) {
+    corrupt();
+  }
+  return normalized;
+}
+
+function normalizeCanonicalStateJsonValue(
+  value: unknown,
+  ancestors = new Set<object>()
+): JsonValue {
+  if (value === null || typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.length > MAX_METADATA_STRING_LENGTH || value !== value.normalize("NFC") ||
+        /\p{Cc}/u.test(value)) corrupt();
+    return value;
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || Object.is(value, -0)) corrupt();
+    return value;
+  }
+  if (typeof value !== "object" || ancestors.has(value)) corrupt();
+  const prototype = Object.getPrototypeOf(value);
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      if (prototype !== Array.prototype) corrupt();
+      assertDensePlainArray(value);
+      return value.map((entry) => normalizeCanonicalStateJsonValue(entry, ancestors));
+    }
+    if (prototype !== Object.prototype && prototype !== null) corrupt();
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => typeof key !== "string")) corrupt();
+    const result: JsonObject = {};
+    for (const key of (keys as string[]).sort()) {
+      try { validateText(key, MAX_IDENTIFIER_LENGTH); } catch { corrupt(); }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor?.enumerable || !("value" in descriptor)) corrupt();
+      Object.defineProperty(result, key, {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: normalizeCanonicalStateJsonValue(descriptor.value, ancestors),
+      });
+    }
+    return result;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+function reduceStoredCanonicalState(
+  previous: CanonicalState,
+  proposal: CanonicalStateProposal
+): CanonicalState {
+  try {
+    const byId = new Map(
+      previous.items.map((item) => [item.item_id, cloneCanonicalStateItem(item)])
+    );
+    for (const next of proposal.upsert_items) {
+      const existing = byId.get(next.item_id);
+      if (existing === undefined) {
+        if (next.status !== initialCanonicalStateStatus(next.kind)) corrupt();
+        byId.set(next.item_id, cloneCanonicalStateItem(next));
+        continue;
+      }
+      if (existing.kind !== next.kind ||
+          !isCanonicalStateTransition(existing.kind, existing.status, next.status) ||
+          existing.source_event_ids.some((eventId) =>
+            !next.source_event_ids.includes(eventId)
+          ) ||
+          canonicalStateJson(canonicalStateItemAsJson(existing)) ===
+            canonicalStateJson(canonicalStateItemAsJson(next))) corrupt();
+      byId.set(next.item_id, cloneCanonicalStateItem(next));
+    }
+    return {
+      schema_version: 1,
+      items: [...byId.values()].sort(compareCanonicalStateItems),
+    };
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") {
+      throw error;
+    }
+    corrupt();
+  }
+}
+
+function canonicalStateMarkerRequest(committed: CommittedCanonicalStateRevision): JsonValue {
+  return {
+    scope: { namespace: committed.namespace, stream_id: committed.stream_id },
+    commit_id: committed.state_commit_id,
+    operation: "STATE",
+    kind: "CANONICAL_STATE_COMMIT_V1",
+    request: {
+      commit_mode: committed.commit_mode,
+      expected_state_revision: committed.previous_state_revision,
+      proposal: canonicalStateProposalAsJson(committed.proposal),
+      policy_hash: committed.policy_hash,
+      provenance_event_ids: [...committed.provenance_event_ids],
+    },
+    expected_state_revision: committed.previous_state_revision,
+  };
+}
+
+function canonicalStateCommittedAsJson(
+  committed: CommittedCanonicalStateRevision
+): JsonValue {
+  return {
+    namespace: committed.namespace,
+    stream_id: committed.stream_id,
+    state_revision: committed.state_revision,
+    state_commit_id: committed.state_commit_id,
+    commit_mode: committed.commit_mode,
+    previous_state_revision: committed.previous_state_revision,
+    proposal: canonicalStateProposalAsJson(committed.proposal),
+    state: canonicalStateAsJson(committed.state),
+    state_hash: committed.state_hash,
+    policy_hash: committed.policy_hash,
+    provenance_event_ids: [...committed.provenance_event_ids],
+    created_at: committed.created_at,
+  };
+}
+
+function canonicalStateProposalAsJson(proposal: CanonicalStateProposal): JsonValue {
+  return {
+    schema_version: 1,
+    upsert_items: proposal.upsert_items.map(canonicalStateItemAsJson),
+  };
+}
+
+function canonicalStateAsJson(state: CanonicalState): JsonValue {
+  return { schema_version: 1, items: state.items.map(canonicalStateItemAsJson) };
+}
+
+function canonicalStateItemAsJson(item: CanonicalStateItem): JsonValue {
+  return {
+    item_id: item.item_id,
+    kind: item.kind,
+    content: item.content,
+    status: item.status,
+    source_event_ids: [...item.source_event_ids],
+    metadata: normalizeStoredCanonicalStateMetadata(item.metadata),
+  };
+}
+
+function canonicalStateJson(value: JsonValue): string {
+  return JSON.stringify(normalizeCanonicalStateJsonValue(value));
+}
+
+function storedCanonicalStateCommitMode(value: unknown): CanonicalStateCommitMode {
+  if (typeof value !== "string" ||
+      !CANONICAL_STATE_COMMIT_MODES.includes(value as CanonicalStateCommitMode)) corrupt();
+  return value as CanonicalStateCommitMode;
+}
+
+function cloneCanonicalStateItem(item: CanonicalStateItem): CanonicalStateItem {
+  return {
+    ...item,
+    source_event_ids: [...item.source_event_ids],
+    metadata: normalizeStoredCanonicalStateMetadata(item.metadata),
+  };
+}
+
+function compareCanonicalStateItems(
+  left: CanonicalStateItem,
+  right: CanonicalStateItem
+): number {
+  return left.item_id < right.item_id ? -1 : left.item_id > right.item_id ? 1 : 0;
+}
+
+function initialCanonicalStateStatus(kind: CanonicalStateItemKind): CanonicalStateItemStatus {
+  switch (kind) {
+    case "GOAL":
+    case "CONSTRAINT":
+    case "DECISION": return "ACTIVE";
+    case "OPEN_QUESTION": return "OPEN";
+    case "REJECTED_ALTERNATIVE": return "REJECTED";
+  }
+}
+
+function isCanonicalStateStatus(kind: CanonicalStateItemKind, status: string): boolean {
+  switch (kind) {
+    case "GOAL": return ["ACTIVE", "COMPLETED", "SUPERSEDED"].includes(status);
+    case "CONSTRAINT":
+    case "DECISION": return ["ACTIVE", "SUPERSEDED"].includes(status);
+    case "OPEN_QUESTION": return ["OPEN", "DEFERRED", "RESOLVED"].includes(status);
+    case "REJECTED_ALTERNATIVE": return status === "REJECTED";
+  }
+}
+
+function isCanonicalStateTransition(
+  kind: CanonicalStateItemKind,
+  previous: CanonicalStateItemStatus,
+  next: CanonicalStateItemStatus
+): boolean {
+  if (previous === next) return true;
+  switch (kind) {
+    case "GOAL":
+      return previous === "ACTIVE" && ["COMPLETED", "SUPERSEDED"].includes(next);
+    case "CONSTRAINT":
+    case "DECISION": return previous === "ACTIVE" && next === "SUPERSEDED";
+    case "OPEN_QUESTION":
+      return (previous === "OPEN" && ["DEFERRED", "RESOLVED"].includes(next)) ||
+        (previous === "DEFERRED" && ["OPEN", "RESOLVED"].includes(next));
+    case "REJECTED_ALTERNATIVE": return false;
+  }
+}
+
+function sameCanonicalStateNonStateAxes(
+  previous: RevisionVector,
+  current: RevisionVector
+): boolean {
+  return sameScope(previous, current) &&
+    previous.ledger_revision === current.ledger_revision &&
+    previous.raw_frontier_revision === current.raw_frontier_revision &&
+    previous.frontier_position === current.frontier_position &&
+    previous.takeover_commit_revision === current.takeover_commit_revision;
 }
 
 function assertEventRefs(
