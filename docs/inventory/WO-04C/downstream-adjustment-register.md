@@ -406,11 +406,15 @@ Future canonical Snapshot 的默认主路径候选为：
 
 ```text
 Current Input
-+ Recent Raw
++ Frontier-bound Hot Raw mechanical projection
 + Committed State
 + mechanically required dependency closure
 -> ContextSnapshot
 ```
+
+这里的 Hot Raw 必须由 `frontier_position < event <= ledger_as_of_revision` 与确定性 projection
+policy 导出，不能退化为固定 recent-N turn/token 窗口。该术语纠偏只约束 future canonical
+candidate；当前 frozen v0 的 Recent Raw 行为保持不变。
 
 没有显式触发时不默认执行 broad historical retrieval，也不把 Historical Evidence 强制注入
 每个 Snapshot。以下任一 closed trigger 才允许进入 bounded Evidence Recovery：
@@ -456,7 +460,7 @@ Hybrid semantic leg，也不支持“一般情况下 broad 无价值”的结论
 未来必须在独立、预注册、固定 input 的测试工单中比较同一个 Snapshot/query world：
 
 ```text
-M0 = Recent Raw + Committed State + required dependency closure
+M0 = Frontier-bound Hot Raw projection + Committed State + required dependency closure
 M1 = M0 + bounded broad BM25
 M2 = M0 + bounded broad hybrid
      only when frozen caller-supplied query/candidate Dense fully qualifies
@@ -474,12 +478,13 @@ explicit historical reference
 ambiguous reference
 superseded/rejected historical pollution
 required evidence before high-risk action
-Recent Raw + State already sufficient negative control
+Hot Raw projection + State already sufficient negative control
 ```
 
-所有条件共享 exact scope、ledger/state/fact/relation revisions、Recent Raw boundary、query、
-candidate world、policy/budget 与 Gold evidence requirements。禁止按结果调权重、拆 query、
-换案例、扩大 Top-K 或加入 Ripple；这些只能由后续独立实验处理。
+所有条件共享 exact scope、ledger/state/fact/relation revisions、`frontier_position`、
+`ledger_as_of_revision`、Hot Raw projection policy、query、candidate world、policy/budget 与
+Gold evidence requirements。禁止按结果调权重、拆 query、换案例、扩大 Top-K 或加入 Ripple；
+这些只能由后续独立实验处理。
 
 ### Metrics to freeze before the run
 
@@ -723,3 +728,132 @@ Snapshot inclusion reason integrity
 - R1 导致拒绝理由不可恢复或频繁重新建议已否决方案：保留 R0/建立更窄显式 inclusion，
   不直接把 rejection 全部转成 Constraint；
 - 数据不足：保持可逆候选，不宣称应删除 State kind。
+
+---
+
+## DA-07 — Deterministic Context Assembly + Budget Failure Contract
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED DIRECTION / PRESERVE FROZEN V0 / PENDING WO-05
+PROMOTION + ABLATION / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — 不修改 Takeover/Enrichment、Frontier、transaction、policy hash、
+source/schema/test allowlist 或工期估算。
+
+**Routing：** WO-05 ContextSnapshot assembly/budget/trim；WO-06 EvidenceBundle inclusion；
+当前 frozen v0 assembler 保留为 compatibility/shadow comparator。
+
+### Accepted future assembly direction
+
+Future canonical Context Assembly 候选采用：
+
+> Priority Buckets + Hard Invariants + Deterministic Whole-object Trim
+
+不在主路径引入 learned ranker、LLM importance judge、多因素动态权重、information-density
+估计或 PACE 式动态粒度。Authority precedence、inclusion obligation 与 token placement 必须分开；
+“non-authoritative evidence”不等于“可在 required Attempt 中省略”。
+
+候选 buckets 为：
+
+```text
+P0 REQUIRED
+  Current Input
+  active Hard Constraints
+  explicit required Authority refs
+  mechanically required dependency closure
+  required Recovery / Evidence for the intended Attempt
+
+P1 CANONICAL WORKING SET
+  Frontier-bound Hot Raw mechanical projection
+  eligible active Goal / Decision / OpenQuestion
+  their required dependency closure
+
+P2 CONDITIONAL SOFT
+  relevant Artifact projection
+  non-required Recovery Evidence
+  optional derived Summary, if a later contract defines one
+
+P3 OPTIONAL HISTORICAL
+  opt-in broad retrieval
+  RejectedAlternative / superseded history / diagnostics
+```
+
+低优先级对象不能挤掉高优先级对象。显式 dependency/evidence obligation 可以把对象提升到
+required inclusion；这不改变该对象的 Authority。跨 source 去重必须先遵循 Authority
+precedence，再按稳定 key/order 组装，不能让来源枚举顺序改变 Snapshot。
+
+### Mandatory overflow contract
+
+如果 P0 或本次 Attempt 明确要求的 P1 closure 已经超过 budget，assembler 必须返回显式
+`BUDGET_INSUFFICIENT`/overage diagnostic，并且不得生成可 dispatch 的 executable
+Snapshot/Attempt。禁止通过截断 Constraint、required ref、dependency 或 required Evidence
+伪装成功。
+
+预算允许时按 P0 -> P1 -> P2 -> P3 装配；超预算只从最低 bucket 开始确定性裁剪。Raw、State、
+Evidence 与 Artifact 均按完整 object/turn/segment 边界裁剪，不在对象内部随意截断。若 Active
+State 在真实规模下足够小，future WO-05 可先全部纳入 eligible set；只有数据证明规模压力后，
+才引入显式 scope/placement policy。
+
+### Scope and representation boundaries
+
+- Core 不猜测 Host `task_id`，只消费显式 scope、required refs、canonical relations 或 opaque
+  Host routing input；
+- Hot Raw 由 Frontier/as-of world 与 mechanical projection 决定，不使用 fixed recent-N 取代；
+- 当前 architecture 没有自动 Rolling Summary guarantee；未来 Summary 只能是 optional derived
+  projection，不能冒充 Raw、Committed State 或 required Evidence；
+- Retrieval result 被纳入 Working Context 不会自动获得 Authority，也不能自动写 State；
+- Context Assembly 只组装已在同一 frozen world 中合格的对象，不成为第二个 Extractor、Reducer
+  或 policy inference engine。
+
+### Future deterministic comparison direction
+
+在同一 frozen Raw/State/Fact/Relation/Evidence world 中比较：
+
+```text
+A0 = frozen v0 assembler behavior
+A1 = deterministic priority buckets + whole-object trim + explicit overflow failure
+```
+
+至少覆盖：
+
+```text
+exact token-budget boundaries
+mandatory set already over budget
+active Constraint retention
+dependency/evidence promotion into required inclusion
+required Recovery before high-risk Attempt
+Hot Raw frontier projection differs from fixed recent-N
+whole-object/turn trim without partial corruption
+cross-source duplicate and authority precedence
+input permutation with byte-stable deterministic output
+concurrent later Event excluded by frozen ledger_as_of_revision
+high-risk missing Evidence produces no executable Attempt
+small Active State all-inclusion control
+```
+
+指标至少包含：
+
+```text
+mandatory_item_loss
+silent_truncation_count
+budget_overage_tokens and explicit failure integrity
+required_evidence_inclusion / miss
+constraint_retention
+cross_source_duplicate_tokens
+Snapshot byte/revision determinism
+optional_context_tokens retained/trimmed by bucket
+assembly branch count and fixture cross-product
+```
+
+### Promotion and stop conditions
+
+- A1 保持所有 hard invariants、required evidence 与 deterministic replay，同时减少动态策略分支和
+  测试交叉项：可 promotion 为 future WO-05 default；
+- bucket 规则持续遗漏预注册 Gold-required context：优先增加显式 inclusion reason/scope binding，
+  不直接引入不可解释综合分数；
+- mandatory overflow 无法在 Host dispatch 前阻止 Attempt：停止 promotion，先补稳定失败接口；
+- Active State 规模确实超过预算：另开 bounded placement/scoping experiment，不能由 assembler
+  隐式猜测 relevance；
+- 若需要修改 frozen v0 或 WO-04C transaction contract 才能实验：停止并另开 compatibility/
+  promotion work order。
