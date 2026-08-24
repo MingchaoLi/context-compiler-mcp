@@ -525,11 +525,14 @@ async function main() {
     state_audit: {
       revision: state.revision,
       items: state.items.map(compactStateItem),
-      lifecycle_relations: state.relations.filter((relation) => relation.kind !== "DERIVED_FROM"),
+      lifecycle_relations: state.relations.filter((relation) => relation.relation_type !== "DERIVED_FROM"),
       relation_counts: Object.fromEntries(
-        [...new Set(state.relations.map((relation) => relation.kind))]
+        [...new Set(state.relations.map((relation) => relation.relation_type))]
           .sort()
-          .map((kind) => [kind, state.relations.filter((relation) => relation.kind === kind).length])
+          .map((relationType) => [
+            relationType,
+            state.relations.filter((relation) => relation.relation_type === relationType).length
+          ])
       )
     },
     latency_observation: {
