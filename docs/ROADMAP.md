@@ -13,6 +13,7 @@ Work proceeds in this order:
 9. **真实使用与 Experience Formation 数据准备。 WO-DG-01 ACCEPTED / COMPLETE.** 首个 bounded observation 使用当前 Codex 超长项目历史的 123 个 Git outcome commits 与 20 条脱敏 directive reconstruction，比较原生宿主继承、冻结 v0 compile_context upper bound 与确定性 Ground Truth。它记录 B 的 broad DSH_HOME miss、targeted recovery、检索污染、D0/D1/D2 原始成本与 writer latency；没有修改冻结基础设施，也没有产生 Action/Outcome/Feedback 或自动 Experience。
 10. **Host formal mode consideration.** Formal Host Mode 仍需新的明确工单；本次收口不授权宿主集成或修改其他仓库。
 11. **WO-ARCH-00 — Architecture v3.1.1 docs-only repository import. ACCEPTED / COMPLETE.** 固定 Builder candidate `b27b5300f3a6acba84d09f55e43fc93feeaf80f0` 已通过独立机械 QA；Contract、Umbrella 与 WO-01 已进入 repository authority，没有修改产品、schema、evaluation 或 frozen artifacts。
-12. **WO-01 — Current Architecture Inventory. PLANNED / NOT STARTED.** `source_baseline_HEAD` 与 Execution Baseline Manifest 尚未冻结；启动前必须另行固定执行边界。当前不允许扫描、实现、重构或建立 Runtime substrate。
+12. **WO-01 — Current Architecture Inventory. ACCEPTED / COMPLETE.** 固定 source baseline 为 `f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52`；原 delivery、首轮 QA return 与 append-only fix 历史完整保留。fresh Independent re-QA 已在 fixed candidate `ac6056c8c0ba2057866642d6785c1aee272af81b` 通过，QA commit 为 `c264d5f5debd207278deacb703fa8e64f2b66c0c`。结果可直接作为 WO-02 / WO-03A 输入，但不自动授权实现。
+13. **WO-02 — Core / Host + Authority Boundary Refactor. PLANNED / NOT STARTED.** 用户已明确授权进入本阶段；下一步必须先冻结独立 Execution Baseline。范围仅为 behavior-preserving Core/Host boundary、Authority/Mutation Matrix、hidden writer convergence 与 Wrap Before Split；禁止 WO-03A+ substrate、Runtime 新行为或宿主/provider 集成。
 
 Automatic headline generation 仍未实现，也不由既有工单隐含授权。WO-V0-15 的 Context / State 行为与算法线继续冻结；v3.1.1 只是新的目标协议与有序 Child WO 路线，当前未授权 Runtime、Host、Retrieval 或 State 行为实现。
