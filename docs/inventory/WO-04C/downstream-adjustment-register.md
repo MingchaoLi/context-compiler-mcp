@@ -229,3 +229,118 @@ Extractor/Detector 是 optional、provider-neutral、untrusted Proposal Producer
 显式调用或外部 transport；Canonical State commit 不依赖某个模型/provider。当前已记录的
 Extractor correctness 失败不授权扩大模型、prompt 或 transport 投入。未来若重开 Extractor
 实验，必须单独证明 proposal correctness，不能以 deterministic reducer conformance 代替。
+
+---
+
+## DA-03 — Dormant Placement / Snapshot Reactivation 降级
+
+**用户状态：** 已接受评估后的修正版并要求纳入后续计划。
+
+**登记状态：** RECORDED / DOWNSTREAM CANDIDATE / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — 不改变 Takeover/Enrichment/Frontier/Artifact grammar、schema、
+transaction 或测试范围。
+
+**Routing：** WO-05 ContextSnapshot placement/projection/replay；WO-06 Evidence Recovery/
+Ripple 导致的单 Snapshot re-inclusion。当前 frozen v0 operational-context 与 Canonical
+State v1 均保持不变。
+
+### Accepted separation
+
+Truth/Authority 与 Context placement 是两条正交维度：
+
+```text
+Committed State Authority
+  kind-specific lifecycle status
+
+Snapshot-time Placement Decision
+  HOT / COLD
+
+Working Context Projection
+  selected exact State refs + inclusion reasons
+```
+
+`DORMANT` 不得成为 Canonical State lifecycle status。Canonical State 继续使用既有
+kind-specific closed statuses；本调整不引入通用 `INVALID`、`DORMANT`、`REACTIVATED`
+状态，也不改变 State policy hash。
+
+### Placement is derived, not State truth
+
+未来 placement 默认作为一次 Snapshot construction 的确定性派生结果，不写入 Canonical
+State item，不推进 State revision，也不修改 source refs、Fact/Relation 或其他 Authority。
+
+WO-05 的候选 Snapshot contract 应记录足够 replay 的 plain data：
+
+```text
+selected_state_refs
+excluded_or_cold_state_refs
+placement_policy_hash
+inclusion_reason per selected/cold override
+ledger/state/fact/relation revisions as of the Snapshot
+```
+
+是否需要独立持久 PlacementRevision 不在本调整中授权。只有后续证据证明跨 Snapshot 的
+durable placement 本身是 correctness requirement，才可另开 bounded work order；不得借
+HOT/COLD 绕过 State Authority。
+
+### Reactivation is one-Snapshot inclusion
+
+`Reactivation` 的准确语义是：
+
+> 一个仍具有当前 Authority、但按默认 placement 未选中的 State item，被本次 Snapshot
+> 明确重新纳入 Working Context。
+
+建议的 closed inclusion reason：
+
+```text
+EXPLICIT_REF
+REQUIRED_CONTEXT
+DEPENDENCY_CLOSURE
+RECOVERY_HIT
+```
+
+该结果只属于当前 Snapshot，不构成持久 `COLD -> HOT` transition，不自动影响下一次
+Snapshot，更不表示历史事实重新获得 Authority。Retrieval/Recovery hit 可以触发当次
+re-inclusion，但不得修改 placement 或 lifecycle authority。
+
+### Core routing boundary
+
+Core 不得猜测 Host `Project ID`、当前聊天主题或用户意图来切换 placement。候选路由只能
+来自显式 Core contract，例如：
+
+```text
+namespace / stream_id
+explicit anchor or authority ref
+required State item IDs
+dependency closure
+Host-supplied opaque routing data allowed by a future Snapshot contract
+```
+
+任何未来 Host/project identity 仍由 Host 解释；Core 只保存/验证允许的 opaque identity 或
+显式 scope。
+
+### Minimal activation policy
+
+未来 canonical Snapshot 路径的初始策略应为：
+
+```text
+all eligible current Authority = HOT / included by default
+```
+
+只有真实 dogfood 证明 Active State 体积持续造成 Context pressure，才允许另开有界策略
+启用 COLD placement。该策略必须有数据门、严格预算、确定性 policy identity、Snapshot
+replay 和 fail-open：缺少完整 evidence/telemetry 时保留有效 State，不得把“未观测到命中”
+解释为“真实不需要”。
+
+不预先实现 semantic auto-reactivation、time decay、inactivity score、embedding similarity
+promotion 或复杂冷热调度。
+
+### Frozen v0 compatibility
+
+当前 accepted/frozen v0 已实现 bounded BM25/caller-Dense、telemetry-qualified dormant
+placement 与 compile-local reactivation。本调整不删除、不关闭、不调参、不重写该路径。
+“Broad Retrieval 后移”只作为未来 WO-05/06 canonical path 的 downstream candidate，不能
+冒充当前 v0 行为已变化。
+
+如果未来决定替换 frozen v0 placement，必须以独立 compatibility/promotion work order、
+回放证据与 Independent QA 完成，不能由 WO-05/06 顺便改写。
