@@ -1,0 +1,34 @@
+# WO-01 Crash Gap Matrix
+
+Source baseline: `f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52`
+
+Severity is relative to the v3.1.1 target runtime, not a claim that absent Host behavior is a current v0 regression.
+
+| Crash gap | Current behavior | Data lost? | Duplicate risk? | Deterministic replay? | Severity | Evidence |
+|---|---|---|---|---|---|---|
+| During ingest, before Raw/EVENT commit | Raw row and EVENT mirror share one `BEGIN IMMEDIATE`; both roll back | No committed half; caller input must be retried | Low with `source_event_id`; no stable upstream ID means caller can create a new event on retry | Yes for stable exact source retry | Low | `raw-store.ts#ingest`; injected mirror failure in `experience-ledger.test.ts` |
+| Ingest commit followed by process crash | Raw and EVENT mirror are durable; reopening reads Raw rows | No for this session | Low with source idempotency | Yes, per-session Raw order | Low for v0; Medium for target Hot Raw | `raw-store.test.ts` reopen case; no Frontier/high-water exists |
+| Legacy EVENT mirror backfill crash | Migration transaction rolls back its batch | No Raw loss; mirror backfill waits for next open | Low; deterministic fixed Raw-derived IDs | Yes | Low | `experience-ledger.ts#migrateExperienceLedger` |
+| State preparation commit followed by extractor crash | Immutable preparation remains; State revision/items unchanged | Candidate output is lost; preparation persists | Retrying prepare creates another orphan token | Prepared snapshot is readable and fingerprinted; no retention policy | Medium | `state-update.ts#prepareStateUpdate`; `runtime-state-update.test.ts` abort/close cases |
+| State write in progress | Expected-revision State transaction rolls back all items, relations, and revision | No partial State | Retry of non-empty apply after a successful commit conflicts; failed commit can retry | Yes, given same preparation and unchanged revision | Low | `state-store.ts#runTransaction`; reducer rollback tests |
+| State commit followed by process crash | Items/relations/revision are durable | No | Retrying same non-empty preparation conflicts rather than duplicating | Yes by State reads/revision | Low | `state-update.test.ts` atomic apply and reopen behavior |
+| Context/summary computation crash before return | Compiled Context body is in memory only; no durable snapshot or summary row | The computed response is lost, not Raw/State | Recompute can create a new untraced result if no operation ID existed before baseline | Assembly is deterministic for fixed inputs, but no frozen Attempt input manifest exists | Medium | `mcp-service.ts#compile`; `assembler.ts#assembleContext` |
+| Compile trace/hit insert failure | Complete telemetry transaction rolls back; Raw/State unchanged | No partial trace | Exact retry can append once | Yes | Low | `operational-context-service.test.ts` trace rollback case |
+| First compile trace concurrent with Raw/State writer | `BEGIN IMMEDIATE` fences all writers until trace commit/rollback; contender sees one side of origin | No | No first-origin split | Yes in tested cross-process interleavings | Low | `mcp-protocol.test.ts` first trace commit/rollback linearization |
+| Frontier/recent cursor write crash | **Frontier/cursor authority is NOT PRESENT**. Recent window is recomputed from Raw per session | Raw is durable, but unstructured history has no committed takeover coverage guarantee | Not applicable | No Frontier replay contract | High | No Frontier schema/symbol in `src/`; fixed recent-N implementation |
+| Tool side effect before durable ActionStarted | External Tool Executor and ActionStarted are **NOT PRESENT** | Unknown outside repository | High if a Host retries blindly | No | Critical for future Host mode; outside current v0 surface | Generic `ACTION` append has no lifecycle fence |
+| Tool side effect after execution but before ToolResult persistence | No dedicated ToolResult journal or reconciliation | Result/side-effect status may be unknown to Core | High | No | Critical for future Host mode | No `action_id`, ToolResult schema, or reconciliation reader |
+| ToolResult persisted after side effect but before verification | Caller may ingest a tool-role Raw Event, but no live Verification state follows | Raw event may survive; verification outcome absent | Host-defined | No bounded Attempt replay | High | Raw role allows `tool`; live verifier absent |
+| Extractor child exits/fails during explicit State update | Runtime maps to `EXTRACTION_FAILED`; preparation remains; State is not applied | No committed State loss | New extraction attempts are bounded 1–3; later external retry may create a new preparation | State remains deterministic | Medium | `runtime-state-update.ts`; `subprocess-extractor.ts` |
+| Response generated then process crashes before returning over MCP | No durable response/outbox; immediate `CallToolResult` is lost | Yes, response payload can be lost | Caller retry may repeat the computation | No delivery replay identity | High | `mcp-server.ts#response`; no response tables |
+| MCP transport sends but acknowledgement is uncertain | Core does not observe channel/user acknowledgement | Delivery state is unknown | Caller/transport-specific duplicate possible | No | High | No stable `delivery_id` or attempt record |
+| User receives response, then a ledger callback/write would occur | No response/delivery ledger write exists, so receipt cannot be reconciled | Audit information is absent | Retry cannot distinguish delivered from undelivered | No | High | Response/Outbox lifecycle absent |
+| Headline inserted but FTS insert fails | One transaction rolls back both base and FTS rows | No | Exact range retry safe | Yes | Low | `recall.test.ts` injected FTS failure |
+| Public ACTION/OUTCOME append crash | Single ledger row is atomic | No partial row | Stable exact `source_key` avoids duplicate row; semantic lifecycle still unconstrained | Record replay yes; action semantics no | Medium | `experience-ledger.ts#append` |
+| Background relation update crash | Background relation maintenance is **NOT PRESENT** | Not applicable | Not applicable | Not applicable | Missing capability, not current crash bug | No production worker/timer in `src/` |
+
+## Cross-gap conclusions
+
+1. Existing SQLite writes have good local atomicity and strong rollback tests.
+2. The largest crash risks sit at boundaries that do not exist in this repository: Frontier, Attempt/Snapshot, external Action, Verification, and Delivery.
+3. The generic Experience Ledger must not be interpreted as closing those gaps. Append-only records and idempotent source keys are reusable primitives, but the required lifecycle and durable ordering constraints are absent.
