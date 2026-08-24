@@ -1166,7 +1166,7 @@ export function readCurrentSemanticTakeoverInsideCore(
       matched = candidate;
     }
   }
-  if (matched === undefined || !sameVector(matched.current_revision_vector, vector)) corrupt();
+  if (matched === undefined || !vectorAtOrAfter(vector, matched.current_revision_vector)) corrupt();
   const artifact = readCompactionArtifactInsideCore(database, scope, matched.artifact_id);
   return {
     ...scope,

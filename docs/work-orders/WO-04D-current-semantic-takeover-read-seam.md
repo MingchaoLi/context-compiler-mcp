@@ -1,7 +1,7 @@
 # WO-04D — Current Semantic Takeover Read Seam
 ## Context Compiler Core
 
-**状态：** PLANNED / NOT STARTED  
+**状态：** BUILDER COMPLETE / AWAITING INDEPENDENT QA<br>
 **类型：** Accepted owner read-seam correctness fix  
 **依赖：** WO-04C Builder `6642e4c04f4b7a5ff684c0399e4f83be075724f5` + QA
 `d33f52281e2af857c16a79768c7d3fcde816da42`  
@@ -101,14 +101,14 @@ docs/ROADMAP.md
 
 ## 8. Acceptance criteria
 
-- [ ] standalone Execution Baseline 已在 source/test 前冻结；
-- [ ] 原复现链路在后续 Raw advance 后返回同一个 latest Takeover/Artifact；
-- [ ] 返回顶层 vector 精确等于 live vector，嵌套 Takeover 提交 vector 保持历史值；
-- [ ] zero-takeover、stray/missing/duplicate、vector regression 继续 fail closed；
-- [ ] exact read/replay/reopen/tamper 与现有 writer 行为无回归；
-- [ ] schema/migration/trigger 与 public package/MCP surface 无变化；
-- [ ] focused tests、`npm test`、`npm run build` 通过；
-- [ ] Builder handoff 已写，且 Builder 不自批；
+- [x] standalone Execution Baseline 已在 source/test 前冻结；
+- [x] 原复现链路在后续 Raw advance 后返回同一个 latest Takeover/Artifact；
+- [x] 返回顶层 vector 精确等于 live vector，嵌套 Takeover 提交 vector 保持历史值；
+- [x] zero-takeover、stray/missing/duplicate、vector regression 继续 fail closed；
+- [x] exact read/replay/reopen/tamper 与现有 writer 行为无回归；
+- [x] schema/migration/trigger 与 public package/MCP surface 无变化；
+- [x] focused tests、`npm test`、`npm run build` 通过；
+- [x] Builder handoff 已写，且 Builder 不自批；
 - [ ] Independent QA 在物理分离任务中给出 PASS/FAIL。
 
 ## 9. Required checks
@@ -124,4 +124,3 @@ git diff --check
 
 若修复需要改写入、schema、revision substrate、第二 owner、请求/结果 grammar 或 public surface，
 立即停止并重新裁定；不得扩大本工单。
-

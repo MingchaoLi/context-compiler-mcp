@@ -85,6 +85,48 @@ describe("WO-04C semantic Takeover / Enrichment domain", () => {
     closeStores(reopened);
   });
 
+  it("keeps the latest Takeover current after a later Raw axis advance", () => {
+    const database = databasePath();
+    const opened = openStores(database);
+    const scope = { namespace: "authority", stream_id: "later-raw" };
+    append(opened, scope, "event-1");
+    const committed = opened.coordinator.commitTakeover(
+      takeoverInput(scope, "takeover-before-later-raw", ["event-1"])
+    );
+    append(opened, scope, "event-2");
+    const live = opened.substrate.getRevisionVector(scope);
+
+    expect(live).toMatchObject({
+      ledger_revision: 2,
+      frontier_position: 1,
+      takeover_commit_revision: 1,
+    });
+    expect(opened.coordinator.readCurrent(scope)).toEqual({
+      ...scope,
+      revision_vector: live,
+      takeover: committed,
+      artifact: opened.coordinator.readArtifact(scope, committed.artifact_id),
+    });
+    expect(committed.current_revision_vector).toMatchObject({
+      ledger_revision: 1,
+      frontier_position: 1,
+      takeover_commit_revision: 1,
+    });
+    expect(opened.hot.rebuild(scope).events.map(({ event_id }) => event_id)).toEqual(["event-2"]);
+    closeStores(opened);
+
+    const reopened = openStores(database);
+    expect(reopened.coordinator.readCurrent(scope)).toMatchObject({
+      revision_vector: live,
+      takeover: {
+        takeover_commit_id: committed.takeover_commit_id,
+        current_revision_vector: committed.current_revision_vector,
+      },
+      artifact: { artifact_id: committed.artifact_id },
+    });
+    closeStores(reopened);
+  });
+
   it("atomically applies owner-validated Fact authority and proves coverage", () => {
     const opened = openStores(databasePath());
     const scope = { namespace: "authority", stream_id: "fact-apply" };
