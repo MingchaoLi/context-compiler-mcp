@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "evaluation/codex-dogfood-01/protocol/composite-request.json",
+      "sha256": "f988f885ad099a2a9fbab5e1c72b4db7e6dfae91c2f94af03babbb19bc6b1abd"
+    },
+    {
+      "path": "evaluation/codex-dogfood-01/internal-ground-truth/ground-truth.json",
+      "sha256": "42cd9aba0700dfdc7ba8b132dac3c5694c18829535d04171a5a9bd8a92f6df39"
+    },
+    {
+      "path": "evaluation/codex-dogfood-01/internal-ground-truth/README.md",
+      "sha256": "a7f211da7fe3bc765f8b00916db9d36e6f0b03d98ea3cde6a31322f0d403c921"
+    },
+    {
+      "path": "evaluation/codex-dogfood-01/internal-ground-truth/validate-ground-truth.mjs",
+      "sha256": "87606edf79340beb4bfe35e12dd1df23e0f815d8412604f964e991335227f99c"
+    }
+  ]
+}

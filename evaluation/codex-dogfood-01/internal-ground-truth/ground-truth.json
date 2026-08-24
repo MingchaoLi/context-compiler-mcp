@@ -1,0 +1,631 @@
+{
+  "schema_version": 1,
+  "ground_truth_id": "codex-dogfood-01-c-v1",
+  "baseline_git_object": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+  "request_id": "codex-dogfood-01-composite-p01-p12",
+  "sample_unit": "one_composite_request",
+  "assertion_units": 12,
+  "assertions_are_independent_samples": false,
+  "created_from_model_output": false,
+  "capture_visibility": "none",
+  "probes": [
+    {
+      "id": "P01",
+      "order": 1,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P01-G01",
+          "description": "唯一项目与独立包身份",
+          "any_of": [
+            "context-compiler-mcp"
+          ]
+        },
+        {
+          "id": "P01-G02",
+          "description": "宿主适配器位于本仓库之外",
+          "any_of": [
+            "application adapters remain outside this repository",
+            "宿主 adapters 必须留在宿主仓库"
+          ]
+        },
+        {
+          "id": "P01-G03",
+          "description": "不得导入宿主代码或包",
+          "any_of": [
+            "no host code or package is imported",
+            "legacy 环境兼容也不能变成宿主代码或包依赖"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "本仓库拥有桌面 UI 或宿主 adapter",
+        "依赖 DSH_HOME 意味着依赖宿主包",
+        "核心可以导入 orchestration framework"
+      ],
+      "canonical_answer": "唯一项目目录是 context-compiler-mcp，包身份也是独立的 context-compiler-mcp。它只拥有 model-independent Context Compiler core 与本地 stdio MCP service；桌面 UI、应用宿主、编排框架、消息与打包代码不在本仓库，宿主 adapters 必须留在宿主仓库，legacy 环境兼容也不能变成宿主代码或包依赖。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "Current approved baseline 固定 standalone package identity。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/DECISIONS.md",
+          "blob_sha": "60663e5b92e0be1cb813af4e0acf6f9787f87456",
+          "provenance": "D-006 与 D-007 固定 standalone MCP 和 host dependency 边界。"
+        }
+      ]
+    },
+    {
+      "id": "P02",
+      "order": 2,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P02-G01",
+          "description": "精确工具数",
+          "any_of": [
+            "exactly nine tools",
+            "精确暴露 9 个工具"
+          ]
+        },
+        {
+          "id": "P02-G02",
+          "description": "完整九工具清单",
+          "any_of": [
+            "health、ingest_event、compile_context、get_state、prepare_state_update、apply_state_delta、create_headline、recall_exact、recall_keyword"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "十个工具",
+        "compile_context 会调用 extractor",
+        "工具集合由 provider 动态扩充"
+      ],
+      "canonical_answer": "冻结基线精确暴露 9 个工具：health、ingest_event、compile_context、get_state、prepare_state_update、apply_state_delta、create_headline、recall_exact、recall_keyword。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "src/mcp-service.ts",
+          "blob_sha": "70aacaa397af11480598476629f43b449ca7b3a6",
+          "provenance": "CONTEXT_COMPILER_CAPABILITIES 常量按顺序列出九工具。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/DECISIONS.md",
+          "blob_sha": "60663e5b92e0be1cb813af4e0acf6f9787f87456",
+          "provenance": "D-006 固定 exactly nine approved tools。"
+        }
+      ]
+    },
+    {
+      "id": "P03",
+      "order": 3,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P03-G01",
+          "description": "WO-V0-15 当前状态",
+          "any_of": [
+            "ACCEPTED / FROZEN"
+          ]
+        },
+        {
+          "id": "P03-G02",
+          "description": "下一阶段重心",
+          "any_of": [
+            "真实使用与 Experience Formation 数据准备",
+            "真实长期使用积累可回放数据"
+          ]
+        },
+        {
+          "id": "P03-G03",
+          "description": "下一阶段的数据链",
+          "any_of": [
+            "Event -> Action -> Outcome / Feedback -> Candidate Experience"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "WO-V0-15 仍然 PENDING",
+        "下一步继续 Context 算法开发",
+        "下一步实现 Experience Formation"
+      ],
+      "canonical_answer": "WO-V0-15 当前是 ACCEPTED / FROZEN。路线图下一重心是真实使用与 Experience Formation 数据准备：通过真实长期运行积累可回放的 Event -> Action -> Outcome / Feedback -> Candidate Experience 数据；现阶段不自动抽象、promotion 或影响 Agent 决策。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "Latest delivery status 与末段固定冻结状态和下一阶段。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/ROADMAP.md",
+          "blob_sha": "c105a85e5fc0b7d1983f90239de5f3f012553b80",
+          "provenance": "Roadmap 第 7 至 9 项固定 FROZEN、freeze complete 与 NEXT。"
+        }
+      ]
+    },
+    {
+      "id": "P04",
+      "order": 4,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P04-G01",
+          "description": "默认冻结的 Context 范围",
+          "any_of": [
+            "不再开发新的 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation",
+            "no new Context algorithms, complex ontology, PACE/mem0 comparison, retrieval tuning, Graph DB, or Experience Formation"
+          ]
+        },
+        {
+          "id": "P04-G02",
+          "description": "允许例外",
+          "any_of": [
+            "可复现 correctness 缺陷",
+            "新的明确工单和独立验证"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "冻结授权继续调 5/8/15",
+        "冻结后可顺手实现 PACE",
+        "冻结后默认推进复杂 ontology"
+      ],
+      "canonical_answer": "冻结后默认不再开发新的 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation；5/8/15 仍只是冻结配置实验参数。只有新的可复现 correctness 缺陷，或另立明确工单并独立验证，才构成例外。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/DECISIONS.md",
+          "blob_sha": "60663e5b92e0be1cb813af4e0acf6f9787f87456",
+          "provenance": "D-015 给出冻结后的默认禁区与 correctness 例外。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/REQUIREMENTS_V0.md",
+          "blob_sha": "2efd9c738f79ce1f7f9e63958f27dac4b4fe87e6",
+          "provenance": "v0 exclusions 明确 PACE、Graph DB 与 Experience abstraction 禁区。"
+        }
+      ]
+    },
+    {
+      "id": "P05",
+      "order": 5,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P05-G01",
+          "description": "schema failure 与非空 Gold 上空预测",
+          "any_of": [
+            "12 个 INVALID_SCHEMA fallback，16 个 Gold-nonempty 上的 strict-valid empty"
+          ]
+        },
+        {
+          "id": "P05-G02",
+          "description": "true negative 与全空状态",
+          "any_of": [
+            "2 个 strict-valid empty true negative；Predicted State 全空"
+          ]
+        },
+        {
+          "id": "P05-G03",
+          "description": "unique recall",
+          "any_of": [
+            "general / critical unique recall 为 0/35 / 0/29"
+          ]
+        },
+        {
+          "id": "P05-G04",
+          "description": "checkpoint exposure",
+          "any_of": [
+            "checkpoint exposure 为 0/253 / 0/192"
+          ]
+        },
+        {
+          "id": "P05-G05",
+          "description": "零 eligibility 指标不可评价",
+          "any_of": [
+            "precision、matcher、transition capability、stale/reactivation/dependency/provenance 因 zero eligibility 都是 not_evaluable"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "Extractor correctness 通过",
+        "结果证明 State Compiler 架构失败",
+        "结果证明 Operational Stability 或 Context Reduction",
+        "precision 为 0"
+      ],
+      "canonical_answer": "WO-DS-14 ST-02 的 Extractor correctness 明确失败：12 个 INVALID_SCHEMA fallback，16 个 Gold-nonempty 上的 strict-valid empty，2 个 strict-valid empty true negative；Predicted State 全空，general / critical unique recall 为 0/35 / 0/29，checkpoint exposure 为 0/253 / 0/192。precision、matcher、transition capability、stale/reactivation/dependency/provenance 因 zero eligibility 都是 not_evaluable；结果不能推出架构胜负、Operational Stability、Context Reduction 或一般化。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "WO-DS-14 最终 Data / Result QA 摘要固定原始计数与解释边界。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/ROADMAP.md",
+          "blob_sha": "c105a85e5fc0b7d1983f90239de5f3f012553b80",
+          "provenance": "Roadmap 第 6 项固定失败结果及 not_evaluable 边界。"
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "order": 6,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P06-G01",
+          "description": "封存状态",
+          "any_of": [
+            "SEALED BASELINE",
+            "封存为 Oracle-State feasibility baseline"
+          ]
+        },
+        {
+          "id": "P06-G02",
+          "description": "不再等待双真人",
+          "any_of": [
+            "不再等待或填写双真人盲评"
+          ]
+        },
+        {
+          "id": "P06-G03",
+          "description": "语义收益状态",
+          "any_of": [
+            "answer semantic gain 永久保持 not_evaluated"
+          ]
+        },
+        {
+          "id": "P06-G04",
+          "description": "既有 baseline 不补填不重跑",
+          "any_of": [
+            "既有 baseline 不补填、不重跑"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "仍需等两名真人后才完成",
+        "可以补填旧盲评表完成 baseline",
+        "可重跑旧 baseline 选择更好结果",
+        "answer semantic gain 已验证"
+      ],
+      "canonical_answer": "feasibility-01 已被 WO-DS-14 封存为 Oracle-State SEALED BASELINE，不再等待或填写双真人盲评；answer semantic gain 永久保持 not_evaluated。既有 baseline 不补填、不重跑；若未来要做新的语义实验，必须另立新工单并保留旧 baseline。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "WO-DS-13 段与 Known gaps 固定不再等待真人和 not_evaluated。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/ROADMAP.md",
+          "blob_sha": "c105a85e5fc0b7d1983f90239de5f3f012553b80",
+          "provenance": "Roadmap 第 5 项是当前 SEALED BASELINE authority。"
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "order": 7,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P07-G01",
+          "description": "当前未开始未授权",
+          "any_of": [
+            "Formal Host Mode 仍不在当前范围内、未开始，也未被 WO-V0-15 授权"
+          ]
+        },
+        {
+          "id": "P07-G02",
+          "description": "推进前置条件",
+          "any_of": [
+            "需要新的明确工单"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "Formal Host Mode 已实现",
+        "WO-V0-15 已授权宿主集成",
+        "当前仓库应直接修改宿主 adapter"
+      ],
+      "canonical_answer": "Formal Host Mode 仍不在当前范围内、未开始，也未被 WO-V0-15 授权。若要推进，需要新的明确工单；宿主集成与 adapter 仍属于宿主仓库边界。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "Project State 末句明确 not in scope and not started。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/ROADMAP.md",
+          "blob_sha": "c105a85e5fc0b7d1983f90239de5f3f012553b80",
+          "provenance": "Roadmap 第 10 项要求新的明确工单。"
+        }
+      ]
+    },
+    {
+      "id": "P08",
+      "order": 8,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P08-G01",
+          "description": "PACE 范围",
+          "any_of": [
+            "PACE／多粒度 Evidence Paging 是 Research Backlog"
+          ]
+        },
+        {
+          "id": "P08-G02",
+          "description": "Graph DB 排除",
+          "any_of": [
+            "Graph DB 不在 v0、冻结后也不实现"
+          ]
+        },
+        {
+          "id": "P08-G03",
+          "description": "Experience Formation 未实现未评估",
+          "any_of": [
+            "Experience Formation 未实现且效果未评估"
+          ]
+        },
+        {
+          "id": "P08-G04",
+          "description": "当前只积累数据",
+          "any_of": [
+            "当前只积累 Event -> Action -> Outcome / Feedback -> Candidate Experience 数据"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "D-015 等同于实现 PACE",
+        "Graph DB 已加入 v0",
+        "Experience Ledger 等同于 Experience Formation",
+        "Candidate Experience 已自动 promotion"
+      ],
+      "canonical_answer": "PACE／多粒度 Evidence Paging 是 Research Backlog，D-015 的 bounded BM25 + caller-Dense 不是 PACE。Graph DB 不在 v0、冻结后也不实现。Experience Ledger 只是 append-only 研究数据面；Experience Formation 未实现且效果未评估。当前只积累 Event -> Action -> Outcome / Feedback -> Candidate Experience 数据，不自动抽象、promotion 或影响决策。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/REQUIREMENTS_V0.md",
+          "blob_sha": "2efd9c738f79ce1f7f9e63958f27dac4b4fe87e6",
+          "provenance": "Objective、v0 exclusions 与 Current mapping 固定三者边界。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/DECISIONS.md",
+          "blob_sha": "60663e5b92e0be1cb813af4e0acf6f9787f87456",
+          "provenance": "D-015 冻结范围并把真实研究数据积累设为下一阶段。"
+        }
+      ]
+    },
+    {
+      "id": "P09",
+      "order": 9,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P09-G01",
+          "description": "canonical 数据库配置",
+          "any_of": [
+            "CONTEXT_COMPILER_DB_PATH"
+          ]
+        },
+        {
+          "id": "P09-G02",
+          "description": "legacy fallback 精确路径",
+          "any_of": [
+            "DSH_HOME/sessions/context-compiler.db"
+          ]
+        },
+        {
+          "id": "P09-G03",
+          "description": "fallback 不形成宿主依赖",
+          "any_of": [
+            "no host code or package is imported",
+            "不导入任何宿主代码或 package"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "DSH_HOME 是 canonical 配置",
+        "fallback 会导入宿主 package",
+        "数据库必须由桌面宿主创建"
+      ],
+      "canonical_answer": "canonical 配置是 CONTEXT_COMPILER_DB_PATH。仅当它缺失时才使用 legacy fallback：DSH_HOME/sessions/context-compiler.db。该兼容只做路径解析，不导入任何宿主代码或 package，因此不形成宿主依赖。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "src/mcp-service.ts",
+          "blob_sha": "70aacaa397af11480598476629f43b449ca7b3a6",
+          "provenance": "resolveContextCompilerDatabasePath 固定优先级与精确 legacy path。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/DECISIONS.md",
+          "blob_sha": "60663e5b92e0be1cb813af4e0acf6f9787f87456",
+          "provenance": "D-007 明确 compatibility without host dependency。"
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "order": 10,
+      "critical": false,
+      "required_assertion_groups": [
+        {
+          "id": "P10-G01",
+          "description": "数据库级 writer boundary",
+          "any_of": [
+            "这是数据库级、跨 session 的同步 writer serialization"
+          ]
+        },
+        {
+          "id": "P10-G02",
+          "description": "跨 session writer 串行化风险",
+          "any_of": [
+            "慢 compile 可能拖延无关 raw/state/ledger writer"
+          ]
+        },
+        {
+          "id": "P10-G03",
+          "description": "有界失败与可重试",
+          "any_of": [
+            "5 秒 busy 上界",
+            "可重试的 STORAGE_FAILURE"
+          ]
+        },
+        {
+          "id": "P10-G04",
+          "description": "当前解释边界",
+          "any_of": [
+            "尚未做真实长历史、同进程 stdio SLA 或跨平台负载"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "writer boundary 是 session-local lock",
+        "已证明真实宿主 p95 或 p99 满足 SLA",
+        "该风险要求立刻重构数据库",
+        "A 与 B 的 latency 可直接比较"
+      ],
+      "canonical_answer": "compile 在同一 SQLite 上用 BEGIN IMMEDIATE 覆盖完整 state/raw/ledger 读取、assembly、trace/hit 与 commit；这是数据库级、跨 session 的同步 writer serialization，不是 session-local lock。长历史或多 session 下，慢 compile 可能拖延无关 raw/state/ledger writer，约 5 秒 busy 上界后可能返回可重试 STORAGE_FAILURE。现有证据只说明等待有界、rollback 可恢复且无已知 correctness blocker；尚未做真实长历史、同进程 stdio SLA 或跨平台负载，不能一般化性能，也不应据此提前重构。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "src/mcp-service.ts",
+          "blob_sha": "70aacaa397af11480598476629f43b449ca7b3a6",
+          "provenance": "compile 方法把读取、assembly 与 trace append 放入单一 telemetry boundary。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/adversarial-reviews/AR-2026-08-24-post-v0-15-linearization-final.md",
+          "blob_sha": "142bf41ee300b48ab45ec3f39818870b7fa26ad5",
+          "provenance": "最终 AR 将全数据库跨 session 串行化定为需真实使用观察的非阻塞风险。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/qa/WO-V0-15-experience-ready-foundation-freeze.md",
+          "blob_sha": "ce04781fe6102d6feef7b7003ec0d84b86d2d457",
+          "provenance": "最终 re-QA 固定 busy、rollback、retry 与 writer latency 的动态边界。"
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "order": 11,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P11-G01",
+          "description": "旧路线只是历史",
+          "any_of": [
+            "旧 DS-11/DS-13 中的 36 次 feasibility capture、双真人盲评与继续 feasibility-01 只是历史记录"
+          ]
+        },
+        {
+          "id": "P11-G02",
+          "description": "DS-14 sealed supersession",
+          "any_of": [
+            "WO-DS-14 已把 feasibility-01 sealed 为 Oracle-State baseline"
+          ]
+        },
+        {
+          "id": "P11-G03",
+          "description": "V0-15 与 ROADMAP 当前 authority",
+          "any_of": [
+            "WO-V0-15 的最终冻结与 ROADMAP 又把下一步转为真实长期使用数据积累"
+          ]
+        },
+        {
+          "id": "P11-G04",
+          "description": "不得错误恢复旧路线",
+          "any_of": [
+            "不得恢复等待双真人、补填旧盲评或继续／重跑旧 feasibility-01"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "DS-11/DS-13 仍是当前执行路线",
+        "下一步是补齐 feasibility-01 双真人评分",
+        "旧文档与新冻结文档同等 authority",
+        "可以按旧路线重跑 feasibility-01"
+      ],
+      "canonical_answer": "authority 冲突时，旧 DS-11/DS-13 中的 36 次 feasibility capture、双真人盲评与继续 feasibility-01 只是历史记录。较新的 WO-DS-14 已把 feasibility-01 sealed 为 Oracle-State baseline，WO-V0-15 的最终冻结与 ROADMAP 又把下一步转为真实长期使用数据积累；这组较新材料 supersede 旧路线。不得恢复等待双真人、补填旧盲评或继续／重跑旧 feasibility-01。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "同一冻结文档保留 DS-11/13 历史并明确 DS-14 sealed 与 V0-15 下一阶段。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/ROADMAP.md",
+          "blob_sha": "c105a85e5fc0b7d1983f90239de5f3f012553b80",
+          "provenance": "Roadmap 第 5、7、9 项是较新执行 authority。"
+        }
+      ]
+    },
+    {
+      "id": "P12",
+      "order": 12,
+      "critical": true,
+      "required_assertion_groups": [
+        {
+          "id": "P12-G01",
+          "description": "fresh DB 双实例并发初始化",
+          "any_of": [
+            "两个独立 Raw store／service（另有双 stdio）同时首次打开同一个尚不存在的 fresh DB，均可初始化并 ready"
+          ]
+        },
+        {
+          "id": "P12-G02",
+          "description": "legacy 缺 Dense 列并发迁移",
+          "any_of": [
+            "从缺少 dense_embedding_json 的 legacy sessions/raw_events schema 同步启动两个实例"
+          ]
+        },
+        {
+          "id": "P12-G03",
+          "description": "迁移数据与结构不重复",
+          "any_of": [
+            "Dense 列精确一个，旧 raw 字节与 seq 保持不变，append-only update/delete trigger 各精确一个，EVENT backfill 恰好一条"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "只验证过单实例 migration",
+        "并发 duplicate column 仍是已知未关闭 blocker",
+        "migration 可以吞掉任意 SQLite schema 错误",
+        "并发测试证明所有平台均兼容"
+      ],
+      "canonical_answer": "至少有两类独立并发兼容事实：（1）两个独立 Raw store／service（另有双 stdio）同时首次打开同一个尚不存在的 fresh DB，均可初始化并 ready；（2）从缺少 dense_embedding_json 的 legacy sessions/raw_events schema 同步启动两个实例，检查与 ALTER 在 BEGIN IMMEDIATE 迁移事务中串行化，两个实例均成功。迁移后 Dense 列精确一个，旧 raw 字节与 seq 保持不变，append-only update/delete trigger 各精确一个，EVENT backfill 恰好一条且第三次重启不重复。证据来自 macOS/Node 25，不能外推 Windows 或精确 Node 24。",
+      "sources": [
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/qa/WO-V0-15-experience-ready-foundation-freeze.md",
+          "blob_sha": "ce04781fe6102d6feef7b7003ec0d84b86d2d457",
+          "provenance": "append-only QA 链记录 fresh DB race、legacy check-then-ALTER race 及最终高轮次同步关闭证据。"
+        },
+        {
+          "baseline_commit": "b7f00cefe809b1ffe9fac7d5e7885f7a7fdec8ed",
+          "path": "docs/PROJECT_STATE.md",
+          "blob_sha": "057240d62073614fbd4085af2cafd112c1d7cb8f",
+          "provenance": "Current foundation status 明确 fresh DB 初始化与 legacy raw ALTER 两项竞争均已关闭。"
+        }
+      ]
+    }
+  ]
+}
