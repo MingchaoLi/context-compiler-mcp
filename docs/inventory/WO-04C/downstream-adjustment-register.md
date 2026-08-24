@@ -857,3 +857,165 @@ assembly branch count and fixture cross-product
   隐式猜测 relevance；
 - 若需要修改 frozen v0 或 WO-04C transaction contract 才能实验：停止并另开 compatibility/
   promotion work order。
+
+---
+
+## DA-08 — Deterministic Compaction Pressure Gate + Strict Frontier Takeover
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED DIRECTION / PRESERVE FRONTIER + TRANSACTION CONTRACT /
+PENDING FUTURE POLICY EXPERIMENT / NOT YET PROMOTED
+
+**WO-04C impact：** NONE — 当前 WO-04C 继续实现已冻结的 closed Takeover/Enrichment
+transaction，不新增 scheduler、detector、State writer 或 substrate transition，也不改变工期估算。
+
+**Routing：** Future Core compaction trigger/boundary policy work order；若其输出成为 Snapshot/Hot
+Raw policy input，再由 WO-05 接收。WO-04C 只验证并提交已经构造完成的 closed Takeover input。
+
+### Correctness complexity that remains mandatory
+
+每个 scope/stream 必须分开保存和验证：
+
+```text
+frontier_position
+  highest contiguous Ledger boundary safely taken over
+
+raw_frontier_revision
+  monotonic authority version of the Frontier record
+
+takeover_commit_id / takeover_commit_revision
+  idempotent identity / monotonic Takeover order
+```
+
+Takeover CAS 必须同时校验 expected Frontier revision 与 position。成功 range 必须从
+`frontier_position + 1` 开始、连续、无洞且不超过同一 transaction snapshot 的 Ledger
+high-water；同 base 并发提交至多一个成功，失败者重新读取后重算。禁止通过先写后补、补偿性
+best effort、手工改 revision vector 或 generic participant framework 取消这个原子边界。
+
+Takeover 成功仍必须在一个 bounded coordinator transaction 中绑定：
+
+```text
+exact Raw range and Event identities
+exact State authority reference
+exact/applied Fact and Relation authority
+one valid coverage disposition per Raw Event
+immutable Compaction Artifact
+Takeover domain row + substrate marker/result
+Frontier double-CAS transition
+```
+
+任一 required ref/proposal/coverage/artifact 失败，整笔回滚且 Frontier 不动。Exact retry、
+substitution conflict、COMMIT failure、close/reopen 与 Hot Raw rebuild 必须保持稳定。Raw Event
+不删除、不修改；Frontier 只改变 Ledger Raw 在 Working Context 中的 Hot projection 资格。
+
+### State and representation correction
+
+WO-04C v1 不是 `Extract -> Delta -> atomically write State + Frontier`。当前冻结语义是：
+
+```text
+if a new State revision is required:
+  Proposal -> Validate/Reduce -> standalone State Authority commit
+
+then from a fresh exact snapshot:
+  validate exact State authority reference
+  + optional same-handle Fact/Relation apply
+  + coverage + immutable Artifact
+  + atomic Frontier Takeover
+```
+
+Takeover v1 必须保持
+`previous_state_revision == new_state_revision`。如果未来功能要求同一次 Takeover 新建 State
+revision，必须停止并另开 bounded substrate extension；不能借本登记扩大 WO-04C。
+
+Compaction Artifact 是 durable coverage/provenance proof，不等同于 Rolling Summary。每个 Event
+只能是 `canonicalized`，或使用 closed reason 的 `artifact_only`；proposal validation failure
+不是合法 disposition。Raw wording 仍可由 Ledger exact recovery。
+
+### Simplified future trigger candidate
+
+Future scheduler 候选只保留一个确定性 Pressure Gate：
+
+```text
+Frontier-bound Hot Raw projected cost
+  compared with an explicit capacity-derived high-water policy
+        ↓ pressure reached
+try the oldest safe contiguous prefix starting at frontier_position + 1
+        ├─ no safe end -> defer; Frontier unchanged; report pressure
+        └─ safe end    -> construct one bounded Takeover request
+```
+
+Gate 可以消费 token、active working-set cost 与 Host context capacity，但必须归一成一个可重放
+predicate 和显式 policy identity；具体 threshold 继续是未冻结实现参数。禁止 fixed recent-N/
+turn count、预测性 scheduler、动态多因素调权、后台多 segment 并行、speculative Frontier、
+per-stream multi-lane cursor 或为达到时限而强制切开不安全语义。
+
+Idle/time 只允许触发一次 eligibility check，不能自动判定 closed。长度/容量决定何时检查；
+closure、risk 与完整 coverage 决定允许处理到哪个 end。如果从 Frontier 直接后继开始找不到
+安全 end，不能跳过它推进后面的 range；非连续历史只能使用 Enrichment，且不能减少 Hot Raw。
+
+### Responsibility boundary
+
+Trigger/boundary policy producer 负责提出 candidate range；WO-04C Core transaction 负责机械验证
+direct-successor、continuity、Raw identity、authority、coverage、Artifact、CAS 与 replay。WO-04C
+不实现“最佳压缩时机”或 Closure classifier，也不接受 caller 自报 new revision/hash/timestamp。
+
+未来即使抽出 policy port，也只能返回 plain-data candidate/policy identity，不能获得 SQL、
+transaction handle、Authority mutation 或任意 participant registration 能力。
+
+### Future comparison and fixtures
+
+Trigger policy 与 Takeover transaction correctness 必须分开测试。Trigger 实验在同一 frozen
+Raw/Frontier/capacity world 比较当前可用 policy baseline 与单一 deterministic Pressure Gate，
+至少覆盖：
+
+```text
+below / exactly-at / above high-water
+pressure reached but no safe direct-successor prefix
+first safe end followed by an unresolved segment
+idle check without semantic closure
+cross-session Hot Raw and non-chat Events
+fixed recent-N disagrees with Frontier negative control
+temporary overage followed by later safe boundary
+```
+
+Takeover correctness fixtures 至少覆盖：
+
+```text
+direct successor versus gap / skipped prefix
+stale revision, stale position and same-base race
+concurrent later Ledger append outside the frozen range
+required proposal/ref/coverage/artifact failure rollback
+all-artifact_only range with valid closed reasons
+proposal failure disguised as artifact_only rejection
+exact retry and normalized-field substitution conflict
+SQLite COMMIT failure with no leaked object/marker/revision
+State revision changed before Takeover snapshot
+Hot Raw rebuild retains every after-range Event
+```
+
+至少记录：
+
+```text
+compaction_attempt_count
+safe_prefix_available / deferred_pressure_count
+projected_hot_raw_tokens and temporary overage
+unnecessary_or_premature_takeover
+frontier_gap_or_duplicate_apply
+CAS conflict / recompute rate
+rollback_leak_count
+replay_determinism
+policy branch count and fixture cross-product
+```
+
+### Promotion and stop conditions
+
+- 单一 Gate 在不增加 premature Takeover、Hot Raw loss 或 correctness failure 的前提下降低
+  scheduler 分支和测试矩阵：可 promotion 为 future Core compaction default；
+- 临时 overage 经常无法等到安全边界或阻止基础 Context Assembly：保留 correctness，不强制
+  推进 Frontier；另开 bounded capacity/fallback experiment；
+- 问题来自 semantic closure/extractor：返回独立 proposal-producer evaluation，不把 Pressure
+  Gate 升级为 LLM judge；
+- 需要同一 Takeover 创建 State revision：停止，先审 bounded substrate extension；
+- 需要跳过未安全前缀、多 lane/speculative Frontier 或删除 Raw 才能满足性能：拒绝隐式
+  promotion，另开有明确收益证据的架构工单。
