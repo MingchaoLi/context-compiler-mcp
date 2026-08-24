@@ -153,6 +153,18 @@ export {
 } from "./core.js";
 
 export {
+  AUTHORITY_NAMESPACE,
+  REVISION_SUBSTRATE_SCHEMA_VERSION,
+  SHADOW_NAMESPACE_PREFIX,
+  RevisionSubstrateError,
+  type RevisionCommitOperation,
+  type RevisionCommitRecord,
+  type RevisionScope,
+  type RevisionSubstrateErrorCode,
+  type RevisionVector,
+} from "./revision-substrate.js";
+
+export {
   CONTEXT_COMPILER_CAPABILITIES,
   CONTEXT_COMPILER_SERVICE_VERSION,
   ContextCompilerMcpService,

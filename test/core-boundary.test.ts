@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import * as publicSurface from "../src/index.js";
 import {
   CONTEXT_COMPILER_COMMANDS,
   ContextCompilerCore,
@@ -22,12 +23,31 @@ afterEach(() => {
 });
 
 describe("ContextCompilerCore boundary", () => {
+  it("does not expose a generic revision writer on the package root", () => {
+    expect("SqliteRevisionSubstrate" in publicSurface).toBe(false);
+    expect("commitLedgerRevisionInsideCore" in publicSurface).toBe(false);
+    expect("commitStateRevisionInsideCore" in publicSurface).toBe(false);
+    expect("compareAndAdvanceFrontierInsideCore" in publicSurface).toBe(false);
+  });
+
   it("covers current commands and research records without Store imports", () => {
     const core = new ContextCompilerCore(databasePath());
     expect(unwrap(core.call("health", {}))).toEqual({
       version: "0.1.0",
       capabilities: [...CONTEXT_COMPILER_COMMANDS],
       ready: true,
+    });
+    expect(core.getRevisionVector({
+      namespace: "authority",
+      stream_id: "core-session",
+    })).toEqual({
+      namespace: "authority",
+      stream_id: "core-session",
+      ledger_revision: 0,
+      state_revision: 0,
+      raw_frontier_revision: 0,
+      frontier_position: 0,
+      takeover_commit_revision: 0,
     });
 
     const event = unwrap(core.call("ingest_event", {
@@ -36,6 +56,10 @@ describe("ContextCompilerCore boundary", () => {
       content: "preserve the authority boundary",
       source_event_id: "event-1",
     })) as { id: string };
+    expect(core.getRevisionVector({
+      namespace: "authority",
+      stream_id: "core-session",
+    }).ledger_revision).toBe(0);
 
     const prepared = unwrap(core.call("prepare_state_update", {
       session_id: "core-session",
@@ -111,6 +135,12 @@ describe("ContextCompilerCore boundary", () => {
       error: { code: "STORAGE_FAILURE" },
     });
     expect(() => core.getExperienceRecords("core-session")).toThrowError(
+      expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
+    );
+    expect(() => core.getRevisionVector({
+      namespace: "authority",
+      stream_id: "core-session",
+    })).toThrowError(
       expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "STORAGE_FAILURE" })
     );
   });

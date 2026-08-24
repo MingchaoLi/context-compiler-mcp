@@ -32,6 +32,12 @@ import {
   type DenseEmbedding,
   type RawEventInput,
 } from "./raw-store.js";
+import {
+  RevisionSubstrateError,
+  SqliteRevisionSubstrate,
+  type RevisionScope,
+  type RevisionVector,
+} from "./revision-substrate.js";
 import { SqliteContextStateStore } from "./state-store.js";
 import { StateUpdateCoordinator, StateUpdateError } from "./state-update.js";
 
@@ -113,6 +119,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   private readonly stateUpdate: StateUpdateCoordinator;
   private readonly recallStore: SqliteHistoryRecallStore;
   private readonly ledgerStore: SqliteExperienceLedgerStore;
+  private readonly revisionSubstrate: SqliteRevisionSubstrate;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -124,12 +131,15 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let stateStore: SqliteContextStateStore | undefined;
     let recallStore: SqliteHistoryRecallStore | undefined;
     let ledgerStore: SqliteExperienceLedgerStore | undefined;
+    let revisionSubstrate: SqliteRevisionSubstrate | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
       recallStore = new SqliteHistoryRecallStore(databasePath);
       ledgerStore = new SqliteExperienceLedgerStore(databasePath);
+      revisionSubstrate = new SqliteRevisionSubstrate(databasePath);
     } catch {
+      try { revisionSubstrate?.close(); } catch { /* preserve stable startup failure */ }
       try { recallStore?.close(); } catch { /* preserve stable startup failure */ }
       try { ledgerStore?.close(); } catch { /* preserve stable startup failure */ }
       try { stateStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -141,6 +151,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.stateUpdate = new StateUpdateCoordinator(stateStore);
     this.recallStore = recallStore;
     this.ledgerStore = ledgerStore;
+    this.revisionSubstrate = revisionSubstrate;
   }
 
   call(
@@ -200,11 +211,28 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Read-only scope query; generic revision mutation remains Core-internal. */
+  getRevisionVector(scope: RevisionScope): RevisionVector {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "revision scope");
+      return this.revisionSubstrate.getRevisionVector(scope);
+    } catch (error) {
+      throw mapRevisionSubstrateError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
-    for (const store of [this.ledgerStore, this.recallStore, this.stateStore, this.rawStore]) {
+    for (const store of [
+      this.revisionSubstrate,
+      this.ledgerStore,
+      this.recallStore,
+      this.stateStore,
+      this.rawStore,
+    ]) {
       try {
         store.close();
       } catch {
@@ -453,6 +481,15 @@ function mapExperienceLedgerError(error: unknown): ContextCompilerCoreError {
   if (error.code === "INVALID_INPUT" || error.code === "NOT_FOUND") {
     return new ContextCompilerCoreError("INVALID_INPUT");
   }
+  return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapRevisionSubstrateError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof RevisionSubstrateError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  if (error.code === "INVALID_INPUT") return new ContextCompilerCoreError("INVALID_INPUT");
+  if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
   return new ContextCompilerCoreError("STORAGE_FAILURE");
 }
 
