@@ -1175,3 +1175,164 @@ projection policy。
 - hard capacity 被 whole-object overshoot 穿透：停止 promotion，修复 explicit failure contract；
 - 需要 fixed recent-N 重新定义 Hot Raw、移动 Frontier 或删除 Raw 才能达成指标：拒绝该方案并
   保持 canonical Hot Raw semantics。
+
+---
+
+## DA-10 — Minimal Raw Trust-root Provenance + No Generic Lineage Graph
+
+**用户状态：** 已接受修正版方向并要求纳入后续计划。
+
+**登记状态：** RECORDED / ACCEPTED PRESERVATION DIRECTION / PRESERVE WO-03B + WO-04A +
+WO-04B CONTRACTS / NOT YET PROMOTED TO GOVERNANCE POLICY
+
+**WO-04C impact：** NONE — 继续使用已冻结的 canonical Raw identity、same-scope Authority
+provenance、coverage 与 Artifact binding；不修改 Takeover/Enrichment grammar、transaction、
+policy hash、source/schema/test allowlist 或工期估算。
+
+**Routing：** WO-05 exact Snapshot Raw refs/hash；WO-06 exact provenance fetch/Targeted Recovery；
+future bounded governance/content-storage work order 处理 retention、redaction、erasure 与大型
+payload。已接受的 WO-03B Raw、WO-04A State、WO-04B Fact/Relation behavior 原样保留。
+
+### Canonical Raw identity remains mechanical and complete
+
+Canonical Raw Event 的最小可信身份不是仅有 message/session/timestamp，而是：
+
+```text
+scope { namespace, stream_id }
+event_id                         stable idempotency identity inside scope
+ledger_revision                  authoritative per-stream order/high-water
+source_kind + source_id
+source_session_id?               provenance only; never stream identity
+canonical payload
+occurred_at?                     source time; never authoritative order
+created_at                       first durable commit result
+immutable append marker/result
+```
+
+相同 `event_id` 在不同 scope 可以独立存在；session、Raw sequence、wall-clock timestamp 或文件
+路径不能代替 scope/ledger identity。Exact normalized retry 返回原 Event，任一 payload/source/
+time substitution 必须稳定 conflict。Raw update/delete 继续由 canonical schema 阻止。
+
+### Minimal source-ref rule
+
+Canonical Derived Object 的 trust-root provenance 保持直接、无聊：
+
+```text
+object is already bound to one explicit scope
++ source_event_ids[]
+-> each ID must resolve to a committed canonical Raw Event in the same scope
+-> each Event must be no later than the object's frozen Ledger high-water
+```
+
+因此域内持久字段可以只保存 normalized Event ID 数组；跨 API/manifest 解释时完整引用仍为
+`scope + event_id`。禁止把 legacy session ID、summary ID、Raw position、semantic-search hit 或
+可变化路径当作 Authority provenance。
+
+State v1 继续要求 commit provenance 等于 per-item `source_event_ids` 的 exact union，existing
+item refs 只能单调增加。旧 immutable State revision 保持当时的 exact refs；新语义 Decision
+应获得新 identity/lifecycle 或 accepted Relation，而不是回写旧历史。
+
+### Provenance versus domain evidence semantics
+
+不得把所有语义塞入 `source_refs`，也不得借“最小 provenance”删除已有正确性合同：
+
+```text
+source_event_ids[]
+  direct Raw trust root
+
+verification_event_ids[]
+  Fact verification/disconfirmation evidence owned by Fact policy
+
+typed Relation
+  SUPPORTS / CONTRADICTS / SUPERSEDES / RETRACTS / ...
+  owned by Relation policy
+```
+
+不新增第三套 generic lineage/provenance graph，不给 source ref 增加 causal/supporting/opposing/
+inherited/confidence 等标签，也不做递归 derivation reasoning。Existing Fact verification 与 typed
+Relation 仍保留，因为它们表达领域 correctness，而不是 source-ref metadata。
+
+### Raw-event granularity and optional future selectors
+
+Raw 忠实保存一次显式 source projection：user input、Tool Result、file 或 external observation。
+一条 Event 可以包含多个语义事项；多个 State/Fact/Relation 对象可以引用同一个完整 Event。
+当前 canonical Authority v1 不增加 semantic segmentation、sentence split 或 span offset。
+
+如果 future evidence 证明 whole-Event Recovery token cost 不可接受，只能在独立实验中评估
+deterministic selector，例如 canonical JSON Pointer/content selector + source content hash。
+Tokenizer offset、LLM segmentation 或没有 selector version 的 byte/code-point span 不能进入
+Authority ref；selector 只是 retrieval precision hint，不能取代 direct Event trust root。
+
+### Authority replay versus extractor rerun
+
+必须区分：
+
+```text
+Authority replay
+  committed Proposal + policy/hash + deterministic Reducer + Raw refs
+  -> exact committed Authority result
+
+Extractor reevaluation
+  Raw -> run rule/model Extractor again
+  -> may produce a different Proposal
+```
+
+Raw refs 支持审计、定位、重新验证与新 proposal，但不单独证明模型 Extractor 可复现。若测试
+Extractor determinism，必须另行冻结 extractor/provider/model/prompt/config identity；不得把
+Authority replay pass 当作 extraction correctness。
+
+Authority State 最终必须落回 canonical Raw Event IDs。Summary/Artifact 可以辅助 producer，
+但不能成为 State trust root，也不能形成 `Raw -> Summary -> State` 的唯一有损 provenance 链。
+
+### Retention, deletion and large payload boundary
+
+当前不做 automatic retention、forgetting、archive scheduler 或 Raw cold-tier policy，但也不把
+“用户显式删除”定义成 append-only 的简单例外。物理删除可能破坏 State/Fact/Relation refs、
+Takeover coverage、Artifact、Snapshot hash 与 exact replay，必须由独立 Governance work order
+冻结至少以下语义：
+
+```text
+logical tombstone versus payload redaction
+cryptographic erasure / content-addressed blob removal
+which identity/hash metadata may remain
+effect on existing Snapshot and Derived Object integrity
+authorization, audit and replay behavior after erasure
+```
+
+大型 attachment/Tool output 未来可以使用 immutable content-addressed storage，但 Raw/Snapshot
+必须保存 stable ref + content hash + availability semantics；禁止只存可变化路径、静默截断或
+把缺失 payload 冒充 exact replay。
+
+### Preservation fixtures
+
+后续 WO-05/06 与 governance planning 至少保留以下机械测试方向：
+
+```text
+same event_id isolated across scopes
+source_session_id never changes stream identity or order
+exact append retry versus payload/source/time substitution conflict
+missing / cross-scope / after-high-water provenance rejection
+State exact-union and monotonic source refs
+Fact provenance versus verification refs remain distinct
+typed Relation semantics remain domain-owned
+Summary-only Authority provenance rejection
+whole Event containing multiple semantic objects
+exact provenance fetch without semantic search
+external path content substitution detected by content hash
+canonical Raw update/delete rejected under current policy
+Authority replay distinguished from Extractor rerun
+```
+
+至少记录 `exact_ref_recovery_success`、whole-Event recovery tokens、missing/cross-scope ref
+rejection、provenance integrity failures、replay determinism 与 selector-added complexity。没有
+真实 token/correctness evidence时不引入 segment schema 或 lineage graph。
+
+### Promotion and stop conditions
+
+- direct same-scope Event refs 支撑 Recovery/Audit/Replay 且 whole-Event成本可接受：保持最小方案；
+- whole-Event Recovery 成本在预注册 workload 中不可接受：只实验可重放 selector，不改 Raw；
+- 新需求可以由 existing verification refs/typed Relations 表达：拒绝 generic provenance graph；
+- 要求删除 verification/Relation/scope/revision/hash 来减少字段：停止，作为 capability-removal
+  proposal 走 Preservation Gate 与 Independent QA；
+- 要求物理删除 Raw 或外置 payload：停止普通实现，先完成 governance、migration、integrity、
+  compatibility 与 recovery 合同。
