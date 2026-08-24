@@ -1,6 +1,6 @@
 # WO-04A Builder Handoff — Canonical State Revision Commit
 
-Status: **BUILDER COMPLETE / AWAITING INDEPENDENT QA**<br>
+Status: **APPEND-ONLY FIX COMPLETE / AWAITING INDEPENDENT RE-QA**<br>
 Work order: `docs/work-orders/WO-04A-canonical-state-revision-commit.md`<br>
 Source baseline HEAD: `4e7758ac459c879944c624eb27ffefcfb24a2aec`<br>
 Planning authority commit: `4e7758ac459c879944c624eb27ffefcfb24a2aec`<br>
@@ -13,6 +13,13 @@ WO-03B fixed candidate / QA:
 `92e72eb785b2670068597376bccfd1136e3c6952`<br>
 Builder candidate HEAD: the commit containing this handoff; Independent QA must
 resolve and pin that exact commit before review.
+
+Original Builder candidate:
+`d35970a3d8b75e2d17a7f3d24c7dd179f664086a`<br>
+Independent QA rejection:
+`3359f002ab4d206617815942aaee4eb9e9706685`<br>
+Fixed Builder candidate: the append-only commit containing this updated handoff;
+Independent re-QA must resolve and pin it exactly.
 
 ## Bounded result
 
@@ -32,6 +39,35 @@ Artifact, change Working Context, add Host/provider behavior, or begin WO-05.
 
 Umbrella WO-04 remains split into 04A/04B/04C. Acceptance of this candidate alone
 does not authorize 04B, 04C or WO-05.
+
+## First QA return and append-only fix
+
+Independent QA rejected the original candidate despite all declared suites
+passing. The append-only QA record is
+`docs/qa/WO-04A-canonical-state-revision-commit.md`; it identified:
+
+1. a coordinated State-row/marker attack because reader binding omitted marker
+   request/fingerprint and did not bind all non-State vectors/provenance Ledger
+   position; and
+2. an existing-identity, well-shaped policy substitution returning
+   `INVALID_INPUT` instead of stable `CONFLICT`.
+
+The fix reconstructs the complete marker descriptor from the persisted State
+row and requires exact canonical request bytes/fingerprint and result. It proves
+every non-State axis is unchanged across the State commit, every provenance
+Event is committed no later than marker Ledger high-water, and the historical
+vector is component-wise no later than the current vector. Exact revision reads
+now bind live vector + row + marker in one read transaction.
+
+Policy input is normalized as a SHA-256 shape before replay. A new unsupported
+policy identity reaches the callback, fails `INVALID_INPUT` and rolls back with
+zero mutation; a well-shaped policy substitution on an existing commit reaches
+the marker and returns stable `CONFLICT`.
+
+Regression coverage reproduces all three QA B1 attacks: coordinated row + hash
++ marker-result replacement, coordinated marker request + fingerprint
+replacement, and previous/current Ledger-vector lowering below provenance. It
+also reproduces B2 on the same existing ID.
 
 ## Execution baseline and exact paths
 
@@ -59,7 +95,7 @@ package/config/dependencies, evaluation and official artifacts are unchanged.
 ## Source and policy fingerprints
 
 ```text
-715e147c292d602ae1d7bb596d0399eeb5ef96c37af8e52bb2fff48d8c9b5d13  src/canonical-state.ts
+740a4c374d0a5e4df6ca6d9345620b6c3b23f984e91d3e00200dc23ad2cff281  src/canonical-state.ts
 be290a1850c28d6016481c9ba2987849a968cfe896e0d8a4031be53a6bbcca15  src/core.ts
 03ac90bf486fd19ae45b29a1c3a3d02cfb7c81f122def7ff6f3c5395f1c76128  src/index.ts
 9ab332bbf3c53555cafb9d90c6709e6c371ccf8bb3ccc68afe48be85697c9599  src/revision-substrate.ts (frozen)
@@ -120,6 +156,11 @@ after later commits. Any mode/expected/proposal/policy/provenance substitution
 conflicts. Two connections at one base allow at most one distinct proposal;
 concurrent exact retry writes once and returns one revision to both callers.
 
+Reads reconstruct and verify the complete marker request/fingerprint/result.
+The State operation must leave Ledger, Raw Frontier position/revision and
+Takeover revision unchanged; provenance Event revisions cannot exceed the
+marker Ledger high-water. Historical vectors cannot be ahead of the live vector.
+
 Latest read uses one SQLite read snapshot for the complete vector and matching
 State row. Exact/latest reads validate canonical bytes/hash, previous reduction
 and binding to the immutable WO-03A marker result. Absent State returns the zero
@@ -151,17 +192,17 @@ policy/schema constants, types and the stable error—not the Store or migration
 
 ## Builder verification
 
-Final verification completed at `2026-08-24T11:25:41Z`:
+Fixed-candidate verification completed at `2026-08-24T11:45:42Z`:
 
 ```text
 npm test
-  PASS — 33 files passed, 1 skipped; 507 tests passed, 1 skipped
+  PASS — 33 files passed, 1 skipped; 508 tests passed, 1 skipped
 
 npm run build
   PASS — tsc -p tsconfig.json
 
 focused Canonical State / frozen substrate / Hot Raw / Core / MCP run
-  PASS — 5 files, 39 tests
+  PASS — 5 files, 40 tests
 
 git diff --check
   PASS
@@ -176,8 +217,10 @@ frozen/prohibited-path diffs
   PASS — WO-03A/03B, legacy State, MCP/evaluator, package/config unchanged
 ```
 
-Focused evidence covers exact replay/substitution, status transitions, monotonic
-same-scope provenance, authority/shadow isolation, row/vector/marker/COMMIT
+Focused evidence covers the three independent B1 coordinated-substitution
+counterexamples and B2 policy classification, plus exact replay/substitution,
+status transitions, monotonic same-scope provenance, authority/shadow isolation,
+row/vector/marker/COMMIT
 rollback, distinct-CAS concurrency, exact-retry concurrency, one-snapshot read,
 legacy no-backfill, fresh/legacy concurrent migration, collision/forged
 completion, marker-row binding, invalid/Cc/cycle/accessor/exotic/no-op inputs,
@@ -202,21 +245,25 @@ under the system temporary directory.
 
 The Builder does not approve this candidate. Independent QA must:
 
-1. pin the exact candidate/parent/baseline/ancestry and exact nine-path allowlist;
+1. pin the fixed candidate, original candidate, rejection commit, baseline,
+   append-only ancestry and Builder-owned nine-path allowlist;
 2. verify frozen WO-03A/03B and prohibited legacy/MCP/config/artifact paths;
-3. independently reconstruct the policy hash, proposal normalization, exact
+3. independently reproduce B1 row/result, request/fingerprint and vector attacks,
+   plus B2 existing-ID policy substitution, before broader acceptance;
+4. independently reconstruct the policy hash, proposal normalization, exact
    provenance union, State hash and transition rules;
-4. attack session/legacy State/Raw IDs as implicit scope or provenance;
-5. inject State-row/vector/marker/actual-COMMIT failures and prove total rollback;
-6. reproduce distinct same-base single-winner and same-ID exact retry races;
-7. challenge overflow, empty/reduced no-op, Unicode `Cc`, non-NFC, accessors,
+5. attack session/legacy State/Raw IDs as implicit scope or provenance;
+6. inject State-row/vector/marker/actual-COMMIT failures and prove total rollback;
+7. reproduce distinct same-base single-winner and same-ID exact retry races;
+8. challenge overflow, empty/reduced no-op, Unicode `Cc`, non-NFC, accessors,
    cycles, exotic data and every request substitution;
-8. challenge partial/forged migration completion and legacy no-backfill;
-9. reproduce snapshot-consistent latest read, exact historical read, reopen and
+9. challenge partial/forged migration completion and legacy no-backfill;
+10. reproduce snapshot-consistent latest read, exact historical read, reopen and
    marker-row coordinated corruption detection;
-10. verify no Frontier/Fact/Relation/Takeover/Enrichment, no legacy State/MCP
+11. verify no Frontier/Fact/Relation/Takeover/Enrichment, no legacy State/MCP
     takeover and no new internal root/reflection authority;
-11. run focused tests, `npm test`, `npm run build`, exact-nine/root/frozen-diff and
+12. run focused tests, `npm test`, `npm run build`, exact-nine/root/frozen-diff and
     `git diff --check`; and
-12. write only `docs/qa/WO-04A-canonical-state-revision-commit.md` in a separate QA
-    commit. QA must not implement fixes or begin WO-04B/04C/WO-05.
+13. append re-QA evidence only to
+    `docs/qa/WO-04A-canonical-state-revision-commit.md` in a separate QA commit.
+    QA must not implement fixes or begin WO-04B/04C/WO-05.

@@ -143,6 +143,8 @@ interface StateRevisionRow extends Record<string, unknown> {
 interface CommitBindingRow extends Record<string, unknown> {
   operation: string;
   kind: string;
+  request_fingerprint: string;
+  request_json: string;
   previous_json: string;
   current_json: string;
   result_json: string;
@@ -319,10 +321,16 @@ export class SqliteCanonicalStateStore {
           request: normalized.request,
         },
         ({ previous, current, database }) => {
+          if (normalized.policy_hash !== CANONICAL_STATE_POLICY_HASH) invalid();
           const previousState = previous.state_revision === 0
             ? cloneState(EMPTY_CANONICAL_STATE)
             : this.#readStateInsideTransaction(database, normalized.scope, previous.state_revision);
-          assertCommittedProvenance(database, normalized.scope, normalized.provenance_event_ids);
+          assertCommittedProvenance(
+            database,
+            normalized.scope,
+            normalized.provenance_event_ids,
+            previous.ledger_revision
+          );
           const nextState = reduceState(previousState, normalized.proposal);
           if (canonicalJson(stateAsJson(nextState)) === canonicalJson(stateAsJson(previousState))) {
             conflict();
@@ -423,8 +431,12 @@ export class SqliteCanonicalStateStore {
     const normalizedScope = normalizeScope(scope);
     const normalizedRevision = validatePositiveRevision(stateRevision);
     try {
-      return this.#readCommitted(normalizedScope, normalizedRevision);
+      this.#database.exec("BEGIN;");
+      const committed = this.#readCommitted(normalizedScope, normalizedRevision);
+      this.#database.exec("COMMIT;");
+      return committed;
     } catch (error) {
+      rollback(this.#database);
       if (error instanceof CanonicalStateError) throw error;
       throw new CanonicalStateError("STORAGE_FAILURE");
     }
@@ -477,7 +489,8 @@ export class SqliteCanonicalStateStore {
     committed: CommittedCanonicalStateRevision
   ): void {
     const marker = database.prepare(
-      `SELECT operation, kind, previous_json, current_json, result_json
+      `SELECT operation, kind, request_fingerprint, request_json,
+              previous_json, current_json, result_json
        FROM cc_revision_commits
        WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
     ).get(
@@ -492,8 +505,23 @@ export class SqliteCanonicalStateStore {
     if (
       previous.state_revision !== committed.previous_state_revision ||
       current.state_revision !== committed.state_revision ||
-      current.state_revision !== previous.state_revision + 1
+      current.state_revision !== previous.state_revision + 1 ||
+      !sameNonStateAxes(previous, current)
     ) corrupt();
+    const expectedRequest = canonicalStateMarkerRequest(committed);
+    const expectedRequestJson = canonicalJson(expectedRequest);
+    if (
+      marker.request_json !== expectedRequestJson ||
+      storedHash(marker.request_fingerprint) !== sha256(expectedRequestJson)
+    ) corrupt();
+    assertStoredProvenanceBound(
+      database,
+      committed,
+      committed.provenance_event_ids,
+      current.ledger_revision
+    );
+    const live = readLiveVector(database, committed);
+    if (!vectorAtOrAfter(live, current)) corrupt();
     const result = parseStoredJson(marker.result_json);
     if (canonicalJson(result) !== canonicalJson(committedAsJson(committed))) corrupt();
   }
@@ -564,7 +592,7 @@ function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInp
   const expectedStateRevision = validateRevision(input.expected_state_revision);
   const proposal = normalizeProposal(input.proposal);
   const policyHash = input.policy_hash;
-  if (policyHash !== CANONICAL_STATE_POLICY_HASH) invalid();
+  if (typeof policyHash !== "string" || !/^[a-f0-9]{64}$/u.test(policyHash)) invalid();
   const provenanceEventIds = normalizeIdentifierArray(
     input.provenance_event_ids,
     1,
@@ -578,7 +606,7 @@ function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInp
     commit_mode: commitMode as CanonicalStateCommitMode,
     expected_state_revision: expectedStateRevision,
     proposal: proposalAsJson(proposal),
-    policy_hash: CANONICAL_STATE_POLICY_HASH,
+    policy_hash: policyHash,
     provenance_event_ids: [...provenanceEventIds],
   };
   return {
@@ -587,7 +615,7 @@ function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInp
     commit_mode: commitMode as CanonicalStateCommitMode,
     expected_state_revision: expectedStateRevision,
     proposal,
-    policy_hash: CANONICAL_STATE_POLICY_HASH,
+    policy_hash: policyHash,
     provenance_event_ids: provenanceEventIds,
     request,
   };
@@ -724,7 +752,8 @@ function isAllowedTransition(
 function assertCommittedProvenance(
   database: DatabaseSync,
   scope: RevisionScope,
-  eventIds: readonly string[]
+  eventIds: readonly string[],
+  ledgerHighWater: number
 ): void {
   const query = database.prepare(
     `SELECT ledger_revision FROM cc_ledger_raw_events
@@ -734,7 +763,29 @@ function assertCommittedProvenance(
     const row = query.get(scope.namespace, scope.stream_id, eventId) as {
       ledger_revision: number;
     } | undefined;
-    if (row === undefined || validateStoredRevision(row.ledger_revision, true) < 1) conflict();
+    if (row === undefined) conflict();
+    const ledgerRevision = validateStoredRevision(row.ledger_revision, true);
+    if (ledgerRevision > ledgerHighWater) conflict();
+  }
+}
+
+function assertStoredProvenanceBound(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  eventIds: readonly string[],
+  ledgerHighWater: number
+): void {
+  const query = database.prepare(
+    `SELECT ledger_revision FROM cc_ledger_raw_events
+     WHERE namespace = ? AND stream_id = ? AND event_id = ?`
+  );
+  for (const eventId of eventIds) {
+    const row = query.get(scope.namespace, scope.stream_id, eventId) as {
+      ledger_revision: number;
+    } | undefined;
+    if (row === undefined || validateStoredRevision(row.ledger_revision, true) > ledgerHighWater) {
+      corrupt();
+    }
   }
 }
 
@@ -1026,6 +1077,28 @@ function committedAsJson(committed: CommittedCanonicalStateRevision): JsonValue 
   };
 }
 
+function canonicalStateMarkerRequest(
+  committed: CommittedCanonicalStateRevision
+): JsonValue {
+  return {
+    scope: {
+      namespace: committed.namespace,
+      stream_id: committed.stream_id,
+    },
+    commit_id: committed.state_commit_id,
+    operation: "STATE",
+    kind: "CANONICAL_STATE_COMMIT_V1",
+    request: {
+      commit_mode: committed.commit_mode,
+      expected_state_revision: committed.previous_state_revision,
+      proposal: proposalAsJson(committed.proposal),
+      policy_hash: committed.policy_hash,
+      provenance_event_ids: [...committed.provenance_event_ids],
+    },
+    expected_state_revision: committed.previous_state_revision,
+  };
+}
+
 function proposalAsJson(proposal: CanonicalStateProposal): JsonValue {
   return {
     schema_version: 1,
@@ -1206,6 +1279,36 @@ function zeroVector(scope: RevisionScope): RevisionVector {
 
 function cloneVector(vector: RevisionVector): RevisionVector {
   return { ...vector };
+}
+
+function sameNonStateAxes(previous: RevisionVector, current: RevisionVector): boolean {
+  return previous.namespace === current.namespace &&
+    previous.stream_id === current.stream_id &&
+    previous.ledger_revision === current.ledger_revision &&
+    previous.raw_frontier_revision === current.raw_frontier_revision &&
+    previous.frontier_position === current.frontier_position &&
+    previous.takeover_commit_revision === current.takeover_commit_revision;
+}
+
+function vectorAtOrAfter(live: RevisionVector, historical: RevisionVector): boolean {
+  return live.namespace === historical.namespace &&
+    live.stream_id === historical.stream_id &&
+    live.ledger_revision >= historical.ledger_revision &&
+    live.state_revision >= historical.state_revision &&
+    live.raw_frontier_revision >= historical.raw_frontier_revision &&
+    live.frontier_position >= historical.frontier_position &&
+    live.takeover_commit_revision >= historical.takeover_commit_revision;
+}
+
+function readLiveVector(database: DatabaseSync, scope: RevisionScope): RevisionVector {
+  const row = database.prepare(
+    `SELECT namespace, stream_id, ledger_revision, state_revision,
+            raw_frontier_revision, frontier_position, takeover_commit_revision
+     FROM cc_revision_streams
+     WHERE namespace = ? AND stream_id = ?`
+  ).get(scope.namespace, scope.stream_id) as StreamRow | undefined;
+  if (row === undefined) corrupt();
+  return vectorFromRow(row, scope);
 }
 
 function validateCanonicalStateSchema(database: DatabaseSync): void {

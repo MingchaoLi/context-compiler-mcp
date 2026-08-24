@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -94,6 +95,8 @@ describe("WO-04A canonical State authority", () => {
     expect(() => opened.state.commit({ ...update, expected_state_revision: 2 }))
       .toThrowError(code("CONFLICT"));
     expect(() => opened.state.commit({ ...update, commit_mode: "lazy_historical" }))
+      .toThrowError(code("CONFLICT"));
+    expect(() => opened.state.commit({ ...update, policy_hash: "0".repeat(64) }))
       .toThrowError(code("CONFLICT"));
     appendEvent(opened, scope, "event-c");
     const regress = commitInput(scope, "state-c", 2, "event-c", "goal");
@@ -339,6 +342,147 @@ describe("WO-04A canonical State authority", () => {
     closeStore(opened);
   });
 
+  it("rejects coordinated row/result, request and full-vector marker substitutions", () => {
+    const rowAttack = committedFixture("row-result-attack");
+    const rowAudit = new DatabaseSync(rowAttack.database);
+    const stateTrigger = dropTrigger(rowAudit, "cc_canonical_state_revisions_no_update");
+    const markerTrigger = dropTrigger(rowAudit, "cc_revision_commits_no_update");
+    const row = rowAudit.prepare(
+      `SELECT proposal_json, state_json FROM cc_canonical_state_revisions
+       WHERE namespace = ? AND stream_id = ? AND state_revision = 1`
+    ).get(rowAttack.scope.namespace, rowAttack.scope.stream_id) as {
+      proposal_json: string;
+      state_json: string;
+    };
+    const marker = rowAudit.prepare(
+      `SELECT result_json FROM cc_revision_commits
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).get(
+      rowAttack.scope.namespace,
+      rowAttack.scope.stream_id,
+      rowAttack.input.state_commit_id
+    ) as { result_json: string };
+    const proposal = JSON.parse(row.proposal_json) as {
+      upsert_items: Array<{ content: string }>;
+    };
+    const state = JSON.parse(row.state_json) as { items: Array<{ content: string }> };
+    const result = JSON.parse(marker.result_json) as {
+      proposal: typeof proposal;
+      state: typeof state;
+      state_hash: string;
+    };
+    proposal.upsert_items[0]!.content = "tampered authority";
+    state.items[0]!.content = "tampered authority";
+    const proposalJson = JSON.stringify(proposal);
+    const stateJson = JSON.stringify(state);
+    const stateHash = createHash("sha256").update(stateJson).digest("hex");
+    result.proposal = proposal;
+    result.state = state;
+    result.state_hash = stateHash;
+    rowAudit.prepare(
+      `UPDATE cc_canonical_state_revisions
+       SET proposal_json = ?, state_json = ?, state_hash = ?
+       WHERE namespace = ? AND stream_id = ? AND state_revision = 1`
+    ).run(
+      proposalJson,
+      stateJson,
+      stateHash,
+      rowAttack.scope.namespace,
+      rowAttack.scope.stream_id
+    );
+    rowAudit.prepare(
+      `UPDATE cc_revision_commits SET result_json = ?
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).run(
+      JSON.stringify(result),
+      rowAttack.scope.namespace,
+      rowAttack.scope.stream_id,
+      rowAttack.input.state_commit_id
+    );
+    rowAudit.exec(`${stateTrigger};`);
+    rowAudit.exec(`${markerTrigger};`);
+    rowAudit.close();
+    const rowReopened = openStore(rowAttack.database);
+    expect(() => rowReopened.state.readLatest(rowAttack.scope)).toThrowError(code("CORRUPT_DATA"));
+    expect(() => rowReopened.state.readRevision(rowAttack.scope, 1))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => rowReopened.state.commit(rowAttack.input)).toThrowError(code("CORRUPT_DATA"));
+    closeStore(rowReopened);
+
+    const requestAttack = committedFixture("request-attack");
+    const requestAudit = new DatabaseSync(requestAttack.database);
+    const requestTrigger = dropTrigger(requestAudit, "cc_revision_commits_no_update");
+    const requestRow = requestAudit.prepare(
+      `SELECT request_json FROM cc_revision_commits
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).get(
+      requestAttack.scope.namespace,
+      requestAttack.scope.stream_id,
+      requestAttack.input.state_commit_id
+    ) as { request_json: string };
+    const request = JSON.parse(requestRow.request_json) as {
+      request: { proposal: { upsert_items: Array<{ content: string }> } };
+    };
+    request.request.proposal.upsert_items[0]!.content = "tampered request";
+    const requestJson = JSON.stringify(request);
+    const requestHash = createHash("sha256").update(requestJson).digest("hex");
+    requestAudit.prepare(
+      `UPDATE cc_revision_commits SET request_json = ?, request_fingerprint = ?
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).run(
+      requestJson,
+      requestHash,
+      requestAttack.scope.namespace,
+      requestAttack.scope.stream_id,
+      requestAttack.input.state_commit_id
+    );
+    requestAudit.exec(`${requestTrigger};`);
+    requestAudit.close();
+    const requestReopened = openStore(requestAttack.database);
+    expect(() => requestReopened.state.readLatest(requestAttack.scope))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => requestReopened.state.readRevision(requestAttack.scope, 1))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => requestReopened.state.commit(requestAttack.input)).toThrowError(code("CONFLICT"));
+    closeStore(requestReopened);
+
+    const vectorAttack = committedFixture("vector-attack");
+    const vectorAudit = new DatabaseSync(vectorAttack.database);
+    const vectorTrigger = dropTrigger(vectorAudit, "cc_revision_commits_no_update");
+    const vectorRow = vectorAudit.prepare(
+      `SELECT previous_json, current_json FROM cc_revision_commits
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).get(
+      vectorAttack.scope.namespace,
+      vectorAttack.scope.stream_id,
+      vectorAttack.input.state_commit_id
+    ) as { previous_json: string; current_json: string };
+    const previous = JSON.parse(vectorRow.previous_json) as { ledger_revision: number };
+    const current = JSON.parse(vectorRow.current_json) as { ledger_revision: number };
+    previous.ledger_revision = 0;
+    current.ledger_revision = 0;
+    vectorAudit.prepare(
+      `UPDATE cc_revision_commits SET previous_json = ?, current_json = ?
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).run(
+      JSON.stringify(previous),
+      JSON.stringify(current),
+      vectorAttack.scope.namespace,
+      vectorAttack.scope.stream_id,
+      vectorAttack.input.state_commit_id
+    );
+    vectorAudit.exec(`${vectorTrigger};`);
+    vectorAudit.close();
+    const vectorReopened = openStore(vectorAttack.database);
+    expect(() => vectorReopened.state.readLatest(vectorAttack.scope))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => vectorReopened.state.readRevision(vectorAttack.scope, 1))
+      .toThrowError(code("CORRUPT_DATA"));
+    expect(() => vectorReopened.state.commit(vectorAttack.input))
+      .toThrowError(code("CORRUPT_DATA"));
+    closeStore(vectorReopened);
+  });
+
   it("rejects invalid/no-op/control/exotic/overflow input without advancing State", () => {
     const database = databasePath();
     const opened = openStore(database);
@@ -501,6 +645,26 @@ function databasePathFrom(opened: OpenedStore): string {
 
 function code(expected: string) {
   return expect.objectContaining<Partial<CanonicalStateError>>({ code: expected as never });
+}
+
+function committedFixture(streamId: string) {
+  const database = databasePath();
+  const scope = { namespace: "authority", stream_id: streamId };
+  const opened = openStore(database);
+  appendEvent(opened, scope, "event-1");
+  const input = commitInput(scope, "state-1", 0, "event-1", "goal");
+  opened.state.commit(input);
+  closeStore(opened);
+  return { database, scope, input };
+}
+
+function dropTrigger(database: DatabaseSync, name: string): string {
+  const row = database.prepare(
+    "SELECT sql FROM sqlite_master WHERE type = 'trigger' AND name = ?"
+  ).get(name) as { sql: string } | undefined;
+  if (row === undefined) throw new Error(`Missing trigger ${name}`);
+  database.exec(`DROP TRIGGER ${name};`);
+  return row.sql;
 }
 
 interface WorkerInput {

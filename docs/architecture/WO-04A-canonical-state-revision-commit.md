@@ -112,6 +112,12 @@ The caller must echo that hash so a proposal prepared against another policy
 fails before mutation. The Core recomputes/owns the hash; a caller-supplied value
 does not select or define policy.
 
+A new `state_commit_id` carrying a well-shaped but unsupported policy hash is
+`INVALID_INPUT` inside the transaction before any durable mutation. For an
+existing `state_commit_id`, the same well-shaped policy substitution reaches the
+frozen marker replay comparison and is the same stable `CONFLICT` as mode,
+expected-revision, proposal or provenance substitution.
+
 ## 5. Atomic authority commit
 
 `state_commit_id` is the scoped idempotency identity. The normalized request
@@ -135,6 +141,15 @@ policy hash, provenance and a transaction-local canonical commit time. Row/axis/
 commit failure rolls everything back. Exact normalized retry returns the stored
 revision; substitution or stale expected revision is `CONFLICT`.
 
+Domain read/replay validation reconstructs the complete expected WO-03A marker
+descriptor from the immutable State row: scope, commit ID, operation/kind,
+mode, expected revision, proposal, policy and provenance. Exact canonical
+`request_json` and its SHA-256 must match; `result_json` must equal the row.
+Previous/current marker vectors must preserve every non-State axis and advance
+State exactly once. Each provenance Event revision must be at or below the
+marker Ledger high-water, and every historical marker vector must be component-
+wise no later than the current durable vector.
+
 ## 6. Migration and reads
 
 Migration version 1 owns a completion table, immutable State table and immutable
@@ -147,7 +162,8 @@ Latest read fixes one SQLite read snapshot, reads the same-scope complete revisi
 vector and then the exact State row at `vector.state_revision`. A positive axis
 without a byte-valid matching row is corrupt. Absent/zero State returns the zero
 State and does not materialize the scope. Exact revision read returns `NOT_FOUND`
-for an absent valid revision.
+for an absent valid revision. Exact reads also use one read transaction for the
+live vector, historical row and marker binding.
 
 ## 7. Public and compatibility boundary
 

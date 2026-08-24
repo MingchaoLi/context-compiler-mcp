@@ -30,7 +30,8 @@ ContextCompilerCore.commitCanonicalState
 → strict pre-transaction normalization/policy check
 → SqliteCanonicalStateStore.commit
 → frozen commitStateRevisionInsideCore
-→ same-connection Raw provenance checks + previous State read + reduction + row insert
+→ new-policy identity check + same-connection Raw provenance/high-water checks
+→ previous State read + reduction + row insert
 → frozen vector CAS + marker + COMMIT
 ```
 
@@ -41,7 +42,11 @@ Store/migration, and MCP does not route to the writer.
 
 - latest: one `BEGIN` snapshot reads `cc_revision_streams.state_revision` and the
   matching immutable revision row;
-- exact: scoped revision lookup and full stored-byte/hash validation;
+- exact: one `BEGIN` snapshot reads live vector + scoped revision + marker;
+- both reconstruct marker `request_json`/fingerprint from the State row, compare
+  marker result, require non-State axes unchanged across the State transition,
+  bound provenance Event revisions to marker Ledger high-water, and require the
+  historical vector to be no later than the live vector;
 - zero: returns canonical empty State without writing a stream row;
 - no reader interprets `session_id`, legacy State revision, legacy relation, Raw
   sequence or Experience sequence as canonical identity.
@@ -60,6 +65,7 @@ Store/migration, and MCP does not route to the writer.
 | exact retry | original revision, no second row/advance |
 | concurrent same-base commit | at most one success; loser conflicts |
 | reopen | exact immutable bytes/hash/revision recoverable |
+| coordinated row/result or marker request/vector substitution | corrupt/conflict; never accepted authority |
 
 ## Frozen-path proof target
 
