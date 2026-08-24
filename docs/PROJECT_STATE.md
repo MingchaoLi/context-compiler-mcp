@@ -42,8 +42,9 @@ WO-03A Shared Revision / Stream / Transaction Substrate 继续冻结在 fixed Bu
 Umbrella WO-04 的三个有界子工单 WO-04A/04B/04C 均已完成并通过独立 QA。WO-04C
 Execution Baseline commit `6b77ed06b250176fd9cff16b35ab1c3d4701c9a2`、source world
 `c3a184f9c067d529e8f2908080ab72650fb59cbc`、Builder candidate 与 QA commit 均已固定。
-当前没有已启动的 source 工单；依 Umbrella 顺序，下一步仅可建立 WO-05 ContextSnapshot
-Contract，并在任何 source 变更前单独冻结 Execution Baseline 与 pre-source Gate。
+当前唯一工单为 WO-05 ContextSnapshot Contract，状态 **PLANNED / NOT STARTED — EXECUTION
+BASELINE NOT FROZEN**。它只授权下一步 standalone Execution Baseline 与 pre-source Snapshot
+Composition Gate；在 Gate 冻结 exact grammar/transaction/allowlist 前不得修改 source/schema/test。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -139,5 +140,6 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
 WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
-当前没有已启动的 source 工单；下一顺序是 WO-05 ContextSnapshot Contract 的 docs-first
-规划与独立 Execution Baseline。Formal Host Mode 与 WO-06+ 均未开始。
+WO-05 ContextSnapshot Contract 现为唯一当前工单，状态 **PLANNED / NOT STARTED**；下一步
+只冻结独立 Execution Baseline，再完成 Snapshot Composition Gate。Formal Host Mode 与
+WO-06+ 均未开始。
