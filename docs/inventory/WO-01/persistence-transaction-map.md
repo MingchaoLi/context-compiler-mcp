@@ -20,7 +20,8 @@ The service opens four connections to the same database file. `BEGIN IMMEDIATE` 
 
 | Operation | DB/file/table | Transaction and commit point | Crash before commit | Crash after commit | Recovery / idempotency |
 |---|---|---|---|---|---|
-| Store initialization/migration | All current SQLite schema | Per-store DDL; Raw and Experience migrations use `BEGIN IMMEDIATE`; State DDL is executed by the initialization callback | SQLite rolls back transactional DDL; constructor fails with stable storage error at service boundary | Schema is visible to later connections | BUSY/LOCKED has bounded retry; legacy Dense column and EVENT mirror backfill are deterministic |
+| Raw, Experience, and Recall schema initialization/migration | `raw_events`, `experience_ledger`, `history_headlines`, FTS, indexes, triggers | Each migration explicitly opens `BEGIN IMMEDIATE` and commits only after its complete DDL/backfill sequence | The owning migration rolls back its complete transaction and the constructor fails | The complete owning schema/backfill is visible to later connections | Initialization retries only BUSY/LOCKED; legacy Dense column, EVENT mirror, and FTS backfills are deterministic |
+| State schema initialization | `sessions`, `context_items`, `state_relations`, `context_state_revisions`, `state_update_preparations`, indexes, triggers | One multi-statement `database.exec()` with **no explicit outer transaction**; `initializeSqliteConnection` supplies retry but no transaction | A later DDL failure can leave earlier successful DDL committed; the constructor closes its connection and throws | If all statements succeed, the complete State schema is visible | A later constructor reruns `CREATE ... IF NOT EXISTS` and can complete a compatible partial schema, but there is no schema-version/completion marker and incompatible partial state is not automatically repaired |
 | Ingest Raw | `sessions`, `raw_events`, `experience_ledger(EVENT)` | One Raw connection `BEGIN IMMEDIATE`; Raw + mirror `COMMIT` together | Neither Raw nor EVENT mirror commits | Both are durable and reopenable | Same `(session_id, source_event_id)` and identical input returns existing row; conflict otherwise |
 | Backfill legacy Raw mirrors | `experience_ledger(EVENT)` | Experience migration transaction over ordered Raw rows | No partial backfill commit | Missing mirrors are present in deterministic Raw order | Existing exact mirror accepted; mismatch conflicts |
 | Public research append | `sessions`, `experience_ledger` | One `BEGIN IMMEDIATE` per record | No row/seq consumed | Record is durable and ordered per session | `(session_id, source_key)` exact retry returns existing; changed data conflicts |
@@ -55,6 +56,21 @@ The service opens four connections to the same database file. `BEGIN IMMEDIATE` 
 ### State prepare/apply
 
 Preparation is durable but not consumed. Apply checks the stored fingerprint, parses the complete delta, then revalidates the preparation and expected revision inside the same transaction as reducer changes. This closes stale-State partial mutation, but leaves unbounded orphan preparation retention as a known gap.
+
+### State schema initialization
+
+`state-store.ts#migrate` is an exception to the otherwise transactional migration
+map. It executes all State DDL as one SQLite API call but does not issue `BEGIN`.
+SQLite therefore may retain statements that completed before a later statement
+fails. Independent QA reproduced this with an isolated in-memory two-statement DDL
+probe: after the second statement failed, the first table remained present.
+
+Current recovery is best-effort and idempotent for a compatible partial schema:
+construction fails and closes that connection; a later construction reruns the
+`CREATE ... IF NOT EXISTS` sequence and may create missing objects. There is no
+schema version or atomic completion marker proving that the State schema is whole.
+WO-01 records this behavior; it does not add a transaction or change migration
+semantics.
 
 ## Persistence objects that do not exist
 

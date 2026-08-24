@@ -1,11 +1,13 @@
 # WO-01 Builder Handoff — Current Architecture Inventory
 
-Status: **BUILDER COMPLETE / AWAITING INDEPENDENT QA**<br>
+Status: **BUILDER FIX COMPLETE / AWAITING INDEPENDENT RE-QA**<br>
 Work order: `docs/work-orders/WO-01-current-architecture-inventory.md`<br>
 Source baseline HEAD: `f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52`<br>
 Expected parent: `b27b5300f3a6acba84d09f55e43fc93feeaf80f0`<br>
-Delivery HEAD: the commit containing this handoff; Independent QA must resolve and
-pin that commit before review.
+Original delivery HEAD: `d53a8879acb8568be14dc5706efea01ec5e50732`<br>
+Independent QA return commit: `3cde42dace9dd5773525731d35f907b9d5752424`<br>
+Fixed candidate HEAD: the commit containing this updated handoff; Independent re-QA
+must resolve and pin that commit before review.
 
 ## Bounded result
 
@@ -21,6 +23,24 @@ The Builder conclusion is:
 - the smallest safe next child work order is **WO-02**;
 - WO-02 must not start until this work order passes independent QA and receives
   explicit authorization.
+
+## Append-only QA-return fix
+
+Independent QA rejected the original delivery for two bounded documentation
+defects. This fix preserves the rejection record and changes no production path:
+
+1. `v3.1.1-gap-analysis.md` now transcribes the exact Umbrella Child Work Order
+   Registry. It separates WO-03A shadow namespace substrate, WO-09 isolation tests,
+   and WO-10 shadow routing/dogfood; it marks unassigned background authority as
+   `UNASSIGNED / UNKNOWN` rather than inventing ownership.
+2. `persistence-transaction-map.md` and `crash-gap-matrix.md` now distinguish the
+   explicitly transactional Raw/Experience/Recall migrations from State schema
+   initialization, whose multi-statement `database.exec()` has no outer transaction
+   and can leave compatible partial DDL for a later idempotent reopen to complete.
+
+The original source baseline and delivery identity remain fixed. The QA return is
+an audit commit, and this Builder change is a new append-only fixed candidate rather
+than an amendment or redefinition of the original delivery.
 
 ## Execution baseline
 
@@ -103,26 +123,32 @@ external host repository was used.
 
 ## Independent QA requirements
 
-Independent QA must perform its own review and write
+Independent QA must perform its own review and append a fresh re-QA section to
 `docs/qa/WO-01-current-architecture-inventory.md`. The Builder does not approve this
-work.
+work or overwrite the retained rejection.
 
 At minimum, QA should:
 
-1. pin and record the exact delivery HEAD containing this handoff;
+1. pin and record the exact fixed candidate HEAD containing this updated handoff;
 2. verify the source baseline is exactly
    `f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52`;
-3. verify `source_baseline_HEAD..delivery_HEAD` contains only
-   `docs/inventory/WO-01/**` and this handoff;
-4. independently trace representative Raw, State, retrieval, ledger, and response
+3. verify the original `source_baseline_HEAD..original_delivery_HEAD` still contains
+   only `docs/inventory/WO-01/**` and this handoff, the next commit is the retained
+   QA return, and `QA_return..fixed_candidate_HEAD` changes only the three corrected
+   inventory documents plus this handoff;
+4. independently confirm every capability route against the exact Umbrella
+   Registry rather than the Builder summary;
+5. reproduce or otherwise confirm the State initialization partial-DDL behavior
+   and its documented recovery limit;
+6. independently trace representative Raw, State, retrieval, ledger, and response
    claims to source and tests;
-5. confirm absent capabilities are labeled `NOT PRESENT` or `UNKNOWN`, rather than
+7. confirm absent capabilities are labeled `NOT PRESENT` or `UNKNOWN`, rather than
    inferred from target architecture;
-6. confirm the Mermaid sequence contains no fictional Main Agent, external Tool
+8. confirm the Mermaid sequence contains no fictional Main Agent, external Tool
    Executor, live verification, or Outbox flow;
-7. confirm all required crash gaps, writer/reader classes, identity classes, and
+9. confirm all required crash gaps, writer/reader classes, identity classes, and
    Core/Host leakage questions are covered; and
-8. accept or reject WO-01 without relying on the Builder's recommendation.
+10. accept or reject WO-01 without relying on the Builder's recommendation.
 
 ## Known limits retained for later work
 
