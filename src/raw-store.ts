@@ -66,24 +66,29 @@ export class RawEventTimestampError extends Error {
 const RAW_EVENT_WRITE_TIMESTAMP_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|([+-])(\d{2}):(\d{2}))$/u;
 const RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|([+-])(\d{2}):(\d{2}))$/u;
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|([+-])(\d{2}):(\d{2}))$/u;
+
+interface ParsedRawEventTimestamp {
+  canonical_milliseconds: string;
+  exact_instant_identity: string;
+}
 
 /**
  * Validate one independent source/event timestamp and canonicalize it for a new append.
  * Durable stream order is carried by RawEvent.seq, never by this wall/source time.
  */
 export function normalizeRawEventTimestamp(value: unknown): string {
-  return canonicalRawEventTimestamp(value, RAW_EVENT_WRITE_TIMESTAMP_PATTERN);
+  return parseRawEventTimestamp(value, RAW_EVENT_WRITE_TIMESTAMP_PATTERN).canonical_milliseconds;
 }
 
 /** Validate historical writer-produced timestamp bytes without rewriting them. */
 export function validateCompatibleRawEventTimestamp(value: unknown): string {
-  canonicalRawEventTimestamp(value, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN);
+  parseRawEventTimestamp(value, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN);
   return value as string;
 }
 
-function canonicalRawEventTimestamp(value: unknown, pattern: RegExp): string {
-  if (typeof value !== "string" || value.length > 100) throw new RawEventTimestampError();
+function parseRawEventTimestamp(value: unknown, pattern: RegExp): ParsedRawEventTimestamp {
+  if (typeof value !== "string") throw new RawEventTimestampError();
   const match = pattern.exec(value);
   if (match === null) throw new RawEventTimestampError();
   const year = Number(match[1]);
@@ -104,14 +109,19 @@ function canonicalRawEventTimestamp(value: unknown, pattern: RegExp): string {
   const millisecond = Number(fraction.padEnd(3, "0").slice(0, 3));
   const local = new Date(0);
   local.setUTCFullYear(year, month - 1, day);
-  local.setUTCHours(hour, minute, second, millisecond);
+  local.setUTCHours(hour, minute, second, 0);
   const offsetSign = match[9] === "-" ? -1 : 1;
   const offsetMilliseconds = offsetSign * (offsetHour * 60 + offsetMinute) * 60_000;
-  const canonical = new Date(local.getTime() - offsetMilliseconds).toISOString();
+  const utcSecond = new Date(local.getTime() - offsetMilliseconds).toISOString();
+  const canonical = new Date(local.getTime() - offsetMilliseconds + millisecond).toISOString();
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(canonical)) {
     throw new RawEventTimestampError();
   }
-  return canonical;
+  const significantFraction = fraction.replace(/0+$/u, "");
+  return {
+    canonical_milliseconds: canonical,
+    exact_instant_identity: `${utcSecond.slice(0, 19)}Z/${significantFraction}`,
+  };
 }
 
 export function estimateTokens(text: string): number {
@@ -437,7 +447,8 @@ function assertCompatibleRetry(
 
 function sameRawEventInstant(stored: string, canonical: string): boolean {
   try {
-    return canonicalRawEventTimestamp(stored, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN) === canonical;
+    return parseRawEventTimestamp(stored, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN).exact_instant_identity ===
+      parseRawEventTimestamp(canonical, RAW_EVENT_WRITE_TIMESTAMP_PATTERN).exact_instant_identity;
   } catch {
     return false;
   }
@@ -452,6 +463,7 @@ function daysInMonth(year: number, month: number): number {
 }
 
 function rowToEvent(row: DatabaseRow): RawEvent {
+  const createdAt = validateCompatibleRawEventTimestamp(row.created_at);
   return {
     id: row.id,
     session_id: row.session_id,
@@ -459,7 +471,7 @@ function rowToEvent(row: DatabaseRow): RawEvent {
     role: row.role,
     content: row.content,
     event_type: row.event_type,
-    created_at: row.created_at,
+    created_at: createdAt,
     token_count: row.token_count,
     metadata: parseMetadata(row.metadata_json),
     ...(row.source_event_id === null ? {} : { source_event_id: row.source_event_id }),

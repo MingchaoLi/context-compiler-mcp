@@ -186,6 +186,54 @@ describe("SqliteHistoryRecallStore", () => {
     })).toEqual({ kind: "headline_id", found: false, events: [] });
   });
 
+  it("fails closed on an invalid stored Raw timestamp through every recall shape", () => {
+    openWithEvents();
+    const direct = new DatabaseSync(databasePath);
+    direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      "invalid-recall-timestamp",
+      "session-a",
+      4,
+      "invalid-recall-source",
+      "user",
+      "invalid stored timestamp",
+      "message",
+      "2026-02-30T00:00:00Z",
+      4,
+      "{}",
+      null
+    );
+    direct.close();
+    const created = recallStore!.createHeadline(headline({
+      event_start_seq: 1,
+      event_end_seq: 4,
+      headline: "Invalid timestamp range",
+      keywords: ["invalid-timestamp"],
+    }));
+
+    for (const operation of [
+      () => recallStore!.recallExact({
+        kind: "event_id", session_id: "session-a", event_id: "invalid-recall-timestamp",
+      }),
+      () => recallStore!.recallExact({
+        kind: "seq_range", session_id: "session-a", event_start_seq: 4, event_end_seq: 4,
+      }),
+      () => recallStore!.recallExact({
+        kind: "headline_id", session_id: "session-a", headline_id: created.id,
+      }),
+      () => recallStore!.recallKeyword({ session_id: "session-a", query: "invalid timestamp" }),
+    ]) {
+      expect(operation).toThrowError(expect.objectContaining({
+        code: "STORAGE_FAILURE",
+        category: "storage",
+      }));
+    }
+  });
+
   it("never leaks exact targets across sessions", () => {
     const eventsA = openWithEvents();
     const foreign = rawStore!.ingest({ session_id: "session-b", role: "user", content: "foreign" });

@@ -188,6 +188,74 @@ describe("SqliteRawHistoryStore", () => {
     }).seq).toBe(1);
   });
 
+  it("preserves exact historical sub-millisecond identity across idempotent retries", () => {
+    const preciseNonzero = `2025-12-31T23:59:59.123${"9".repeat(125)}Z`;
+    const preciseZeroTail = `2026-01-01T07:59:59.123${"0".repeat(125)}+08:00`;
+    store = new SqliteRawHistoryStore(databasePath);
+    store.ingest({
+      session_id: "precise-timestamp",
+      role: "user",
+      content: "initialize session",
+    });
+    store.close();
+
+    const direct = new DatabaseSync(databasePath);
+    for (const [id, seq, sourceId, createdAt] of [
+      ["precise-nonzero", 2, "precise-nonzero-source", preciseNonzero],
+      ["precise-zero-tail", 3, "precise-zero-tail-source", preciseZeroTail],
+    ] as const) {
+      direct.prepare(
+        `INSERT INTO raw_events (
+           id, session_id, seq, source_event_id, role, content,
+           event_type, created_at, token_count, metadata_json, dense_embedding_json
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        id,
+        "precise-timestamp",
+        seq,
+        sourceId,
+        "user",
+        `historical ${sourceId}`,
+        "message",
+        createdAt,
+        4,
+        "{}",
+        null
+      );
+    }
+    direct.close();
+
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(store.getSessionEvents("precise-timestamp").slice(1).map((event) => event.created_at)).toEqual([
+      preciseNonzero,
+      preciseZeroTail,
+    ]);
+    expect(() => store?.ingest({
+      session_id: "precise-timestamp",
+      source_event_id: "precise-nonzero-source",
+      role: "user",
+      content: "historical precise-nonzero-source",
+      event_type: "message",
+      created_at: "2025-12-31T23:59:59.123Z",
+      token_count: 4,
+      metadata: {},
+    })).toThrow(/conflicts with existing raw evidence/);
+    expect(store.ingest({
+      session_id: "precise-timestamp",
+      source_event_id: "precise-zero-tail-source",
+      role: "user",
+      content: "historical precise-zero-tail-source",
+      event_type: "message",
+      created_at: "2025-12-31T23:59:59.123Z",
+      token_count: 4,
+      metadata: {},
+    })).toMatchObject({
+      id: "precise-zero-tail",
+      seq: 3,
+      created_at: preciseZeroTail,
+    });
+  });
+
   it("rejects update and delete even through a separate database connection", () => {
     store = new SqliteRawHistoryStore(databasePath);
     const event = store.ingest({

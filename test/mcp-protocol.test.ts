@@ -629,6 +629,8 @@ describe("Context Compiler stdio MCP protocol", () => {
 
     const legacyId = "legacy-raw-timestamp-event";
     const legacyTimestamp = "2025-12-31T23:59:59Z";
+    const preciseId = "precise-raw-timestamp-event";
+    const preciseTimestamp = "2025-12-31T23:59:59.1239999990Z";
     const direct = new DatabaseSync(database);
     expect(direct.prepare(
       "SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?"
@@ -648,6 +650,24 @@ describe("Context Compiler stdio MCP protocol", () => {
       "message",
       legacyTimestamp,
       9,
+      "{}",
+      null
+    );
+    direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      preciseId,
+      sessionId,
+      4,
+      "precise-source-event",
+      "assistant",
+      "high precision append-only timestamp bytes",
+      "message",
+      preciseTimestamp,
+      10,
       "{}",
       null
     );
@@ -673,6 +693,21 @@ describe("Context Compiler stdio MCP protocol", () => {
         ok: true,
         result: { id: legacyId, seq: 3, created_at: legacyTimestamp },
       });
+      const conflictingPrecision = await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "precise-source-event",
+          role: "assistant",
+          content: "high precision append-only timestamp bytes",
+          event_type: "message",
+          created_at: "2025-12-31T23:59:59.123Z",
+          token_count: 10,
+          metadata: {},
+        },
+      });
+      expect(conflictingPrecision.isError).toBe(true);
+      expect(parse(conflictingPrecision)).toEqual({ ok: false, error: { code: "CONFLICT" } });
       const compiled = parse(await connection.client.callTool({
         name: "compile_context",
         arguments: { session_id: sessionId, current_input: "replay legacy" },
@@ -680,6 +715,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(compiled.ok).toBe(true);
       expectedRendered = compiled.result.context.rendered_context;
       expect(expectedRendered).toContain("legacy append-only timestamp bytes");
+      expect(expectedRendered).toContain("high precision append-only timestamp bytes");
       const recalled = parse(await connection.client.callTool({
         name: "recall_exact",
         arguments: { session_id: sessionId, kind: "event_id", event_id: legacyId },
@@ -687,6 +723,14 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(recalled).toMatchObject({
         ok: true,
         result: { found: true, event: { id: legacyId, seq: 3, created_at: legacyTimestamp } },
+      });
+      const recalledPrecise = parse(await connection.client.callTool({
+        name: "recall_exact",
+        arguments: { session_id: sessionId, kind: "event_id", event_id: preciseId },
+      })) as any;
+      expect(recalledPrecise).toMatchObject({
+        ok: true,
+        result: { found: true, event: { id: preciseId, seq: 4, created_at: preciseTimestamp } },
       });
     } finally {
       await close(connection);
@@ -711,6 +755,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       { seq: 1, created_at: "2026-08-02T00:00:00.000Z" },
       { seq: 2, created_at: "2026-08-01T00:00:00.000Z" },
       { seq: 3, created_at: legacyTimestamp },
+      { seq: 4, created_at: preciseTimestamp },
     ]);
     expect(audit.prepare(
       "SELECT occurred_at FROM experience_ledger WHERE source_key = ?"
@@ -726,7 +771,7 @@ describe("Context Compiler stdio MCP protocol", () => {
     ).run(
       "invalid-historical-timestamp",
       sessionId,
-      4,
+      5,
       "invalid-historical-source",
       "user",
       "invalid historical timestamp must fail closed",
@@ -740,6 +785,16 @@ describe("Context Compiler stdio MCP protocol", () => {
 
     connection = await connect(serverEntry, database);
     try {
+      const rejectedRecall = await connection.client.callTool({
+        name: "recall_exact",
+        arguments: {
+          session_id: sessionId,
+          kind: "event_id",
+          event_id: "invalid-historical-timestamp",
+        },
+      });
+      expect(rejectedRecall.isError).toBe(true);
+      expect(parse(rejectedRecall)).toEqual({ ok: false, error: { code: "STORAGE_FAILURE" } });
       const rejectedReplay = await connection.client.callTool({
         name: "compile_context",
         arguments: { session_id: sessionId, current_input: "reject corrupt replay" },

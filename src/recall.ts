@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { JsonObject, RawEvent, RawEventRole } from "./raw-store.js";
+import {
+  validateCompatibleRawEventTimestamp,
+  type JsonObject,
+  type RawEvent,
+  type RawEventRole,
+} from "./raw-store.js";
 import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
 export type HistoryRecallErrorCode =
@@ -708,7 +713,7 @@ function rowToEvent(row: RawEventRow): RawEvent {
     role: row.role,
     content: row.content,
     event_type: row.event_type,
-    created_at: row.created_at,
+    created_at: validateCompatibleRawEventTimestamp(row.created_at),
     token_count: row.token_count,
     metadata: metadata as JsonObject,
     ...(row.source_event_id === null ? {} : { source_event_id: row.source_event_id }),

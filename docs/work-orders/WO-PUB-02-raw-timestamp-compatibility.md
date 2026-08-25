@@ -1,10 +1,16 @@
 # WO-PUB-02 — Raw Timestamp Compatibility
 
-状态：BUILDER COMPLETE / PENDING INDEPENDENT QA
+状态：BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
 
 Planning baseline：`db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`
 
 Implementation baseline：`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`
+
+Returned candidate：`462e35f58bb1bdd0b4f50dc833aa6925097b8292`
+
+Independent QA return：`64f787606b18d138c67b880ec43a1bd198629680`
+
+Fix candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 必须先固定其完整 SHA。
 
 ## 背景
 
@@ -42,8 +48,12 @@ Implementation baseline：`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`
   late arrival 拒绝 writer 已提交的历史。
 - 所有 retained rows 仍须逐条满足现有 row shape、timestamp grammar、positive unique seq、scope/session 与
   append-only integrity；本工单不把 corruption 检查降级为“全部接受”。
+- 历史 compatibility grammar 覆盖 RFC 3339 seconds 与 `1*DIGIT` fractional seconds（不设隐藏 9 位或
+  总长度 ceiling）、`Z`/numeric offset；validator 返回原 stored bytes。
 - compile、Hot Raw/reopen、recall 和 exact replay 如需稳定顺序，必须使用 `seq` 及其既有 tie-free contract，
   不能按 `created_at` 重新排序。
+- direct Raw store 与公开 event/range/headline/keyword recall 必须复用同一历史 timestamp acceptance domain；
+  非法 stored timestamp 必须 fail-closed，不能从某条 public read path 作为成功 evidence 穿透。
 - 历史合法 Raw 必须原样读取；禁止 UPDATE/backfill/rewrite/delete，禁止通过 schema migration 修正旧时间。
 - derived output 可以原样携带 stored canonical `created_at`，但不能由它推断 append causality。
 
@@ -53,6 +63,8 @@ Implementation baseline：`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`
   Frontier、Takeover、State、Fact/Relation 或 Snapshot。
 - 已存在的 exact replay/hash/provenance 必须继续绑定原 event/seq/content/timestamp bytes。
 - source timestamp 相同、跨时区等价输入经新 writer canonicalization 后，reader 均只验证单条合法性。
+- 历史高精度 timestamp 的 idempotent retry 必须比较精确 instant；不能把 `.123999...` 截断为 `.123`，
+  但 `.123000...` 与 `.123`、以及等价 offset 表示可以保持同一 instant identity。比较不得改写历史 bytes。
 - 现有非法/非 canonical/tampered row 的 fail-closed 行为只在有 repository contract 支撑时保留；若历史
   writer 曾合法产生某形状，reader 不得新增更窄条件拒绝它。
 
@@ -97,6 +109,14 @@ Implementation baseline：`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`
 7. focused tests、`npm test`、`npm run build`、production-only stdio package 与 `git diff --check` 通过。
 8. Builder 写独立 handoff；fresh Independent QA 固定 candidate 后独立重现倒序、reopen/replay、tamper 与
    production package 场景。
+
+## Independent QA return / append-only fix
+
+首次 candidate 的正常 seconds/1–3 fraction/offset/倒序/reopen/package 与全部回归均通过，但 fresh QA
+用合成 append-only rows 证明三项 P1：十位合法小数被 reader 拒绝；`.123999999` 被 retry 错当成 `.123`；
+非法 stored timestamp 可从公开 `recall_exact` 穿透。修复把 historical fraction 扩为完整 `1*DIGIT`，
+用 UTC whole-second + 去尾零 fraction 表达精确 instant identity，并让 Raw Store 与全部 recall row readers
+复用同一 validator。无 schema migration、row rewrite 或范围扩张。
 
 ## 明确不做
 

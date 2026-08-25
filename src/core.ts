@@ -683,7 +683,8 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
         return compiled;
       });
     } catch (error) {
-      if (error instanceof ContextAssemblerValidationError ||
+      if (error instanceof RawEventTimestampError ||
+          error instanceof ContextAssemblerValidationError ||
           error instanceof OperationalContextError ||
           error instanceof ExperienceLedgerError) throw error;
       throw new ContextCompilerCoreError("STORAGE_FAILURE");
@@ -878,6 +879,7 @@ function mapContextSnapshotError(error: unknown): ContextCompilerCoreError {
 
 function classifyError(error: unknown): ContextCompilerCoreErrorCode {
   if (error instanceof ContextCompilerCoreError) return error.code;
+  if (error instanceof RawEventTimestampError) return "INVALID_INPUT";
   if (error instanceof ContextAssemblerValidationError) return "INVALID_INPUT";
   if (error instanceof OperationalContextError) return "INVALID_INPUT";
   if (error instanceof ExperienceLedgerError) return mapExperienceLedgerError(error).code;
