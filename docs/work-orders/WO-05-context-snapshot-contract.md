@@ -1,7 +1,7 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** APPEND-ONLY FIX BUILDER COMPLETE — AWAITING FRESH INDEPENDENT RE-QA<br>
+**状态：** ACCEPTED / COMPLETE<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -200,8 +200,10 @@ docs/handoffs/WO-05-context-snapshot-contract-fix.md
 实现将 Snapshot runtime grammar 升为 v2，由 Fact/Relation owner 在同一 transaction capture
 完整 immutable projection receipt；stored replay 先从 receipt 重建完整历史 graph，再比较
 Manifest selected refs、dependency paths 与 body。Builder S0–S5、focused 76 tests、全量
-569 passed / 1 skipped 和 build 均通过。此结果尚未被接受；必须固定 candidate 后交由新的
-物理分离 Independent QA 独立重放原攻击。
+569 passed / 1 skipped 和 build 均通过。fixed candidate
+`fa7677101c145ffdbfca8bff0864ed992fa9a9b9` 已由 fresh Independent re-QA commit
+`c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e` 接受；QA 独立重放原攻击、S0–S5、
+rollback/migration/public-boundary 探针与全量回归均通过。
 
 ---
 
@@ -400,6 +402,8 @@ Builder 可以少改但不得新增 source/test/config path。`src/revision-subs
 5. focused projection/budget/transaction/replay/concurrency/tamper tests
 6. `docs/handoffs/WO-05-context-snapshot-contract.md`
 7. Independent QA separately writes `docs/qa/WO-05-context-snapshot-contract.md`
+8. Append-only fix handoff `docs/handoffs/WO-05-context-snapshot-contract-fix.md`
+9. Fresh Independent re-QA `docs/qa/WO-05-context-snapshot-contract-fix.md`
 
 ---
 
@@ -412,14 +416,14 @@ Builder 可以少改但不得新增 source/test/config path。`src/revision-subs
 - [x] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
 - [x] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
 - [x] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
-- [ ] Current Authority Projection pure/deterministic；Canonical State v1 不变.
+- [x] Current Authority Projection pure/deterministic；Canonical State v1 不变.
 - [x] Hot Raw 从 Ledger + committed Frontier + as-of world 确定性重建并保留 exact refs.
 - [x] Priority buckets、whole-object trim、hard invariant 与 explicit overflow fail closed.
 - [x] No semantic ranker/dedup/scope inference/retrieval/Summary/placement writer.
-- [ ] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
+- [x] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
 - [x] AttemptStarted 不先于 Snapshot，transaction/retry/collision/COMMIT failure fail closed.
 - [x] Host manifest opaque；external content 使用 stable ref + content hash.
-- [ ] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
+- [x] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
 - [x] WO-03B/04A/04B/04C、frozen v0 与 MCP exact-nine behavior 保持.
 - [x] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
 - [x] Candidate paths exact allowlist；无 production DB/network/sibling Host access.
@@ -435,6 +439,8 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 
 Builder candidate `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 与 QA return commit `88e8da7`
 保持 append-only。repair baseline `9200d53` 和 bounded owner-receipt Gate `dcb0baf` 已冻结；
-新的 fix candidate 是包含 fix handoff 的 commit，待主控提交后由 Independent QA 精确 pin。
-Builder 不得自批，也不得用另一个 Snapshot/Manifest hash 代替独立 owner proof。本状态不授权
-Host、WO-06/07、MCP 或 frozen v0 改写；fresh QA 必须重跑原攻击与 S0–S5。
+functional fix commit 为 `c7e89760e4bec26486dc42bd214981744a978a4f`，fixed candidate 为
+`fa7677101c145ffdbfca8bff0864ed992fa9a9b9`。新的物理分离 Independent QA 在 commit
+`c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e` 接受该修复；原攻击与 S0–S5 均已独立通过。
+Builder 没有自批，也没有用 Snapshot/Manifest 自证 hash 代替 owner proof。本接受不授权
+Host、WO-06/07、MCP 或 frozen v0 改写。

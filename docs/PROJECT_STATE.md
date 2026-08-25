@@ -34,7 +34,13 @@ receipt-first replay、幂等/并发/rollback/orphan/migration 与 S0–S5。机
 object revisions 和同 handle transaction 足够，无需 substrate extension，也不增加第六全局轴。
 append-only Builder fix 已完成：Snapshot v2 只绑定 owner receipt ID/hash，stored replay 从完整
 receipt graph 重建 expected closure；S0–S5、focused 76 tests、全量 569 passed / 1 skipped 与
-build 均通过。当前为 **BUILDER COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**，尚未接受。
+build 均通过。fixed candidate `fa7677101c145ffdbfca8bff0864ed992fa9a9b9` 已由 fresh
+Independent re-QA commit `c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e` 接受，状态为
+**ACCEPTED / COMPLETE**。QA 独立协调删除攻击正确返回 `CORRUPT_DATA`，后续同五轴
+Fact/Relation 写入后的旧 Snapshot exact replay 保持稳定；rollback、migration、orphan、
+tamper、concurrency、package-root privacy 与全量 569 passed / 1 skipped 均通过。一次并发
+test helper 在 worker exit 前 resolve 的收尾锁竞争已如实记录；针对性 10/10 与全量复跑通过，
+不构成本工单 correctness blocker。
 
 WO-04C Semantic Takeover / Enrichment + Frontier + Compaction Artifact 已在 Builder
 candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5` 通过 Independent QA，QA
@@ -77,8 +83,8 @@ WO-04D Current Semantic Takeover Read Seam 已在 fixed candidate
 `fcca8554d0bd6f0deeb0e4ab5d5f17676dcf8e39`；Builder 生产 delta 仅把 latest Takeover 的
 完整向量全等改为 live component-wise at-or-after 历史提交向量，并新增后续 Raw advance +
 Hot Raw + reopen 回归。focused 15/15、全量 545 passed / 1 skipped、构建通过；任何
-writer/schema/public surface 均未变化。WO-05 随后恢复草稿并完成 Builder，当前等待
-物理分离的 Independent QA。
+writer/schema/public surface 均未变化。WO-05 随后恢复草稿并完成 Builder，物理分离的
+Independent QA 现已在 fixed candidate `fa76771` 上接受 WO-05。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -172,10 +178,10 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 - WO-V0-15 的首 trace commit 前跨实例 telemetry origin TOCTOU P1 已由第六个 fix 关闭，Context / State 基础设施恢复冻结。Dense retrieval、Context 语义收益与 Experience Formation 效果仍未评估；PACE、多级摘要、glimpse/page-fault、retrieval 调参、Graph DB 与 Experience Formation 仍不实现。下一阶段只通过真实使用积累可回放的 Event–Action–Outcome / Feedback 数据。
 
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
-WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
+WO-04A、WO-04B、WO-04C 与 WO-05 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
 WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保持为历史事实；
-current-semantic owner seam blocker 已由 accepted WO-04D 关闭，但 Builder candidate 被
-Independent QA 因 Fact/Relation dependency omission attack 退回。唯一当前工单的 repair
-baseline 与有界 owner-receipt Gate Addendum 已冻结；append-only Builder fix 已完成并等待
-新的物理分离 Independent QA。Formal Host Mode 与 WO-06+ 均未开始。
+current-semantic owner seam blocker 已由 accepted WO-04D 关闭，首个 Builder candidate 的
+Fact/Relation dependency omission attack 由 owner-side immutable complete-projection receipt 的
+append-only fix 关闭，并已通过 fresh Independent re-QA。当前没有活动工单；Formal Host Mode
+与 WO-06+ 均未开始，也未由本次接受隐含授权。
