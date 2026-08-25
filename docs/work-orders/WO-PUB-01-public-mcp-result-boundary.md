@@ -1,8 +1,12 @@
 # WO-PUB-01 — Public MCP Result Boundary
 
-状态：BUILDER COMPLETE / PENDING INDEPENDENT QA
+状态：BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
 
-Implementation baseline：`7a79ac6ba0bdbd4137640cf148ef810604f85bad`
+Implementation baseline：`7a79ac631c4dd402b3cc157961e5844349d5c496`
+
+Returned candidate：`4643a4761a7c2b91837a198c2f7ebc340fcb8511`
+
+QA return：`6dbedcc417e5391b9023d6e251baa397b7fae2d9`
 
 ## 背景
 

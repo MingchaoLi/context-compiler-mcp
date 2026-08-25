@@ -1,11 +1,18 @@
 # WO-PUB-01 Builder Handoff — Public MCP Result Boundary
 
-Status: **BUILDER COMPLETE / AWAITING FRESH INDEPENDENT QA**
+Status: **BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**
 
-Implementation baseline: `7a79ac6ba0bdbd4137640cf148ef810604f85bad`
+Implementation baseline: `7a79ac631c4dd402b3cc157961e5844349d5c496`
 
-Builder candidate: the commit containing this handoff; Independent QA must resolve and pin its exact
-hash before review.
+Returned source candidate: `4643a4761a7c2b91837a198c2f7ebc340fcb8511`
+
+QA return: `6dbedcc417e5391b9023d6e251baa397b7fae2d9`
+
+Fix parent: `6dbedcc417e5391b9023d6e251baa397b7fae2d9`
+
+Fixed candidate: the commit containing this corrected handoff; fresh Independent re-QA must resolve and
+pin its exact hash before review. The fix changes documentation identity/status only; the passing source
+candidate remains byte-identical.
 
 ## Bounded result
 
@@ -53,7 +60,7 @@ not pass through, while a malformed internal success fails closed.
 
 ## Exact Builder change surface
 
-Relative to implementation baseline `7a79ac6ba0bdbd4137640cf148ef810604f85bad`, the candidate changes
+Relative to implementation baseline `7a79ac631c4dd402b3cc157961e5844349d5c496`, the source candidate changes
 exactly:
 
 ```text
@@ -102,3 +109,10 @@ The Builder does not approve this candidate. Fresh Independent QA must at minimu
 8. write a separate QA report and commit.
 
 The currently hosted public build remains unchanged until this candidate passes Independent QA.
+
+## Append-only QA-return correction
+
+First Independent QA passed every functional, protocol, package and regression check but returned the
+candidate because the four full implementation-baseline references resolved to no Git object. This fix
+replaces them with the exact candidate parent above and records the return chain. It does not modify
+source, tests, README, configuration, package content or the public DTO contract.
