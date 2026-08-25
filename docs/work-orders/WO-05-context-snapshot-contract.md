@@ -1,8 +1,8 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** INDEPENDENT QA RETURNED — SOURCE FIX NOT STARTED；BLOCKED ON BOUNDED
-FACT/RELATION AS-OF PROJECTION PROOF DECISION<br>
+**状态：** BOUNDED GATE REOPEN AUTHORIZED — REPAIR BASELINE NOT YET FROZEN；
+SOURCE FIX NOT STARTED<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -124,6 +124,53 @@ docs/inventory/WO-05/snapshot-composition-schema-map.md
 原子写 immutable Snapshot + AttemptStarted receipt。Snapshot axis-neutral，不修改 shared
 substrate 或任何 accepted authority table；当前 substrate 足够。existing v0 assembler/
 operational context 保持隔离不变。
+
+## 3.1 QA-return bounded Gate reopen
+
+2026-08-25 用户显式授权重开 WO-05 pre-source Gate，但只批准以下架构方向，
+不把“新增 receipt table”视为已批准实现：
+
+> Fact/Relation owner-side historical projection receipt：由 Fact/Relation Authority owner
+> 在 Snapshot freeze 同一 SQLite transaction 中 capture axis-neutral、immutable、complete
+> historical projection witness。Snapshot owner 只能引用 receipt identity/hash，不得构造、
+> 修改或补齐 receipt。exact replay 必须先从 receipt 恢复完整历史 Fact/Relation
+> graph，再重建 expected dependency closure 并与 Manifest/body 比较。
+
+新 Gate 必须在任何 source/schema/test 修复前冻结：
+
+1. receipt 必须归属 `canonical-fact-relation` owner，不得归属 Snapshot owner；
+2. receipt 输入必须是 capture point 可见的完整 authoritative Fact/Relation projection，
+   不得来自 Manifest selected refs；
+3. receipt 必须持久化足以恢复完整节点、边、canonical object version/content 的
+   immutable enumeration 或 canonical projection materialization；单独 projection hash 不足够；
+4. capture、closure、Manifest/body、Snapshot、Attempt 必须处于同一 `BEGIN IMMEDIATE`
+   transaction，任一失败全部 rollback；
+5. exact replay 必须从 owner receipt 开始，不得从 Manifest selected refs 开始；
+6. 不增加第六 global revision axis；receipt 只能是 owner-local historical witness；
+7. owner/schema/transaction composition、immutable identity/hash、retry/concurrency、rollback、
+   orphan prevention、migration/reopen/tamper 合同和 exact source/test allowlist 必须先冻结；
+8. 不得扩大到 WO-06/07、Host/provider/model/network、MCP、retrieval 或 frozen v0。
+
+硬禁止假修复：
+
+```text
+Snapshot-owned selected view
+  ≠ Fact/Relation-owner authoritative historical receipt
+```
+
+仅在 Gate 产物证明两者是独立证明源后，source 才可恢复。下列 QA 反例将成为
+不可删减的 acceptance matrix：
+
+```text
+S0 capture Snapshot; coordinated omission                         -> MUST FAIL
+S1 capture; later axis-neutral Fact commit; coordinated omission -> MUST FAIL
+S2 capture; later axis-neutral Relation commit; omission         -> MUST FAIL
+S3 capture; later Fact + Relation; exact old replay              -> original graph/body
+S4 freeze transaction failure                                    -> receipt/Snapshot/Attempt rollback
+S5 exact retry + concurrent same-ID freeze                        -> one binding, no orphan receipt
+```
+
+Gate 重开前必须先用 standalone repair baseline manifest 固定 QA-return source world。
 
 ---
 
