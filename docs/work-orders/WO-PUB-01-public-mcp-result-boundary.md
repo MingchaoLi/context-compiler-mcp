@@ -83,7 +83,7 @@ fail-closed 为现有 sanitized `INTERNAL_FAILURE`，不得部分返回。
 
 - `docs/architecture/LT-Agent-Architecture-Contract-2026-08-24-v3.1.1.md` 中 Host opaque result 边界；
 - `docs/architecture/Umbrella-Implementation-Plan-2026-08-24-v3.1.1.md` 中 Stable Host Adapter/API 边界；
-- `docs/downstream-adjustments/Downstream-Architecture-Adjustment-Register-2026-08-24-v3.1.1.md` 中 DA-12；
+- `docs/inventory/WO-04C/downstream-adjustment-register.md` 中 DA-12；
 - `src/core.ts` 的 compile result 类型；
 - `src/mcp-service.ts`；
 - `src/mcp-server.ts`；
