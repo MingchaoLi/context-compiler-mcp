@@ -1,8 +1,9 @@
 # WO-DA-01 — Current Authority / Snapshot + Rolling Summary Adjustment Record
 
-**状态：** PLANNED / NOT STARTED
+**状态：** BUILDER RECORD COMPLETE / AWAITING INDEPENDENT QA
 **类型：** docs-only downstream decision reconciliation
 **Planning baseline:** `0a2d4437bc2b80714ae819654e5f41aab7a1a41e` on `main`, clean
+**Planning authority commit:** `49c180d865a0a7a1abef05a6aceaaf4c8a3fae7b`
 **依赖：** WO-05 fixed candidate `fa7677101c145ffdbfca8bff0864ed992fa9a9b9` + fresh
 Independent re-QA `c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e`
 
@@ -149,17 +150,18 @@ docs/qa/WO-DA-01-projection-summary-adjustment-record.md
 
 ## 8. Acceptance
 
-- [ ] planning baseline/branch/clean/ancestor facts 精确。
-- [ ] DA-12 精确标记为只在 accepted WO-05 projection/Snapshot 范围 promotion。
-- [ ] 三层模型、unknown fail-closed、exact active `DEPENDS_ON` closure 被明确冻结。
-- [ ] Manifest/Attempt/as-of/budget/opaque Host 边界与 accepted WO-05 一致。
-- [ ] Rolling Summary 独立登记为 future experimental candidate / not implemented / not promoted。
-- [ ] Summary immutability、Raw anchoring、non-authority、no mutation/no Artifact confusion 完整。
-- [ ] A0/A1 additive screening 与后续 fixed-budget replacement ablation 顺序完整。
-- [ ] A0 使用 canonical Current Input + Frontier-bound Hot Raw + Current Authority。
-- [ ] source/schema/test/config/package/evaluation/official artifact 零变化。
-- [ ] Builder handoff 存在且不自批；fresh Independent QA 单独裁决。
-- [ ] `git diff --check`、exact path audit 与禁止项机械搜索通过。
+- [x] planning baseline/branch/clean/ancestor facts 精确。
+- [x] DA-12 精确标记为只在 accepted WO-05 projection/Snapshot 范围 promotion。
+- [x] 三层模型、unknown fail-closed、exact active `DEPENDS_ON` closure 被明确冻结。
+- [x] Manifest/Attempt/as-of/budget/opaque Host 边界与 accepted WO-05 一致。
+- [x] Rolling Summary 独立登记为 future experimental candidate / not implemented / not promoted。
+- [x] Summary immutability、Raw anchoring、non-authority、no mutation/no Artifact confusion 完整。
+- [x] A0/A1 additive screening 与后续 fixed-budget replacement ablation 顺序完整。
+- [x] A0 使用 canonical Current Input + Frontier-bound Hot Raw + Current Authority。
+- [x] source/schema/test/config/package/evaluation/official artifact 零变化。
+- [x] Builder handoff 存在且不自批。
+- [ ] fresh Independent QA 单独接受 fixed candidate。
+- [x] `git diff --check`、exact path audit 与禁止项机械搜索通过。
 
 ## 9. Builder / QA separation
 

@@ -1,6 +1,7 @@
 # WO-04C Downstream Architecture Adjustment Register
 
-Status: OPEN FOR USER SYNC — RECORDED INPUTS ARE NOT YET PROMOTED
+Status: ACTIVE DOWNSTREAM REGISTER — DA-12 RECONCILED WITH ACCEPTED WO-05; DA-15 RECORDED /
+NOT PROMOTED
 
 WO-04C source baseline:
 `c3a184f9c067d529e8f2908080ab72650fb59cbc`
@@ -1623,8 +1624,8 @@ Schema validity、reducer conformance 与 semantic correctness 分开报告。`N
 
 **用户状态：** 已接受修正版方向并要求纳入后续计划。
 
-**登记状态：** RECORDED / ACCEPTED PROJECTION DIRECTION / PRESERVE CANONICAL STATE V1 /
-STATE V2 EVENT-LOG CANDIDATE LONG-HORIZON ONLY / NOT YET PROMOTED
+**登记状态：** RECONCILED / PROMOTED FOR ACCEPTED WO-05 CURRENT PROJECTION + SNAPSHOT ONLY /
+PRESERVE CANONICAL STATE V1 / STATE V2 NOT PROMOTED
 
 **WO-04C impact：** NONE — Takeover v1 继续绑定 frozen Canonical State v1 exact authority ref/
 policy hash，不修改 State grammar/status/reducer/revision、04C transaction、coverage、Artifact、
@@ -1633,6 +1634,41 @@ source/schema/test allowlist 或工期估算。
 **Routing：** WO-05 deterministic Current Authority projection/ContextSnapshot manifest；future
 standalone Canonical State v2 evidence gate only if real storage/replay pressure appears。不得在
 WO-04C、Extractor 或 Host integration 中顺便重写 State v1。
+
+### Repository reconciliation — accepted WO-05
+
+accepted fixed candidate `fa7677101c145ffdbfca8bff0864ed992fa9a9b9` 与 fresh Independent
+re-QA `c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e` 已把 DA-12 的 Layer 2/Layer 3 范围
+promotion 为 repository runtime authority：
+
+```text
+Complete Canonical State v1
+  -> pure deterministic Current Authority Projection
+  -> ContextSnapshot placement + exact dependency closure + budget
+```
+
+该 promotion 的闭合边界是：
+
+- Canonical State owner 先证明 closed v1 kind/status/policy；Projection 对 unknown/illegal
+  kind/status/policy 必须 fail closed，不允许开放式 `else exclude`；future policy/version 必须
+  显式扩展 projection policy、fixtures 与 replay/migration Gate；
+- dependency 从同一 frozen transaction 的 Fact/Relation owner complete-projection receipt
+  恢复 exact current active `DEPENDS_ON` graph，再做确定性 transitive closure；不是自由文本
+  `required_context`，也不是未经证明的一跳；
+- Snapshot Manifest 绑定 exact refs/revisions/policy/config/hash、closed inclusion/placement
+  reasons、AttemptStarted、as-of boundary 与 mandatory-overflow no-Snapshot failure；不接受开放式
+  score、learned weight 或模型自由文本解释作为 Authority；
+- Core 只冻结 Working Context、opaque Host manifest digest 与 external content hashes，不声称
+  单凭 Snapshot 可证明远端 provider 的最终 request bytes、private system state、transport mutation
+  或实际发送结果。
+
+本次对账不 promotion Canonical State v2、persistent HOT/COLD、Retrieval/Evidence、Summary、Host
+integration、semantic ranker/dedup 或 adaptive budget。
+
+以下原始 `Future projection comparison` / `Promotion and stop conditions` 继续作为当时的
+prospective evidence record 保留；未运行的 token/scale ablation 不得冒充已测收益，也不重开
+accepted WO-05 correctness acceptance。这里的 promotion 只确认 accepted deterministic runtime
+contract 已落地，不宣称 Current Authority Projection 相对完整 State 的产品收益已经量化。
 
 ### Premise correction and preservation boundary
 
@@ -2227,3 +2263,101 @@ provenance / lifecycle corruption
 `false_merge` 是 critical zero-tolerance fixture failure。优先使用 projection-only dedup 或显式
 consolidation，而不是 semantic Authority merge。若只有 I2 能减少重复，仍保留 I0/I1，等待更强
 证据，不以减少 token 为由接受 Authority corruption 风险。
+
+---
+
+## DA-15 — Immutable Raw-anchored Rolling Summary Experiment
+
+**用户状态：** 已明确接受该方向并要求在 WO-04C/WO-05 完成后的空闲窗口写入最终调整记录。
+
+**登记状态：** RECORDED / ACCEPTED EXPERIMENT DIRECTION / NOT IMPLEMENTED / NOT PROMOTED
+
+**WO-04C / WO-05 impact：** NONE — 不重开或修改已接受的 source/schema/test/config/policy/hash。
+
+**Routing：** Future standalone Summary additive-screen work order only；只有实验通过后，才可另开
+生成、存储、Snapshot schema/policy integration 与 GC/retention 工单。不得顺便进入 WO-06/07、
+Host adapter、Extractor 或 frozen v0。
+
+### Authority and identity
+
+Rolling Summary 只允许定义为：
+
+```text
+immutable
++ non-authoritative
++ Raw-anchored
++ derived projection
+```
+
+它不是 Raw、Canonical State、Fact、Relation、EvidenceBundle、Takeover 或 Compaction Artifact。
+Summary 出现在 Working Context 中不会获得 Authority，也不能直接或间接修改 State/Fact/Relation/
+Frontier/Takeover。
+
+future Summary instance 至少必须绑定：
+
+```text
+summary_instance_id
+exact scope
+exact Raw coverage and/or lexical exact Raw refs
+generator identity/version
+policy/config identity
+content hash
+created_at
+```
+
+若 Snapshot 使用 Summary，Manifest 必须绑定 exact immutable instance ID 与 content hash；
+missing Raw anchor、hash/policy substitution、mutable content 或 recursive-only lineage 必须
+fail closed。
+
+### No recursive trust chain
+
+禁止：
+
+- Summary-only Authority provenance；
+- `Raw -> Summary -> Authority` 成为唯一 trust path；
+- 旧 Summary 作为新 Summary 的唯一输入；
+- 原地重写同一 Summary instance；
+- 把 Summary 当成 Compaction Artifact 的 Raw coverage/provenance proof。
+
+coverage 扩大时，必须从完整 Raw coverage 生成新的 immutable instance。旧 Summary 只可作为
+non-authoritative optimization input，且 producer 仍必须独立读取、绑定并可验证完整 Raw coverage；
+不能用 `old summary + new segment` 链式改写冒充完整历史重生。
+
+### Snapshot placement boundary
+
+Summary 只能进入 non-authoritative optional/conditional bucket。它不得挤掉或替代：
+
+- Current Input；
+- Current Authority / Hard Constraints；
+- explicit required Authority/Raw/Evidence；
+- exact active `DEPENDS_ON` dependency closure；
+- 当前 Snapshot policy 定义的 Frontier-bound Hot Raw hard obligations。
+
+本登记不创建 persistent placement writer、automatic Summary inclusion、schema、producer、store、
+GC/retention 或 runtime Snapshot slot。
+
+### Mandatory experiment order
+
+第一阶段只做同一 frozen canonical world 的 additive screen：
+
+```text
+A0 = Current Input + Frontier-bound Hot Raw + Current Authority
+A1 = A0 + exact immutable Raw-anchored Summary
+```
+
+A0 不得使用 frozen v0 recent-N 冒充 canonical baseline，也不得静默加入 Retrieval 或旧 Summary。
+至少测 constraint/decision/open-question continuity、false claim/detail distortion、exact Raw recovery、
+context tokens、latency、Summary generation cost/model calls、expanded-coverage cumulative distortion 与
+新增 schema/policy/fixture complexity。
+
+只有 A1 达到预注册 bounded benefit 且无 correctness regression，才允许未来另开固定预算
+replacement ablation：
+
+```text
+R0 = fixed token-budget baseline without Summary replacement
+R1 = same fixed token budget with explicit versioned Summary replacement policy
+```
+
+如果 additive screen 无收益、生成成本抵消 Context 节省、累计失真不可接受或测试复杂度显著
+增加，则保持 Summary 未实现。生成、存储、Snapshot integration、GC/retention 均不得因本登记
+自动 promotion。

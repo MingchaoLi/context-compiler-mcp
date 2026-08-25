@@ -16,12 +16,15 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
-WO-DA-01 Current Authority / Snapshot + Rolling Summary Adjustment Record 已建立为唯一当前
-docs-only 工单，状态为 **PLANNED / NOT STARTED**。planning baseline 为 clean `main`
+WO-DA-01 Current Authority / Snapshot + Rolling Summary Adjustment Record 是唯一当前 docs-only
+工单，状态为 **BUILDER RECORD COMPLETE / AWAITING INDEPENDENT QA**。planning baseline 为 clean `main`
 `0a2d4437bc2b80714ae819654e5f41aab7a1a41e`。它只对账 DA-12 已由 accepted WO-05
-promotion 的精确范围，并把 Rolling Summary 登记为 immutable、non-authoritative、
-Raw-anchored future experimental candidate；不修改 source/schema/test/config，不实现 Summary，
-不启动 WO-06/07、Host/provider/model/network/MCP 或 Canonical State v2。
+promotion 的精确范围，并新增 DA-15，把 Rolling Summary 登记为 immutable、non-authoritative、
+Raw-anchored future experimental candidate。Builder record 已冻结 unknown fail-closed、exact active
+`DEPENDS_ON` closure、Manifest/Attempt/as-of/budget/opaque Host 边界，以及 A0 additive baseline
+与后续固定预算 replacement Gate；不修改 source/schema/test/config，不实现 Summary，不启动
+WO-06/07、Host/provider/model/network/MCP 或 Canonical State v2。下一步只能由新的物理分离
+Independent QA 审查该 docs-only fixed candidate。
 
 WO-05 ContextSnapshot Contract 的 Builder candidate
 `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 已被 Independent QA report commit
