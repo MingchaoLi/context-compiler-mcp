@@ -1,6 +1,6 @@
 # WO-DA-01 — Current Authority / Snapshot + Rolling Summary Adjustment Record
 
-**状态：** BUILDER RECORD COMPLETE / AWAITING INDEPENDENT QA
+**状态：** APPEND-ONLY FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA
 **类型：** docs-only downstream decision reconciliation
 **Planning baseline:** `0a2d4437bc2b80714ae819654e5f41aab7a1a41e` on `main`, clean
 **Planning authority commit:** `49c180d865a0a7a1abef05a6aceaaf4c8a3fae7b`
@@ -30,8 +30,18 @@ Independent re-QA `c3f691bb4a6b8f65822ba2b3410d05d93c5cbd9e`
 - WO-05 没有 Summary producer、Summary schema、Summary writer、Summary GC 或 Summary
   placement policy。
 - Compaction Artifact 是 Raw coverage/provenance proof，不是 Rolling Summary。
-- downstream adjustment register 当前停在 DA-14；DA-12 仍写 `NOT YET PROMOTED`，与已接受
-  WO-05 的实际状态需要 docs-only 对账。
+- 在 planning baseline `0a2d4437bc2b80714ae819654e5f41aab7a1a41e` 上，downstream
+  adjustment register 停在 DA-14，DA-12 仍写 `NOT YET PROMOTED`；这是本工单接收并已在
+  Builder candidate 中完成 docs-only 对账的历史输入事实，不是当前 register 状态。
+
+### QA-return append-only fix
+
+首个 Builder candidate `871e5267a0afd3385b9812af98f7648f0a89c5b7` 的设计合同、六路径、
+hash 与零 runtime delta 均通过 Independent QA，但 QA commit
+`f219c4f71347e34e4f776341ea4518b5d8bc7b0e` 因上述 planning-baseline 事实仍使用现在时而
+裁决 `FAIL / RETURN TO IMPLEMENTATION`；format-only append-only commit 为
+`d2e7053e3fcfe2592f18ad6fa996dde5bb42b27e`。本修复只把该句限定为 planning baseline
+历史输入，不改变 DA-12、DA-15 或任何其他合同。fresh re-QA 必须重新验证当前 fixed candidate。
 
 ## 3. Current Authority / ContextSnapshot decision
 
@@ -129,6 +139,7 @@ docs/work-orders/WO-DA-01-projection-summary-adjustment-record.md
 docs/architecture/WO-DA-01-projection-summary-adjustment-record.md
 docs/inventory/WO-04C/downstream-adjustment-register.md
 docs/handoffs/WO-DA-01-projection-summary-adjustment-record.md
+docs/handoffs/WO-DA-01-projection-summary-adjustment-record-fix.md
 docs/PROJECT_STATE.md
 docs/ROADMAP.md
 ```
@@ -137,6 +148,7 @@ Independent QA 只能另新增：
 
 ```text
 docs/qa/WO-DA-01-projection-summary-adjustment-record.md
+docs/qa/WO-DA-01-projection-summary-adjustment-record-fix.md
 ```
 
 ## 7. Prohibited
