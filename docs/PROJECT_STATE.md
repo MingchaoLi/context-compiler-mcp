@@ -16,6 +16,13 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
+WO-PUB-02 Raw Timestamp Compatibility 已由用户授权建立，状态为 **PLANNED / NOT STARTED**，
+planning baseline 为 clean `main` `db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`。工单只统一 Raw
+write/read domain：同 session `seq` 是 append/replay order，单条合法 `created_at` 只是可倒序、相等、
+迟到或 future-skew 的 source/event time。不得改写历史 append-only Raw，不新增时间列/schema/axis，
+不扩大到 event size、role、import、Retrieval 或 State。实现需经过真实 stdio、reopen/exact replay、
+tamper、production-only package 与 fresh Independent QA。
+
 WO-PUB-01 Public MCP Result Boundary 已完成，状态为 **ACCEPTED / COMPLETE**。Builder source
 candidate `4643a4761a7c2b91837a198c2f7ebc340fcb8511` 的首次 Independent QA
 `6dbedcc417e5391b9023d6e251baa397b7fae2d9` 通过全部功能、协议、production-only package 与回归
