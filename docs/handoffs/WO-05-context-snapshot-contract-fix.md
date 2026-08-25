@@ -1,12 +1,12 @@
 # WO-05 Append-only Fix Builder Handoff — Owner Projection Receipt
 
-Status: **BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**  
-Work order: `docs/work-orders/WO-05-context-snapshot-contract.md`  
-Returned Builder candidate: `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa`  
-QA return commit: `88e8da7c9cee348643f3c3f698af4e8e46cf3e09`  
-Repair source baseline: `32e2e13248f72eecfbac54ecfd91db29e7d7111b`  
-Repair baseline commit: `9200d539c06698543542e027c28d2491f3bfbc91`  
-Repair Gate commit / Builder parent: `dcb0baff1936029779b5f7837f03b467eb4b14bb`  
+Status: **BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**
+Work order: `docs/work-orders/WO-05-context-snapshot-contract.md`
+Returned Builder candidate: `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa`
+QA return commit: `88e8da7c9cee348643f3c3f698af4e8e46cf3e09`
+Repair source baseline: `32e2e13248f72eecfbac54ecfd91db29e7d7111b`
+Repair baseline commit: `9200d539c06698543542e027c28d2491f3bfbc91`
+Repair Gate commit / Builder parent: `dcb0baff1936029779b5f7837f03b467eb4b14bb`
 Builder fix candidate: the commit containing this handoff; Independent QA must resolve and pin its exact
 hash before review.
 
