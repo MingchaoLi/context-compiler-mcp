@@ -1138,6 +1138,60 @@ export function readCanonicalFactRelationAuthorityInsideCore(
   return { facts, relations };
 }
 
+/** @internal Reads and proves the complete current object projection on a caller-owned snapshot. */
+export function readCanonicalFactRelationProjectionInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  observedValue: RevisionVector
+): CanonicalFactRelationProjection {
+  const scope = normalizeScope(scopeValue);
+  const observed = parseVectorValue(observedValue, scope);
+  if (!sameVector(readVector(database, scope), observed)) conflict();
+  const facts = loadCurrentFactsInsideCore(database, scope);
+  const relations = loadCurrentRelationsInsideCore(database, scope);
+  assertObjectBindingsInsideCore(database, facts, relations);
+  validateFinalAuthority(database, scope, observed, facts, relations, true);
+  return {
+    ...scope,
+    revision_vector: cloneVector(observed),
+    policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+    facts: [...facts.values()].sort(compareFacts).map(cloneFact),
+    relations: [...relations.values()].sort(compareRelations).map(cloneRelation),
+  };
+}
+
+function assertObjectBindingsInsideCore(
+  database: DatabaseSync,
+  facts: Map<string, CommittedCanonicalFact>,
+  relations: Map<string, CommittedCanonicalRelation>
+): void {
+  const cache = new Map<string, CanonicalFactRelationCommitResult>();
+  for (const fact of facts.values()) {
+    const key = `${fact.namespace}\u0000${fact.stream_id}\u0000${fact.authority_commit_id}`;
+    let commit = cache.get(key);
+    if (commit === undefined) {
+      const row = readCommitRowInsideCore(database, fact, fact.authority_commit_id);
+      if (row === undefined) corrupt();
+      commit = commitFromRowInsideCore(database, row);
+      cache.set(key, commit);
+    }
+    if (!commit.facts.some((value) => canonicalJson(factAsJson(value)) ===
+        canonicalJson(factAsJson(fact)))) corrupt();
+  }
+  for (const relation of relations.values()) {
+    const key = `${relation.namespace}\u0000${relation.stream_id}\u0000${relation.authority_commit_id}`;
+    let commit = cache.get(key);
+    if (commit === undefined) {
+      const row = readCommitRowInsideCore(database, relation, relation.authority_commit_id);
+      if (row === undefined) corrupt();
+      commit = commitFromRowInsideCore(database, row);
+      cache.set(key, commit);
+    }
+    if (!commit.relations.some((value) => canonicalJson(relationAsJson(value)) ===
+        canonicalJson(relationAsJson(relation)))) corrupt();
+  }
+}
+
 /** @internal Required when a composition contract promises new object revisions. */
 export function assertCanonicalFactRelationCommitAbsentInsideCore(
   database: DatabaseSync,

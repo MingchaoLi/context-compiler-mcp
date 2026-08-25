@@ -1,8 +1,8 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** IN PROGRESS — EXECUTION BASELINE + PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN；
-SOURCE IMPLEMENTATION RESUMED AFTER WO-04D<br>
+**状态：** BUILDER COMPLETE — AWAITING INDEPENDENT QA；EXECUTION BASELINE +
+PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -323,20 +323,20 @@ Builder 可以少改但不得新增 source/test/config path。`src/revision-subs
 - [x] Execution Baseline fixed in a standalone pre-source commit.
 - [x] Snapshot Composition Gate mechanically proven and frozen before source.
 - [x] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
-- [ ] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
-- [ ] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
-- [ ] Current Authority Projection pure/deterministic；Canonical State v1 不变.
-- [ ] Hot Raw 从 Ledger + committed Frontier + as-of world 确定性重建并保留 exact refs.
-- [ ] Priority buckets、whole-object trim、hard invariant 与 explicit overflow fail closed.
-- [ ] No semantic ranker/dedup/scope inference/retrieval/Summary/placement writer.
-- [ ] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
-- [ ] AttemptStarted 不先于 Snapshot，transaction/retry/collision/COMMIT failure fail closed.
-- [ ] Host manifest opaque；external content 使用 stable ref + content hash.
-- [ ] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
-- [ ] WO-03B/04A/04B/04C、frozen v0 与 MCP exact-nine behavior 保持.
-- [ ] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
-- [ ] Candidate paths exact allowlist；无 production DB/network/sibling Host access.
-- [ ] Builder handoff exists；Builder 不自批；Independent QA 可独立复现。
+- [x] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
+- [x] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
+- [x] Current Authority Projection pure/deterministic；Canonical State v1 不变.
+- [x] Hot Raw 从 Ledger + committed Frontier + as-of world 确定性重建并保留 exact refs.
+- [x] Priority buckets、whole-object trim、hard invariant 与 explicit overflow fail closed.
+- [x] No semantic ranker/dedup/scope inference/retrieval/Summary/placement writer.
+- [x] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
+- [x] AttemptStarted 不先于 Snapshot，transaction/retry/collision/COMMIT failure fail closed.
+- [x] Host manifest opaque；external content 使用 stable ref + content hash.
+- [x] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
+- [x] WO-03B/04A/04B/04C、frozen v0 与 MCP exact-nine behavior 保持.
+- [x] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
+- [x] Candidate paths exact allowlist；无 production DB/network/sibling Host access.
+- [x] Builder handoff exists；Builder 不自批；Independent QA 可独立复现。
 
 ---
 
@@ -346,6 +346,7 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 单独写 QA 文件/commit。失败必须回到同一 append-only implementation chain 修复；不得重写已
 提交历史或边 QA 边实现。
 
-Execution Baseline 与 pre-source Snapshot Composition Gate 已冻结；source 尚未开始。Builder
-只能按 exact allowlist 实现该有界合同，不得把 Gate 解释为 Host、WO-06/07、MCP 或 frozen
-v0 改写授权。
+Execution Baseline 与 pre-source Snapshot Composition Gate 保持冻结。Builder 已在 exact
+allowlist 内完成实现、回归与 handoff；固定 candidate 由包含 handoff 的提交确定。
+当前只允许 Independent QA 在不修改 Builder candidate 的前提下复核。本状态不授权
+Host、WO-06/07、MCP 或 frozen v0 改写。

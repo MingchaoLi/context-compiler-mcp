@@ -334,6 +334,88 @@ export class SqliteLedgerHotRawStore {
   }
 }
 
+/** @internal Reads the exact Frontier-bound Hot Raw range on a caller-owned snapshot. */
+export function readLedgerHotRawInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  observedValue: RevisionVector
+): HotRawProjection {
+  const scope = normalizeScope(scopeValue);
+  const observed = vectorFromRow({
+    namespace: observedValue.namespace,
+    stream_id: observedValue.stream_id,
+    ledger_revision: observedValue.ledger_revision,
+    state_revision: observedValue.state_revision,
+    raw_frontier_revision: observedValue.raw_frontier_revision,
+    frontier_position: observedValue.frontier_position,
+    takeover_commit_revision: observedValue.takeover_commit_revision,
+  }, scope);
+  const row = database.prepare(
+    `SELECT namespace, stream_id, ledger_revision, state_revision,
+            raw_frontier_revision, frontier_position, takeover_commit_revision
+     FROM cc_revision_streams
+     WHERE namespace = ? AND stream_id = ?`
+  ).get(scope.namespace, scope.stream_id) as StreamRow | undefined;
+  if (row === undefined || !vectorAtOrAfter(vectorFromRow(row, scope), observed)) conflict();
+  const rows = database.prepare(
+    `SELECT namespace, stream_id, ledger_revision, event_id, source_kind,
+            source_id, source_session_id, payload_json, occurred_at, created_at
+     FROM cc_ledger_raw_events
+     WHERE namespace = ? AND stream_id = ?
+       AND ledger_revision > ? AND ledger_revision <= ?
+     ORDER BY ledger_revision ASC`
+  ).all(
+    scope.namespace,
+    scope.stream_id,
+    observed.frontier_position,
+    observed.ledger_revision
+  ) as EventRow[];
+  const events = rows.map((eventRow) => eventFromRow(eventRow, scope));
+  assertHotRawRange(events, observed);
+  if (events.length !== observed.ledger_revision - observed.frontier_position ||
+      events.some((event, index) =>
+        event.ledger_revision !== observed.frontier_position + index + 1)) {
+    corrupt();
+  }
+  return {
+    ...scope,
+    ledger_high_water: observed.ledger_revision,
+    revision_vector: { ...observed },
+    events,
+  };
+}
+
+/** @internal Reads exact same-scope Raw Events no later than one frozen Ledger revision. */
+export function readLedgerRawEventsInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  eventIdsValue: readonly string[],
+  ledgerAsOfValue: number
+): LedgerRawEvent[] {
+  const scope = normalizeScope(scopeValue);
+  const ledgerAsOf = storedRevision(ledgerAsOfValue);
+  const eventIds = eventIdsValue.map((eventId) =>
+    validateIdentifier(eventId, MAX_EVENT_ID_LENGTH)).sort();
+  for (let index = 1; index < eventIds.length; index += 1) {
+    if (eventIds[index - 1] === eventIds[index]) invalid();
+  }
+  const events = eventIds.map((eventId) => {
+    const row = database.prepare(
+      `SELECT namespace, stream_id, ledger_revision, event_id, source_kind,
+              source_id, source_session_id, payload_json, occurred_at, created_at
+       FROM cc_ledger_raw_events
+       WHERE namespace = ? AND stream_id = ? AND event_id = ?`
+    ).get(scope.namespace, scope.stream_id, eventId) as EventRow | undefined;
+    if (row === undefined) conflict();
+    const event = eventFromRow(row, scope);
+    if (event.ledger_revision > ledgerAsOf) conflict();
+    return event;
+  });
+  return events.sort((left, right) =>
+    left.ledger_revision - right.ledger_revision ||
+    (left.event_id < right.event_id ? -1 : left.event_id > right.event_id ? 1 : 0));
+}
+
 export function migrateLedgerHotRaw(database: DatabaseSync): void {
   database.exec("BEGIN IMMEDIATE;");
   try {
@@ -615,6 +697,15 @@ function zeroVector(scope: RevisionScope): RevisionVector {
     frontier_position: 0,
     takeover_commit_revision: 0,
   };
+}
+
+function vectorAtOrAfter(live: RevisionVector, historical: RevisionVector): boolean {
+  return live.namespace === historical.namespace && live.stream_id === historical.stream_id &&
+    live.ledger_revision >= historical.ledger_revision &&
+    live.state_revision >= historical.state_revision &&
+    live.raw_frontier_revision >= historical.raw_frontier_revision &&
+    live.frontier_position >= historical.frontier_position &&
+    live.takeover_commit_revision >= historical.takeover_commit_revision;
 }
 
 function assertHotRawRange(events: LedgerRawEvent[], vector: RevisionVector): void {

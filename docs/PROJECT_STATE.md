@@ -16,6 +16,16 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
+WO-05 ContextSnapshot Contract 已完成 Builder 实现与交接，状态为 **BUILDER
+COMPLETE / AWAITING INDEPENDENT QA**。新的 Core-private Snapshot owner 在单连接
+`BEGIN IMMEDIATE` 中读取并证明 exact Ledger/State/Fact/Relation/Takeover world，确定性
+组装 Current Authority + Frontier-bound Hot Raw，然后原子写入 immutable
+ContextSnapshot + AttemptStarted receipt。Snapshot axis-neutral；不推进五轴，不推断
+scope，不引入 semantic ranker/dedup、Retrieval/Summary、Host/provider/model/network 或 MCP
+新工具。Focused 直接依赖回归为 70/70，全量为 564 passed / 1 skipped，构建与
+`git diff --check` 通过。Builder candidate 将由包含 handoff 的提交固定；Builder 不
+自批，下一步只是物理分离的 Independent QA。
+
 WO-04C Semantic Takeover / Enrichment + Frontier + Compaction Artifact 已在 Builder
 candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5` 通过 Independent QA，QA
 commit 为 `d33f52281e2af857c16a79768c7d3fcde816da42`，状态为 **ACCEPTED /
@@ -49,7 +59,7 @@ commit `18a2ab3dc02657200e5d96eec3bfc9a715c316e6` 固定 source world
 same-handle seam，确定性投影/组装后原子写 immutable Snapshot + AttemptStarted receipt；
 Snapshot axis-neutral，existing v0 assembler/operational context 与 shared substrate 均冻结不变。
 source spike 随后证明 accepted current-semantic read seam 在 Takeover 后合法 Raw advance 时
-错误要求完整五轴向量全等并返回 `CORRUPT_DATA`。WO-05 现为 **PAUSED**，source 草稿已隔离；
+错误要求完整五轴向量全等并返回 `CORRUPT_DATA`；该 source 草稿当时已隔离。
 WO-04D Current Semantic Takeover Read Seam 已在 fixed candidate
 `39334f94cb1c5ac37587cc261b261b427d2ba1b6` 由 Independent QA commit
 `583cefaf12308229b3f3daa24982777bb884922b`
@@ -57,7 +67,8 @@ WO-04D Current Semantic Takeover Read Seam 已在 fixed candidate
 `fcca8554d0bd6f0deeb0e4ab5d5f17676dcf8e39`；Builder 生产 delta 仅把 latest Takeover 的
 完整向量全等改为 live component-wise at-or-after 历史提交向量，并新增后续 Raw advance +
 Hot Raw + reopen 回归。focused 15/15、全量 545 passed / 1 skipped、构建通过；任何
-writer/schema/public surface 均未变化。唯一当前工单已恢复为 WO-05 ContextSnapshot Contract。
+writer/schema/public surface 均未变化。WO-05 随后恢复草稿并完成 Builder，当前等待
+物理分离的 Independent QA。
 
 跨 Agent 转述对抗观察显示，显式矛盾较易被一致性检查发现，静默删除既有约束更难仅靠当前模型上下文可靠识别。v3.1.1 仅把 `Revision / Structural Diff` 与未来 `Audit Ripple` 的分工作为非规范研究观察记录；它不是 blocker，不扩大 WO-01，也不授权新的 Relation/Retrieval/Context 行为。
 
@@ -154,5 +165,6 @@ WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03
 WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
 WO-05 ContextSnapshot Contract 的 Execution Baseline 与 pre-source Gate 保持冻结；其
-current-semantic owner seam blocker 已由 accepted WO-04D 关闭，WO-05 source implementation
-现已恢复并成为唯一当前工单。Formal Host Mode 与 WO-06+ 均未开始。
+current-semantic owner seam blocker 已由 accepted WO-04D 关闭，Builder 已完成 exact
+allowlist 实现。唯一当前工单现处于等待 Independent QA 状态；Formal Host Mode
+与 WO-06+ 均未开始。

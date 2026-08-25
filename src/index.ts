@@ -100,6 +100,35 @@ export {
 } from "./semantic-takeover.js";
 
 export {
+  CONTEXT_ASSEMBLER_VERSION,
+  CONTEXT_ASSEMBLER_VERSION_HASH,
+  CONTEXT_SNAPSHOT_INCLUSION_REASONS,
+  CONTEXT_SNAPSHOT_POLICY_HASH,
+  CONTEXT_SNAPSHOT_POLICY_VERSION,
+  CONTEXT_SNAPSHOT_SCHEMA_VERSION,
+  CURRENT_AUTHORITY_PROJECTION_VERSION,
+  TOKEN_ESTIMATOR_VERSION,
+  ContextSnapshotError,
+  type ContextAttemptStarted,
+  type ContextSnapshot,
+  type ContextSnapshotErrorCode,
+  type ContextSnapshotFactRefInput,
+  type ContextSnapshotFreezeInput,
+  type ContextSnapshotInclusionReason,
+  type ContextSnapshotManifest,
+  type ContextSnapshotRelationRefInput,
+  type ExternalContentHash,
+  type SnapshotArtifactRef,
+  type SnapshotDependencyPath,
+  type SnapshotExcludedStateRef,
+  type SnapshotFactRef,
+  type SnapshotRawEventRef,
+  type SnapshotRelationRef,
+  type SnapshotStateRef,
+  type SnapshotTakeoverRef,
+} from "./context-snapshot.js";
+
+export {
   EXPERIENCE_LEDGER_KINDS,
   PUBLIC_EXPERIENCE_LEDGER_KINDS,
   ExperienceLedgerError,

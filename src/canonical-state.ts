@@ -675,6 +675,40 @@ export function readCanonicalStateAuthorityInsideCore(
   };
 }
 
+/** @internal Reads and proves the exact latest State projection on a caller-owned snapshot. */
+export function readCanonicalStateProjectionInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  observedValue: RevisionVector
+): CanonicalStateProjection {
+  const scope = normalizeScope(scopeValue);
+  const observed = vectorFromRow({
+    namespace: observedValue.namespace,
+    stream_id: observedValue.stream_id,
+    ledger_revision: observedValue.ledger_revision,
+    state_revision: observedValue.state_revision,
+    raw_frontier_revision: observedValue.raw_frontier_revision,
+    frontier_position: observedValue.frontier_position,
+    takeover_commit_revision: observedValue.takeover_commit_revision,
+  }, scope);
+  if (!sameVector(readLiveVector(database, scope), observed)) conflict();
+  if (observed.state_revision === 0) {
+    const stray = database.prepare(
+      `SELECT state_revision FROM cc_canonical_state_revisions
+       WHERE namespace = ? AND stream_id = ? LIMIT 1`
+    ).get(scope.namespace, scope.stream_id);
+    if (stray !== undefined) corrupt();
+    return zeroProjection(scope, observed);
+  }
+  const authority = readCanonicalStateAuthorityInsideCore(
+    database,
+    scope,
+    observed.state_revision,
+    observed
+  );
+  return projectionFromCommitted(authority.committed, observed);
+}
+
 function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInput {
   const input = readExactObject(value, [
     "scope",
@@ -1389,6 +1423,15 @@ function sameNonStateAxes(previous: RevisionVector, current: RevisionVector): bo
     previous.raw_frontier_revision === current.raw_frontier_revision &&
     previous.frontier_position === current.frontier_position &&
     previous.takeover_commit_revision === current.takeover_commit_revision;
+}
+
+function sameVector(left: RevisionVector, right: RevisionVector): boolean {
+  return left.namespace === right.namespace && left.stream_id === right.stream_id &&
+    left.ledger_revision === right.ledger_revision &&
+    left.state_revision === right.state_revision &&
+    left.raw_frontier_revision === right.raw_frontier_revision &&
+    left.frontier_position === right.frontier_position &&
+    left.takeover_commit_revision === right.takeover_commit_revision;
 }
 
 function vectorAtOrAfter(live: RevisionVector, historical: RevisionVector): boolean {

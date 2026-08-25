@@ -50,6 +50,13 @@ import {
 } from "./canonical-fact-relation.js";
 import { SqliteAuthorityTransactionCoordinator } from "./authority-transaction-coordinator.js";
 import {
+  ContextSnapshotError,
+  SqliteContextSnapshotStore,
+  type ContextAttemptStarted,
+  type ContextSnapshot,
+  type ContextSnapshotFreezeInput,
+} from "./context-snapshot.js";
+import {
   SemanticTakeoverError,
   type CompactionArtifact,
   type CurrentSemanticTakeoverAuthority,
@@ -92,6 +99,8 @@ export type ContextCompilerCoreErrorCode =
   | "INVALID_INPUT"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "BUDGET_INSUFFICIENT"
+  | "CORRUPT_DATA"
   | "STORAGE_FAILURE"
   | "INTERNAL_FAILURE";
 
@@ -157,6 +166,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
   readonly #canonicalStateStore: SqliteCanonicalStateStore;
   readonly #canonicalFactRelationStore: SqliteCanonicalFactRelationStore;
   readonly #authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator;
+  readonly #contextSnapshotStore: SqliteContextSnapshotStore;
   private closed = false;
 
   constructor(databasePath: string) {
@@ -173,6 +183,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     let canonicalStateStore: SqliteCanonicalStateStore | undefined;
     let canonicalFactRelationStore: SqliteCanonicalFactRelationStore | undefined;
     let authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator | undefined;
+    let contextSnapshotStore: SqliteContextSnapshotStore | undefined;
     try {
       rawStore = new SqliteRawHistoryStore(databasePath);
       stateStore = new SqliteContextStateStore(databasePath);
@@ -186,7 +197,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
         databasePath,
         revisionSubstrate
       );
+      contextSnapshotStore = new SqliteContextSnapshotStore(databasePath);
     } catch {
+      try { contextSnapshotStore?.close(); } catch { /* preserve stable startup failure */ }
       try { authorityTransactionCoordinator?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalFactRelationStore?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalStateStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -208,6 +221,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     this.#canonicalStateStore = canonicalStateStore;
     this.#canonicalFactRelationStore = canonicalFactRelationStore;
     this.#authorityTransactionCoordinator = authorityTransactionCoordinator;
+    this.#contextSnapshotStore = contextSnapshotStore;
   }
 
   call(
@@ -492,11 +506,48 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     }
   }
 
+  /** Atomically freezes one deterministic immutable ContextSnapshot and Attempt receipt. */
+  freezeContextSnapshot(input: ContextSnapshotFreezeInput): ContextSnapshot {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "ContextSnapshot input");
+      return this.#contextSnapshotStore.freeze(input);
+    } catch (error) {
+      throw mapContextSnapshotError(error);
+    }
+  }
+
+  /** Reads and fully validates one exact immutable ContextSnapshot. */
+  readContextSnapshot(scope: RevisionScope, snapshotId: string): ContextSnapshot {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "ContextSnapshot scope");
+      return this.#contextSnapshotStore.read(scope, snapshotId);
+    } catch (error) {
+      throw mapContextSnapshotError(error);
+    }
+  }
+
+  /** Reads the immutable AttemptStarted receipt bound to one Snapshot. */
+  readContextAttemptStarted(
+    scope: RevisionScope,
+    attemptId: string
+  ): ContextAttemptStarted {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "ContextSnapshot attempt scope");
+      return this.#contextSnapshotStore.readAttempt(scope, attemptId);
+    } catch (error) {
+      throw mapContextSnapshotError(error);
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
     let failed = false;
     for (const store of [
+      this.#contextSnapshotStore,
       this.#authorityTransactionCoordinator,
       this.#canonicalFactRelationStore,
       this.#canonicalStateStore,
@@ -804,6 +855,21 @@ function mapSemanticTakeoverError(error: unknown): ContextCompilerCoreError {
   if (error.code === "NOT_FOUND") return new ContextCompilerCoreError("NOT_FOUND");
   if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
   return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapContextSnapshotError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof ContextSnapshotError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  switch (error.code) {
+    case "INVALID_INPUT": return new ContextCompilerCoreError("INVALID_INPUT");
+    case "NOT_FOUND": return new ContextCompilerCoreError("NOT_FOUND");
+    case "CONFLICT": return new ContextCompilerCoreError("CONFLICT");
+    case "BUDGET_INSUFFICIENT": return new ContextCompilerCoreError("BUDGET_INSUFFICIENT");
+    case "CORRUPT_DATA": return new ContextCompilerCoreError("CORRUPT_DATA");
+    case "CLOSED":
+    case "STORAGE_FAILURE": return new ContextCompilerCoreError("STORAGE_FAILURE");
+  }
 }
 
 function classifyError(error: unknown): ContextCompilerCoreErrorCode {
