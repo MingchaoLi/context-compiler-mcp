@@ -1,8 +1,8 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** BUILDER COMPLETE — AWAITING INDEPENDENT QA；EXECUTION BASELINE +
-PRE-SOURCE SNAPSHOT COMPOSITION GATE FROZEN<br>
+**状态：** INDEPENDENT QA RETURNED — SOURCE FIX NOT STARTED；BLOCKED ON BOUNDED
+FACT/RELATION AS-OF PROJECTION PROOF DECISION<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -22,6 +22,13 @@ Operation/Action lifecycle、Extractor、Retrieval 调参或 MCP 新工具。
 > 曾隔离保存；有界 WO-04D candidate `39334f94cb1c5ac37587cc261b261b427d2ba1b6`
 > 已由 Independent QA commit `583cefaf12308229b3f3daa24982777bb884922b` 接受。修复不改变
 > 写入语义，WO-05 现恢复。
+
+> 2026-08-25 Independent QA 对 Builder candidate
+> `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 裁决 **FAIL / RETURN TO IMPLEMENTATION**，
+> QA report commit 为 `88e8da7`。反例在不修改任何 Fact/Relation owner row 的前提下，
+> 协调删除 Manifest/body 中由 `DEPENDS_ON` 闭包选入的 Relation + Fact + path，更新
+> Snapshot/Attempt 本地哈希并恢复 exact triggers 后，stored read 仍错误接受。历史读
+> 缺少独立于 caller-controlled Manifest selected refs 的完整 Fact/Relation as-of 投影证明。
 
 ---
 
@@ -325,14 +332,14 @@ Builder 可以少改但不得新增 source/test/config path。`src/revision-subs
 - [x] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
 - [x] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
 - [x] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
-- [x] Current Authority Projection pure/deterministic；Canonical State v1 不变.
+- [ ] Current Authority Projection pure/deterministic；Canonical State v1 不变.
 - [x] Hot Raw 从 Ledger + committed Frontier + as-of world 确定性重建并保留 exact refs.
 - [x] Priority buckets、whole-object trim、hard invariant 与 explicit overflow fail closed.
 - [x] No semantic ranker/dedup/scope inference/retrieval/Summary/placement writer.
-- [x] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
+- [ ] Snapshot Manifest/Working Context immutable、content-bound、policy/revision/ref-bound.
 - [x] AttemptStarted 不先于 Snapshot，transaction/retry/collision/COMMIT failure fail closed.
 - [x] Host manifest opaque；external content 使用 stable ref + content hash.
-- [x] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
+- [ ] Exact replay/concurrency/migration/tamper/read/reopen fail closed.
 - [x] WO-03B/04A/04B/04C、frozen v0 与 MCP exact-nine behavior 保持.
 - [x] Focused tests、`npm test`、`npm run build`、`git diff --check` pass.
 - [x] Candidate paths exact allowlist；无 production DB/network/sibling Host access.
@@ -346,7 +353,9 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 单独写 QA 文件/commit。失败必须回到同一 append-only implementation chain 修复；不得重写已
 提交历史或边 QA 边实现。
 
-Execution Baseline 与 pre-source Snapshot Composition Gate 保持冻结。Builder 已在 exact
-allowlist 内完成实现、回归与 handoff；固定 candidate 由包含 handoff 的提交确定。
-当前只允许 Independent QA 在不修改 Builder candidate 的前提下复核。本状态不授权
-Host、WO-06/07、MCP 或 frozen v0 改写。
+Builder candidate `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 与 QA return commit `88e8da7`
+保持 append-only。当前不得继续 source fix；必须先决定是否重开 pre-source Gate，为
+Fact/Relation owner 新增一个与 Snapshot 同事务、axis-neutral、immutable 的完整投影 receipt。
+仅在新 Gate 证明 owner、schema、transaction、retry/replay 和迁移合同后才可 append-only
+修复；不得用另一个同 Manifest 哈希代替独立 owner proof。本状态不授权 Host、
+WO-06/07、MCP 或 frozen v0 改写。

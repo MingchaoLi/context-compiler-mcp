@@ -16,15 +16,19 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
-WO-05 ContextSnapshot Contract 已完成 Builder 实现与交接，状态为 **BUILDER
-COMPLETE / AWAITING INDEPENDENT QA**。新的 Core-private Snapshot owner 在单连接
+WO-05 ContextSnapshot Contract 的 Builder candidate
+`c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 已被 Independent QA report commit
+`88e8da7` 裁决为 **FAIL / RETURN TO IMPLEMENTATION**。新的 Core-private Snapshot owner 在单连接
 `BEGIN IMMEDIATE` 中读取并证明 exact Ledger/State/Fact/Relation/Takeover world，确定性
 组装 Current Authority + Frontier-bound Hot Raw，然后原子写入 immutable
 ContextSnapshot + AttemptStarted receipt。Snapshot axis-neutral；不推进五轴，不推断
 scope，不引入 semantic ranker/dedup、Retrieval/Summary、Host/provider/model/network 或 MCP
-新工具。Focused 直接依赖回归为 70/70，全量为 564 passed / 1 skipped，构建与
-`git diff --check` 通过。Builder candidate 将由包含 handoff 的提交固定；Builder 不
-自批，下一步只是物理分离的 Independent QA。
+新工具。Independent focused 为 71/71，全量为 564 passed / 1 skipped，构建与
+candidate diff check 通过；但 QA 证明可协调删除 `DEPENDS_ON` 闭包选入的
+Relation + Fact + path + body，更新本地 Snapshot/Attempt 哈希并恢复 triggers 后仍被
+stored read 接受。根因是历史读只以 Manifest 已列 refs 重建图，没有独立的完整
+Fact/Relation as-of 投影证明。source fix 尚未开始；当前阻塞在是否显式重开
+pre-source Gate，引入 axis-neutral owner-side immutable projection receipt。
 
 WO-04C Semantic Takeover / Enrichment + Frontier + Compaction Artifact 已在 Builder
 candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5` 通过 Independent QA，QA
@@ -164,7 +168,7 @@ DS-04 接受后的第三次关键节点对抗审查记录为 `docs/adversarial-r
 WO-ST-01 through WO-ST-03、WO-EV-02、WO-V0-15、WO-01、WO-02、WO-03A、WO-03B、
 WO-04A、WO-04B 与 WO-04C 均已完成并经独立 QA 接受；WO-V0-15 当前为 **ACCEPTED /
 FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority path 改写。
-WO-05 ContextSnapshot Contract 的 Execution Baseline 与 pre-source Gate 保持冻结；其
-current-semantic owner seam blocker 已由 accepted WO-04D 关闭，Builder 已完成 exact
-allowlist 实现。唯一当前工单现处于等待 Independent QA 状态；Formal Host Mode
-与 WO-06+ 均未开始。
+WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保持为历史事实；
+current-semantic owner seam blocker 已由 accepted WO-04D 关闭，但 Builder candidate 被
+Independent QA 因 Fact/Relation dependency omission attack 退回。唯一当前工单现阻塞于
+有界 Gate 重开决策；Formal Host Mode 与 WO-06+ 均未开始。
