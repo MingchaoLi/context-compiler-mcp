@@ -16,6 +16,13 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
+WO-DA-01 Current Authority / Snapshot + Rolling Summary Adjustment Record 已建立为唯一当前
+docs-only 工单，状态为 **PLANNED / NOT STARTED**。planning baseline 为 clean `main`
+`0a2d4437bc2b80714ae819654e5f41aab7a1a41e`。它只对账 DA-12 已由 accepted WO-05
+promotion 的精确范围，并把 Rolling Summary 登记为 immutable、non-authoritative、
+Raw-anchored future experimental candidate；不修改 source/schema/test/config，不实现 Summary，
+不启动 WO-06/07、Host/provider/model/network/MCP 或 Canonical State v2。
+
 WO-05 ContextSnapshot Contract 的 Builder candidate
 `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 已被 Independent QA report commit
 `88e8da7` 裁决为 **FAIL / RETURN TO IMPLEMENTATION**。新的 Core-private Snapshot owner 在单连接
@@ -183,5 +190,6 @@ FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority
 WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保持为历史事实；
 current-semantic owner seam blocker 已由 accepted WO-04D 关闭，首个 Builder candidate 的
 Fact/Relation dependency omission attack 由 owner-side immutable complete-projection receipt 的
-append-only fix 关闭，并已通过 fresh Independent re-QA。当前没有活动工单；Formal Host Mode
-与 WO-06+ 均未开始，也未由本次接受隐含授权。
+append-only fix 关闭，并已通过 fresh Independent re-QA。当前唯一活动范围是 docs-only
+WO-DA-01 adjustment reconciliation；Formal Host Mode 与 WO-06+ 均未开始，也未由该记录
+隐含授权。
