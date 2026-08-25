@@ -1,10 +1,12 @@
 # WO-BRAND-01 — RippleContext project identity
 
-Status: BUILDER HANDOFF COMPLETE / INDEPENDENT QA PENDING
+Status: ACCEPTED / COMPLETE
 
 Pre-source Gate commit: `67d8b9088e8e9651d81def65c0cd174390785eb4`
 
 Builder source candidate: `01476363afea02a2073892c8e42ccb5662cd9e94`
+
+Accepting Independent QA commit: `d083b3826e1e516384e0f400714eaea3d35fafb4`
 
 Updated: 2026-08-25
 

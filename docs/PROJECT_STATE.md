@@ -21,12 +21,13 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 ## Latest delivery status
 
-WO-BRAND-01 RippleContext Project Identity 当前为 **BUILDER HANDOFF COMPLETE / INDEPENDENT QA PENDING**。
+WO-BRAND-01 RippleContext Project Identity 当前为 **ACCEPTED / COMPLETE**。
 Execution baseline 为 `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`，pre-source Gate commit 为
 `67d8b9088e8e9651d81def65c0cd174390785eb4`。该工单仅把公开产品/项目名设为
 `RippleContext`，保留 `context-compiler-mcp` 全部技术兼容身份；不修改 source、schema、test、
 package-lock、MCP、数据库、算法或宿主边界。Builder source candidate 为
-`01476363afea02a2073892c8e42ccb5662cd9e94`。
+`01476363afea02a2073892c8e42ccb5662cd9e94`，Independent QA commit
+`d083b3826e1e516384e0f400714eaea3d35fafb4` 已接受该 docs/identity-only 结果。
 
 WO-PUB-02 Raw Timestamp Compatibility 状态为 **ACCEPTED / COMPLETE**。implementation baseline
 `b9b2dedebf97c6d9c66369af4aaab70904f73fe9` 后的首次 candidate
@@ -237,5 +238,5 @@ WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保
 current-semantic owner seam blocker 已由 accepted WO-04D 关闭，首个 Builder candidate 的
 Fact/Relation dependency omission attack 由 owner-side immutable complete-projection receipt 的
 append-only fix 关闭，并已通过 fresh Independent re-QA。docs-only WO-DA-01 adjustment
-reconciliation 也已通过 fresh re-QA；当前唯一活动工单为 docs/identity-only 的 WO-BRAND-01。
+reconciliation 与 docs/identity-only WO-BRAND-01 均已通过 Independent QA；当前没有活动 Core 工单。
 Formal Host Mode 与 WO-06+ 均未开始，也未由该记录隐含授权。
