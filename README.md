@@ -17,6 +17,7 @@ The current server exposes exactly nine tools:
 `ingest_event.created_at` 是可选的独立 source/event time，不是 append cursor。提供时必须是 RFC 3339
 date-time（秒级或 1–3 位小数，`Z`/numeric offset），writer 会持久化并返回 UTC millisecond canonical
 form；同 session 的 durable 顺序始终由 `seq` 表达，所以合法时间可以倒序、相等、迟到或 future-skew。
+UTC 月末 RFC 3339 leap second（`:60`）保持为独立 instant，不会折叠到下一分钟。
 历史 append-only Raw 中可解析的 RFC 3339 秒级/任意小数精度 timestamp bytes 在 read/replay 时保持
 原样，不会 backfill 或改写；其精确 instant（包括 sub-millisecond digits）继续参与 source-event 幂等冲突判断。
 

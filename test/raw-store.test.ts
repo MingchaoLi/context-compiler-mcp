@@ -168,6 +168,7 @@ describe("SqliteRawHistoryStore", () => {
     "2025-02-29T00:00:00Z",
     "2026-08-01 00:00:00Z",
     "2026-08-01T24:00:00Z",
+    "2026-08-01T00:00:61Z",
     "2026-08-01T00:00:60Z",
     "2026-08-01T00:00:00+24:00",
     "2026-08-01T00:00:00.1234Z",
@@ -254,6 +255,69 @@ describe("SqliteRawHistoryStore", () => {
       seq: 3,
       created_at: preciseZeroTail,
     });
+  });
+
+  it("replays month-end RFC 3339 leap seconds without folding them into the next minute", () => {
+    store = new SqliteRawHistoryStore(databasePath);
+    const canonical = store.ingest({
+      session_id: "leap-second",
+      source_event_id: "canonical-leap-source",
+      role: "user",
+      content: "canonical leap second",
+      created_at: "2017-01-01T07:59:60+08:00",
+    });
+    expect(canonical).toMatchObject({
+      seq: 1,
+      created_at: "2016-12-31T23:59:60.000Z",
+    });
+    store.close();
+
+    const direct = new DatabaseSync(databasePath);
+    direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      "historical-leap",
+      "leap-second",
+      2,
+      "historical-leap-source",
+      "assistant",
+      "historical leap second",
+      "message",
+      "2016-12-31T23:59:60Z",
+      5,
+      "{}",
+      null
+    );
+    direct.close();
+
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(store.getSessionEvents("leap-second")[1]).toMatchObject({
+      id: "historical-leap",
+      created_at: "2016-12-31T23:59:60Z",
+    });
+    expect(store.ingest({
+      session_id: "leap-second",
+      source_event_id: "historical-leap-source",
+      role: "assistant",
+      content: "historical leap second",
+      event_type: "message",
+      created_at: "2017-01-01T07:59:60.000+08:00",
+      token_count: 5,
+      metadata: {},
+    })).toMatchObject({ id: "historical-leap", created_at: "2016-12-31T23:59:60Z" });
+    expect(() => store?.ingest({
+      session_id: "leap-second",
+      source_event_id: "historical-leap-source",
+      role: "assistant",
+      content: "historical leap second",
+      event_type: "message",
+      created_at: "2017-01-01T00:00:00Z",
+      token_count: 5,
+      metadata: {},
+    })).toThrow(/conflicts with existing raw evidence/);
   });
 
   it("rejects update and delete even through a separate database connection", () => {

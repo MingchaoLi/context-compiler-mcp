@@ -1,6 +1,6 @@
 # WO-PUB-02 — Raw Timestamp Compatibility
 
-状态：BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
+状态：SECOND BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
 
 Planning baseline：`db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`
 
@@ -10,7 +10,11 @@ Returned candidate：`462e35f58bb1bdd0b4f50dc833aa6925097b8292`
 
 Independent QA return：`64f787606b18d138c67b880ec43a1bd198629680`
 
-Fix candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 必须先固定其完整 SHA。
+First fixed candidate：`dfe71d3e36cf6304c4cb88abc0cec9d14c01c525`
+
+Fresh Independent re-QA return：`beacfca3f02d58184ebbe4a89e056d11ffb6830f`
+
+Second fixed candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 必须先固定其完整 SHA。
 
 ## 背景
 
@@ -49,7 +53,8 @@ Fix candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 
 - 所有 retained rows 仍须逐条满足现有 row shape、timestamp grammar、positive unique seq、scope/session 与
   append-only integrity；本工单不把 corruption 检查降级为“全部接受”。
 - 历史 compatibility grammar 覆盖 RFC 3339 seconds 与 `1*DIGIT` fractional seconds（不设隐藏 9 位或
-  总长度 ceiling）、`Z`/numeric offset；validator 返回原 stored bytes。
+  总长度 ceiling）、`Z`/numeric offset，以及换算到 UTC 月末 `23:59:60` 的 leap second；validator 返回
+  原 stored bytes。
 - compile、Hot Raw/reopen、recall 和 exact replay 如需稳定顺序，必须使用 `seq` 及其既有 tie-free contract，
   不能按 `created_at` 重新排序。
 - direct Raw store 与公开 event/range/headline/keyword recall 必须复用同一历史 timestamp acceptance domain；
@@ -65,6 +70,8 @@ Fix candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 
 - source timestamp 相同、跨时区等价输入经新 writer canonicalization 后，reader 均只验证单条合法性。
 - 历史高精度 timestamp 的 idempotent retry 必须比较精确 instant；不能把 `.123999...` 截断为 `.123`，
   但 `.123000...` 与 `.123`、以及等价 offset 表示可以保持同一 instant identity。比较不得改写历史 bytes。
+- leap second 必须使用独立 instant identity；不得折叠为下一分钟，等价 offset retry 可幂等，普通下一分钟
+  必须 conflict。非 UTC 月末的 `:60` 与任何 `:61` 仍为非法时间。
 - 现有非法/非 canonical/tampered row 的 fail-closed 行为只在有 repository contract 支撑时保留；若历史
   writer 曾合法产生某形状，reader 不得新增更窄条件拒绝它。
 
@@ -117,6 +124,11 @@ Fix candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 
 非法 stored timestamp 可从公开 `recall_exact` 穿透。修复把 historical fraction 扩为完整 `1*DIGIT`，
 用 UTC whole-second + 去尾零 fraction 表达精确 instant identity，并让 Raw Store 与全部 recall row readers
 复用同一 validator。无 schema migration、row rewrite 或范围扩张。
+
+第二次 fresh re-QA 确认以上三个 P1 全部关闭，但证明实际历史 leap second
+`2016-12-31T23:59:60Z` 仍被 parser 的 `second > 59` 检查拒绝。第二 append-only fix 以 normal/leap
+discriminator 保持独立 exact instant，只允许换算到 UTC 月末 `23:59:60` 的 RFC 3339 形状，支持 offset
+等价重试并拒绝折叠到下一分钟；历史 row 继续原样 replay。
 
 ## 明确不做
 

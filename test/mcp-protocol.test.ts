@@ -623,6 +623,24 @@ describe("Context Compiler stdio MCP protocol", () => {
       });
       expect(invalid.isError).toBe(true);
       expect(parse(invalid)).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
+
+      const appendedLeap = parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: "raw-timestamp-leap-writer",
+          role: "user",
+          content: "new leap second append",
+          created_at: "2017-01-01T07:59:60+08:00",
+        },
+      })) as any;
+      expect(appendedLeap).toMatchObject({
+        ok: true,
+        result: { seq: 1, created_at: "2016-12-31T23:59:60.000Z" },
+      });
+      expect(parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: "raw-timestamp-leap-writer", current_input: "continue" },
+      }))).toMatchObject({ ok: true });
     } finally {
       await close(connection);
     }
@@ -631,6 +649,8 @@ describe("Context Compiler stdio MCP protocol", () => {
     const legacyTimestamp = "2025-12-31T23:59:59Z";
     const preciseId = "precise-raw-timestamp-event";
     const preciseTimestamp = "2025-12-31T23:59:59.1239999990Z";
+    const leapId = "leap-second-raw-event";
+    const leapTimestamp = "2016-12-31T23:59:60Z";
     const direct = new DatabaseSync(database);
     expect(direct.prepare(
       "SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?"
@@ -671,6 +691,24 @@ describe("Context Compiler stdio MCP protocol", () => {
       "{}",
       null
     );
+    direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      leapId,
+      sessionId,
+      5,
+      "leap-second-source-event",
+      "user",
+      "historical leap second timestamp bytes",
+      "message",
+      leapTimestamp,
+      9,
+      "{}",
+      null
+    );
     direct.close();
 
     connection = await connect(serverEntry, database);
@@ -708,6 +746,38 @@ describe("Context Compiler stdio MCP protocol", () => {
       });
       expect(conflictingPrecision.isError).toBe(true);
       expect(parse(conflictingPrecision)).toEqual({ ok: false, error: { code: "CONFLICT" } });
+      const leapRetry = parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "leap-second-source-event",
+          role: "user",
+          content: "historical leap second timestamp bytes",
+          event_type: "message",
+          created_at: "2017-01-01T07:59:60.000+08:00",
+          token_count: 9,
+          metadata: {},
+        },
+      })) as any;
+      expect(leapRetry).toMatchObject({
+        ok: true,
+        result: { id: leapId, seq: 5, created_at: leapTimestamp },
+      });
+      const leapFoldConflict = await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "leap-second-source-event",
+          role: "user",
+          content: "historical leap second timestamp bytes",
+          event_type: "message",
+          created_at: "2017-01-01T00:00:00Z",
+          token_count: 9,
+          metadata: {},
+        },
+      });
+      expect(leapFoldConflict.isError).toBe(true);
+      expect(parse(leapFoldConflict)).toEqual({ ok: false, error: { code: "CONFLICT" } });
       const compiled = parse(await connection.client.callTool({
         name: "compile_context",
         arguments: { session_id: sessionId, current_input: "replay legacy" },
@@ -716,6 +786,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       expectedRendered = compiled.result.context.rendered_context;
       expect(expectedRendered).toContain("legacy append-only timestamp bytes");
       expect(expectedRendered).toContain("high precision append-only timestamp bytes");
+      expect(expectedRendered).toContain("historical leap second timestamp bytes");
       const recalled = parse(await connection.client.callTool({
         name: "recall_exact",
         arguments: { session_id: sessionId, kind: "event_id", event_id: legacyId },
@@ -731,6 +802,14 @@ describe("Context Compiler stdio MCP protocol", () => {
       expect(recalledPrecise).toMatchObject({
         ok: true,
         result: { found: true, event: { id: preciseId, seq: 4, created_at: preciseTimestamp } },
+      });
+      const recalledLeap = parse(await connection.client.callTool({
+        name: "recall_exact",
+        arguments: { session_id: sessionId, kind: "event_id", event_id: leapId },
+      })) as any;
+      expect(recalledLeap).toMatchObject({
+        ok: true,
+        result: { found: true, event: { id: leapId, seq: 5, created_at: leapTimestamp } },
       });
     } finally {
       await close(connection);
@@ -756,6 +835,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       { seq: 2, created_at: "2026-08-01T00:00:00.000Z" },
       { seq: 3, created_at: legacyTimestamp },
       { seq: 4, created_at: preciseTimestamp },
+      { seq: 5, created_at: leapTimestamp },
     ]);
     expect(audit.prepare(
       "SELECT occurred_at FROM experience_ledger WHERE source_key = ?"
@@ -771,7 +851,7 @@ describe("Context Compiler stdio MCP protocol", () => {
     ).run(
       "invalid-historical-timestamp",
       sessionId,
-      5,
+      6,
       "invalid-historical-source",
       "user",
       "invalid historical timestamp must fail closed",

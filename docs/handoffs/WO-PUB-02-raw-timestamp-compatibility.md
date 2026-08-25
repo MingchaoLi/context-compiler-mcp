@@ -1,6 +1,6 @@
 # WO-PUB-02 Builder Handoff — Raw Timestamp Compatibility
 
-Status: **BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**
+Status: **SECOND BUILDER FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**
 
 Planning baseline: `db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`
 
@@ -10,8 +10,12 @@ Returned candidate: `462e35f58bb1bdd0b4f50dc833aa6925097b8292`
 
 Independent QA return: `64f787606b18d138c67b880ec43a1bd198629680`
 
-Fixed candidate: the commit containing this corrected handoff. Fresh Independent re-QA must resolve and
-pin its exact hash before review.
+First fixed candidate: `dfe71d3e36cf6304c4cb88abc0cec9d14c01c525`
+
+Fresh Independent re-QA return: `beacfca3f02d58184ebbe4a89e056d11ffb6830f`
+
+Second fixed candidate: the commit containing this corrected handoff. Fresh Independent re-QA must resolve
+and pin its exact hash before review.
 
 ## Bounded result
 
@@ -30,6 +34,7 @@ new ingest_event.created_at
 
 historical append-only Raw
   parseable RFC 3339 seconds / 1*DIGIT fractional seconds / Z or numeric offset
+  UTC month-end leap second :60 is an independent instant
   -> validate one timestamp
   -> preserve stored bytes exactly; never UPDATE/backfill
 
@@ -42,6 +47,9 @@ fail before a new append and stored invalid values fail closed on Raw Store, com
 shape. An exact idempotent retry compares UTC whole-second plus the complete significant fractional value;
 it never truncates sub-millisecond digits or rewrites a historical timestamp. Trailing fractional zeros and
 equivalent offsets remain the same instant.
+UTC month-end leap seconds canonicalize as `...:60.sssZ`; their identity is distinct from the following
+minute. Equivalent numeric-offset representations retry idempotently, while non-month-end `:60`, all `:61`
+values and a next-minute retry fail closed.
 
 The public `ingest_event.created_at` input schema is refined to `format: date-time` plus the frozen RFC 3339
 pattern. This is the only input-schema value change. Nine-tool identity/order, all other input schemas, public
@@ -55,7 +63,8 @@ Raw row using append-only INSERT with seconds-only timestamp bytes, closes and r
 an idempotent retry, compiles, exact-recalls and reopens again. The legacy timestamp and rendered context are
 byte-stable. A ten-digit fraction remains readable while a distinct millisecond-only retry conflicts. A later
 append-only row containing an invalid historical calendar value is rejected by compile and public exact
-recall; unit coverage closes event/range/headline/keyword recall shapes.
+recall; unit coverage closes event/range/headline/keyword recall shapes. An actual historical leap-second row
+survives stdio reopen/compile/recall and offset-equivalent retry byte-exact, without folding into the next minute.
 
 The test performs no Raw UPDATE/backfill/delete. The existing ledger mirror preserves the same legacy source
 time bytes. No database schema, migration version, revision axis, Frontier, Takeover, State, Fact/Relation,
@@ -83,11 +92,14 @@ src/recall.ts
 test/recall.test.ts
 ```
 
-The full append-only baseline-to-fixed-candidate range additionally contains the independent QA return report
-`docs/qa/WO-PUB-02-raw-timestamp-compatibility.md`, for fifteen total paths. The direct fix range from QA return
-`64f787606b18d138c67b880ec43a1bd198629680` to the fixed candidate changes exactly eleven paths: the five
-Builder authority/public docs, `src/core.ts`, `src/raw-store.ts`, new routed `src/recall.ts`, and the three
-corresponding tests. It does not alter the passing first-candidate assembler or MCP schema implementation.
+The full append-only baseline-to-second-fixed-candidate range additionally contains two independent QA return
+reports, `docs/qa/WO-PUB-02-raw-timestamp-compatibility.md` and
+`docs/qa/WO-PUB-02-raw-timestamp-compatibility-fix.md`, for sixteen total paths. The first direct fix range
+`64f787606b18d138c67b880ec43a1bd198629680..dfe71d3e36cf6304c4cb88abc0cec9d14c01c525`
+changed exactly eleven paths as previously recorded. The second direct fix range from
+`beacfca3f02d58184ebbe4a89e056d11ffb6830f` to the second fixed candidate changes exactly eight paths: the five
+Builder authority/public docs, `src/raw-store.ts`, `test/raw-store.test.ts` and `test/mcp-protocol.test.ts`.
+It does not alter the accepted precision/recall fixes, assembler or MCP schema implementation.
 
 No package, dependency, configuration, database schema, evaluation/official artifact, external QA material,
 Host or sibling-repository path is changed.
@@ -96,10 +108,10 @@ Host or sibling-repository path is changed.
 
 ```text
 npm exec vitest run test/raw-store.test.ts test/assembler.test.ts test/recall.test.ts test/mcp-protocol.test.ts
-PASS — 4 files / 111 tests
+PASS — 4 files / 113 tests
 
 npm test
-PASS — 37 files passed, 1 skipped / 584 tests passed, 1 skipped
+PASS — 37 files passed, 1 skipped / 586 tests passed, 1 skipped
 
 npm run build
 PASS — tsc -p tsconfig.json
@@ -117,8 +129,8 @@ network, credential or sibling Host source was read.
 
 The Builder does not approve this candidate. Fresh Independent QA must at minimum:
 
-1. pin fixed candidate, implementation baseline, QA return, fourteen-path Builder surface, fifteen-path full
-   append-only range and exact eleven-path fix range;
+1. pin second fixed candidate, implementation baseline, both QA returns, fourteen-path Builder surface,
+   sixteen-path full append-only range, exact eleven-path first fix and eight-path second fix;
 2. independently prove writer normalization and reverse/equal/late/offset/future time acceptance in `seq` order;
 3. create a historical row only by append-only INSERT, then prove reopen, idempotent retry, compile, Hot Raw,
    exact recall and second replay preserve its timestamp/body bytes without UPDATE/backfill;
@@ -143,3 +155,9 @@ The fix removes the hidden historical precision ceiling, preserves full signific
 and validates stored Raw timestamps in Raw Store plus event/range/headline/keyword recall readers. Tests use
 ten-digit public stdio evidence and over-100-character unit precision, including non-zero conflict and
 zero-tail equivalence. No existing commit or Raw row is rewritten.
+
+Second fresh Independent re-QA proved all three original findings closed, then returned the first fix because
+an actual RFC 3339 leap second `2016-12-31T23:59:60Z` was still rejected after append-only reopen. The second
+fix models leap seconds separately from ordinary seconds, validates their UTC month-end placement, preserves
+stored bytes, accepts equivalent offsets and keeps the following minute a conflicting instant. Focused tests
+cover direct store, real stdio compile/recall, second reopen and invalid non-month-end forms.

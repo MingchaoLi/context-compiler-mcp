@@ -102,25 +102,32 @@ function parseRawEventTimestamp(value: unknown, pattern: RegExp): ParsedRawEvent
   const offsetMinute = match[11] === undefined ? 0 : Number(match[11]);
   if (
     month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month) ||
-    hour > 23 || minute > 59 || second > 59 || offsetHour > 23 || offsetMinute > 59
+    hour > 23 || minute > 59 || second > 60 || offsetHour > 23 || offsetMinute > 59
   ) {
     throw new RawEventTimestampError();
   }
+  const leapSecond = second === 60;
   const millisecond = Number(fraction.padEnd(3, "0").slice(0, 3));
   const local = new Date(0);
   local.setUTCFullYear(year, month - 1, day);
-  local.setUTCHours(hour, minute, second, 0);
+  local.setUTCHours(hour, minute, leapSecond ? 59 : second, 0);
   const offsetSign = match[9] === "-" ? -1 : 1;
   const offsetMilliseconds = offsetSign * (offsetHour * 60 + offsetMinute) * 60_000;
-  const utcSecond = new Date(local.getTime() - offsetMilliseconds).toISOString();
-  const canonical = new Date(local.getTime() - offsetMilliseconds + millisecond).toISOString();
+  const utcSecondInstant = new Date(local.getTime() - offsetMilliseconds);
+  const utcSecond = utcSecondInstant.toISOString();
+  if (leapSecond && !isUtcMonthEndLeapSecond(utcSecondInstant)) {
+    throw new RawEventTimestampError();
+  }
+  const canonical = leapSecond
+    ? `${utcSecond.slice(0, 17)}60.${String(millisecond).padStart(3, "0")}Z`
+    : new Date(local.getTime() - offsetMilliseconds + millisecond).toISOString();
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(canonical)) {
     throw new RawEventTimestampError();
   }
   const significantFraction = fraction.replace(/0+$/u, "");
   return {
     canonical_milliseconds: canonical,
-    exact_instant_identity: `${utcSecond.slice(0, 19)}Z/${significantFraction}`,
+    exact_instant_identity: `${leapSecond ? "leap" : "regular"}/${utcSecond.slice(0, 19)}Z/${significantFraction}`,
   };
 }
 
@@ -460,6 +467,13 @@ function daysInMonth(year: number, month: number): number {
     return leap ? 29 : 28;
   }
   return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function isUtcMonthEndLeapSecond(value: Date): boolean {
+  const year = value.getUTCFullYear();
+  const month = value.getUTCMonth() + 1;
+  return value.getUTCHours() === 23 && value.getUTCMinutes() === 59 && value.getUTCSeconds() === 59 &&
+    value.getUTCDate() === daysInMonth(year, month);
 }
 
 function rowToEvent(row: DatabaseRow): RawEvent {
