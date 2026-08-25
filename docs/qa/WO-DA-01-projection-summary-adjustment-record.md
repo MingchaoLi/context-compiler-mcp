@@ -2,9 +2,9 @@
 
 Status: **FAIL / RETURN TO IMPLEMENTATION**
 
-Reviewed candidate: `871e5267a0afd3385b9812af98f7648f0a89c5b7`  
-Direct parent / planning authority: `49c180d865a0a7a1abef05a6aceaaf4c8a3fae7b`  
-Planning baseline: `0a2d4437bc2b80714ae819654e5f41aab7a1a41e`  
+Reviewed candidate: `871e5267a0afd3385b9812af98f7648f0a89c5b7`<br>
+Direct parent / planning authority: `49c180d865a0a7a1abef05a6aceaaf4c8a3fae7b`<br>
+Planning baseline: `0a2d4437bc2b80714ae819654e5f41aab7a1a41e`<br>
 Review date: 2026-08-25
 
 ## Verdict
