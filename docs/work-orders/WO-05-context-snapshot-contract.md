@@ -1,7 +1,7 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** BOUNDED GATE REOPEN AUTHORIZED — REPAIR BASELINE NOT YET FROZEN；
+**状态：** QA-RETURN PRE-SOURCE GATE FROZEN — APPEND-ONLY SOURCE REPAIR AUTHORIZED；
 SOURCE FIX NOT STARTED<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
@@ -171,6 +171,26 @@ S5 exact retry + concurrent same-ID freeze                        -> one binding
 ```
 
 Gate 重开前必须先用 standalone repair baseline manifest 固定 QA-return source world。
+
+Repair baseline 已由 standalone commit
+`9200d539c06698543542e027c28d2491f3bfbc91` 固定；bounded Gate Addendum 已冻结在：
+
+```text
+docs/architecture/WO-05-fact-relation-projection-receipt-gate-addendum.md
+docs/inventory/WO-05/fact-relation-projection-receipt-schema-map.md
+```
+
+冻结选择为：`canonical-fact-relation` owner 的 additive v1 receipt sub-schema 保存完整 immutable
+canonical projection materialization；owner 从 scope + subject Snapshot ID 派生 receipt ID，Snapshot
+Manifest v2 只绑定 receipt ID/hash；exact replay 先读取 owner receipt 再重建完整历史依赖图。
+Snapshot v2 与 receipt/Snapshot/Attempt 在同一 `BEGIN IMMEDIATE` 中 capture/readback/commit，失败
+全部 rollback。Fact/Relation accepted v1 authority schema/policy 不变，不增加第六全局轴。
+返回候选的 Snapshot v1 marker 因缺少可安全回填的历史完整投影而 fail closed，不允许从旧
+Manifest selected refs 或当前 Fact/Relation world 补造 receipt。
+
+Gate 机械审计确认现有 immutable object revisions、owner same-handle seam 与 Snapshot transaction
+足够；无需 substrate extension。source repair 现只允许在 Addendum/schema map 的 exact allowlist
+内 append-only 开始，S0–S5 不可删减。
 
 ---
 
@@ -376,6 +396,8 @@ Builder 可以少改但不得新增 source/test/config path。`src/revision-subs
 
 - [x] Execution Baseline fixed in a standalone pre-source commit.
 - [x] Snapshot Composition Gate mechanically proven and frozen before source.
+- [x] QA-return repair baseline and owner-side projection-receipt Gate Addendum frozen before fix.
+- [x] Receipt owner/complete materialization/identity/hash/transaction/replay/migration/S0–S5 frozen.
 - [x] Exact manifest/projection/assembly/config grammar + policy hashes frozen first.
 - [x] Explicit scope only；无 Host/session/task inference 或 cross-scope fallback.
 - [x] One consistent committed authority world；并发 late writes 不进入 frozen Snapshot.
@@ -401,8 +423,7 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 提交历史或边 QA 边实现。
 
 Builder candidate `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 与 QA return commit `88e8da7`
-保持 append-only。当前不得继续 source fix；必须先决定是否重开 pre-source Gate，为
-Fact/Relation owner 新增一个与 Snapshot 同事务、axis-neutral、immutable 的完整投影 receipt。
-仅在新 Gate 证明 owner、schema、transaction、retry/replay 和迁移合同后才可 append-only
-修复；不得用另一个同 Manifest 哈希代替独立 owner proof。本状态不授权 Host、
-WO-06/07、MCP 或 frozen v0 改写。
+保持 append-only。repair baseline `9200d53` 和 bounded owner-receipt Gate 已冻结；Builder 只能
+按 Gate exact allowlist 做新的 append-only fix candidate，不得改写返回历史或用另一个
+Snapshot/Manifest hash 代替独立 owner proof。本状态不授权 Host、WO-06/07、MCP 或 frozen v0
+改写；修复后仍必须由新的物理分离 Independent QA 重跑原攻击与 S0–S5。
