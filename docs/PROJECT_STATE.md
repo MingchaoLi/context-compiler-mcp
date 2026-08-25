@@ -21,11 +21,12 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 ## Latest delivery status
 
-WO-BRAND-01 RippleContext Project Identity 当前为 **IN PROGRESS / INDEPENDENT QA NOT STARTED**。
+WO-BRAND-01 RippleContext Project Identity 当前为 **BUILDER HANDOFF COMPLETE / INDEPENDENT QA PENDING**。
 Execution baseline 为 `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`，pre-source Gate commit 为
 `67d8b9088e8e9651d81def65c0cd174390785eb4`。该工单仅把公开产品/项目名设为
 `RippleContext`，保留 `context-compiler-mcp` 全部技术兼容身份；不修改 source、schema、test、
-package-lock、MCP、数据库、算法或宿主边界。
+package-lock、MCP、数据库、算法或宿主边界。Builder source candidate 为
+`01476363afea02a2073892c8e42ccb5662cd9e94`。
 
 WO-PUB-02 Raw Timestamp Compatibility 状态为 **ACCEPTED / COMPLETE**。implementation baseline
 `b9b2dedebf97c6d9c66369af4aaab70904f73fe9` 后的首次 candidate
