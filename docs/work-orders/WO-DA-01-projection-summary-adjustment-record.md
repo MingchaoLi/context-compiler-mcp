@@ -1,6 +1,6 @@
 # WO-DA-01 — Current Authority / Snapshot + Rolling Summary Adjustment Record
 
-**状态：** APPEND-ONLY FIX COMPLETE / AWAITING FRESH INDEPENDENT RE-QA
+**状态：** ACCEPTED / COMPLETE
 **类型：** docs-only downstream decision reconciliation
 **Planning baseline:** `0a2d4437bc2b80714ae819654e5f41aab7a1a41e` on `main`, clean
 **Planning authority commit:** `49c180d865a0a7a1abef05a6aceaaf4c8a3fae7b`
@@ -42,6 +42,12 @@ hash 与零 runtime delta 均通过 Independent QA，但 QA commit
 裁决 `FAIL / RETURN TO IMPLEMENTATION`；format-only append-only commit 为
 `d2e7053e3fcfe2592f18ad6fa996dde5bb42b27e`。本修复只把该句限定为 planning baseline
 历史输入，不改变 DA-12、DA-15 或任何其他合同。fresh re-QA 必须重新验证当前 fixed candidate。
+
+append-only fixed candidate `d66df12626251cee0fd960e8b7fe96e568fb08c2` 已由 fresh
+Independent re-QA commit `5289a308ed5b80a267548784da8eea7d751afcf6` 接受；QA report
+format-only append-only commit 为 `244f37d5b3f99f2f0977f47226394ddaab22194b`。re-QA 确认
+planning-baseline 时间语义、完整 append-only path range、DA-12/DA-15 合同与零 runtime/config
+delta 均通过。
 
 ## 3. Current Authority / ContextSnapshot decision
 
@@ -172,7 +178,7 @@ docs/qa/WO-DA-01-projection-summary-adjustment-record-fix.md
 - [x] A0 使用 canonical Current Input + Frontier-bound Hot Raw + Current Authority。
 - [x] source/schema/test/config/package/evaluation/official artifact 零变化。
 - [x] Builder handoff 存在且不自批。
-- [ ] fresh Independent QA 单独接受 fixed candidate。
+- [x] fresh Independent QA 单独接受 fixed candidate。
 - [x] `git diff --check`、exact path audit 与禁止项机械搜索通过。
 
 ## 9. Builder / QA separation
