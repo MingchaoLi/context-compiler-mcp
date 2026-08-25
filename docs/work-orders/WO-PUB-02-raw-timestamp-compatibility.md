@@ -1,6 +1,6 @@
 # WO-PUB-02 — Raw Timestamp Compatibility
 
-状态：SECOND BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
+状态：ACCEPTED / COMPLETE
 
 Planning baseline：`db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`
 
@@ -14,7 +14,9 @@ First fixed candidate：`dfe71d3e36cf6304c4cb88abc0cec9d14c01c525`
 
 Fresh Independent re-QA return：`beacfca3f02d58184ebbe4a89e056d11ffb6830f`
 
-Second fixed candidate：包含修正 handoff 的下一 append-only commit；fresh re-QA 必须先固定其完整 SHA。
+Second fixed candidate：`cc63a5dea5189be771292d5932ada6b6ac88083d`
+
+Accepting fresh Independent re-QA：`f72503eea8dcbc33278c4345fd1dc599c9d682a0`
 
 ## 背景
 
@@ -129,6 +131,10 @@ Second fixed candidate：包含修正 handoff 的下一 append-only commit；fre
 `2016-12-31T23:59:60Z` 仍被 parser 的 `second > 59` 检查拒绝。第二 append-only fix 以 normal/leap
 discriminator 保持独立 exact instant，只允许换算到 UTC 月末 `23:59:60` 的 RFC 3339 形状，支持 offset
 等价重试并拒绝折叠到下一分钟；历史 row 继续原样 replay。
+
+第二 fixed candidate 已由全新 Independent re-QA 接受。QA 独立复现 leap-second 与前两轮全部反例，
+确认 exact 8/11/14/16-path ranges、tools/list 唯一 schema refinement、105/105 package exports、DB schema
+等价、production-only package、focused 113/113、全量 586 passed / 1 skipped、build 与 diff-check 全部通过。
 
 ## 明确不做
 

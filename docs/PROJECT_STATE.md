@@ -16,16 +16,18 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
-WO-PUB-02 Raw Timestamp Compatibility 状态为 **SECOND BUILDER FIX COMPLETE / PENDING FRESH
-INDEPENDENT RE-QA**，implementation baseline `b9b2dedebf97c6d9c66369af4aaab70904f73fe9` 后的首次 candidate
+WO-PUB-02 Raw Timestamp Compatibility 状态为 **ACCEPTED / COMPLETE**。implementation baseline
+`b9b2dedebf97c6d9c66369af4aaab70904f73fe9` 后的首次 candidate
 `462e35f58bb1bdd0b4f50dc833aa6925097b8292` 已被 QA
 `64f787606b18d138c67b880ec43a1bd198629680` 退回：历史十位小数被拒、sub-ms instant 被截断合并、非法
 stored timestamp 可穿透 `recall_exact`。first fix `dfe71d3e36cf6304c4cb88abc0cec9d14c01c525` 支持完整 RFC 3339 `1*DIGIT` 历史精度，用完整
 significant fraction 比较 idempotent instant，并统一 Raw Store 与 event/range/headline/keyword recall validator。
 fresh re-QA `beacfca3f02d58184ebbe4a89e056d11ffb6830f` 确认三项关闭后又发现 actual leap second
 `:60` 无法 replay；second fix 为 UTC 月末 leap second 保留独立 instant，支持 offset 等价 retry 且不折叠
-到下一分钟。新 writer 仍只接受公开 1–3 位小数并 canonicalize；历史 bytes 不 UPDATE/backfill。Focused
-113/113、全量 586 passed / 1 skipped、构建与 production-only package 已通过；等待 fresh re-QA。范围未扩大到 schema
+到下一分钟。second fixed candidate `cc63a5dea5189be771292d5932ada6b6ac88083d` 已由 fresh Independent
+re-QA `f72503eea8dcbc33278c4345fd1dc599c9d682a0` 接受。新 writer 仍只接受公开 1–3 位小数并
+canonicalize；历史 bytes 不 UPDATE/backfill。Focused 113/113、全量 586 passed / 1 skipped、构建、
+production-only package、schema/exports/DB schema/diff 均通过。范围未扩大到 schema
 migration、event size、user-turn/role、import、Retrieval、State 或 Natural QA holdout。
 
 WO-PUB-01 Public MCP Result Boundary 已完成，状态为 **ACCEPTED / COMPLETE**。Builder source
