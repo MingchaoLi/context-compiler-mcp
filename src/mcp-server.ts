@@ -14,6 +14,7 @@ import {
 import type {
   ContextCompilerMcpService,
   ContextCompilerToolName,
+  ContextCompilerToolResponse,
 } from "./mcp-service.js";
 import { acquireSqliteExperimentalWarningFilter } from "./sqlite-warning.js";
 
@@ -202,7 +203,9 @@ export function createContextCompilerMcpServer(service: ContextCompilerMcpServic
     if (!CONTEXT_COMPILER_CAPABILITIES.includes(name as ContextCompilerToolName)) {
       return response({ ok: false, error: { code: "INVALID_INPUT" } }, true);
     }
-    const result = service.call(name as ContextCompilerToolName, request.params.arguments ?? {});
+    const toolName = name as ContextCompilerToolName;
+    const internal = service.call(toolName, request.params.arguments ?? {});
+    const result = projectPublicToolResponse(toolName, internal);
     return response(result, !result.ok);
   });
   return server;
@@ -252,6 +255,106 @@ export async function runContextCompilerMcpServer(
 
 function response(value: unknown, isError: boolean): CallToolResult {
   return { content: [{ type: "text", text: JSON.stringify(value) }], ...(isError ? { isError: true } : {}) };
+}
+
+interface PublicCompileContextResult {
+  context: {
+    session_id: string;
+    rendered_context: string;
+    budget_exceeded: boolean;
+    budget_overage: number;
+  };
+  metrics: PublicCompileContextMetrics;
+}
+
+interface PublicCompileContextMetrics {
+  full_context_tokens: number;
+  compiled_context_tokens: number;
+  recent_window_tokens: number;
+  active_state_tokens: number;
+  retrieved_tokens: number;
+  compile_latency_ms: number;
+  extractor_latency_ms: number;
+  active_state_items: number;
+  suppressed_items: number;
+}
+
+function projectPublicToolResponse(
+  name: ContextCompilerToolName,
+  responseValue: unknown
+): ContextCompilerToolResponse {
+  if (name !== "compile_context") return responseValue as ContextCompilerToolResponse;
+  try {
+    const envelope = plainRecord(responseValue);
+    if (!booleanField(envelope, "ok")) return responseValue as ContextCompilerToolResponse;
+    return { ok: true, result: projectPublicCompileContext(dataField(envelope, "result")) };
+  } catch {
+    return { ok: false, error: { code: "INTERNAL_FAILURE" } };
+  }
+}
+
+function projectPublicCompileContext(value: unknown): PublicCompileContextResult {
+  const result = plainRecord(value);
+  const context = plainRecord(dataField(result, "context"));
+  const metrics = plainRecord(dataField(result, "metrics"));
+  return {
+    context: {
+      session_id: stringField(context, "session_id"),
+      rendered_context: stringField(context, "rendered_context"),
+      budget_exceeded: booleanField(context, "budget_exceeded"),
+      budget_overage: nonNegativeSafeIntegerField(context, "budget_overage"),
+    },
+    metrics: {
+      full_context_tokens: nonNegativeSafeIntegerField(metrics, "full_context_tokens"),
+      compiled_context_tokens: nonNegativeSafeIntegerField(metrics, "compiled_context_tokens"),
+      recent_window_tokens: nonNegativeSafeIntegerField(metrics, "recent_window_tokens"),
+      active_state_tokens: nonNegativeSafeIntegerField(metrics, "active_state_tokens"),
+      retrieved_tokens: nonNegativeSafeIntegerField(metrics, "retrieved_tokens"),
+      compile_latency_ms: nonNegativeFiniteNumberField(metrics, "compile_latency_ms"),
+      extractor_latency_ms: nonNegativeFiniteNumberField(metrics, "extractor_latency_ms"),
+      active_state_items: nonNegativeSafeIntegerField(metrics, "active_state_items"),
+      suppressed_items: nonNegativeSafeIntegerField(metrics, "suppressed_items"),
+    },
+  };
+}
+
+function plainRecord(value: unknown): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) throw new Error();
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) throw new Error();
+  return value as Record<string, unknown>;
+}
+
+function dataField(value: Record<string, unknown>, key: string): unknown {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor?.enumerable || !("value" in descriptor)) throw new Error();
+  return descriptor.value;
+}
+
+function stringField(value: Record<string, unknown>, key: string): string {
+  const field = dataField(value, key);
+  if (typeof field !== "string") throw new Error();
+  return field;
+}
+
+function booleanField(value: Record<string, unknown>, key: string): boolean {
+  const field = dataField(value, key);
+  if (typeof field !== "boolean") throw new Error();
+  return field;
+}
+
+function nonNegativeSafeIntegerField(value: Record<string, unknown>, key: string): number {
+  const field = dataField(value, key);
+  if (!Number.isSafeInteger(field) || (field as number) < 0) throw new Error();
+  return field as number;
+}
+
+function nonNegativeFiniteNumberField(value: Record<string, unknown>, key: string): number {
+  const field = dataField(value, key);
+  if (typeof field !== "number" || !Number.isFinite(field) || field < 0 || Object.is(field, -0)) {
+    throw new Error();
+  }
+  return field;
 }
 
 function tool(name: ContextCompilerToolName, description: string, inputSchema: Tool["inputSchema"]): Tool {

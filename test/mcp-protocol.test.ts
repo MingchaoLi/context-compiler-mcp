@@ -14,6 +14,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   acquireSqliteExperimentalWarningFilter,
+  createContextCompilerMcpServer,
   runContextCompilerMcpServer,
 } from "../src/mcp-server.js";
 import { ContextCompilerMcpService } from "../src/mcp-service.js";
@@ -318,7 +319,12 @@ describe("Context Compiler stdio MCP protocol", () => {
       }))).toMatchObject({
         ok: true,
         result: {
-          context: { active_goals: [{ content: "Protocol state" }] },
+          context: {
+            session_id: "proto",
+            rendered_context: expect.stringContaining("Protocol state"),
+            budget_exceeded: false,
+            budget_overage: 0,
+          },
           metrics: { retrieved_tokens: 0, extractor_latency_ms: 0 },
         },
       });
@@ -378,9 +384,182 @@ describe("Context Compiler stdio MCP protocol", () => {
       }))).toMatchObject({ ok: true, result: [{ headline: { headline: "Protocol durable" } }] });
       expect(parse(await connection.client.callTool({
         name: "compile_context", arguments: { session_id: longSession, current_input: "again" },
-      }))).toMatchObject({ ok: true, result: { context: { recent_conversation: [{ content: "long" }] } } });
+      }))).toMatchObject({
+        ok: true,
+        result: { context: { rendered_context: expect.stringContaining("long") } },
+      });
     } finally {
       await close(connection);
+    }
+  });
+
+  it("projects compile_context to a closed public DTO while preserving internal diagnostics", async () => {
+    const database = join(temporaryRoot, "public-result-boundary.db");
+    const sessionId = "public-result-boundary";
+    const service = new ContextCompilerMcpService(database);
+    const oldUser = service.call("ingest_event", {
+      session_id: sessionId,
+      role: "user",
+      content: "old alpha evidence",
+      dense_embedding: { vector_space_id: "public-v1", values: [1, 0] },
+    }) as any;
+    expect(oldUser.ok).toBe(true);
+    expect(service.call("ingest_event", {
+      session_id: sessionId,
+      role: "assistant",
+      content: "old beta response",
+      dense_embedding: { vector_space_id: "public-v1", values: [0, 1] },
+    })).toMatchObject({ ok: true });
+    const recentUser = service.call("ingest_event", {
+      session_id: sessionId,
+      role: "user",
+      content: "recent turn",
+      dense_embedding: { vector_space_id: "public-v1", values: [1, 0] },
+    }) as any;
+    expect(recentUser.ok).toBe(true);
+    const prepared = service.call("prepare_state_update", {
+      session_id: sessionId,
+      newest_event_ids: [recentUser.result.id],
+    }) as any;
+    expect(prepared.ok).toBe(true);
+    expect(service.call("apply_state_delta", {
+      session_id: sessionId,
+      preparation_token: prepared.result.preparation_token,
+      fingerprint: prepared.result.fingerprint,
+      expected_revision: prepared.result.expected_revision,
+      delta: {
+        ...emptyDelta(),
+        new_goals: [{ content: "Internal state remains available", source_refs: [recentUser.result.id] }],
+      },
+    })).toMatchObject({ ok: true, result: { changed: true } });
+
+    const internal = service.call("compile_context", {
+      session_id: sessionId,
+      current_input: "alpha",
+      recent_raw_window_turns: 1,
+      operation_id: "internal-control",
+      dense_query: { vector_space_id: "public-v1", values: [1, 0] },
+    }) as any;
+    expect(internal).toMatchObject({
+      ok: true,
+      result: {
+        context: {
+          active_goals: [{ content: "Internal state remains available" }],
+          retrieved_history: [{ id: oldUser.result.id }],
+          operational_debug: {
+            candidate_event_ids: expect.any(Array),
+            score_rows: expect.any(Array),
+            compile_trace_id: expect.any(String),
+          },
+          debug_manifest: { kept_raw_event_ids: expect.any(Array) },
+        },
+      },
+    });
+    const expectedRendered = internal.result.context.rendered_context;
+    service.close();
+
+    const connection = await connect(serverEntry, database);
+    try {
+      const publicResponse = parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: {
+          session_id: sessionId,
+          current_input: "alpha",
+          recent_raw_window_turns: 1,
+          operation_id: "public-projection",
+          dense_query: { vector_space_id: "public-v1", values: [1, 0] },
+        },
+      })) as any;
+      expect(publicResponse.ok).toBe(true);
+      expect(Object.keys(publicResponse.result).sort()).toEqual(["context", "metrics"]);
+      expect(Object.keys(publicResponse.result.context)).toEqual([
+        "session_id", "rendered_context", "budget_exceeded", "budget_overage",
+      ]);
+      expect(Object.keys(publicResponse.result.metrics)).toEqual([
+        "full_context_tokens", "compiled_context_tokens", "recent_window_tokens",
+        "active_state_tokens", "retrieved_tokens", "compile_latency_ms",
+        "extractor_latency_ms", "active_state_items", "suppressed_items",
+      ]);
+      expect(publicResponse.result.context).toEqual({
+        session_id: sessionId,
+        rendered_context: expectedRendered,
+        budget_exceeded: false,
+        budget_overage: 0,
+      });
+      const publicKeys = collectKeys(publicResponse);
+      for (const key of FORBIDDEN_PUBLIC_COMPILE_KEYS) expect(publicKeys).not.toContain(key);
+    } finally {
+      await close(connection);
+    }
+
+    const audit = new DatabaseSync(database);
+    expect(audit.prepare(
+      "SELECT COUNT(*) AS count FROM experience_ledger WHERE kind = 'CONTEXT_COMPILE'"
+    ).get()).toEqual({ count: 2 });
+    audit.close();
+  });
+
+  it("ignores future internal fields and fails closed on malformed internal compile success", async () => {
+    const fakeService = {
+      call(name: string, input: any) {
+        if (name !== "compile_context") return { ok: false, error: { code: "INVALID_INPUT" } };
+        if (input.current_input === "malformed") {
+          return {
+            ok: true,
+            result: {
+              context: { session_id: "fake", budget_exceeded: false, budget_overage: 0 },
+              metrics: publicMetrics(),
+            },
+          };
+        }
+        return {
+          ok: true,
+          result: {
+            context: {
+              session_id: "fake",
+              rendered_context: "safe working context",
+              budget_exceeded: false,
+              budget_overage: 0,
+              operational_debug: { score_rows: [{ combined_score: 1 }] },
+              debug_manifest: { kept_raw_event_ids: ["private"] },
+              future_secret: "must not pass through",
+            },
+            metrics: { ...publicMetrics(), future_metric: 7 },
+            future_result: { candidate_event_ids: ["private"] },
+          },
+        };
+      },
+      close() {},
+    } as unknown as ContextCompilerMcpService;
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createContextCompilerMcpServer(fakeService);
+    const client = new Client({ name: "public-projection-test", version: "1.0.0" });
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    try {
+      const projected = parse(await client.callTool({
+        name: "compile_context", arguments: { session_id: "fake", current_input: "ok" },
+      })) as any;
+      expect(projected).toEqual({
+        ok: true,
+        result: {
+          context: {
+            session_id: "fake",
+            rendered_context: "safe working context",
+            budget_exceeded: false,
+            budget_overage: 0,
+          },
+          metrics: publicMetrics(),
+        },
+      });
+      const malformed = await client.callTool({
+        name: "compile_context", arguments: { session_id: "fake", current_input: "malformed" },
+      });
+      expect(malformed.isError).toBe(true);
+      expect(parse(malformed)).toEqual({ ok: false, error: { code: "INTERNAL_FAILURE" } });
+    } finally {
+      await client.close();
+      await server.close();
     }
   });
 
@@ -1167,6 +1346,66 @@ function emptyDelta() {
     rejected_alternatives: [],
     supersessions: [],
     new_relations: [],
+  };
+}
+
+const FORBIDDEN_PUBLIC_COMPILE_KEYS = [
+  "operational_debug",
+  "debug_manifest",
+  "candidate_turn_count",
+  "candidate_seq_start",
+  "candidate_seq_end",
+  "candidate_event_ids",
+  "score_rows",
+  "bm25_raw",
+  "bm25_normalized",
+  "dense_cosine",
+  "dense_nonnegative",
+  "combined_score",
+  "selected",
+  "retrieved_event_ids",
+  "telemetry_baseline_seq",
+  "telemetry_baseline_raw_seq",
+  "compile_trace_id",
+  "compile_trace_seq",
+  "retrieval_hit_ledger_ids",
+  "kept_state_ids",
+  "suppressed_state_ids",
+  "kept_raw_event_ids",
+  "dependency_edges",
+  "dependency_paths",
+  "dormant_state_ids",
+  "reactivated_state_ids",
+  "dependency_rescued_state_ids",
+  "future_secret",
+  "future_metric",
+  "future_result",
+] as const;
+
+function collectKeys(value: unknown, result: string[] = []): string[] {
+  if (Array.isArray(value)) {
+    for (const item of value) collectKeys(item, result);
+    return result;
+  }
+  if (typeof value !== "object" || value === null) return result;
+  for (const [key, child] of Object.entries(value)) {
+    result.push(key);
+    collectKeys(child, result);
+  }
+  return result;
+}
+
+function publicMetrics() {
+  return {
+    full_context_tokens: 1,
+    compiled_context_tokens: 2,
+    recent_window_tokens: 3,
+    active_state_tokens: 4,
+    retrieved_tokens: 5,
+    compile_latency_ms: 6,
+    extractor_latency_ms: 0,
+    active_state_items: 7,
+    suppressed_items: 8,
   };
 }
 

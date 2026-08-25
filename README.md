@@ -14,6 +14,12 @@ The current server exposes exactly nine tools:
 - `recall_exact`
 - `recall_keyword`
 
+公开 stdio `compile_context` 成功结果使用 closed-world allowlist：`context` 只返回
+`session_id`、最终 `rendered_context`、`budget_exceeded`、`budget_overage`，另返回有限数值
+`metrics`。候选列表、ranking/score、debug/manifest、trace/telemetry identity 与内部 raw/state/path
+清单不属于普通 MCP 用户结果。Library/Core 调用仍可保留完整内部诊断结果；未来新增内部字段不会自动
+穿透公开 MCP 边界。
+
 `compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。session 建立可信 compile telemetry baseline 之前，缺少 `operation_id` 仍保持历史 read-only；一旦首次带 id 的 trace 成功提交，后续该 session 缺 id compile 会以 `INVALID_INPUT` 拒绝，不能混用可观测与不可观测请求。带 id 时只把去正文、exact-shape 的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
 
 Operational compile 固定以下小边界：

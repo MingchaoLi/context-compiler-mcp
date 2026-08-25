@@ -1,6 +1,8 @@
 # WO-PUB-01 — Public MCP Result Boundary
 
-状态：PLANNED / NOT STARTED
+状态：BUILDER COMPLETE / PENDING INDEPENDENT QA
+
+Implementation baseline：`7a79ac6ba0bdbd4137640cf148ef810604f85bad`
 
 ## 背景
 
@@ -94,6 +96,7 @@ fail-closed 为现有 sanitized `INTERNAL_FAILURE`，不得部分返回。
 - `src/mcp-server.ts`；
 - `test/mcp-protocol.test.ts` 和必要的直接 stdio fixture；
 - README 的公开输出说明；
+- `docs/PROJECT_STATE.md` 与 `docs/ROADMAP.md` 的当前交付状态；
 - 本工单 Builder handoff。
 
 ## 验收

@@ -16,12 +16,14 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
-WO-PUB-01 Public MCP Result Boundary 已由用户授权建立，状态为 **PLANNED / NOT STARTED**，
-planning baseline 为 clean `main` `9f6bffff59ef13f9cf07c71dc188916af01aadfb`。工单只允许在
-stdio MCP `compile_context` 出口建立 closed-world public DTO，关闭 `operational_debug`、
-`debug_manifest`、candidate/ranking/score、trace/telemetry identity 与内部 raw/state/path 清单；
-Core/library 完整结果、retrieval/State/数据库/九工具 input/error 合同均冻结。实现必须经过真实 stdio、
-production-only pack 与 fresh Independent QA 后才可更新托管构建。
+WO-PUB-01 Public MCP Result Boundary 的 Builder 实现已完成，状态为
+**BUILDER COMPLETE / PENDING INDEPENDENT QA**；implementation baseline 为
+`7a79ac6ba0bdbd4137640cf148ef810604f85bad`。stdio MCP `compile_context` 现在以逐字段构造的
+closed-world public DTO 返回最终 `rendered_context`、预算结果与九项有限聚合 metrics；
+`operational_debug`、`debug_manifest`、candidate/ranking/score、trace/telemetry identity、内部
+raw/state/path 清单与未来未 promotion 字段不会穿透。Core/library 完整结果、retrieval/State/数据库、
+九工具 input/error 合同均保持不变。focused protocol 15/15、全量 571 passed / 1 skipped 与构建通过；
+在 fresh Independent QA 完成真实 stdio、production-only pack 与对抗投影检查前，不更新托管构建。
 
 WO-DA-01 Current Authority / Snapshot + Rolling Summary Adjustment Record 已完成，状态为
 **ACCEPTED / COMPLETE**。planning baseline 为 clean `main`
