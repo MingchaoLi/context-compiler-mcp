@@ -1,12 +1,20 @@
 # WO-PUB-01 — Public MCP Result Boundary
 
-状态：BUILDER FIX COMPLETE / PENDING FRESH INDEPENDENT RE-QA
+状态：ACCEPTED / COMPLETE
 
 Implementation baseline：`7a79ac631c4dd402b3cc157961e5844349d5c496`
 
 Returned candidate：`4643a4761a7c2b91837a198c2f7ebc340fcb8511`
 
 QA return：`6dbedcc417e5391b9023d6e251baa397b7fae2d9`
+
+Fixed candidate：`642b456f53a18a4bbce2276bf5d3b44f406fd9cb`
+
+Fresh Independent re-QA：`764a5c0b477bb059a21f7d4a3208d01bc41aa2ec`
+
+Hosted public release：`context-compiler-mcp 0.1.0`；维护窗口
+`2026-08-25T15:38:00+08:00`—`2026-08-25T15:41:45+08:00`；clean ordinary-user reconnect
+确认九工具可见且 `health.ready=true`。
 
 ## 背景
 
