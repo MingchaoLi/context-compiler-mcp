@@ -16,6 +16,9 @@ import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
 export const CANONICAL_FACT_RELATION_SCHEMA_VERSION = 1;
 export const CANONICAL_FACT_RELATION_POLICY_VERSION = "canonical-fact-relation/v1";
+export const CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION = 1;
+export const CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_VERSION =
+  "canonical-fact-relation-projection-receipt/v1";
 export const CANONICAL_FACT_ORIGINS = [
   "user_asserted",
   "tool_observed",
@@ -186,6 +189,20 @@ export interface CanonicalFactRelationProjection extends RevisionScope {
   relations: CommittedCanonicalRelation[];
 }
 
+/** @internal Immutable owner-side witness for one complete historical projection. */
+export interface CanonicalFactRelationProjectionReceiptInsideCore extends RevisionScope {
+  schema_version: 1;
+  projection_receipt_id: string;
+  projection_receipt_hash: string;
+  subject_snapshot_id: string;
+  observed_revision_vector: RevisionVector;
+  fact_relation_policy_hash: string;
+  receipt_policy_hash: string;
+  facts: CommittedCanonicalFact[];
+  relations: CommittedCanonicalRelation[];
+  created_at: string;
+}
+
 export class CanonicalFactRelationError extends Error {
   constructor(readonly code: CanonicalFactRelationErrorCode) {
     super(code);
@@ -305,6 +322,26 @@ const POLICY_DESCRIPTOR: JsonValue = {
 
 export const CANONICAL_FACT_RELATION_POLICY_HASH = sha256(canonicalJson(POLICY_DESCRIPTOR));
 
+const PROJECTION_RECEIPT_POLICY_DESCRIPTOR: JsonValue = {
+  bounds: {
+    identifier: MAX_IDENTIFIER_LENGTH,
+    total_objects: MAX_GRAPH_NODES,
+  },
+  capture: "complete-current-authoritative-fact-relation-projection",
+  content: "immutable-canonical-projection-materialization",
+  identity: "owner-derived-sha256-canonical-scope-plus-subject-snapshot-id",
+  owner: "canonical-fact-relation",
+  policy_version: CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_VERSION,
+  replay: "receipt-first-exact-owner-object-proof",
+  schema_version: CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION,
+  scope: "explicit-same-scope-only",
+  transaction: "caller-owned-sqlite-transaction-no-lifecycle",
+  vector: "observe-five-components-no-advance",
+};
+
+export const CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH =
+  sha256(canonicalJson(PROJECTION_RECEIPT_POLICY_DESCRIPTOR));
+
 /** @internal Normalized owner input accepted only by same-handle Core composition. */
 export interface NormalizedCanonicalFactRelationCommitInput
   extends CanonicalFactRelationCommitInput {
@@ -394,6 +431,22 @@ interface CommitRow extends Record<string, unknown> {
   result_json: string;
   created_at: string;
 }
+
+interface ProjectionReceiptRow extends Record<string, unknown> {
+  namespace: string;
+  stream_id: string;
+  projection_receipt_id: string;
+  subject_snapshot_id: string;
+  receipt_policy_hash: string;
+  projection_receipt_hash: string;
+  receipt_json: string;
+  created_at: string;
+}
+
+type ProjectionReceiptPayloadInsideCore = Omit<
+  CanonicalFactRelationProjectionReceiptInsideCore,
+  "projection_receipt_hash"
+>;
 
 interface ObjectRevisionEntry {
   object_id: string;
@@ -533,6 +586,80 @@ const SCHEMA_OBJECTS: ReadonlyArray<{
     ["cc_canonical_fact_revisions", "canonical fact revisions"],
     ["cc_canonical_relation_revisions", "canonical relation revisions"],
     ["cc_canonical_fact_relation_schema", "canonical fact/relation schema markers"],
+  ].flatMap(([table, label]) => [
+    {
+      type: "trigger" as const,
+      name: `${table}_no_update`,
+      sql: `CREATE TRIGGER ${table}_no_update
+        BEFORE UPDATE ON ${table}
+        BEGIN
+          SELECT RAISE(ABORT, '${label} are immutable');
+        END`,
+    },
+    {
+      type: "trigger" as const,
+      name: `${table}_no_delete`,
+      sql: `CREATE TRIGGER ${table}_no_delete
+        BEFORE DELETE ON ${table}
+        BEGIN
+          SELECT RAISE(ABORT, '${label} are append-only');
+        END`,
+    },
+  ]),
+];
+
+const PROJECTION_RECEIPT_SCHEMA_OBJECTS: ReadonlyArray<{
+  type: "table" | "trigger";
+  name: string;
+  sql: string;
+}> = [
+  {
+    type: "table",
+    name: "cc_canonical_fact_relation_projection_receipt_schema",
+    sql: `CREATE TABLE cc_canonical_fact_relation_projection_receipt_schema (
+      version INTEGER PRIMARY KEY CHECK (version > 0),
+      completed_at TEXT NOT NULL
+    )`,
+  },
+  {
+    type: "table",
+    name: "cc_canonical_fact_relation_projection_receipts",
+    sql: `CREATE TABLE cc_canonical_fact_relation_projection_receipts (
+      namespace TEXT NOT NULL CHECK (length(namespace) > 0 AND length(namespace) <= 500),
+      stream_id TEXT NOT NULL CHECK (length(stream_id) > 0 AND length(stream_id) <= 500),
+      projection_receipt_id TEXT NOT NULL CHECK (
+        length(projection_receipt_id) = 69 AND
+        substr(projection_receipt_id, 1, 5) = 'frpr-' AND
+        substr(projection_receipt_id, 6) NOT GLOB '*[^0-9a-f]*'
+      ),
+      subject_snapshot_id TEXT NOT NULL CHECK (
+        length(subject_snapshot_id) > 0 AND length(subject_snapshot_id) <= 500
+      ),
+      receipt_policy_hash TEXT NOT NULL CHECK (
+        receipt_policy_hash = '${CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH}'
+      ),
+      projection_receipt_hash TEXT NOT NULL CHECK (
+        length(projection_receipt_hash) = 64 AND
+        projection_receipt_hash NOT GLOB '*[^0-9a-f]*'
+      ),
+      receipt_json TEXT NOT NULL CHECK (json_valid(receipt_json)),
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (namespace, stream_id, projection_receipt_id),
+      UNIQUE (namespace, stream_id, subject_snapshot_id),
+      FOREIGN KEY (namespace, stream_id)
+        REFERENCES cc_revision_streams(namespace, stream_id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT
+    )`,
+  },
+  ...[
+    [
+      "cc_canonical_fact_relation_projection_receipt_schema",
+      "canonical fact/relation projection receipt schema markers",
+    ],
+    [
+      "cc_canonical_fact_relation_projection_receipts",
+      "canonical fact/relation projection receipts",
+    ],
   ].flatMap(([table, label]) => [
     {
       type: "trigger" as const,
@@ -1160,6 +1287,117 @@ export function readCanonicalFactRelationProjectionInsideCore(
   };
 }
 
+/** @internal Inspects the one owner receipt bound to a subject Snapshot identity. */
+export function inspectCanonicalFactRelationProjectionReceiptInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  subjectSnapshotIdValue: string
+): CanonicalFactRelationProjectionReceiptInsideCore | undefined {
+  validateProjectionReceiptSchema(database);
+  assertProjectionReceiptSchemaVersion(database);
+  const scope = normalizeScope(scopeValue);
+  const subjectSnapshotId = validateIdentifier(subjectSnapshotIdValue);
+  const row = database.prepare(
+    `SELECT namespace, stream_id, projection_receipt_id, subject_snapshot_id,
+            receipt_policy_hash, projection_receipt_hash, receipt_json, created_at
+     FROM cc_canonical_fact_relation_projection_receipts
+     WHERE namespace = ? AND stream_id = ? AND subject_snapshot_id = ?`
+  ).get(scope.namespace, scope.stream_id, subjectSnapshotId) as
+    ProjectionReceiptRow | undefined;
+  return row === undefined ? undefined :
+    projectionReceiptFromRowInsideCore(database, row, scope, subjectSnapshotId);
+}
+
+/** @internal Captures the complete owner projection in the caller-owned write transaction. */
+export function captureCanonicalFactRelationProjectionReceiptInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  subjectSnapshotIdValue: string,
+  observedValue: RevisionVector
+): CanonicalFactRelationProjectionReceiptInsideCore {
+  validateProjectionReceiptSchema(database);
+  assertProjectionReceiptSchemaVersion(database);
+  const scope = normalizeScope(scopeValue);
+  const subjectSnapshotId = validateIdentifier(subjectSnapshotIdValue);
+  const observed = parseVectorValue(observedValue, scope);
+  if (!sameVector(readVector(database, scope), observed)) conflict();
+  const projectionReceiptId = deriveProjectionReceiptId(scope, subjectSnapshotId);
+  const collision = database.prepare(
+    `SELECT 1 FROM cc_canonical_fact_relation_projection_receipts
+     WHERE namespace = ? AND stream_id = ?
+       AND (projection_receipt_id = ? OR subject_snapshot_id = ?)
+     LIMIT 1`
+  ).get(
+    scope.namespace,
+    scope.stream_id,
+    projectionReceiptId,
+    subjectSnapshotId
+  );
+  if (collision !== undefined) conflict();
+
+  const projection = readCanonicalFactRelationProjectionInsideCore(database, scope, observed);
+  const createdAt = new Date().toISOString();
+  const receiptBase = {
+    schema_version: CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION as 1,
+    ...scope,
+    projection_receipt_id: projectionReceiptId,
+    subject_snapshot_id: subjectSnapshotId,
+    observed_revision_vector: cloneVector(observed),
+    fact_relation_policy_hash: projection.policy_hash,
+    receipt_policy_hash: CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH,
+    facts: projection.facts.map(cloneFact),
+    relations: projection.relations.map(cloneRelation),
+    created_at: createdAt,
+  };
+  const receiptJson = canonicalJson(projectionReceiptAsJson(receiptBase));
+  const projectionReceiptHash = sha256(receiptJson);
+  database.prepare(
+    `INSERT INTO cc_canonical_fact_relation_projection_receipts (
+       namespace, stream_id, projection_receipt_id, subject_snapshot_id,
+       receipt_policy_hash, projection_receipt_hash, receipt_json, created_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    scope.namespace,
+    scope.stream_id,
+    projectionReceiptId,
+    subjectSnapshotId,
+    CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH,
+    projectionReceiptHash,
+    receiptJson,
+    createdAt
+  );
+  return readCanonicalFactRelationProjectionReceiptInsideCore(
+    database,
+    scope,
+    projectionReceiptId,
+    subjectSnapshotId
+  );
+}
+
+/** @internal Reads and proves one exact immutable complete-projection receipt. */
+export function readCanonicalFactRelationProjectionReceiptInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  projectionReceiptIdValue: string,
+  subjectSnapshotIdValue: string
+): CanonicalFactRelationProjectionReceiptInsideCore {
+  validateProjectionReceiptSchema(database);
+  assertProjectionReceiptSchemaVersion(database);
+  const scope = normalizeScope(scopeValue);
+  const subjectSnapshotId = validateIdentifier(subjectSnapshotIdValue);
+  const projectionReceiptId = validateIdentifier(projectionReceiptIdValue);
+  if (projectionReceiptId !== deriveProjectionReceiptId(scope, subjectSnapshotId)) invalid();
+  const row = database.prepare(
+    `SELECT namespace, stream_id, projection_receipt_id, subject_snapshot_id,
+            receipt_policy_hash, projection_receipt_hash, receipt_json, created_at
+     FROM cc_canonical_fact_relation_projection_receipts
+     WHERE namespace = ? AND stream_id = ? AND projection_receipt_id = ?`
+  ).get(scope.namespace, scope.stream_id, projectionReceiptId) as
+    ProjectionReceiptRow | undefined;
+  if (row === undefined) notFound();
+  return projectionReceiptFromRowInsideCore(database, row, scope, subjectSnapshotId);
+}
+
 function assertObjectBindingsInsideCore(
   database: DatabaseSync,
   facts: Map<string, CommittedCanonicalFact>,
@@ -1227,19 +1465,50 @@ export function migrateCanonicalFactRelation(database: DatabaseSync): void {
     if (sqliteObjectExists(database, "table", "cc_canonical_fact_relation_schema")) {
       validateSchema(database);
       assertCurrentSchemaVersion(database);
-      database.exec("COMMIT;");
-      return;
+    } else {
+      for (const object of SCHEMA_OBJECTS.slice(1)) {
+        if (sqliteObjectExists(database, object.type, object.name)) corrupt();
+      }
+      database.exec(SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n"));
+      validateSchema(database);
+      database.prepare(
+        `INSERT INTO cc_canonical_fact_relation_schema (version, completed_at)
+         VALUES (?, ?)`
+      ).run(CANONICAL_FACT_RELATION_SCHEMA_VERSION, new Date().toISOString());
+      assertCurrentSchemaVersion(database);
     }
-    for (const object of SCHEMA_OBJECTS.slice(1)) {
-      if (sqliteObjectExists(database, object.type, object.name)) corrupt();
+    database.exec("COMMIT;");
+  } catch (error) {
+    rollback(database);
+    throw error;
+  }
+  migrateCanonicalFactRelationProjectionReceipts(database);
+}
+
+function migrateCanonicalFactRelationProjectionReceipts(database: DatabaseSync): void {
+  database.exec("BEGIN IMMEDIATE;");
+  try {
+    const marker = "cc_canonical_fact_relation_projection_receipt_schema";
+    if (sqliteObjectExists(database, "table", marker)) {
+      validateProjectionReceiptSchema(database);
+      assertProjectionReceiptSchemaVersion(database);
+    } else {
+      for (const object of PROJECTION_RECEIPT_SCHEMA_OBJECTS.slice(1)) {
+        if (sqliteObjectExists(database, object.type, object.name)) corrupt();
+      }
+      database.exec(
+        PROJECTION_RECEIPT_SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n")
+      );
+      validateProjectionReceiptSchema(database);
+      database.prepare(
+        `INSERT INTO cc_canonical_fact_relation_projection_receipt_schema
+           (version, completed_at) VALUES (?, ?)`
+      ).run(
+        CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION,
+        new Date().toISOString()
+      );
+      assertProjectionReceiptSchemaVersion(database);
     }
-    database.exec(SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n"));
-    validateSchema(database);
-    database.prepare(
-      `INSERT INTO cc_canonical_fact_relation_schema (version, completed_at)
-       VALUES (?, ?)`
-    ).run(CANONICAL_FACT_RELATION_SCHEMA_VERSION, new Date().toISOString());
-    assertCurrentSchemaVersion(database);
     database.exec("COMMIT;");
   } catch (error) {
     rollback(database);
@@ -2425,6 +2694,105 @@ function relationAsJson(relation: CommittedCanonicalRelation): JsonValue {
   return { ...relationHashPayload(relation), relation_hash: relation.relation_hash };
 }
 
+function projectionReceiptAsJson(
+  receipt: ProjectionReceiptPayloadInsideCore
+): JsonObject {
+  return {
+    schema_version: receipt.schema_version,
+    namespace: receipt.namespace,
+    stream_id: receipt.stream_id,
+    projection_receipt_id: receipt.projection_receipt_id,
+    subject_snapshot_id: receipt.subject_snapshot_id,
+    observed_revision_vector: vectorAsJson(receipt.observed_revision_vector),
+    fact_relation_policy_hash: receipt.fact_relation_policy_hash,
+    receipt_policy_hash: receipt.receipt_policy_hash,
+    facts: receipt.facts.map(factAsJson),
+    relations: receipt.relations.map(relationAsJson),
+    created_at: receipt.created_at,
+  };
+}
+
+function deriveProjectionReceiptId(scope: RevisionScope, subjectSnapshotId: string): string {
+  return `frpr-${sha256(canonicalJson({
+    namespace: scope.namespace,
+    stream_id: scope.stream_id,
+    subject_snapshot_id: subjectSnapshotId,
+  }))}`;
+}
+
+function projectionReceiptFromRowInsideCore(
+  database: DatabaseSync,
+  row: ProjectionReceiptRow,
+  scope: RevisionScope,
+  expectedSubjectSnapshotId: string
+): CanonicalFactRelationProjectionReceiptInsideCore {
+  try {
+    assertStoredScope(row, scope);
+    const projectionReceiptId = storedIdentifier(row.projection_receipt_id);
+    const subjectSnapshotId = storedIdentifier(row.subject_snapshot_id);
+    const receiptPolicyHash = storedHash(row.receipt_policy_hash);
+    const projectionReceiptHash = storedHash(row.projection_receipt_hash);
+    const receiptJson = storedString(row.receipt_json);
+    const createdAt = storedTimestamp(row.created_at);
+    if (subjectSnapshotId !== expectedSubjectSnapshotId ||
+        projectionReceiptId !== deriveProjectionReceiptId(scope, subjectSnapshotId) ||
+        receiptPolicyHash !== CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH ||
+        projectionReceiptHash !== sha256(receiptJson)) corrupt();
+
+    const object = readExactObject(parseStoredJson(receiptJson), [
+      "schema_version", "namespace", "stream_id", "projection_receipt_id",
+      "subject_snapshot_id", "observed_revision_vector", "fact_relation_policy_hash",
+      "receipt_policy_hash", "facts", "relations", "created_at",
+    ]);
+    const payloadScope = storedScope(object.namespace, object.stream_id);
+    if (object.schema_version !==
+          CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION ||
+        !sameScope(payloadScope, scope) || !Array.isArray(object.facts) ||
+        !Array.isArray(object.relations)) corrupt();
+    const facts = object.facts.map((value) => factFromJson(value, scope));
+    const relations = object.relations.map((value) => relationFromJson(value, scope));
+    if (facts.length + relations.length > MAX_GRAPH_NODES) corrupt();
+    assertStrictObjectOrder(facts.map(({ fact_id }) => fact_id), true);
+    assertStrictObjectOrder(relations.map(({ relation_id }) => relation_id), true);
+    const payload: ProjectionReceiptPayloadInsideCore = {
+      schema_version: 1,
+      ...scope,
+      projection_receipt_id: storedIdentifier(object.projection_receipt_id),
+      subject_snapshot_id: storedIdentifier(object.subject_snapshot_id),
+      observed_revision_vector: parseVectorValue(object.observed_revision_vector, scope),
+      fact_relation_policy_hash: storedHash(object.fact_relation_policy_hash),
+      receipt_policy_hash: storedHash(object.receipt_policy_hash),
+      facts,
+      relations,
+      created_at: storedTimestamp(object.created_at),
+    };
+    if (payload.projection_receipt_id !== projectionReceiptId ||
+        payload.subject_snapshot_id !== subjectSnapshotId ||
+        payload.fact_relation_policy_hash !== CANONICAL_FACT_RELATION_POLICY_HASH ||
+        payload.receipt_policy_hash !== receiptPolicyHash ||
+        payload.created_at !== createdAt ||
+        canonicalJson(projectionReceiptAsJson(payload)) !== receiptJson ||
+        !vectorAtOrAfter(readVector(database, scope), payload.observed_revision_vector)) corrupt();
+
+    const factMap = new Map(facts.map((fact) => [fact.fact_id, fact]));
+    const relationMap = new Map(relations.map((relation) => [relation.relation_id, relation]));
+    if (factMap.size !== facts.length || relationMap.size !== relations.length) corrupt();
+    assertObjectBindingsInsideCore(database, factMap, relationMap);
+    validateFinalAuthority(
+      database,
+      scope,
+      payload.observed_revision_vector,
+      factMap,
+      relationMap,
+      true
+    );
+    return cloneProjectionReceipt({ ...payload, projection_receipt_hash: projectionReceiptHash });
+  } catch (error) {
+    if (error instanceof CanonicalFactRelationError && error.code === "CORRUPT_DATA") throw error;
+    corrupt();
+  }
+}
+
 function commitResultAsJson(result: CanonicalFactRelationCommitResult): JsonValue {
   return {
     namespace: result.namespace,
@@ -2931,6 +3299,17 @@ function cloneCommitResult(
   };
 }
 
+function cloneProjectionReceipt(
+  receipt: CanonicalFactRelationProjectionReceiptInsideCore
+): CanonicalFactRelationProjectionReceiptInsideCore {
+  return {
+    ...receipt,
+    observed_revision_vector: cloneVector(receipt.observed_revision_vector),
+    facts: receipt.facts.map(cloneFact),
+    relations: receipt.relations.map(cloneRelation),
+  };
+}
+
 function cloneMetadata(metadata: JsonObject): JsonObject {
   return normalizeMetadata(metadata);
 }
@@ -3004,6 +3383,43 @@ function assertCurrentSchemaVersion(database: DatabaseSync): void {
     "SELECT version FROM cc_canonical_fact_relation_schema ORDER BY version"
   ).all() as Array<{ version: number }>;
   if (rows.length !== 1 || rows[0]?.version !== CANONICAL_FACT_RELATION_SCHEMA_VERSION) corrupt();
+}
+
+function validateProjectionReceiptSchema(database: DatabaseSync): void {
+  assertTableColumns(
+    database,
+    "cc_canonical_fact_relation_projection_receipt_schema",
+    ["version", "completed_at"]
+  );
+  assertTableColumns(
+    database,
+    "cc_canonical_fact_relation_projection_receipts",
+    [
+      "namespace", "stream_id", "projection_receipt_id", "subject_snapshot_id",
+      "receipt_policy_hash", "projection_receipt_hash", "receipt_json", "created_at",
+    ]
+  );
+  for (const expected of PROJECTION_RECEIPT_SCHEMA_OBJECTS) {
+    const row = database.prepare(
+      "SELECT type, name, sql FROM sqlite_master WHERE type = ? AND name = ?"
+    ).get(expected.type, expected.name) as {
+      type: string;
+      name: string;
+      sql: string | null;
+    } | undefined;
+    if (row?.type !== expected.type || row.name !== expected.name ||
+        typeof row.sql !== "string" ||
+        normalizeSchemaSql(row.sql) !== normalizeSchemaSql(expected.sql)) corrupt();
+  }
+}
+
+function assertProjectionReceiptSchemaVersion(database: DatabaseSync): void {
+  const rows = database.prepare(
+    `SELECT version FROM cc_canonical_fact_relation_projection_receipt_schema
+     ORDER BY version`
+  ).all() as Array<{ version: number }>;
+  if (rows.length !== 1 ||
+      rows[0]?.version !== CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_SCHEMA_VERSION) corrupt();
 }
 
 function sqliteObjectExists(

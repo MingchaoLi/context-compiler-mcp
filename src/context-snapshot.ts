@@ -5,9 +5,12 @@ import { DatabaseSync } from "node:sqlite";
 import {
   CANONICAL_FACT_RELATION_POLICY_HASH,
   CanonicalFactRelationError,
+  captureCanonicalFactRelationProjectionReceiptInsideCore,
+  inspectCanonicalFactRelationProjectionReceiptInsideCore,
   readCanonicalFactRelationAuthorityInsideCore,
-  readCanonicalFactRelationProjectionInsideCore,
+  readCanonicalFactRelationProjectionReceiptInsideCore,
   type CanonicalFactRelationProjection,
+  type CanonicalFactRelationProjectionReceiptInsideCore,
   type CanonicalRelationEndpoint,
   type CommittedCanonicalFact,
   type CommittedCanonicalRelation,
@@ -41,9 +44,9 @@ import {
 } from "./semantic-takeover.js";
 import { initializeSqliteConnection } from "./sqlite-initialization.js";
 
-export const CONTEXT_SNAPSHOT_SCHEMA_VERSION = 1;
-export const CONTEXT_SNAPSHOT_POLICY_VERSION = "context-snapshot/v1";
-export const CURRENT_AUTHORITY_PROJECTION_VERSION = "current-authority-hot-raw/v1";
+export const CONTEXT_SNAPSHOT_SCHEMA_VERSION = 2;
+export const CONTEXT_SNAPSHOT_POLICY_VERSION = "context-snapshot/v2";
+export const CURRENT_AUTHORITY_PROJECTION_VERSION = "current-authority-hot-raw/v2";
 export const CONTEXT_ASSEMBLER_VERSION = "priority-bucket-whole-object/v1";
 export const TOKEN_ESTIMATOR_VERSION = "character-count-divided-by-four/v1";
 export const CONTEXT_ASSEMBLER_VERSION_HASH =
@@ -87,7 +90,7 @@ export interface ExternalContentHash {
 }
 
 export interface ContextSnapshotFreezeInput {
-  schema_version: 1;
+  schema_version: 2;
   scope: RevisionScope;
   snapshot_id: string;
   operation_id: string;
@@ -158,8 +161,13 @@ export interface SnapshotArtifactRef {
   inclusion_reasons: ContextSnapshotInclusionReason[];
 }
 
+export interface SnapshotFactRelationProjectionReceiptRef {
+  projection_receipt_id: string;
+  projection_receipt_hash: string;
+}
+
 export interface ContextSnapshotManifest extends RevisionScope {
-  schema_version: 1;
+  schema_version: 2;
   snapshot_id: string;
   operation_id: string;
   attempt_id: string;
@@ -171,6 +179,7 @@ export interface ContextSnapshotManifest extends RevisionScope {
   state_hash: string;
   state_policy_hash: string;
   fact_relation_policy_hash: string;
+  fact_relation_projection_receipt_ref: SnapshotFactRelationProjectionReceiptRef;
   selected_state_refs: SnapshotStateRef[];
   excluded_state_refs: SnapshotExcludedStateRef[];
   selected_fact_refs: SnapshotFactRef[];
@@ -199,7 +208,7 @@ export interface ContextSnapshotManifest extends RevisionScope {
 }
 
 export interface ContextAttemptStarted extends RevisionScope {
-  schema_version: 1;
+  schema_version: 2;
   operation_id: string;
   attempt_id: string;
   snapshot_id: string;
@@ -278,11 +287,18 @@ const POLICY_DESCRIPTOR: JsonValue = {
   },
   dedup: "exact-authority-identity-no-display-dedup",
   dependencies: {
-    closure: "deterministic-transitive-state-fact",
-    relation: "active-DEPENDS_ON-current-object-graph",
+    closure: "deterministic-transitive-state-fact-from-owner-complete-receipt",
+    relation: "active-DEPENDS_ON-receipt-object-graph",
   },
   evidence: "empty-wo05-reserved-contract-fields",
   external_content: "stable-ref-plus-sha256",
+  fact_relation_receipt: {
+    capture: "owner-complete-projection-before-selection",
+    manifest_binding: "receipt-id-plus-receipt-hash",
+    orphan: "exactly-one-owner-receipt-per-snapshot-or-fail-closed",
+    replay: "owner-receipt-to-complete-graph-to-expected-closure-to-manifest-and-body",
+    tamper: "snapshot-selected-view-cannot-author-owner-receipt",
+  },
   host: "opaque-digest-only",
   hot_raw: {
     current_input: "exact-user-input-event-single-render",
@@ -291,11 +307,11 @@ const POLICY_DESCRIPTOR: JsonValue = {
     selection: "latest-contiguous-whole-event-suffix-after-required",
   },
   inclusion_reasons: [...CONTEXT_SNAPSHOT_INCLUSION_REASONS],
-  input_world: "begin-immediate-exact-five-axis-cas",
+  input_world: "begin-immediate-exact-five-axis-cas-plus-owner-receipt",
   normalization: "nfc-no-unicode-cc-lexical-unique-sorted-inputs",
   policy_version: CONTEXT_SNAPSHOT_POLICY_VERSION,
   projection_version: CURRENT_AUTHORITY_PROJECTION_VERSION,
-  retry: "exact-request-replay-id-substitution-conflict",
+  retry: "exact-request-replay-owner-receipt-binding-id-substitution-conflict",
   schema_version: CONTEXT_SNAPSHOT_SCHEMA_VERSION,
   scope: "explicit-only-no-host-inference",
   unknown: "fail-closed",
@@ -347,6 +363,7 @@ interface AttemptRow extends Record<string, unknown> {
 interface SelectedWorld {
   stateProjection: CanonicalStateProjection;
   factRelationProjection: CanonicalFactRelationProjection;
+  factRelationProjectionReceiptRef: SnapshotFactRelationProjectionReceiptRef;
   hotRaw: LedgerRawEvent[];
   currentInput: LedgerRawEvent;
   requiredRaw: LedgerRawEvent[];
@@ -486,12 +503,19 @@ export class SqliteContextSnapshotStore {
       this.#transactionOpen = true;
       const existingSnapshot = this.#readSnapshotRow(normalized.scope, normalized.snapshot_id);
       const existingAttempt = this.#readAttemptRow(normalized.scope, normalized.attempt_id);
-      if (existingSnapshot !== undefined || existingAttempt !== undefined) {
+      const existingReceipt = inspectCanonicalFactRelationProjectionReceiptInsideCore(
+        this.#database,
+        normalized.scope,
+        normalized.snapshot_id
+      );
+      if (existingSnapshot !== undefined || existingAttempt !== undefined ||
+          existingReceipt !== undefined) {
         if (existingSnapshot !== undefined &&
             existingSnapshot.attempt_id !== normalized.attempt_id) conflict();
         if (existingAttempt !== undefined &&
             existingAttempt.snapshot_id !== normalized.snapshot_id) conflict();
-        if (existingSnapshot === undefined || existingAttempt === undefined) corrupt();
+        if (existingSnapshot === undefined || existingAttempt === undefined ||
+            existingReceipt === undefined) corrupt();
         if (existingSnapshot.request_json !== normalized.requestJson ||
             existingSnapshot.request_fingerprint !== normalized.requestFingerprint ||
             existingAttempt.operation_id !== normalized.operation_id) conflict();
@@ -511,11 +535,6 @@ export class SqliteContextSnapshotStore {
         normalized.scope,
         observed
       );
-      const factRelationProjection = readCanonicalFactRelationProjectionInsideCore(
-        this.#database,
-        normalized.scope,
-        observed
-      );
       const hotProjection = readLedgerHotRawInsideCore(
         this.#database,
         normalized.scope,
@@ -526,6 +545,16 @@ export class SqliteContextSnapshotStore {
         normalized.scope
       );
       if (!sameVector(currentSemantic.revision_vector, observed)) corrupt();
+
+      const factRelationReceipt =
+        captureCanonicalFactRelationProjectionReceiptInsideCore(
+          this.#database,
+          normalized.scope,
+          normalized.snapshot_id,
+          observed
+        );
+      const factRelationProjection = projectionFromReceipt(factRelationReceipt);
+      const factRelationProjectionReceiptRef = receiptRef(factRelationReceipt);
 
       const currentInput = hotProjection.events.find(
         (event) => event.event_id === normalized.current_input_event_id
@@ -542,6 +571,7 @@ export class SqliteContextSnapshotStore {
         normalized,
         stateProjection,
         factRelationProjection,
+        factRelationProjectionReceiptRef,
         hotProjection.events,
         currentInput,
         requiredRaw,
@@ -668,7 +698,14 @@ export class SqliteContextSnapshotStore {
     validateSchema(this.#database);
     assertCurrentSchemaVersion(this.#database);
     const row = this.#readSnapshotRow(scope, snapshotId);
-    if (row === undefined) notFound();
+    if (row === undefined) {
+      if (inspectCanonicalFactRelationProjectionReceiptInsideCore(
+        this.#database,
+        scope,
+        snapshotId
+      ) !== undefined) corrupt();
+      notFound();
+    }
     const normalized = parseStoredRequest(row.request_json);
     if (!sameScope(normalized.scope, scope) || normalized.snapshot_id !== snapshotId ||
         storedHash(row.request_fingerprint) !== sha256(row.request_json) ||
@@ -693,7 +730,7 @@ export class SqliteContextSnapshotStore {
         storedHash(attemptRow.snapshot_manifest_hash) !== manifestHash ||
         attemptRow.created_at !== manifest.created_at) corrupt();
     const attempt: ContextAttemptStarted = {
-      schema_version: 1,
+      schema_version: 2,
       ...scope,
       operation_id: storedIdentifier(attemptRow.operation_id),
       attempt_id: storedIdentifier(attemptRow.attempt_id),
@@ -738,11 +775,34 @@ export class SqliteContextSnapshotStore {
   }
 }
 
+function projectionFromReceipt(
+  receipt: CanonicalFactRelationProjectionReceiptInsideCore
+): CanonicalFactRelationProjection {
+  return {
+    namespace: receipt.namespace,
+    stream_id: receipt.stream_id,
+    revision_vector: { ...receipt.observed_revision_vector },
+    policy_hash: receipt.fact_relation_policy_hash,
+    facts: receipt.facts.map(cloneCommittedFact),
+    relations: receipt.relations.map(cloneCommittedRelation),
+  };
+}
+
+function receiptRef(
+  receipt: CanonicalFactRelationProjectionReceiptInsideCore
+): SnapshotFactRelationProjectionReceiptRef {
+  return {
+    projection_receipt_id: receipt.projection_receipt_id,
+    projection_receipt_hash: receipt.projection_receipt_hash,
+  };
+}
+
 function selectWorld(
   database: DatabaseSync,
   input: NormalizedFreezeInput,
   stateProjection: CanonicalStateProjection,
   factRelationProjection: CanonicalFactRelationProjection,
+  factRelationProjectionReceiptRef: SnapshotFactRelationProjectionReceiptRef,
   hotRaw: LedgerRawEvent[],
   currentInput: LedgerRawEvent,
   requiredRaw: LedgerRawEvent[],
@@ -838,6 +898,7 @@ function selectWorld(
   return {
     stateProjection,
     factRelationProjection,
+    factRelationProjectionReceiptRef: { ...factRelationProjectionReceiptRef },
     hotRaw,
     currentInput,
     requiredRaw,
@@ -1023,7 +1084,7 @@ function buildManifest(
     token_estimator: TOKEN_ESTIMATOR_VERSION,
   }));
   return {
-    schema_version: 1,
+    schema_version: 2,
     ...input.scope,
     snapshot_id: input.snapshot_id,
     operation_id: input.operation_id,
@@ -1036,6 +1097,9 @@ function buildManifest(
     state_hash: world.stateProjection.state_hash,
     state_policy_hash: world.stateProjection.policy_hash,
     fact_relation_policy_hash: world.factRelationProjection.policy_hash,
+    fact_relation_projection_receipt_ref: {
+      ...world.factRelationProjectionReceiptRef,
+    },
     selected_state_refs: selectedStateRefs,
     excluded_state_refs: excludedStateRefs,
     selected_fact_refs: selectedFactRefs,
@@ -1155,28 +1219,18 @@ function validateManifestAuthority(
   if (sha256(canonicalRawJson(hotEvents.map(rawEventAsJson))) !== manifest.hot_raw_hash) corrupt();
   assertRawRefPolicy(manifest, input, historicalHotRaw);
 
-  const authority = readCanonicalFactRelationAuthorityInsideCore(
+  const factRelationReceipt = readCanonicalFactRelationProjectionReceiptInsideCore(
     database,
     scope,
-    manifest.selected_fact_refs.map(({ fact_id, fact_revision }) => ({ fact_id, fact_revision })),
-    manifest.selected_relation_refs.map(({ relation_id, relation_revision }) => ({
-      relation_id,
-      relation_revision,
-    })),
-    frozen
+    manifest.fact_relation_projection_receipt_ref.projection_receipt_id,
+    manifest.snapshot_id
   );
-  if (manifest.fact_relation_policy_hash !== CANONICAL_FACT_RELATION_POLICY_HASH) corrupt();
-  for (const ref of manifest.selected_fact_refs) {
-    const fact = authority.facts.find((candidate) => candidate.fact_id === ref.fact_id &&
-      candidate.fact_revision === ref.fact_revision);
-    if (fact?.fact_hash !== ref.fact_hash) corrupt();
-  }
-  for (const ref of manifest.selected_relation_refs) {
-    const relation = authority.relations.find((candidate) =>
-      candidate.relation_id === ref.relation_id &&
-      candidate.relation_revision === ref.relation_revision);
-    if (relation?.relation_hash !== ref.relation_hash) corrupt();
-  }
+  if (manifest.fact_relation_policy_hash !== CANONICAL_FACT_RELATION_POLICY_HASH ||
+      factRelationReceipt.fact_relation_policy_hash !== manifest.fact_relation_policy_hash ||
+      factRelationReceipt.projection_receipt_hash !==
+        manifest.fact_relation_projection_receipt_ref.projection_receipt_hash ||
+      !sameVector(factRelationReceipt.observed_revision_vector, frozen)) corrupt();
+  const factRelationProjection = projectionFromReceipt(factRelationReceipt);
 
   let currentSemantic: CurrentSemanticTakeoverAuthority;
   if (manifest.current_takeover_ref === null) {
@@ -1221,13 +1275,8 @@ function validateManifestAuthority(
     database,
     input,
     stateProjection,
-    {
-      ...scope,
-      revision_vector: frozen,
-      policy_hash: manifest.fact_relation_policy_hash,
-      facts: authority.facts,
-      relations: authority.relations,
-    },
+    factRelationProjection,
+    receiptRef(factRelationReceipt),
     historicalHotRaw,
     currentInput,
     requiredRaw,
@@ -1348,6 +1397,7 @@ function parseManifest(value: JsonValue): ContextSnapshotManifest {
     "schema_version", "namespace", "stream_id", "snapshot_id", "operation_id", "attempt_id",
     "ledger_as_of_revision", "state_revision", "raw_frontier_revision", "frontier_position",
     "takeover_commit_revision", "state_hash", "state_policy_hash", "fact_relation_policy_hash",
+    "fact_relation_projection_receipt_ref",
     "selected_state_refs", "excluded_state_refs", "selected_fact_refs", "selected_relation_refs",
     "dependency_paths", "hot_raw_event_refs", "hot_raw_hash", "required_raw_event_refs",
     "current_takeover_ref", "current_artifact_ref", "evidence_bundle_id", "evidence_event_refs",
@@ -1356,10 +1406,10 @@ function parseManifest(value: JsonValue): ContextSnapshotManifest {
     "host_manifest_digest", "external_content_hashes", "working_context_hash",
     "working_context_estimated_tokens", "hard_token_capacity", "created_at",
   ]);
-  if (object.schema_version !== 1 || object.evidence_bundle_id !== null) corrupt();
+  if (object.schema_version !== 2 || object.evidence_bundle_id !== null) corrupt();
   const scope = storedScope(object.namespace, object.stream_id);
   const manifest: ContextSnapshotManifest = {
-    schema_version: 1,
+    schema_version: 2,
     ...scope,
     snapshot_id: storedIdentifier(object.snapshot_id),
     operation_id: storedIdentifier(object.operation_id),
@@ -1372,6 +1422,8 @@ function parseManifest(value: JsonValue): ContextSnapshotManifest {
     state_hash: storedHash(object.state_hash),
     state_policy_hash: storedHash(object.state_policy_hash),
     fact_relation_policy_hash: storedHash(object.fact_relation_policy_hash),
+    fact_relation_projection_receipt_ref:
+      parseFactRelationProjectionReceiptRef(object.fact_relation_projection_receipt_ref),
     selected_state_refs: parseStateRefs(object.selected_state_refs),
     excluded_state_refs: parseExcludedStateRefs(object.excluded_state_refs),
     selected_fact_refs: parseFactRefs(object.selected_fact_refs),
@@ -1509,6 +1561,18 @@ function parseTakeoverRef(value: unknown): SnapshotTakeoverRef | null {
   };
 }
 
+function parseFactRelationProjectionReceiptRef(
+  value: unknown
+): SnapshotFactRelationProjectionReceiptRef {
+  const object = readExactObject(value, [
+    "projection_receipt_id", "projection_receipt_hash",
+  ]);
+  return {
+    projection_receipt_id: storedIdentifier(object.projection_receipt_id),
+    projection_receipt_hash: storedHash(object.projection_receipt_hash),
+  };
+}
+
 function parseArtifactRef(value: unknown): SnapshotArtifactRef | null {
   if (value === null) return null;
   const object = readExactObject(value, [
@@ -1536,7 +1600,7 @@ function normalizeFreezeInput(value: unknown): NormalizedFreezeInput {
     "required_raw_event_ids", "required_fact_refs", "required_relation_refs",
     "host_manifest_digest", "external_content_hashes", "hard_token_capacity", "policy_hash",
   ]);
-  if (object.schema_version !== 1) invalid();
+  if (object.schema_version !== 2) invalid();
   const scope = normalizeScope(object.scope);
   const expected = normalizeVector(object.expected_revision_vector, scope);
   const requiredStateIds = normalizeIdentifierArray(
@@ -1554,7 +1618,7 @@ function normalizeFreezeInput(value: unknown): NormalizedFreezeInput {
   const policyHash = validateHash(object.policy_hash);
   if (policyHash !== CONTEXT_SNAPSHOT_POLICY_HASH) invalid();
   const normalized: ContextSnapshotFreezeInput = {
-    schema_version: 1,
+    schema_version: 2,
     scope,
     snapshot_id: validateIdentifier(object.snapshot_id),
     operation_id: validateIdentifier(object.operation_id),
@@ -1600,7 +1664,7 @@ function parseStoredManifest(json: string): ContextSnapshotManifest {
 
 function freezeRequestAsJson(input: ContextSnapshotFreezeInput): JsonObject {
   return {
-    schema_version: 1,
+    schema_version: 2,
     scope: { ...input.scope },
     snapshot_id: input.snapshot_id,
     operation_id: input.operation_id,
@@ -2042,6 +2106,29 @@ function cloneManifest(manifest: ContextSnapshotManifest): ContextSnapshotManife
 
 function cloneAttempt(attempt: ContextAttemptStarted): ContextAttemptStarted {
   return { ...attempt };
+}
+
+function cloneCommittedFact(fact: CommittedCanonicalFact): CommittedCanonicalFact {
+  return {
+    ...fact,
+    provenance_event_ids: [...fact.provenance_event_ids],
+    verification_event_ids: [...fact.verification_event_ids],
+    metadata: cloneRawJson(fact.metadata) as JsonObject,
+    observed_revision_vector: { ...fact.observed_revision_vector },
+  };
+}
+
+function cloneCommittedRelation(
+  relation: CommittedCanonicalRelation
+): CommittedCanonicalRelation {
+  return {
+    ...relation,
+    source: { ...relation.source },
+    target: { ...relation.target },
+    provenance_event_ids: [...relation.provenance_event_ids],
+    metadata: cloneRawJson(relation.metadata) as JsonObject,
+    observed_revision_vector: { ...relation.observed_revision_vector },
+  };
 }
 
 function canonicalJson(value: unknown): string {

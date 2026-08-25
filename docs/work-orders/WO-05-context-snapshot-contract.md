@@ -1,8 +1,7 @@
 # WO-05 — ContextSnapshot Contract
 ## Long-term Agent / Context Compiler
 
-**状态：** QA-RETURN PRE-SOURCE GATE FROZEN — APPEND-ONLY SOURCE REPAIR AUTHORIZED；
-SOURCE FIX NOT STARTED<br>
+**状态：** APPEND-ONLY FIX BUILDER COMPLETE — AWAITING FRESH INDEPENDENT RE-QA<br>
 **类型：** Core deterministic projection + immutable execution snapshot<br>
 **依赖：** WO-03B Builder `24b7ba6971be2d8dc761368ecb66722ff053f4ea` + QA
 `92e72eb785b2670068597376bccfd1136e3c6952`；WO-04A fixed Builder
@@ -191,6 +190,18 @@ Manifest selected refs 或当前 Fact/Relation world 补造 receipt。
 Gate 机械审计确认现有 immutable object revisions、owner same-handle seam 与 Snapshot transaction
 足够；无需 substrate extension。source repair 现只允许在 Addendum/schema map 的 exact allowlist
 内 append-only 开始，S0–S5 不可删减。
+
+Append-only Builder fix 已完成并写入：
+
+```text
+docs/handoffs/WO-05-context-snapshot-contract-fix.md
+```
+
+实现将 Snapshot runtime grammar 升为 v2，由 Fact/Relation owner 在同一 transaction capture
+完整 immutable projection receipt；stored replay 先从 receipt 重建完整历史 graph，再比较
+Manifest selected refs、dependency paths 与 body。Builder S0–S5、focused 76 tests、全量
+569 passed / 1 skipped 和 build 均通过。此结果尚未被接受；必须固定 candidate 后交由新的
+物理分离 Independent QA 独立重放原攻击。
 
 ---
 
@@ -423,7 +434,7 @@ Builder 只实现、验证并写 handoff，不得写 PASS。Independent QA 在�
 提交历史或边 QA 边实现。
 
 Builder candidate `c8c37b4beb230d2c37017b9c9d65aefa7e180eaa` 与 QA return commit `88e8da7`
-保持 append-only。repair baseline `9200d53` 和 bounded owner-receipt Gate 已冻结；Builder 只能
-按 Gate exact allowlist 做新的 append-only fix candidate，不得改写返回历史或用另一个
-Snapshot/Manifest hash 代替独立 owner proof。本状态不授权 Host、WO-06/07、MCP 或 frozen v0
-改写；修复后仍必须由新的物理分离 Independent QA 重跑原攻击与 S0–S5。
+保持 append-only。repair baseline `9200d53` 和 bounded owner-receipt Gate `dcb0baf` 已冻结；
+新的 fix candidate 是包含 fix handoff 的 commit，待主控提交后由 Independent QA 精确 pin。
+Builder 不得自批，也不得用另一个 Snapshot/Manifest hash 代替独立 owner proof。本状态不授权
+Host、WO-06/07、MCP 或 frozen v0 改写；fresh QA 必须重跑原攻击与 S0–S5。

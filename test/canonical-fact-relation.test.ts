@@ -7,6 +7,7 @@ import { Worker } from "node:worker_threads";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   CANONICAL_FACT_RELATION_POLICY_HASH,
+  CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH,
   CanonicalFactRelationError,
   SqliteCanonicalFactRelationStore,
   type CanonicalFactRelationCommitInput,
@@ -712,6 +713,26 @@ describe("WO-04B canonical Fact / Relation authority", () => {
     forgedDb.close();
     expect(() => new SqliteCanonicalFactRelationStore(forged))
       .toThrowError(code("STORAGE_FAILURE"));
+
+    const partialReceipt = databasePath();
+    const partialReceiptDb = new DatabaseSync(partialReceipt);
+    partialReceiptDb.exec(
+      "CREATE TABLE cc_canonical_fact_relation_projection_receipts (id TEXT);"
+    );
+    partialReceiptDb.close();
+    expect(() => new SqliteCanonicalFactRelationStore(partialReceipt))
+      .toThrowError(code("STORAGE_FAILURE"));
+
+    const receiptTriggerTamper = databasePath();
+    const receiptOpened = openStore(receiptTriggerTamper);
+    closeStore(receiptOpened);
+    const receiptAudit = new DatabaseSync(receiptTriggerTamper);
+    receiptAudit.exec(
+      "DROP TRIGGER cc_canonical_fact_relation_projection_receipts_no_update;"
+    );
+    receiptAudit.close();
+    expect(() => new SqliteCanonicalFactRelationStore(receiptTriggerTamper))
+      .toThrowError(code("STORAGE_FAILURE"));
   });
 
   it("serializes concurrent same-object creates and exact retries", async () => {
@@ -757,11 +778,17 @@ describe("WO-04B canonical Fact / Relation authority", () => {
         "SELECT version FROM cc_canonical_fact_relation_schema"
       ).get()).toEqual({ version: 1 });
       expect(audit.prepare(
+        "SELECT version FROM cc_canonical_fact_relation_projection_receipt_schema"
+      ).get()).toEqual({ version: 1 });
+      expect(CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH).toBe(
+        "610102fa139bcfb34c1a0bea0ff177ac3f1d7238bf2949a9f27ab4b13ae5b93b"
+      );
+      expect(audit.prepare(
         `SELECT COUNT(*) AS count FROM sqlite_master
          WHERE name LIKE 'cc_canonical_fact_relation%'
             OR name LIKE 'cc_canonical_fact_revisions%'
             OR name LIKE 'cc_canonical_relation_revisions%'`
-      ).get()).toEqual({ count: 12 });
+      ).get()).toEqual({ count: 18 });
       if (legacy) {
         expect(audit.prepare(
           "SELECT COUNT(*) AS count FROM sessions"

@@ -13,6 +13,7 @@ import {
   ContextCompilerCore,
   ContextCompilerCoreError,
   SEMANTIC_TAKEOVER_POLICY_HASH,
+  type ContextSnapshot,
   type ContextSnapshotFreezeInput,
   type RevisionScope,
 } from "../src/index.js";
@@ -65,7 +66,7 @@ describe("WO-05 ContextSnapshot", () => {
   ): ContextSnapshotFreezeInput {
     if (core === undefined) throw new Error("core not initialized");
     return {
-      schema_version: 1,
+      schema_version: 2,
       scope,
       snapshot_id: "snapshot-1",
       operation_id: "operation-1",
@@ -85,7 +86,7 @@ describe("WO-05 ContextSnapshot", () => {
   }
 
   it("freezes current Authority, dependency closure, Hot Raw and an Attempt atomically", async () => {
-    const { scope } = await createCore();
+    const { databasePath, scope } = await createCore();
     const stateSource = core!.appendRawSourceProjection({
       scope,
       event_id: "event-state",
@@ -182,6 +183,25 @@ describe("WO-05 ContextSnapshot", () => {
     });
     const snapshot = core!.freezeContextSnapshot(input);
 
+    expect(snapshot.manifest.fact_relation_projection_receipt_ref).toEqual({
+      projection_receipt_id: expect.stringMatching(/^frpr-[a-f0-9]{64}$/u),
+      projection_receipt_hash: expect.stringMatching(/^[a-f0-9]{64}$/u),
+    });
+    const receiptAudit = new DatabaseSync(databasePath);
+    try {
+      const row = receiptAudit.prepare(
+        `SELECT receipt_json FROM cc_canonical_fact_relation_projection_receipts
+         WHERE namespace = ? AND stream_id = ? AND subject_snapshot_id = ?`
+      ).get(scope.namespace, scope.stream_id, snapshot.manifest.snapshot_id) as {
+        receipt_json: string;
+      };
+      const receipt = JSON.parse(row.receipt_json) as { facts: unknown[]; relations: unknown[] };
+      expect(receipt.facts).toHaveLength(1);
+      expect(receipt.relations).toHaveLength(1);
+    } finally {
+      receiptAudit.close();
+    }
+
     expect(snapshot.manifest.state_revision).toBe(state.state_revision);
     expect(snapshot.manifest.selected_state_refs.map(({ item_id }) => item_id)).toEqual([
       "constraint-1",
@@ -261,6 +281,196 @@ describe("WO-05 ContextSnapshot", () => {
     });
     expect(core!.readContextSnapshot(scope, "snapshot-1")).toEqual(snapshot);
     expect(core!.freezeContextSnapshot(input)).toEqual(snapshot);
+  });
+
+  it("uses the owner receipt to reject S0-S2 coordinated omissions and preserve S3 replay", async () => {
+    const { databasePath, scope } = await createCore();
+    const stateSource = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-state",
+      source_kind: "user_input",
+      source_id: "source-receipt-state",
+      payload: { content: "Keep the receipt dependency complete." },
+    });
+    core!.commitCanonicalState({
+      scope,
+      state_commit_id: "state-receipt",
+      commit_mode: "immediate_authority",
+      expected_state_revision: 0,
+      proposal: {
+        schema_version: 1,
+        upsert_items: [{
+          item_id: "goal-receipt",
+          kind: "GOAL",
+          content: "Prove the complete dependency graph",
+          status: "ACTIVE",
+          source_event_ids: [stateSource.event_id],
+          metadata: {},
+        }],
+      },
+      policy_hash: CANONICAL_STATE_POLICY_HASH,
+      provenance_event_ids: [stateSource.event_id],
+    });
+    const dependencySource = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-dependency",
+      source_kind: "tool_result",
+      source_id: "source-receipt-dependency",
+      payload: { content: "The owner receipt must preserve this dependency." },
+    });
+    core!.commitCanonicalFactsAndRelations({
+      scope,
+      authority_commit_id: "authority-receipt-initial",
+      policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+      fact_proposals: [{
+        op: "CREATE",
+        fact_id: "fact-receipt",
+        statement: "Owner receipt dependency fact",
+        epistemic_origin: "tool_observed",
+        verification_status: "corroborated",
+        lifecycle_status: "active",
+        record_status: "live",
+        provenance_event_ids: [dependencySource.event_id],
+        verification_event_ids: [],
+        metadata: {},
+      }],
+      relation_proposals: [{
+        op: "CREATE",
+        relation_id: "relation-receipt",
+        source: { type: "STATE_ITEM", id: "goal-receipt" },
+        relation_type: "DEPENDS_ON",
+        target: { type: "FACT", id: "fact-receipt" },
+        origin: "tool_observed",
+        provenance_event_ids: [dependencySource.event_id],
+        status: "active",
+        metadata: {},
+      }],
+    });
+    const current = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-current",
+      source_kind: "user_input",
+      source_id: "source-receipt-current",
+      payload: { content: "Freeze the receipt-backed graph." },
+    });
+    const freeze = (suffix: string): ContextSnapshot => core!.freezeContextSnapshot(
+      freezeInput(scope, current.event_id, {
+        snapshot_id: `snapshot-receipt-${suffix}`,
+        operation_id: `operation-receipt-${suffix}`,
+        attempt_id: `attempt-receipt-${suffix}`,
+      })
+    );
+    const forgeAndChallenge = (snapshot: ContextSnapshot): void => {
+      core!.close();
+      core = undefined;
+      forgeCoordinatedDependencyOmission(databasePath, scope, snapshot);
+      core = new ContextCompilerCore(databasePath);
+      expect(() => core!.readContextSnapshot(scope, snapshot.manifest.snapshot_id))
+        .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
+    };
+
+    const s0 = freeze("s0");
+    forgeAndChallenge(s0);
+
+    const laterFactSource = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-later-fact",
+      source_kind: "tool_result",
+      source_id: "source-receipt-later-fact",
+      payload: { content: "Later Fact provenance already exists." },
+    });
+    const s1 = freeze("s1");
+    const beforeLaterFact = core!.getRevisionVector(scope);
+    core!.commitCanonicalFactsAndRelations({
+      scope,
+      authority_commit_id: "authority-receipt-later-fact",
+      policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+      fact_proposals: [{
+        op: "CREATE",
+        fact_id: "fact-receipt-later",
+        statement: "Axis-neutral later Fact",
+        epistemic_origin: "tool_observed",
+        verification_status: "corroborated",
+        lifecycle_status: "active",
+        record_status: "live",
+        provenance_event_ids: [laterFactSource.event_id],
+        verification_event_ids: [],
+        metadata: {},
+      }],
+      relation_proposals: [],
+    });
+    expect(core!.getRevisionVector(scope)).toEqual(beforeLaterFact);
+    forgeAndChallenge(s1);
+
+    const laterRelationSource = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-later-relation",
+      source_kind: "tool_result",
+      source_id: "source-receipt-later-relation",
+      payload: { content: "Later Relation provenance already exists." },
+    });
+    const s2 = freeze("s2");
+    const beforeLaterRelation = core!.getRevisionVector(scope);
+    core!.commitCanonicalFactsAndRelations({
+      scope,
+      authority_commit_id: "authority-receipt-later-relation",
+      policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+      fact_proposals: [],
+      relation_proposals: [{
+        op: "CREATE",
+        relation_id: "relation-receipt-later",
+        source: { type: "STATE_ITEM", id: "goal-receipt" },
+        relation_type: "DEPENDS_ON",
+        target: { type: "FACT", id: "fact-receipt-later" },
+        origin: "tool_observed",
+        provenance_event_ids: [laterRelationSource.event_id],
+        status: "active",
+        metadata: {},
+      }],
+    });
+    expect(core!.getRevisionVector(scope)).toEqual(beforeLaterRelation);
+    forgeAndChallenge(s2);
+
+    const laterBothSource = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-later-both",
+      source_kind: "tool_result",
+      source_id: "source-receipt-later-both",
+      payload: { content: "Later Fact and Relation provenance already exists." },
+    });
+    const s3 = freeze("s3");
+    const beforeLaterBoth = core!.getRevisionVector(scope);
+    core!.commitCanonicalFactsAndRelations({
+      scope,
+      authority_commit_id: "authority-receipt-later-both",
+      policy_hash: CANONICAL_FACT_RELATION_POLICY_HASH,
+      fact_proposals: [{
+        op: "CREATE",
+        fact_id: "fact-receipt-later-both",
+        statement: "Axis-neutral later Fact and Relation",
+        epistemic_origin: "tool_observed",
+        verification_status: "corroborated",
+        lifecycle_status: "active",
+        record_status: "live",
+        provenance_event_ids: [laterBothSource.event_id],
+        verification_event_ids: [],
+        metadata: {},
+      }],
+      relation_proposals: [{
+        op: "CREATE",
+        relation_id: "relation-receipt-later-both",
+        source: { type: "STATE_ITEM", id: "goal-receipt" },
+        relation_type: "DEPENDS_ON",
+        target: { type: "FACT", id: "fact-receipt-later-both" },
+        origin: "tool_observed",
+        provenance_event_ids: [laterBothSource.event_id],
+        status: "active",
+        metadata: {},
+      }],
+    });
+    expect(core!.getRevisionVector(scope)).toEqual(beforeLaterBoth);
+    expect(core!.readContextSnapshot(scope, s3.manifest.snapshot_id)).toEqual(s3);
+    expect(s3.working_context).not.toContain("Axis-neutral later Fact and Relation");
   });
 
   it("keeps a dependency edge whose target is already a current Authority root", async () => {
@@ -498,6 +708,9 @@ describe("WO-05 ContextSnapshot", () => {
         .toEqual({ n: 1 });
       expect(database.prepare("SELECT COUNT(*) AS n FROM cc_context_attempt_starts").get())
         .toEqual({ n: 1 });
+      expect(database.prepare(
+        "SELECT COUNT(*) AS n FROM cc_canonical_fact_relation_projection_receipts"
+      ).get()).toEqual({ n: 1 });
     } finally {
       database.close();
     }
@@ -624,7 +837,7 @@ describe("WO-05 ContextSnapshot", () => {
     });
     const valid = freezeInput(scope, current.event_id);
     const invalidInputs: unknown[] = [
-      { ...valid, schema_version: 2 },
+      { ...valid, schema_version: 1 },
       { ...valid, policy_hash: "f".repeat(64) },
       { ...valid, hard_token_capacity: 0 },
       { ...valid, required_raw_event_ids: [current.event_id, current.event_id] },
@@ -658,6 +871,9 @@ describe("WO-05 ContextSnapshot", () => {
         .toEqual({ n: 0 });
       expect(database.prepare("SELECT COUNT(*) AS n FROM cc_context_attempt_starts").get())
         .toEqual({ n: 0 });
+      expect(database.prepare(
+        "SELECT COUNT(*) AS n FROM cc_canonical_fact_relation_projection_receipts"
+      ).get()).toEqual({ n: 0 });
     } finally {
       database.close();
     }
@@ -736,6 +952,92 @@ describe("WO-05 ContextSnapshot", () => {
     expect(core!.readContextSnapshot(scope, frozen.manifest.snapshot_id)).toEqual(frozen);
   });
 
+  it("rejects receipt subject, cross-scope and hash substitution", async () => {
+    const { databasePath, scope } = await createCore();
+    const other = { namespace: "authority", stream_id: "receipt-other-stream" };
+    const localCurrent = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-substitution-local",
+      source_kind: "user_input",
+      source_id: "source-receipt-substitution-local",
+      payload: { content: "Keep the local receipt identity." },
+    });
+    const otherCurrent = core!.appendRawSourceProjection({
+      scope: other,
+      event_id: "event-receipt-substitution-other",
+      source_kind: "user_input",
+      source_id: "source-receipt-substitution-other",
+      payload: { content: "Keep the foreign receipt isolated." },
+    });
+    const subject = core!.freezeContextSnapshot(freezeInput(scope, localCurrent.event_id, {
+      snapshot_id: "snapshot-receipt-subject",
+      operation_id: "operation-receipt-subject",
+      attempt_id: "attempt-receipt-subject",
+    }));
+    const crossScope = core!.freezeContextSnapshot(freezeInput(scope, localCurrent.event_id, {
+      snapshot_id: "snapshot-receipt-cross-scope",
+      operation_id: "operation-receipt-cross-scope",
+      attempt_id: "attempt-receipt-cross-scope",
+    }));
+    const hash = core!.freezeContextSnapshot(freezeInput(scope, localCurrent.event_id, {
+      snapshot_id: "snapshot-receipt-hash",
+      operation_id: "operation-receipt-hash",
+      attempt_id: "attempt-receipt-hash",
+    }));
+    const sameScopeOther = core!.freezeContextSnapshot(freezeInput(scope, localCurrent.event_id, {
+      snapshot_id: "snapshot-receipt-same-scope-other",
+      operation_id: "operation-receipt-same-scope-other",
+      attempt_id: "attempt-receipt-same-scope-other",
+    }));
+    const foreign = core!.freezeContextSnapshot(freezeInput(other, otherCurrent.event_id, {
+      snapshot_id: "snapshot-receipt-foreign",
+      operation_id: "operation-receipt-foreign",
+      attempt_id: "attempt-receipt-foreign",
+    }));
+    core!.close();
+    core = undefined;
+
+    const database = new DatabaseSync(databasePath);
+    try {
+      const snapshotTrigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_context_snapshots_no_update'`
+      ).get() as { sql: string };
+      const attemptTrigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_context_attempt_starts_no_update'`
+      ).get() as { sql: string };
+      database.exec(`DROP TRIGGER cc_context_snapshots_no_update;
+        DROP TRIGGER cc_context_attempt_starts_no_update;`);
+      rewriteStoredReceiptRef(
+        database,
+        scope,
+        subject,
+        sameScopeOther.manifest.fact_relation_projection_receipt_ref
+      );
+      rewriteStoredReceiptRef(
+        database,
+        scope,
+        crossScope,
+        foreign.manifest.fact_relation_projection_receipt_ref
+      );
+      rewriteStoredReceiptRef(database, scope, hash, {
+        ...hash.manifest.fact_relation_projection_receipt_ref,
+        projection_receipt_hash: "f".repeat(64),
+      });
+      database.exec(`${snapshotTrigger.sql};`);
+      database.exec(`${attemptTrigger.sql};`);
+    } finally {
+      database.close();
+    }
+
+    core = new ContextCompilerCore(databasePath);
+    for (const challenged of [subject, crossScope, hash]) {
+      expect(() => core!.readContextSnapshot(scope, challenged.manifest.snapshot_id))
+        .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
+    }
+  });
+
   it("rolls back Snapshot and Attempt when COMMIT fails after both inserts", async () => {
     const { databasePath, scope } = await createCore();
     const current = core!.appendRawSourceProjection({
@@ -767,6 +1069,9 @@ describe("WO-05 ContextSnapshot", () => {
         .toEqual({ n: 0 });
       expect(verifier.prepare("SELECT COUNT(*) AS n FROM cc_context_attempt_starts").get())
         .toEqual({ n: 0 });
+      expect(verifier.prepare(
+        "SELECT COUNT(*) AS n FROM cc_canonical_fact_relation_projection_receipts"
+      ).get()).toEqual({ n: 0 });
       expect(verifier.prepare("SELECT COUNT(*) AS n FROM cc_test_deferred_child").get())
         .toEqual({ n: 0 });
     } finally {
@@ -798,6 +1103,81 @@ describe("WO-05 ContextSnapshot", () => {
     core!.close();
     core = new ContextCompilerCore(databasePath);
     expect(core.readContextSnapshot(scope, frozen.manifest.snapshot_id)).toEqual(frozen);
+  });
+
+  it("fails closed on owner receipt row tamper", async () => {
+    const { databasePath, scope } = await createCore();
+    const current = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-tamper",
+      source_kind: "user_input",
+      source_id: "source-receipt-tamper",
+      payload: { content: "Bind the owner receipt." },
+    });
+    const frozen = core!.freezeContextSnapshot(freezeInput(scope, current.event_id));
+    core!.close();
+    core = undefined;
+    const database = new DatabaseSync(databasePath);
+    try {
+      const trigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_canonical_fact_relation_projection_receipts_no_update'`
+      ).get() as { sql: string };
+      database.exec("DROP TRIGGER cc_canonical_fact_relation_projection_receipts_no_update;");
+      database.prepare(
+        `UPDATE cc_canonical_fact_relation_projection_receipts
+         SET projection_receipt_hash = ? WHERE subject_snapshot_id = ?`
+      ).run("f".repeat(64), frozen.manifest.snapshot_id);
+      database.exec(`${trigger.sql};`);
+    } finally {
+      database.close();
+    }
+    core = new ContextCompilerCore(databasePath);
+    expect(() => core!.readContextSnapshot(scope, frozen.manifest.snapshot_id))
+      .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
+  });
+
+  it("rejects an orphan owner receipt instead of recapturing it", async () => {
+    const { databasePath, scope } = await createCore();
+    const current = core!.appendRawSourceProjection({
+      scope,
+      event_id: "event-receipt-orphan",
+      source_kind: "user_input",
+      source_id: "source-receipt-orphan",
+      payload: { content: "Do not reuse an orphan receipt." },
+    });
+    const input = freezeInput(scope, current.event_id);
+    const frozen = core!.freezeContextSnapshot(input);
+    core!.close();
+    core = undefined;
+    const database = new DatabaseSync(databasePath);
+    try {
+      const snapshotTrigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_context_snapshots_no_delete'`
+      ).get() as { sql: string };
+      const attemptTrigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_context_attempt_starts_no_delete'`
+      ).get() as { sql: string };
+      database.exec(`DROP TRIGGER cc_context_attempt_starts_no_delete;
+        DROP TRIGGER cc_context_snapshots_no_delete;`);
+      database.prepare(
+        "DELETE FROM cc_context_attempt_starts WHERE attempt_id = ?"
+      ).run(frozen.attempt_started.attempt_id);
+      database.prepare(
+        "DELETE FROM cc_context_snapshots WHERE snapshot_id = ?"
+      ).run(frozen.manifest.snapshot_id);
+      database.exec(`${snapshotTrigger.sql};`);
+      database.exec(`${attemptTrigger.sql};`);
+    } finally {
+      database.close();
+    }
+    core = new ContextCompilerCore(databasePath);
+    expect(() => core!.readContextSnapshot(scope, frozen.manifest.snapshot_id))
+      .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
+    expect(() => core!.freezeContextSnapshot(input))
+      .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
   });
 
   it("renders and binds the exact current Takeover Artifact without reviving compacted Raw", async () => {
@@ -1076,11 +1456,34 @@ describe("WO-05 ContextSnapshot", () => {
       .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
   });
 
+  it("fails closed on the returned candidate Snapshot v1 marker", async () => {
+    const { databasePath } = await createCore();
+    core!.close();
+    core = undefined;
+    const database = new DatabaseSync(databasePath);
+    try {
+      const trigger = database.prepare(
+        `SELECT sql FROM sqlite_master WHERE type = 'trigger'
+         AND name = 'cc_context_snapshot_schema_no_update'`
+      ).get() as { sql: string };
+      database.exec("DROP TRIGGER cc_context_snapshot_schema_no_update;");
+      database.prepare("UPDATE cc_context_snapshot_schema SET version = 1").run();
+      database.exec(`${trigger.sql};`);
+    } finally {
+      database.close();
+    }
+    expect(() => new SqliteContextSnapshotStore(databasePath))
+      .toThrow(expect.objectContaining({ code: "CORRUPT_DATA" }));
+  });
+
   it("keeps the Snapshot store private from the package root and policy identity exact", async () => {
     const root = await import("../src/index.js") as Record<string, unknown>;
     expect(root.SqliteContextSnapshotStore).toBeUndefined();
+    expect(root.captureCanonicalFactRelationProjectionReceiptInsideCore).toBeUndefined();
+    expect(root.readCanonicalFactRelationProjectionReceiptInsideCore).toBeUndefined();
+    expect(root.CANONICAL_FACT_RELATION_PROJECTION_RECEIPT_POLICY_HASH).toBeUndefined();
     expect(CONTEXT_SNAPSHOT_POLICY_HASH).toBe(
-      "038a11d2f29dd9b112f69657e89f069c188b521911509f07c189af128b860c05"
+      "279ceac17c144e99a39a041c5814f6b2e0643ecfc5ef6afe5a57f8d4bace8d6a"
     );
     expect(CONTEXT_ASSEMBLER_VERSION_HASH).toBe(
       "e66825b13a057ae9648a83068e330c8025729fd77723bdd199d7cc4bd9ef888a"
@@ -1089,6 +1492,114 @@ describe("WO-05 ContextSnapshot", () => {
     expect(ContextCompilerCoreError).toBeDefined();
   });
 });
+
+function rewriteStoredReceiptRef(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  snapshot: ContextSnapshot,
+  ref: ContextSnapshot["manifest"]["fact_relation_projection_receipt_ref"]
+): void {
+  const row = database.prepare(
+    `SELECT manifest_json FROM cc_context_snapshots
+     WHERE namespace = ? AND stream_id = ? AND snapshot_id = ?`
+  ).get(scope.namespace, scope.stream_id, snapshot.manifest.snapshot_id) as {
+    manifest_json: string;
+  };
+  const manifest = JSON.parse(row.manifest_json) as Record<string, unknown>;
+  manifest.fact_relation_projection_receipt_ref = { ...ref };
+  const manifestJson = canonicalJson(manifest);
+  const manifestHash = sha256(manifestJson);
+  database.prepare(
+    `UPDATE cc_context_snapshots SET manifest_json = ?, manifest_hash = ?
+     WHERE namespace = ? AND stream_id = ? AND snapshot_id = ?`
+  ).run(
+    manifestJson,
+    manifestHash,
+    scope.namespace,
+    scope.stream_id,
+    snapshot.manifest.snapshot_id
+  );
+  database.prepare(
+    `UPDATE cc_context_attempt_starts SET snapshot_manifest_hash = ?
+     WHERE namespace = ? AND stream_id = ? AND attempt_id = ?`
+  ).run(
+    manifestHash,
+    scope.namespace,
+    scope.stream_id,
+    snapshot.attempt_started.attempt_id
+  );
+}
+
+function forgeCoordinatedDependencyOmission(
+  databasePath: string,
+  scope: RevisionScope,
+  snapshot: ContextSnapshot
+): void {
+  const database = new DatabaseSync(databasePath);
+  try {
+    const row = database.prepare(
+      `SELECT manifest_json, working_context_text FROM cc_context_snapshots
+       WHERE namespace = ? AND stream_id = ? AND snapshot_id = ?`
+    ).get(scope.namespace, scope.stream_id, snapshot.manifest.snapshot_id) as {
+      manifest_json: string;
+      working_context_text: string;
+    };
+    const manifest = JSON.parse(row.manifest_json) as Record<string, unknown>;
+    manifest.selected_fact_refs = [];
+    manifest.selected_relation_refs = [];
+    manifest.dependency_paths = [];
+    const forgedBody = row.working_context_text
+      .replace(
+        /## Required Facts\n[\s\S]*?(?=\n\n## Dependency Relations)/u,
+        "## Required Facts\n[none]"
+      )
+      .replace(
+        /## Dependency Relations\n[\s\S]*?(?=\n\n## Required Raw Evidence)/u,
+        "## Dependency Relations\n[none]"
+      );
+    const forgedBodyHash = sha256(forgedBody);
+    manifest.working_context_hash = forgedBodyHash;
+    manifest.working_context_estimated_tokens = Math.max(1, Math.ceil(forgedBody.length / 4));
+    const forgedManifestJson = canonicalJson(manifest);
+    const forgedManifestHash = sha256(forgedManifestJson);
+    const snapshotTrigger = database.prepare(
+      `SELECT sql FROM sqlite_master
+       WHERE type = 'trigger' AND name = 'cc_context_snapshots_no_update'`
+    ).get() as { sql: string };
+    const attemptTrigger = database.prepare(
+      `SELECT sql FROM sqlite_master
+       WHERE type = 'trigger' AND name = 'cc_context_attempt_starts_no_update'`
+    ).get() as { sql: string };
+    database.exec(`DROP TRIGGER cc_context_snapshots_no_update;
+      DROP TRIGGER cc_context_attempt_starts_no_update;`);
+    database.prepare(
+      `UPDATE cc_context_snapshots
+       SET manifest_json = ?, manifest_hash = ?, working_context_text = ?, working_context_hash = ?
+       WHERE namespace = ? AND stream_id = ? AND snapshot_id = ?`
+    ).run(
+      forgedManifestJson,
+      forgedManifestHash,
+      forgedBody,
+      forgedBodyHash,
+      scope.namespace,
+      scope.stream_id,
+      snapshot.manifest.snapshot_id
+    );
+    database.prepare(
+      `UPDATE cc_context_attempt_starts SET snapshot_manifest_hash = ?
+       WHERE namespace = ? AND stream_id = ? AND attempt_id = ?`
+    ).run(
+      forgedManifestHash,
+      scope.namespace,
+      scope.stream_id,
+      snapshot.attempt_started.attempt_id
+    );
+    database.exec(`${snapshotTrigger.sql};`);
+    database.exec(`${attemptTrigger.sql};`);
+  } finally {
+    database.close();
+  }
+}
 
 interface ConcurrentFreezeResult {
   ok: boolean;

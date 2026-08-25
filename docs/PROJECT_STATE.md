@@ -32,7 +32,9 @@ Fact/Relation as-of 投影证明。QA-return repair baseline 已由 standalone c
 immutable complete-projection receipt、Snapshot v2 receipt ID/hash binding、同事务 capture、
 receipt-first replay、幂等/并发/rollback/orphan/migration 与 S0–S5。机械审计确认现有 exact
 object revisions 和同 handle transaction 足够，无需 substrate extension，也不增加第六全局轴。
-append-only source fix 现已授权但尚未开始，范围仅限 Gate exact allowlist。
+append-only Builder fix 已完成：Snapshot v2 只绑定 owner receipt ID/hash，stored replay 从完整
+receipt graph 重建 expected closure；S0–S5、focused 76 tests、全量 569 passed / 1 skipped 与
+build 均通过。当前为 **BUILDER COMPLETE / AWAITING FRESH INDEPENDENT RE-QA**，尚未接受。
 
 WO-04C Semantic Takeover / Enrichment + Frontier + Compaction Artifact 已在 Builder
 candidate `6642e4c04f4b7a5ff684c0399e4f83be075724f5` 通过 Independent QA，QA
@@ -175,5 +177,5 @@ FROZEN**。该 v0 行为与算法线继续冻结，不因新 canonical authority
 WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保持为历史事实；
 current-semantic owner seam blocker 已由 accepted WO-04D 关闭，但 Builder candidate 被
 Independent QA 因 Fact/Relation dependency omission attack 退回。唯一当前工单的 repair
-baseline 与有界 owner-receipt Gate Addendum 已冻结；append-only source fix 已授权、尚未开始。
-Formal Host Mode 与 WO-06+ 均未开始。
+baseline 与有界 owner-receipt Gate Addendum 已冻结；append-only Builder fix 已完成并等待
+新的物理分离 Independent QA。Formal Host Mode 与 WO-06+ 均未开始。
