@@ -154,6 +154,29 @@ describe("deterministic Context Assembler", () => {
     expect(compiled.metrics.d0_full_tokens).toBeGreaterThan(compiled.metrics.d1_recent_tokens);
   });
 
+  it("uses seq order while preserving parseable legacy Raw source timestamps", () => {
+    const first = {
+      ...raw("first-newer", 1, "user", "appended first with newer source time"),
+      created_at: "2026-08-02T00:00:00Z",
+    };
+    const second = {
+      ...raw("second-older", 2, "assistant", "appended second with older source time"),
+      created_at: "2026-08-01T08:00:00+08:00",
+    };
+    const compiled = assembleContext(input({ raw_events: [second, first] }));
+
+    expect(compiled.recent_conversation.map(({ id }) => id)).toEqual(["first-newer", "second-older"]);
+    expect(compiled.recent_conversation.map(({ created_at }) => created_at)).toEqual([
+      "2026-08-02T00:00:00Z",
+      "2026-08-01T08:00:00+08:00",
+    ]);
+    expect(compiled.rendered_context.indexOf(first.content))
+      .toBeLessThan(compiled.rendered_context.indexOf(second.content));
+    expect(() => assembleContext(input({
+      raw_events: [{ ...first, created_at: "2026-02-30T00:00:00Z" }],
+    }))).toThrow(ContextAssemblerValidationError);
+  });
+
   it("returns no recent events when the snapshot contains no user turn", () => {
     const compiled = assembleContext(input({ raw_events: [raw("s", 1, "system"), raw("a", 2, "assistant")] }));
     expect(compiled.recent_conversation).toEqual([]);

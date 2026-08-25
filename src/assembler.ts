@@ -1,4 +1,9 @@
-import { estimateTokens, type JsonObject, type RawEvent } from "./raw-store.js";
+import {
+  estimateTokens,
+  validateCompatibleRawEventTimestamp,
+  type JsonObject,
+  type RawEvent,
+} from "./raw-store.js";
 import type {
   ContextItem,
   ContextItemStatus,
@@ -645,7 +650,7 @@ function validateRawEvent(value: unknown, sessionId: string, index: number): Raw
     role: enumValue(value.role, ROLES, `${path}.role`),
     content: typeof value.content === "string" ? value.content : invalid(`${path}.content is invalid`),
     event_type: nonBlankString(value.event_type, `${path}.event_type`),
-    created_at: isoTimestamp(value.created_at, `${path}.created_at`),
+    created_at: compatibleRawEventTimestamp(value.created_at, `${path}.created_at`),
     token_count: value.token_count as number,
     metadata: cloneJson(value.metadata as JsonObject),
     ...(sourceEventId === undefined ? {} : { source_event_id: sourceEventId }),
@@ -752,6 +757,14 @@ function isoTimestamp(value: unknown, path: string): string {
     invalid(`${path} must be an ISO timestamp`);
   }
   return value;
+}
+
+function compatibleRawEventTimestamp(value: unknown, path: string): string {
+  try {
+    return validateCompatibleRawEventTimestamp(value);
+  } catch {
+    invalid(`${path} must be a valid Raw source timestamp`);
+  }
 }
 
 function strictArrayValues(value: unknown[], path: string): unknown[] {

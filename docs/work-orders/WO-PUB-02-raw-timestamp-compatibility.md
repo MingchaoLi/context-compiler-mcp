@@ -1,24 +1,28 @@
 # WO-PUB-02 — Raw Timestamp Compatibility
 
-状态：PLANNED / NOT STARTED
+状态：BUILDER COMPLETE / PENDING INDEPENDENT QA
 
 Planning baseline：`db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`
 
+Implementation baseline：`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`
+
 ## 背景
 
-公开 `ingest_event` 当前接受单条合法的顶层 `created_at`，但同一 session 按 append 顺序写入两个
-独立合法、时间倒序的 Raw Event 后，后续 `compile_context` 会返回 `INVALID_INPUT`。省略顶层
-`created_at` 时同一内容可正常 compile。
+公开 `ingest_event` 曾接受 RFC 3339 秒级或 offset 形式的顶层 `created_at` 并原样落盘，但
+`compile_context` reader 只接受 `Date.toISOString()` 风格的 UTC millisecond 形式。因此同一 session
+按 append 顺序写入两个独立合法、时间倒序的 Raw Event 后，后续 compile 会返回 `INVALID_INPUT`；即使
+只写一条同形状 timestamp，也会触发同一 representation-domain 裂缝。省略顶层 `created_at` 时由 server
+生成 canonical timestamp，compile 可正常完成。
 
-这证明 Raw write domain 与 read/replay domain 不一致：writer 把 `created_at` 当作每个 Event 自身的
-source/event time，而 reader 又隐含要求它随 append stream 单调。append-only Raw 的 durable 顺序已经
-由同 session 的 `seq` 表达，不应由可迟到、回补、跨源或来自历史导出的 source timestamp 代替。
+源码审计确认不存在跨事件 timestamp monotonicity check；Raw 顺序本来已由同 session 的 `seq` 表达。
+本工单因此同时关闭 writer/reader 的 timestamp grammar 裂缝，并把已有的 `seq` ordering 固定为公开合同，
+避免 future reader 把可迟到、回补、跨源或来自历史导出的 source timestamp 误当作 append cursor。
 
 ## 单一结果
 
-> 冻结并实现 Raw 的双时间语义：`seq` 是唯一 append/replay order；每条合法 `created_at` 是独立的
-> source/event time，可相等、倒序、迟到或位于未来。read/compile/reopen/replay 必须接受 writer 已合法
-> 提交的历史 Raw，而不改写任何 append-only row。
+> 对齐 Raw write/read timestamp domain，并冻结双时间语义：`seq` 是唯一 append/replay order；每条合法
+> `created_at` 是独立的 source/event time，可相等、倒序、迟到或位于未来。新 writer canonicalize，
+> read/compile/reopen/replay 接受历史 writer 已提交的可解析 RFC 3339 Raw，并保持其 timestamp bytes 原样。
 
 ## 固定合同
 
@@ -26,6 +30,8 @@ source/event time，而 reader 又隐含要求它随 append stream 单调。appe
 
 - `ingest_event.created_at` 若提供，继续按现有单事件 timestamp grammar 验证并 canonicalize；非法值仍以
   `INVALID_INPUT` 拒绝，不能落盘。
+- 公开 input schema 将该字段冻结为 RFC 3339 date-time，允许秒级、1–3 位小数与 `Z`/numeric offset；
+  writer 持久化并返回 UTC millisecond canonical form。该 schema refinement 是本工单唯一 input 变化。
 - 合法 `created_at` 不要求大于等于同 session 前一事件，也不要求小于当前 wall clock。
 - 省略 `created_at` 时继续使用现有 server-assigned timestamp 行为。
 - `seq`、source-event idempotency、event identity、token/content/metadata 与事务语义保持不变。
@@ -34,7 +40,7 @@ source/event time，而 reader 又隐含要求它随 append stream 单调。appe
 
 - 同 session 的 Raw 顺序只按 durable `seq` 判断；reader 不得以 `created_at` 倒序、相等、future skew 或
   late arrival 拒绝 writer 已提交的历史。
-- 所有 retained rows 仍须逐条满足现有 row shape、timestamp grammar、连续 seq、scope/session 与
+- 所有 retained rows 仍须逐条满足现有 row shape、timestamp grammar、positive unique seq、scope/session 与
   append-only integrity；本工单不把 corruption 检查降级为“全部接受”。
 - compile、Hot Raw/reopen、recall 和 exact replay 如需稳定顺序，必须使用 `seq` 及其既有 tie-free contract，
   不能按 `created_at` 重新排序。
@@ -46,7 +52,7 @@ source/event time，而 reader 又隐含要求它随 append stream 单调。appe
 - 新旧数据库中的合法 Raw row 均可 reopen/replay；倒序时间不触发 migration，也不推进/改写任何 revision、
   Frontier、Takeover、State、Fact/Relation 或 Snapshot。
 - 已存在的 exact replay/hash/provenance 必须继续绑定原 event/seq/content/timestamp bytes。
-- source timestamp 相同、跨时区等价输入经现有 writer canonicalization 后，reader 均只验证单条合法性。
+- source timestamp 相同、跨时区等价输入经新 writer canonicalization 后，reader 均只验证单条合法性。
 - 现有非法/非 canonical/tampered row 的 fail-closed 行为只在有 repository contract 支撑时保留；若历史
   writer 曾合法产生某形状，reader 不得新增更窄条件拒绝它。
 
@@ -84,10 +90,10 @@ source/event time，而 reader 又隐含要求它随 append stream 单调。appe
    UPDATE/backfill/schema rewrite。
 4. 覆盖 equal timestamp、future timestamp、late arrival、跨时区 canonicalization；非法 timestamp 在
    writer 边界仍拒绝且不落盘。
-5. 人工 tamper 的 seq gap、session/scope mismatch、非法 timestamp 或既有不可变性破坏仍 fail-closed；
-   只移除 writer 从未承诺的跨事件 timestamp monotonicity。
-6. source-event idempotency、并发 append、九工具/input schemas、public result boundary 与其他八工具输出
-   保持不变。
+5. 人工 tamper 的 duplicate/invalid seq、session/scope mismatch、非法 timestamp 或既有不可变性破坏仍 fail-closed；
+   兼容范围只覆盖历史 writer 已落盘的可解析 RFC 3339 timestamp，不把 arbitrary string 晋升为合法时间。
+6. source-event idempotency、并发 append、九工具顺序、public result boundary 与其他八工具输出保持
+   不变；除 `ingest_event.created_at` 的 RFC 3339 schema refinement 外，全部 input schemas byte-value 等价。
 7. focused tests、`npm test`、`npm run build`、production-only stdio package 与 `git diff --check` 通过。
 8. Builder 写独立 handoff；fresh Independent QA 固定 candidate 后独立重现倒序、reopen/replay、tamper 与
    production package 场景。

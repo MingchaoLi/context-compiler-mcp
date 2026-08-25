@@ -132,7 +132,11 @@ const TOOLS: Tool[] = [
     role: { type: "string", enum: ["system", "user", "assistant", "tool"] },
     content: { type: "string" },
     event_type: { type: "string", minLength: 1 },
-    created_at: { type: "string" },
+    created_at: {
+      type: "string",
+      format: "date-time",
+      pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$",
+    },
     token_count: { type: "integer", minimum: 0 },
     metadata: { type: "object" },
     source_event_id: { type: "string", minLength: 1 },

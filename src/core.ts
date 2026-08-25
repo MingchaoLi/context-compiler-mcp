@@ -67,6 +67,7 @@ import {
 } from "./semantic-takeover.js";
 import {
   SqliteRawHistoryStore,
+  RawEventTimestampError,
   estimateTokens,
   normalizeDenseEmbedding,
   type DenseEmbedding,
@@ -593,6 +594,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
     try {
       return this.rawStore.ingest(input as unknown as RawEventInput);
     } catch (error) {
+      if (error instanceof RawEventTimestampError) {
+        throw new ContextCompilerCoreError("INVALID_INPUT");
+      }
       if (error instanceof Error && error.message.includes("conflicts with existing raw evidence")) {
         throw new ContextCompilerCoreError("CONFLICT");
       }

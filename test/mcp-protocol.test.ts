@@ -262,6 +262,13 @@ describe("Context Compiler stdio MCP protocol", () => {
         "prepare_state_update", "apply_state_delta",
         "create_headline", "recall_exact", "recall_keyword",
       ]);
+      const ingestTimestampSchema = listed.tools.find((tool) => tool.name === "ingest_event")
+        ?.inputSchema.properties?.created_at;
+      expect(ingestTimestampSchema).toEqual({
+        type: "string",
+        format: "date-time",
+        pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-]\\d{2}:\\d{2})$",
+      });
       const headlineSchema = listed.tools.find((tool) => tool.name === "create_headline")
         ?.inputSchema.properties?.created_at;
       expect(headlineSchema).toEqual({
@@ -563,6 +570,187 @@ describe("Context Compiler stdio MCP protocol", () => {
     }
   });
 
+  it("keeps Raw append order independent from source time and replays legacy timestamp bytes", async () => {
+    const database = join(temporaryRoot, "raw-timestamp-compatibility.db");
+    const sessionId = "raw-timestamp-compatibility";
+    let connection = await connect(serverEntry, database);
+    try {
+      const first = parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "newer-source-time",
+          role: "user",
+          content: "append first with newer source time",
+          created_at: "2026-08-02T00:00:00Z",
+        },
+      })) as any;
+      const second = parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "older-source-time",
+          role: "assistant",
+          content: "append second with older source time",
+          created_at: "2026-08-01T08:00:00+08:00",
+        },
+      })) as any;
+      expect(first).toMatchObject({
+        ok: true,
+        result: { seq: 1, created_at: "2026-08-02T00:00:00.000Z" },
+      });
+      expect(second).toMatchObject({
+        ok: true,
+        result: { seq: 2, created_at: "2026-08-01T00:00:00.000Z" },
+      });
+      const compiled = parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: sessionId, current_input: "continue" },
+      })) as any;
+      expect(compiled.ok).toBe(true);
+      const rendered = compiled.result.context.rendered_context as string;
+      expect(rendered.indexOf("append first with newer source time"))
+        .toBeLessThan(rendered.indexOf("append second with older source time"));
+
+      const invalid = await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          role: "user",
+          content: "invalid time must not persist",
+          created_at: "2026-02-30T00:00:00Z",
+        },
+      });
+      expect(invalid.isError).toBe(true);
+      expect(parse(invalid)).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
+    } finally {
+      await close(connection);
+    }
+
+    const legacyId = "legacy-raw-timestamp-event";
+    const legacyTimestamp = "2025-12-31T23:59:59Z";
+    const direct = new DatabaseSync(database);
+    expect(direct.prepare(
+      "SELECT COUNT(*) AS count FROM raw_events WHERE session_id = ?"
+    ).get(sessionId)).toEqual({ count: 2 });
+    direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      legacyId,
+      sessionId,
+      3,
+      "legacy-source-event",
+      "user",
+      "legacy append-only timestamp bytes",
+      "message",
+      legacyTimestamp,
+      9,
+      "{}",
+      null
+    );
+    direct.close();
+
+    connection = await connect(serverEntry, database);
+    let expectedRendered: string;
+    try {
+      const legacyRetry = parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: sessionId,
+          source_event_id: "legacy-source-event",
+          role: "user",
+          content: "legacy append-only timestamp bytes",
+          event_type: "message",
+          created_at: legacyTimestamp,
+          token_count: 9,
+          metadata: {},
+        },
+      })) as any;
+      expect(legacyRetry).toMatchObject({
+        ok: true,
+        result: { id: legacyId, seq: 3, created_at: legacyTimestamp },
+      });
+      const compiled = parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: sessionId, current_input: "replay legacy" },
+      })) as any;
+      expect(compiled.ok).toBe(true);
+      expectedRendered = compiled.result.context.rendered_context;
+      expect(expectedRendered).toContain("legacy append-only timestamp bytes");
+      const recalled = parse(await connection.client.callTool({
+        name: "recall_exact",
+        arguments: { session_id: sessionId, kind: "event_id", event_id: legacyId },
+      })) as any;
+      expect(recalled).toMatchObject({
+        ok: true,
+        result: { found: true, event: { id: legacyId, seq: 3, created_at: legacyTimestamp } },
+      });
+    } finally {
+      await close(connection);
+    }
+
+    connection = await connect(serverEntry, database);
+    try {
+      const replayed = parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: sessionId, current_input: "replay legacy" },
+      })) as any;
+      expect(replayed).toMatchObject({ ok: true });
+      expect(replayed.result.context.rendered_context).toBe(expectedRendered!);
+    } finally {
+      await close(connection);
+    }
+
+    const audit = new DatabaseSync(database);
+    expect(audit.prepare(
+      "SELECT seq, created_at FROM raw_events WHERE session_id = ? ORDER BY seq"
+    ).all(sessionId)).toEqual([
+      { seq: 1, created_at: "2026-08-02T00:00:00.000Z" },
+      { seq: 2, created_at: "2026-08-01T00:00:00.000Z" },
+      { seq: 3, created_at: legacyTimestamp },
+    ]);
+    expect(audit.prepare(
+      "SELECT occurred_at FROM experience_ledger WHERE source_key = ?"
+    ).get(`raw-event/${legacyId}`)).toEqual({ occurred_at: legacyTimestamp });
+    audit.close();
+
+    const corrupted = new DatabaseSync(database);
+    corrupted.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content,
+         event_type, created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      "invalid-historical-timestamp",
+      sessionId,
+      4,
+      "invalid-historical-source",
+      "user",
+      "invalid historical timestamp must fail closed",
+      "message",
+      "2026-02-30T00:00:00Z",
+      10,
+      "{}",
+      null
+    );
+    corrupted.close();
+
+    connection = await connect(serverEntry, database);
+    try {
+      const rejectedReplay = await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: sessionId, current_input: "reject corrupt replay" },
+      });
+      expect(rejectedReplay.isError).toBe(true);
+      expect(parse(rejectedReplay)).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
+    } finally {
+      await close(connection);
+    }
+  });
+
   it("starts from an npm package with only declared runtime dependencies", async () => {
     const packagedRoot = join(temporaryRoot, "packaged");
     const npmCache = join(temporaryRoot, "npm-cache");
@@ -597,6 +785,28 @@ describe("Context Compiler stdio MCP protocol", () => {
     );
     try {
       expect(parse(await connection.client.callTool({ name: "health", arguments: {} }))).toMatchObject({ ok: true, result: { ready: true } });
+      expect(parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: "packaged-timestamp",
+          role: "user",
+          content: "packaged newer time",
+          created_at: "2026-08-02T00:00:00Z",
+        },
+      }))).toMatchObject({ ok: true, result: { seq: 1, created_at: "2026-08-02T00:00:00.000Z" } });
+      expect(parse(await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: "packaged-timestamp",
+          role: "assistant",
+          content: "packaged older time",
+          created_at: "2026-08-01T00:00:00Z",
+        },
+      }))).toMatchObject({ ok: true, result: { seq: 2, created_at: "2026-08-01T00:00:00.000Z" } });
+      expect(parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: "packaged-timestamp", current_input: "continue" },
+      }))).toMatchObject({ ok: true, result: { context: { session_id: "packaged-timestamp" } } });
       expect(connection.stderr.join("")).toBe("");
     } finally {
       await close(connection);

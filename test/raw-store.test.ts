@@ -109,6 +109,85 @@ describe("SqliteRawHistoryStore", () => {
     expect(store.getEvent(first.id)).toEqual(first);
   });
 
+  it("canonicalizes independent source times without imposing timestamp order on append seq", () => {
+    store = new SqliteRawHistoryStore(databasePath);
+    const newer = store.ingest({
+      session_id: "timestamp-domain",
+      source_event_id: "timestamp-1",
+      role: "user",
+      content: "appended first",
+      created_at: "2026-08-02T00:00:00Z",
+    });
+    const older = store.ingest({
+      session_id: "timestamp-domain",
+      source_event_id: "timestamp-2",
+      role: "assistant",
+      content: "appended second with older source time",
+      created_at: "2026-08-01T08:00:00+08:00",
+    });
+    const equal = store.ingest({
+      session_id: "timestamp-domain",
+      source_event_id: "timestamp-3",
+      role: "user",
+      content: "same source instant",
+      created_at: "2026-08-01T00:00:00.000Z",
+    });
+    const future = store.ingest({
+      session_id: "timestamp-domain",
+      source_event_id: "timestamp-4",
+      role: "assistant",
+      content: "future source time",
+      created_at: "2099-01-01T00:00:00Z",
+    });
+    const retry = store.ingest({
+      session_id: "timestamp-domain",
+      source_event_id: "timestamp-1",
+      role: "user",
+      content: "appended first",
+      created_at: "2026-08-02T00:00:00.000Z",
+    });
+
+    expect([newer.seq, older.seq, equal.seq, future.seq]).toEqual([1, 2, 3, 4]);
+    expect([newer.created_at, older.created_at, equal.created_at, future.created_at]).toEqual([
+      "2026-08-02T00:00:00.000Z",
+      "2026-08-01T00:00:00.000Z",
+      "2026-08-01T00:00:00.000Z",
+      "2099-01-01T00:00:00.000Z",
+    ]);
+    expect(retry).toEqual(newer);
+
+    const expected = [newer, older, equal, future];
+    store.close();
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(store.getSessionEvents("timestamp-domain")).toEqual(expected);
+  });
+
+  it.each([
+    "not-a-time",
+    "2026-02-30T00:00:00Z",
+    "2025-02-29T00:00:00Z",
+    "2026-08-01 00:00:00Z",
+    "2026-08-01T24:00:00Z",
+    "2026-08-01T00:00:60Z",
+    "2026-08-01T00:00:00+24:00",
+    "2026-08-01T00:00:00.1234Z",
+  ])("rejects invalid source timestamp %s before consuming a sequence", (createdAt) => {
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(() => store?.ingest({
+      session_id: "invalid-timestamp",
+      role: "user",
+      content: "must not persist",
+      created_at: createdAt,
+    })).toThrow(/RFC 3339 timestamp/);
+    expect(store.getSessionEvents("invalid-timestamp")).toEqual([]);
+    expect(store.ingest({
+      session_id: "invalid-timestamp",
+      role: "user",
+      content: "valid append",
+      created_at: "2026-08-01T00:00:00Z",
+    }).seq).toBe(1);
+  });
+
   it("rejects update and delete even through a separate database connection", () => {
     store = new SqliteRawHistoryStore(databasePath);
     const event = store.ingest({

@@ -14,6 +14,11 @@ The current server exposes exactly nine tools:
 - `recall_exact`
 - `recall_keyword`
 
+`ingest_event.created_at` 是可选的独立 source/event time，不是 append cursor。提供时必须是 RFC 3339
+date-time（秒级或 1–3 位小数，`Z`/numeric offset），writer 会持久化并返回 UTC millisecond canonical
+form；同 session 的 durable 顺序始终由 `seq` 表达，所以合法时间可以倒序、相等、迟到或 future-skew。
+历史 append-only Raw 中可解析的旧 timestamp bytes 在 read/replay 时保持原样，不会 backfill 或改写。
+
 公开 stdio `compile_context` 成功结果使用 closed-world allowlist：`context` 只返回
 `session_id`、最终 `rendered_context`、`budget_exceeded`、`budget_overage`，另返回有限数值
 `metrics`。候选列表、ranking/score、debug/manifest、trace/telemetry identity 与内部 raw/state/path

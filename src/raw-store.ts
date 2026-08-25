@@ -56,6 +56,64 @@ export interface RawHistoryStore {
   close(): void;
 }
 
+export class RawEventTimestampError extends Error {
+  constructor() {
+    super("created_at must be a valid RFC 3339 timestamp");
+    this.name = "RawEventTimestampError";
+  }
+}
+
+const RAW_EVENT_WRITE_TIMESTAMP_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|([+-])(\d{2}):(\d{2}))$/u;
+const RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|([+-])(\d{2}):(\d{2}))$/u;
+
+/**
+ * Validate one independent source/event timestamp and canonicalize it for a new append.
+ * Durable stream order is carried by RawEvent.seq, never by this wall/source time.
+ */
+export function normalizeRawEventTimestamp(value: unknown): string {
+  return canonicalRawEventTimestamp(value, RAW_EVENT_WRITE_TIMESTAMP_PATTERN);
+}
+
+/** Validate historical writer-produced timestamp bytes without rewriting them. */
+export function validateCompatibleRawEventTimestamp(value: unknown): string {
+  canonicalRawEventTimestamp(value, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN);
+  return value as string;
+}
+
+function canonicalRawEventTimestamp(value: unknown, pattern: RegExp): string {
+  if (typeof value !== "string" || value.length > 100) throw new RawEventTimestampError();
+  const match = pattern.exec(value);
+  if (match === null) throw new RawEventTimestampError();
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const fraction = match[7] ?? "";
+  const offsetHour = match[10] === undefined ? 0 : Number(match[10]);
+  const offsetMinute = match[11] === undefined ? 0 : Number(match[11]);
+  if (
+    month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month) ||
+    hour > 23 || minute > 59 || second > 59 || offsetHour > 23 || offsetMinute > 59
+  ) {
+    throw new RawEventTimestampError();
+  }
+  const millisecond = Number(fraction.padEnd(3, "0").slice(0, 3));
+  const local = new Date(0);
+  local.setUTCFullYear(year, month - 1, day);
+  local.setUTCHours(hour, minute, second, millisecond);
+  const offsetSign = match[9] === "-" ? -1 : 1;
+  const offsetMilliseconds = offsetSign * (offsetHour * 60 + offsetMinute) * 60_000;
+  const canonical = new Date(local.getTime() - offsetMilliseconds).toISOString();
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(canonical)) {
+    throw new RawEventTimestampError();
+  }
+  return canonical;
+}
+
 export function estimateTokens(text: string): number {
   if (text.length === 0) return 0;
   return Math.max(1, Math.ceil(text.length / 4));
@@ -98,7 +156,7 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
     const metadata = input.metadata === undefined ? {} : normalizeMetadata(input.metadata);
     const metadataJson = JSON.stringify(metadata);
     const eventType = input.event_type ?? "message";
-    const createdAt = input.created_at ?? new Date().toISOString();
+    const createdAt = normalizeRawEventTimestamp(input.created_at ?? new Date().toISOString());
     const tokenCount = input.token_count ?? estimateTokens(input.content);
     const sourceEventId = input.source_event_id ?? null;
     const denseEmbedding = input.dense_embedding === undefined
@@ -117,7 +175,14 @@ export class SqliteRawHistoryStore implements RawHistoryStore {
           .prepare("SELECT * FROM raw_events WHERE session_id = ? AND source_event_id = ?")
           .get(input.session_id, sourceEventId) as DatabaseRow | undefined;
         if (existing) {
-          assertCompatibleRetry(existing, input, eventType, metadataJson, denseEmbeddingJson);
+          assertCompatibleRetry(
+            existing,
+            input,
+            eventType,
+            createdAt,
+            metadataJson,
+            denseEmbeddingJson
+          );
           assertRawEventMirrorInsideTransaction(this.database, rowToEvent(existing));
           this.database.exec("COMMIT;");
           return rowToEvent(existing);
@@ -351,6 +416,7 @@ function assertCompatibleRetry(
   existing: DatabaseRow,
   input: RawEventInput,
   eventType: string,
+  createdAt: string,
   metadataJson: string,
   denseEmbeddingJson: string | null
 ): void {
@@ -360,13 +426,29 @@ function assertCompatibleRetry(
     existing.event_type !== eventType ||
     existing.metadata_json !== metadataJson ||
     existing.dense_embedding_json !== denseEmbeddingJson ||
-    (input.created_at !== undefined && existing.created_at !== input.created_at) ||
+    (input.created_at !== undefined && !sameRawEventInstant(existing.created_at, createdAt)) ||
     (input.token_count !== undefined && existing.token_count !== input.token_count)
   ) {
     throw new Error(
       `source_event_id ${input.source_event_id} conflicts with existing raw evidence`
     );
   }
+}
+
+function sameRawEventInstant(stored: string, canonical: string): boolean {
+  try {
+    return canonicalRawEventTimestamp(stored, RAW_EVENT_COMPATIBLE_TIMESTAMP_PATTERN) === canonical;
+  } catch {
+    return false;
+  }
+}
+
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) {
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    return leap ? 29 : 28;
+  }
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
 }
 
 function rowToEvent(row: DatabaseRow): RawEvent {

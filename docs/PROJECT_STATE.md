@@ -16,12 +16,14 @@ Updated: 2026-08-25
 
 ## Latest delivery status
 
-WO-PUB-02 Raw Timestamp Compatibility 已由用户授权建立，状态为 **PLANNED / NOT STARTED**，
-planning baseline 为 clean `main` `db760a8bc8dfa8bc07f16469b5fa3252a4fc9d90`。工单只统一 Raw
-write/read domain：同 session `seq` 是 append/replay order，单条合法 `created_at` 只是可倒序、相等、
-迟到或 future-skew 的 source/event time。不得改写历史 append-only Raw，不新增时间列/schema/axis，
-不扩大到 event size、role、import、Retrieval 或 State。实现需经过真实 stdio、reopen/exact replay、
-tamper、production-only package 与 fresh Independent QA。
+WO-PUB-02 Raw Timestamp Compatibility Builder 已完成，状态为 **BUILDER COMPLETE / PENDING
+INDEPENDENT QA**，implementation baseline 为
+`b9b2dedebf97c6d9c66369af4aaab70904f73fe9`。源码审计确认公开倒序时间复现的根因是 writer 接受
+RFC 3339 秒级/offset 表示而 reader 只接受 UTC millisecond canonical 表示，不是跨事件 monotonicity
+check。实现把新写入 canonicalize 为 UTC milliseconds，以 `seq` 作为唯一 append/replay order，并对历史
+可解析 RFC 3339 timestamp bytes 只读兼容、不 UPDATE/backfill。Focused 71/71、全量 582 passed / 1
+skipped、构建与 production-only package 已通过；等待 fresh Independent QA。范围未扩大到 schema migration、
+event size、user-turn/role、import、Retrieval、State 或 Natural QA holdout。
 
 WO-PUB-01 Public MCP Result Boundary 已完成，状态为 **ACCEPTED / COMPLETE**。Builder source
 candidate `4643a4761a7c2b91837a198c2f7ebc340fcb8511` 的首次 Independent QA
