@@ -73,3 +73,15 @@ Dormant/cold 是 placement，不是 lifecycle。ACTIVE Constraint 永不 dormant
 `compile_context` 仍有零 model/provider/network/extractor。可信 telemetry baseline 前无 `operation_id` 时 read-only 且不启用 dormant；首个带 id compile 成功后，该 session 后续缺 id 请求稳定拒绝，禁止产生不可见 hit gap。有 id 时只由内部 batch 原子追加去正文、带完整 shape/hit fingerprint 的 `CONTEXT_COMPILE` / `RETRIEVAL_HIT`，相同 id/固定输入幂等，不同输入冲突；坏/未知 telemetry 不建立 baseline并使 placement fail-open。通用 ledger append 不拥有 EVENT/compile/hit kind 或 namespace。九工具、历史 assembler/evaluator/DS-13/14 artifact 不变。
 
 WO-V0-15 经独立 QA 接受后冻结 Context / State 基础设施。后续默认只做 correctness 修复，不新增 Context 算法、复杂 ontology、PACE/mem0 对比、retrieval 调参、Graph DB 或 Experience Formation 实现；下一阶段先真实使用并积累研究数据。
+
+## D-016 — Public project identity is RippleContext
+
+The public product/project name is `RippleContext`. The current repository directory, npm package,
+executable, MCP server identity, exact-nine tools, `CONTEXT_COMPILER_DB_PATH`, legacy `DSH_HOME`
+fallback, library exports, schema, storage, and migrations retain their existing
+`context-compiler-mcp` compatibility identities.
+
+This is a naming decision, not a runtime migration. Core remains model/Host independent. Official
+Harness/Host adapters belong in the separate `RippleContext-adapter` repository and integrate only
+through stable public interfaces. Any future technical-identity rename requires a separate bounded
+compatibility Gate with Host migration, coexistence, rollback, and public-contract evidence.

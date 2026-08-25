@@ -1,4 +1,15 @@
-# Architecture
+# RippleContext Architecture
+
+## Project identity and adapter boundary
+
+`RippleContext` is the public product/project name. The existing `context-compiler-mcp` npm package,
+stdio executable, MCP server identity, exact-nine tool surface, environment variables, library exports,
+schema, and storage formats remain compatibility identities.
+
+This repository owns only the model-independent, Host-independent Core and MCP service. Official
+Harness/Host adapters live in the separate `RippleContext-adapter` repository and may use only this
+Core's stable public MCP contract. Branding does not authorize a Host dependency, provider selection,
+runtime lifecycle change, or technical-identity migration.
 
 ## Data flow
 

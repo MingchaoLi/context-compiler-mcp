@@ -1,9 +1,10 @@
-# Project state
+# RippleContext project state
 
 Updated: 2026-08-25
 
 ## Current approved baseline
 
+- Public product/project identity: `RippleContext`.
 - Append-only SQLite raw-event storage with per-session sequencing and source-event idempotency.
 - Typed context state, SQLite state storage, strict State Delta parsing, and deterministic reducer primitives.
 - Durable provider-neutral `prepare_state_update` and atomic `apply_state_delta` operations with immutable snapshot fingerprints and revision guards.
@@ -12,9 +13,19 @@ Updated: 2026-08-25
 - Strict versioned offline D0/D1/D2 evaluation with deterministic metrics, aggregate thresholds, and a package-safe JSON CLI.
 - A local stdio MCP service with stable sanitized errors and exactly nine tools.
 - Node.js `>=24`; official MCP SDK and Zod are runtime dependencies.
-- Standalone package identity: `context-compiler-mcp`.
+- Preserved standalone technical package/MCP identity: `context-compiler-mcp`.
+
+The repository working-directory path, npm package, executable, MCP server identity, exact-nine tools,
+`CONTEXT_COMPILER_DB_PATH`, legacy `DSH_HOME` fallback, exports, schema, storage, and migrations remain
+compatibility surfaces. Official Host/Harness adapters remain outside this Core repository.
 
 ## Latest delivery status
+
+WO-BRAND-01 RippleContext Project Identity 当前为 **IN PROGRESS / INDEPENDENT QA NOT STARTED**。
+Execution baseline 为 `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`，pre-source Gate commit 为
+`67d8b9088e8e9651d81def65c0cd174390785eb4`。该工单仅把公开产品/项目名设为
+`RippleContext`，保留 `context-compiler-mcp` 全部技术兼容身份；不修改 source、schema、test、
+package-lock、MCP、数据库、算法或宿主边界。
 
 WO-PUB-02 Raw Timestamp Compatibility 状态为 **ACCEPTED / COMPLETE**。implementation baseline
 `b9b2dedebf97c6d9c66369af4aaab70904f73fe9` 后的首次 candidate
@@ -225,5 +236,5 @@ WO-05 ContextSnapshot Contract 的 Execution Baseline 与旧 pre-source Gate 保
 current-semantic owner seam blocker 已由 accepted WO-04D 关闭，首个 Builder candidate 的
 Fact/Relation dependency omission attack 由 owner-side immutable complete-projection receipt 的
 append-only fix 关闭，并已通过 fresh Independent re-QA。docs-only WO-DA-01 adjustment
-reconciliation 也已通过 fresh re-QA；当前没有活动工单。Formal Host Mode 与 WO-06+ 均未开始，
-也未由该记录隐含授权。
+reconciliation 也已通过 fresh re-QA；当前唯一活动工单为 docs/identity-only 的 WO-BRAND-01。
+Formal Host Mode 与 WO-06+ 均未开始，也未由该记录隐含授权。

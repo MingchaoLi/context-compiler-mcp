@@ -1,6 +1,8 @@
 # WO-BRAND-01 — RippleContext project identity
 
-Status: PLANNED / PRE-SOURCE GATE
+Status: IN PROGRESS / EXECUTION BASELINE FROZEN
+
+Pre-source Gate commit: `67d8b9088e8e9651d81def65c0cd174390785eb4`
 
 Updated: 2026-08-25
 
@@ -66,4 +68,3 @@ No source, schema, test, evaluation, artifact, adapter, or package-lock path is 
 - Mechanical search of active entry documents establishes the public name and explicit compatibility identities.
 - `npm test`, `npm run build`, production-only package inspection, and `git diff --check` pass.
 - Builder handoff records the exact candidate and Independent QA separately verifies the no-runtime-delta claim.
-

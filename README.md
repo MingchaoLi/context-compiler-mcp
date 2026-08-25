@@ -1,6 +1,8 @@
-# Context Compiler MCP
+# RippleContext
 
-Context Compiler MCP 是一个本地、模型无关的长期运行基础设施：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 完整保存可回放的研究数据。项目的长期研究目标是 Experience Formation；本包只负责“够用即可”的前台上下文与可信 Event–Action–Outcome / Feedback 数据面，不以证明自身优于 PACE、mem0 等方案为目标。
+RippleContext 是一个本地、模型无关、宿主独立的长期运行基础设施：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 完整保存可回放的研究数据。项目的长期研究目标是 Experience Formation；本包只负责“够用即可”的前台上下文与可信 Event–Action–Outcome / Feedback 数据面，不以证明自身优于 PACE、mem0 等方案为目标。
+
+当前技术兼容身份仍为 `context-compiler-mcp`：npm package、stdio executable、MCP server identity、九个工具、`CONTEXT_COMPILER_DB_PATH` 与 `DSH_HOME` fallback 均不因项目品牌改名而变化。官方 Harness/Host 适配器属于独立的 `RippleContext-adapter` 仓库，本 Core 不引入宿主依赖。
 
 The current server exposes exactly nine tools:
 
