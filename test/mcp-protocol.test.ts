@@ -640,6 +640,9 @@ describe("Context Compiler stdio MCP protocol", () => {
 
   it("publishes four closed output schemas and value-identical structured success results", async () => {
     const database = join(temporaryRoot, "public-result-schema-v1.db");
+    const losslessMetadata = JSON.parse(
+      '{"__proto__":{"retained":true},"nested":{"__proto__":{"retained":"nested"}},"constructor":{"prototype":"data"}}'
+    ) as Record<string, unknown>;
     const connection = await connect(serverEntry, database);
     try {
       const listed = await connection.client.listTools();
@@ -667,7 +670,7 @@ describe("Context Compiler stdio MCP protocol", () => {
           role: "user",
           content: "public schema durable event",
           source_event_id: "public-schema-source-1",
-          metadata: { public_nested: [true, { count: 1 }] },
+          metadata: losslessMetadata,
           dense_embedding: { vector_space_id: "public-schema-space", values: [1, 0] },
         },
       });
@@ -677,6 +680,9 @@ describe("Context Compiler stdio MCP protocol", () => {
         source_event_id: "public-schema-source-1",
         dense_embedding: { vector_space_id: "public-schema-space", values: [1, 0] },
       });
+      expect(Object.prototype.hasOwnProperty.call(ingested.result.metadata, "__proto__")).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(ingested.result.metadata.nested, "__proto__")).toBe(true);
+      expect(JSON.stringify(ingested.result.metadata)).toBe(JSON.stringify(losslessMetadata));
 
       const compileCall = await connection.client.callTool({
         name: "compile_context",
@@ -717,6 +723,16 @@ describe("Context Compiler stdio MCP protocol", () => {
         })) as any;
         expect(recalled.ok).toBe(true);
         expect(collectKeys(recalled)).not.toContain("dense_embedding");
+        if (recalled.result.found) {
+          const events = recalled.result.event === undefined
+            ? recalled.result.events
+            : [recalled.result.event];
+          for (const event of events) {
+            expect(Object.prototype.hasOwnProperty.call(event.metadata, "__proto__")).toBe(true);
+            expect(Object.prototype.hasOwnProperty.call(event.metadata.nested, "__proto__")).toBe(true);
+            expect(JSON.stringify(event.metadata)).toBe(JSON.stringify(losslessMetadata));
+          }
+        }
       }
 
       const keyword = parseStructured(await connection.client.callTool({
@@ -727,6 +743,7 @@ describe("Context Compiler stdio MCP protocol", () => {
       })) as any;
       expect(keyword).toMatchObject({ ok: true, result: [{ headline: { id: headline.result.id } }] });
       expect(collectKeys(keyword)).not.toContain("dense_embedding");
+      expect(JSON.stringify(keyword.result[0].events[0].metadata)).toBe(JSON.stringify(losslessMetadata));
 
       const invalid = await connection.client.callTool({
         name: "recall_exact",

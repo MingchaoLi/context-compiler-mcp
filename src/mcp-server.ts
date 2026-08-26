@@ -771,7 +771,14 @@ function cloneJsonValue(value: unknown): unknown {
   }
   const record = plainRecord(value);
   const result: Record<string, unknown> = {};
-  for (const key of Object.keys(record)) result[key] = cloneJsonValue(dataField(record, key));
+  for (const key of Object.keys(record)) {
+    Object.defineProperty(result, key, {
+      value: cloneJsonValue(dataField(record, key)),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  }
   return result;
 }
 
