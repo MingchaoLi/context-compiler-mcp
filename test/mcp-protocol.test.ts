@@ -506,9 +506,48 @@ describe("Context Compiler stdio MCP protocol", () => {
     audit.close();
   });
 
-  it("ignores future internal fields and fails closed on malformed internal compile success", async () => {
+  it("projects future scoped fields away and fails closed on malformed scoped success", async () => {
+    const raw = {
+      id: "fake-event",
+      session_id: "fake",
+      seq: 1,
+      role: "user",
+      content: "safe raw",
+      event_type: "message",
+      created_at: "2026-08-26T00:00:00.000Z",
+      token_count: 2,
+      metadata: { safe: true },
+      source_event_id: "fake-source",
+      dense_embedding: { vector_space_id: "fake-space", values: [1, 0] },
+      future_raw_secret: "must not pass through",
+    };
+    const headline = {
+      id: "fake-headline",
+      session_id: "fake",
+      event_start_seq: 1,
+      event_end_seq: 1,
+      headline: "safe headline",
+      keywords: ["safe"],
+      created_at: "2026-08-26T00:00:00.000Z",
+      future_headline_secret: "must not pass through",
+    };
     const fakeService = {
       call(name: string, input: any) {
+        if (name === "ingest_event") {
+          return input.content === "malformed"
+            ? { ok: true, result: { ...raw, metadata: undefined } }
+            : { ok: true, result: raw };
+        }
+        if (name === "recall_exact") {
+          return input.event_id === "malformed"
+            ? { ok: true, result: { kind: "event_id", found: true, event: { ...raw, seq: 0 } } }
+            : { ok: true, result: { kind: "event_id", found: true, event: raw } };
+        }
+        if (name === "recall_keyword") {
+          return input.query === "malformed"
+            ? { ok: true, result: [{ headline, rank: Number.NaN, events: [raw] }] }
+            : { ok: true, result: [{ headline, rank: -1, events: [raw], future_hit_secret: true }] };
+        }
         if (name !== "compile_context") return { ok: false, error: { code: "INVALID_INPUT" } };
         if (input.current_input === "malformed") {
           return {
@@ -559,14 +598,148 @@ describe("Context Compiler stdio MCP protocol", () => {
           metrics: publicMetrics(),
         },
       });
-      const malformed = await client.callTool({
-        name: "compile_context", arguments: { session_id: "fake", current_input: "malformed" },
+      const projectedIngest = parseStructured(await client.callTool({
+        name: "ingest_event", arguments: { session_id: "fake", role: "user", content: "ok" },
+      })) as any;
+      expect(collectKeys(projectedIngest)).not.toContain("future_raw_secret");
+      expect(projectedIngest.result.dense_embedding).toEqual({
+        vector_space_id: "fake-space", values: [1, 0],
       });
-      expect(malformed.isError).toBe(true);
-      expect(parse(malformed)).toEqual({ ok: false, error: { code: "INTERNAL_FAILURE" } });
+      const projectedExact = parseStructured(await client.callTool({
+        name: "recall_exact",
+        arguments: { session_id: "fake", kind: "event_id", event_id: "ok" },
+      })) as any;
+      expect(collectKeys(projectedExact)).not.toContain("future_raw_secret");
+      expect(collectKeys(projectedExact)).not.toContain("dense_embedding");
+      const projectedKeyword = parseStructured(await client.callTool({
+        name: "recall_keyword", arguments: { session_id: "fake", query: "ok" },
+      })) as any;
+      expect(collectKeys(projectedKeyword)).not.toContain("future_hit_secret");
+      expect(collectKeys(projectedKeyword)).not.toContain("future_headline_secret");
+      expect(collectKeys(projectedKeyword)).not.toContain("dense_embedding");
+
+      for (const request of [
+        { name: "compile_context", arguments: { session_id: "fake", current_input: "malformed" } },
+        { name: "ingest_event", arguments: { session_id: "fake", role: "user", content: "malformed" } },
+        {
+          name: "recall_exact",
+          arguments: { session_id: "fake", kind: "event_id", event_id: "malformed" },
+        },
+        { name: "recall_keyword", arguments: { session_id: "fake", query: "malformed" } },
+      ]) {
+        const malformed = await client.callTool(request);
+        expect(malformed.isError).toBe(true);
+        expect(malformed.structuredContent).toBeUndefined();
+        expect(parse(malformed)).toEqual({ ok: false, error: { code: "INTERNAL_FAILURE" } });
+      }
     } finally {
       await client.close();
       await server.close();
+    }
+  });
+
+  it("publishes four closed output schemas and value-identical structured success results", async () => {
+    const database = join(temporaryRoot, "public-result-schema-v1.db");
+    const connection = await connect(serverEntry, database);
+    try {
+      const listed = await connection.client.listTools();
+      expect(listed.tools.filter((tool) => tool.outputSchema !== undefined).map((tool) => tool.name))
+        .toEqual(["ingest_event", "compile_context", "recall_exact", "recall_keyword"]);
+      for (const tool of listed.tools) {
+        if (tool.outputSchema === undefined) continue;
+        expect(tool.outputSchema).toMatchObject({
+          type: "object",
+          additionalProperties: false,
+          required: ["ok", "result"],
+          properties: { ok: { const: true } },
+        });
+        expect((tool.outputSchema as any).$defs).toMatchObject({
+          ingested_raw_event: { additionalProperties: false },
+          recalled_raw_event: { additionalProperties: false },
+          compile_context_result: { additionalProperties: false },
+        });
+      }
+
+      const ingestedCall = await connection.client.callTool({
+        name: "ingest_event",
+        arguments: {
+          session_id: "public-result-schema-v1",
+          role: "user",
+          content: "public schema durable event",
+          source_event_id: "public-schema-source-1",
+          metadata: { public_nested: [true, { count: 1 }] },
+          dense_embedding: { vector_space_id: "public-schema-space", values: [1, 0] },
+        },
+      });
+      const ingested = parseStructured(ingestedCall) as any;
+      expect(ingested.result).toMatchObject({
+        seq: 1,
+        source_event_id: "public-schema-source-1",
+        dense_embedding: { vector_space_id: "public-schema-space", values: [1, 0] },
+      });
+
+      const compileCall = await connection.client.callTool({
+        name: "compile_context",
+        arguments: { session_id: "public-result-schema-v1", current_input: "continue" },
+      });
+      expect(parseStructured(compileCall)).toMatchObject({
+        ok: true,
+        result: { context: { session_id: "public-result-schema-v1" } },
+      });
+
+      const headlineCall = await connection.client.callTool({
+        name: "create_headline",
+        arguments: {
+          session_id: "public-result-schema-v1",
+          event_start_seq: 1,
+          event_end_seq: 1,
+          headline: "public schema headline",
+          keywords: ["public-schema-keyword"],
+        },
+      });
+      expect(headlineCall.structuredContent).toBeUndefined();
+      const headline = parse(headlineCall) as any;
+
+      for (const argumentsValue of [
+        { session_id: "public-result-schema-v1", kind: "event_id", event_id: ingested.result.id },
+        {
+          session_id: "public-result-schema-v1", kind: "seq_range",
+          event_start_seq: 1, event_end_seq: 1,
+        },
+        {
+          session_id: "public-result-schema-v1", kind: "headline_id",
+          headline_id: headline.result.id,
+        },
+        { session_id: "public-result-schema-v1", kind: "event_id", event_id: "missing" },
+      ]) {
+        const recalled = parseStructured(await connection.client.callTool({
+          name: "recall_exact", arguments: argumentsValue,
+        })) as any;
+        expect(recalled.ok).toBe(true);
+        expect(collectKeys(recalled)).not.toContain("dense_embedding");
+      }
+
+      const keyword = parseStructured(await connection.client.callTool({
+        name: "recall_keyword",
+        arguments: {
+          session_id: "public-result-schema-v1", query: "public-schema-keyword", limit: 20,
+        },
+      })) as any;
+      expect(keyword).toMatchObject({ ok: true, result: [{ headline: { id: headline.result.id } }] });
+      expect(collectKeys(keyword)).not.toContain("dense_embedding");
+
+      const invalid = await connection.client.callTool({
+        name: "recall_exact",
+        arguments: { session_id: "public-result-schema-v1", kind: "event_id" },
+      });
+      expect(invalid.isError).toBe(true);
+      expect(invalid.structuredContent).toBeUndefined();
+      expect(parse(invalid)).toEqual({ ok: false, error: { code: "INVALID_INPUT" } });
+
+      const health = await connection.client.callTool({ name: "health", arguments: {} });
+      expect(health.structuredContent).toBeUndefined();
+    } finally {
+      await close(connection);
     }
   });
 
@@ -1850,4 +2023,10 @@ function parse(result: Awaited<ReturnType<Client["callTool"]>>): unknown {
     throw new Error("Expected one JSON text content item");
   }
   return JSON.parse(content[0].text);
+}
+
+function parseStructured(result: Awaited<ReturnType<Client["callTool"]>>): unknown {
+  const parsed = parse(result);
+  expect(result.structuredContent).toEqual(parsed);
+  return parsed;
 }
