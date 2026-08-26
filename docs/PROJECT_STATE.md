@@ -1,6 +1,6 @@
 # RippleContext project state
 
-Updated: 2026-08-25
+Updated: 2026-08-26
 
 ## Current approved baseline
 
@@ -20,6 +20,16 @@ The repository working-directory path, npm package, executable, MCP server ident
 compatibility surfaces. Official Host/Harness adapters remain outside this Core repository.
 
 ## Latest delivery status
+
+WO-PUB-03 Versioned Public Result Schemas 当前为 **PRE-SOURCE GATE / SOURCE NOT STARTED**。
+planning baseline 固定为 clean `main`
+`2f3e590c24a35e1bc89deffbc3a5c6056078adfa`。Gate 只把当前已经实现的
+`ingest_event`、`recall_exact`、`recall_keyword`、`compile_context` 成功 DTO、bounded
+cardinality 与七码去敏错误 envelope 登记为 repository-owned JSON Schema 2020-12 v1 authority。
+ingest Raw 与 recalled Raw 分开冻结：前者保留可选 Dense，后者继续禁止 Dense 穿透。Generic Core
+metadata 仍是 caller-owned JSON，不被夸大为 Core 已去敏；DSH closed projection 仍由外部 Adapter
+合同所有。本 Gate 不修改 source/test/README/package/MCP/runtime/database，不部署或触碰 R8。
+后续 Builder 必须等待 Gate commit 与 schema SHA-256 经主控和 Information Boundary Auditor 对账。
 
 WO-BRAND-01 RippleContext Project Identity 当前为 **ACCEPTED / COMPLETE**。
 Execution baseline 为 `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`，pre-source Gate commit 为
