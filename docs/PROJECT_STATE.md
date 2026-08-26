@@ -21,15 +21,17 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 ## Latest delivery status
 
-WO-PUB-03 Versioned Public Result Schemas 当前为 **PRE-SOURCE GATE / SOURCE NOT STARTED**。
-planning baseline 固定为 clean `main`
-`2f3e590c24a35e1bc89deffbc3a5c6056078adfa`。Gate 只把当前已经实现的
-`ingest_event`、`recall_exact`、`recall_keyword`、`compile_context` 成功 DTO、bounded
-cardinality 与七码去敏错误 envelope 登记为 repository-owned JSON Schema 2020-12 v1 authority。
-ingest Raw 与 recalled Raw 分开冻结：前者保留可选 Dense，后者继续禁止 Dense 穿透。Generic Core
-metadata 仍是 caller-owned JSON，不被夸大为 Core 已去敏；DSH closed projection 仍由外部 Adapter
-合同所有。本 Gate 不修改 source/test/README/package/MCP/runtime/database，不部署或触碰 R8。
-后续 Builder 必须等待 Gate commit 与 schema SHA-256 经主控和 Information Boundary Auditor 对账。
+WO-PUB-03 Versioned Public Result Schemas 当前为 **ACCEPTED / COMPLETE**。planning baseline 为
+`2f3e590c24a35e1bc89deffbc3a5c6056078adfa`，Gate 为
+`34a72bb44d9eafef5b69b584347cf34362663465`。四个现有公开工具现在发布 repository-owned JSON
+Schema 2020-12 v1 `outputSchema`，成功结果同时返回与 legacy text JSON 同值的
+`structuredContent`；其他五工具、exact-nine、全部 input schema 与 Raw/State/storage/query 语义不变。
+首次 source candidate `75bebf90a8a09aa110df685c8c371cd214d66d33` 因 caller-owned metadata 中合法
+`__proto__` 数据键被普通对象赋值静默丢失而由 QA `ef3943c1d0a56c41b2da1c57c3e77c0a1d1d1013`
+退回；append-only fixed source `0f3bcb0d6414e447408612a919cb9a287a5e9c50` 改用 own data-property
+克隆并由 fresh Independent re-QA `cc8f509fa0fb271ef2f24245d3487816c2494e4f` 接受。协议 17/17、
+全量 587 passed / 1 skipped、build 与 83-file production pack 通过。该接受不改变 generic metadata
+责任边界，也不构成部署或 R8 修改。
 
 WO-BRAND-01 RippleContext Project Identity 当前为 **ACCEPTED / COMPLETE**。
 Execution baseline 为 `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`，pre-source Gate commit 为

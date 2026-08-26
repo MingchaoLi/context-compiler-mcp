@@ -1,6 +1,6 @@
 # WO-PUB-03 — Versioned Public Result Schemas
 
-状态：PRE-SOURCE GATE FROZEN / SOURCE NOT STARTED
+状态：ACCEPTED / COMPLETE
 
 Planning baseline：`2f3e590c24a35e1bc89deffbc3a5c6056078adfa`
 
