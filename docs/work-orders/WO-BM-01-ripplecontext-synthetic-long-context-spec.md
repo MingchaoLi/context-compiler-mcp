@@ -4,6 +4,10 @@
 
 Planning baseline：`d18e4d48717030f441f3a2e17e5c786cfa00c699`
 
+Returned candidate：`b006029cad4eaff5e92dbd39f06cc57ccadb6e87`
+
+Independent QA return：`23d1cd4a66122043379008216b04520e47378de3`
+
 ## 目标
 
 只定义一套可长期复用的 RippleContext 合成长上下文 development benchmark v1 合同，为后续 `SPEC`、
@@ -29,13 +33,16 @@ package/test 或冻结 artifact。
 
 - `EVALUATOR_CONTROL_GOLD` 与 query plan 必须先于正文冻结；正文不得反向决定或修补 authority。
 - evaluator-control Gold 可对回答模型隐藏，但不是 Independent Hidden Holdout；Candidate、Adapter、Interpreter、
-  answer model 均不得读取。真实 hidden holdout 不在本工单范围内。
+  answer model 与 answer-blind query-surface model 均不得读取。真实 hidden holdout 不在本工单范围内。
 - query plan 先冻结 identity/cutoff/case/facets/oracle/expected action/required-forbidden evidence，以及只描述主体、
   信息需求、as-of 视角和输出形态的 answer-neutral `query_surface_brief`；不冻结最终问题文本。
-- query surface 任务只读该 cutoff 的 corpus prefix，以及 deterministic allowlist 从 query plan 投影出的
-  `{query_id, query_surface_brief, brief_hash}` safe envelope；不得读取 raw query plan、Gold、未来内容或任何
+- query surface 任务只读固定 prompt、该 cutoff 的 exact corpus prefix，以及 deterministic allowlist 从 query
+  plan 投影出的 `{query_id, query_surface_brief, brief_hash}` RFC 8785 safe envelope；不得读取 raw
+  query plan、Gold、未来内容或任何
   answer/current-truth/expected-action/evidence/scoring-label 字段。该 envelope 是有 hash 的瞬时调用输入，
   不新增第九类公共资产。
+- query-surface 逻辑输入按 `RC_QUERY_SURFACE_REQUEST_FRAME_V1` 唯一组帧；prompt、metadata、envelope、
+  prefix 的 exact bytes/length/SHA 及 full-frame input SHA 必须可独立重建。
 - query 不进入自己的历史 prefix；cutoff 后证据不可见。query surface 不得复制或暗示 answer-bearing span。
 - `derived/surface-evidence-map.jsonl` 以 corpus/document/text hash 和 Unicode codepoint half-open span 将正文绑定
   Event/semantic unit；它是 derived mapping，不能修改 Event/Gold authority。
@@ -107,13 +114,25 @@ package/test 或冻结 artifact。
 - Surface map Schema 至少绑定 dataset/corpus version、chapter/unit、Event/semantic IDs、document/text hash 与稳定
   span；required coverage 为零缺失，并能区分 retrieval/formation/answer layer failure。
 - Continuity bundle 完整覆盖 immutable style、alias registry、open-thread ledger、relation/state snapshot、至多
-  两段必要原文与 opaque future negative constraints，同时禁止全量历史、未来计划、query oracle/control Gold。
+  两段必要原文与仅含 opaque Event ID/枚举禁止码/hash 的 closed future-constraint projection，同时
+  禁止全量历史、未来计划、query oracle/control Gold。
 - Repair policy 至多一次且只允许机械可证失败；attempt/reason/input-output/diagnostics hash 完整，原输出不得参与选择；
   语义错误必须版本化重生成。
 - Taxonomy 覆盖全部目标语义现象并有非零 denominator；章节规划为 40 章、26 万字、12 cutoff groups/72 queries。
 - 九阶段分别列明输入、输出、模型、写入路径、停止与 handoff；无单一任务携带全部历史。
 - 成本计划重新对账：22 Sol、40 initial Terra、0 default repair、0 default Luna；每章与 query-surface 成本、
   optional repair/Luna 和 excluded evaluation campaign 分离；无自动升级/fallback/best-of。
+- Sol query-surfacing 必须逐 cutoff-group 以完整 request input（prompt、safe envelope、prefix、metadata/framing
+  overhead）判断是否 `>272K`；超过时整次请求应用 2× input / 1.5× output。QCG-08–12 high tier、阶段/总计/
+  reserve 必须逐项机械重建，不能只用 base-rate aggregate。
+- 高位 query-surfacing 费用必须重建为 `$21.551`，默认 generation 总成本为
+  `$16.98–$32.491`，25% reserve 为 `$21.225–$40.61375`。
+- 所有对象/文件/normalized text/call-input SHA-256 必须绑定唯一版本化字节域：RFC 8785 JCS 值与文件 LF
+  规则、Unicode 17.0.0 NFKC + newline pipeline、JSONL framing，以及 query-surface prompt/envelope/prefix 的
+  exact request frame。Manifest/Schema 必须绑定算法、版本、prompt path/hash 与 call input hash。
+- Continuity future constraints 不得包含自由文本或自声明 payload-absence；只允许 closed-world 的 opaque Event
+  ID、枚举 prohibition code 和机械派生/hash 字段。注入未来事实的 QA 反例必须 Schema fail-closed。
+- Gold `prohibited_reader_classes` 必须同时包含 `ANSWER_BLIND_QUERY_SURFACE_MODEL`，并保持 exact set。
 - Freeze 覆盖 SHA-256、schema/version/model/prompt/generator/chapter/Gold/query-plan/query/surface map/attempt ledger；
   generation manifest 不收 evaluator run。
 - 本工单正文字符、WORLD/Event/Gold/Query 实例、generation/query-surface/audit model call、model answer、

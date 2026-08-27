@@ -1,12 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/surface-evidence-map-line-1.0.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/surface-evidence-map-line-1.1.0.schema.json",
   "title": "RippleContext corpus surface-to-evidence JSONL record",
   "description": "Each line in derived/surface-evidence-map.jsonl validates as one record.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
+    "text_normalization_policy",
+    "exact_text_hash_policy",
     "dataset_id",
     "corpus_version",
     "mapping_version",
@@ -26,7 +28,9 @@
     "provenance"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-surface-evidence-map-line/1.0.0"},
+    "schema_version": {"const": "rc-synth-long-surface-evidence-map-line/1.1.0"},
+    "text_normalization_policy": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
+    "exact_text_hash_policy": {"const": "UTF8_EXACT_SPAN_NO_BOM_NO_TERMINATOR_V1"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "corpus_version": {"type": "string", "minLength": 1},
     "mapping_version": {"type": "string", "minLength": 1},

@@ -1,11 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/query-plan-1.1.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/query-plan-1.2.0.schema.json",
   "title": "RippleContext pre-corpus evaluator-control query plan",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
+    "canonical_json_policy",
+    "text_normalization_policy",
     "dataset_id",
     "query_plan_version",
     "gold_version",
@@ -18,7 +20,9 @@
     "query_plans"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-query-plan/1.1.0"},
+    "schema_version": {"const": "rc-synth-long-query-plan/1.2.0"},
+    "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
+    "text_normalization_policy": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "query_plan_version": {"type": "string", "minLength": 1},
     "gold_version": {"type": "string", "minLength": 1},
@@ -203,10 +207,11 @@
     "querySurfaceEnvelopePolicy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["derivation", "envelope_schema_ref", "included_query_plan_fields", "excluded_content_classes", "raw_query_plan_exposed", "evaluator_control_gold_exposed"],
+      "required": ["derivation", "envelope_schema_ref", "brief_order", "included_query_plan_fields", "excluded_content_classes", "raw_query_plan_exposed", "evaluator_control_gold_exposed"],
       "properties": {
         "derivation": {"const": "DETERMINISTIC_ALLOWLIST_REDACTION"},
         "envelope_schema_ref": {"const": "query-plan.schema.json#/$defs/querySurfaceEnvelope"},
+        "brief_order": {"const": "ASCII_QUERY_ID_ASCENDING"},
         "included_query_plan_fields": {
           "type": "array",
           "minItems": 3,
@@ -238,9 +243,11 @@
     "querySurfaceEnvelope": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema_version", "dataset_id", "query_plan_version", "cutoff_group_id", "visible_prefix_sha256", "raw_query_plan_included", "evaluator_control_gold_included", "briefs"],
+      "required": ["schema_version", "canonical_json_policy", "brief_order", "dataset_id", "query_plan_version", "cutoff_group_id", "visible_prefix_sha256", "raw_query_plan_included", "evaluator_control_gold_included", "briefs"],
       "properties": {
-        "schema_version": {"const": "rc-synth-long-query-surface-envelope/1.0.0"},
+        "schema_version": {"const": "rc-synth-long-query-surface-envelope/1.1.0"},
+        "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
+        "brief_order": {"const": "ASCII_QUERY_ID_ASCENDING"},
         "dataset_id": {"$ref": "#/$defs/datasetId"},
         "query_plan_version": {"type": "string", "minLength": 1},
         "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},

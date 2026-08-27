@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/manifest-1.1.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/manifest-1.2.0.schema.json",
   "title": "RippleContext synthetic long-context run and freeze manifest",
   "type": "object",
   "additionalProperties": false,
@@ -10,6 +10,7 @@
     "run_id",
     "status",
     "versions",
+    "serialization_and_hashing",
     "lineage",
     "gates",
     "file_inventory",
@@ -27,7 +28,7 @@
     "corpus_instructions_are_inert"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-manifest/1.1.0"},
+    "schema_version": {"const": "rc-synth-long-manifest/1.2.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "run_id": {"type": "string", "pattern": "^RUN-[0-9]{8}-[A-Z0-9]{6}$"},
     "status": {
@@ -47,6 +48,7 @@
       ]
     },
     "versions": {"$ref": "#/$defs/versions"},
+    "serialization_and_hashing": {"$ref": "#/$defs/serializationAndHashing"},
     "lineage": {"$ref": "#/$defs/lineage"},
     "gates": {
       "type": "array",
@@ -102,6 +104,11 @@
         "surface_evidence_map",
         "continuity_bundle",
         "query_surface_prompt",
+        "query_surface_runner",
+        "canonicalization",
+        "text_normalization",
+        "visible_prefix_framing",
+        "query_surface_request_framing",
         "prompt",
         "generator",
         "validator"
@@ -117,6 +124,11 @@
         "surface_evidence_map": {"type": "string", "minLength": 1},
         "continuity_bundle": {"type": "string", "minLength": 1},
         "query_surface_prompt": {"type": "string", "minLength": 1},
+        "query_surface_runner": {"type": "string", "minLength": 1},
+        "canonicalization": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
+        "text_normalization": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
+        "visible_prefix_framing": {"const": "RC_VISIBLE_PREFIX_EXACT_BYTES_V1"},
+        "query_surface_request_framing": {"const": "RC_QUERY_SURFACE_REQUEST_FRAME_V1"},
         "prompt": {"type": "string", "minLength": 1},
         "generator": {"type": "string", "minLength": 1},
         "validator": {"type": "string", "minLength": 1}
@@ -169,6 +181,7 @@
             "EVALUATOR_CONTROL_GOLD",
             "EVALUATOR_CONTROL_QUERY_PLAN",
             "CONTINUITY_BUNDLE",
+            "PROMPT_TEMPLATE",
             "QUERY_PROTOCOL",
             "CORPUS_INPUT",
             "SURFACE_EVIDENCE_MAP",
@@ -396,7 +409,7 @@
       "additionalProperties": false,
       "required": [
         "hash_algorithm",
-        "json_canonicalization",
+        "serialization_policy_sha256",
         "hashes_path",
         "hashes_sha256_path",
         "manifest_sha256_path",
@@ -405,12 +418,101 @@
       ],
       "properties": {
         "hash_algorithm": {"const": "SHA-256"},
-        "json_canonicalization": {"const": "UTF-8_STABLE_KEY_ORDER_LF"},
+        "serialization_policy_sha256": {"$ref": "#/$defs/sha256"},
         "hashes_path": {"const": "freeze/hashes.json"},
         "hashes_sha256_path": {"const": "freeze/hashes.sha256"},
         "manifest_sha256_path": {"const": "freeze/manifest.sha256"},
         "frozen_at": {"type": ["string", "null"], "format": "date-time"},
         "independent_verification": {"enum": ["PENDING", "PASS", "FAIL"]}
+      }
+    },
+    "serializationAndHashing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical_json", "text_normalization", "hash_targets", "query_surface_request_frame"],
+      "properties": {
+        "canonical_json": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy_id", "value_serialization", "encoding", "bom", "value_trailing_newline", "json_file_terminator", "jsonl_record_terminator", "jsonl_blank_lines"],
+          "properties": {
+            "policy_id": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
+            "value_serialization": {"const": "RFC8785_JSON_CANONICALIZATION_SCHEME"},
+            "encoding": {"const": "UTF-8"},
+            "bom": {"const": false},
+            "value_trailing_newline": {"const": false},
+            "json_file_terminator": {"const": "ONE_LF_BYTE_0A"},
+            "jsonl_record_terminator": {"const": "ONE_LF_BYTE_0A"},
+            "jsonl_blank_lines": {"const": false}
+          }
+        },
+        "text_normalization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy_id", "decode", "bom", "line_endings", "unicode_normalization", "unicode_version", "trim", "whitespace_collapse", "case_fold", "output_terminator"],
+          "properties": {
+            "policy_id": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
+            "decode": {"const": "STRICT_UTF8_REJECT_INVALID"},
+            "bom": {"const": "REJECT"},
+            "line_endings": {"const": "CRLF_AND_CR_TO_LF"},
+            "unicode_normalization": {"const": "UAX15_NFKC"},
+            "unicode_version": {"const": "17.0.0"},
+            "trim": {"const": false},
+            "whitespace_collapse": {"const": false},
+            "case_fold": {"const": false},
+            "output_terminator": {"const": "NONE"}
+          }
+        },
+        "hash_targets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "file_sha256", "canonical_value_sha256", "normalized_text_sha256", "exact_span_sha256"],
+          "properties": {
+            "algorithm": {"const": "SHA-256"},
+            "file_sha256": {"const": "EXACT_FILE_BYTES_INCLUDING_REQUIRED_FILE_TERMINATOR"},
+            "canonical_value_sha256": {"const": "RFC8785_JCS_UTF8_NO_BOM_NO_TERMINATOR"},
+            "normalized_text_sha256": {"const": "NORMALIZED_UTF8_NO_BOM_NO_TERMINATOR"},
+            "exact_span_sha256": {"const": "EXACT_UTF8_SPAN_NO_BOM_NO_TERMINATOR"}
+          }
+        },
+        "query_surface_request_frame": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy_id", "magic_hex", "segment_order", "segment_header", "final_marker_hex", "request_metadata_schema", "input_sha256_target", "channel_policy", "model_visible_components", "extra_model_visible_content_allowed"],
+          "properties": {
+            "policy_id": {"const": "RC_QUERY_SURFACE_REQUEST_FRAME_V1"},
+            "magic_hex": {"const": "5243515346310000"},
+            "segment_order": {
+              "type": "array",
+              "prefixItems": [
+                {"const": "01_REQUEST_METADATA_JCS"},
+                {"const": "02_PROMPT_TEMPLATE_EXACT_FILE_BYTES"},
+                {"const": "03_SAFE_ENVELOPE_JCS"},
+                {"const": "04_VISIBLE_PREFIX_EXACT_BYTES"}
+              ],
+              "items": false,
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "segment_header": {"const": "ONE_BYTE_TAG_PLUS_UINT64_BIG_ENDIAN_PAYLOAD_LENGTH"},
+            "final_marker_hex": {"const": "00"},
+            "request_metadata_schema": {"const": "rc-query-surface-request-metadata/1.0.0"},
+            "input_sha256_target": {"const": "MAGIC_PLUS_ALL_SEGMENTS_PLUS_FINAL_MARKER"},
+            "channel_policy": {"const": "SEGMENT_02_INSTRUCTION_03_CONTROL_DATA_04_VISIBLE_CORPUS_NO_EXTRA_CONTENT_V1"},
+            "model_visible_components": {
+              "type": "array",
+              "prefixItems": [
+                {"const": "PROMPT_TEMPLATE"},
+                {"const": "SAFE_ENVELOPE"},
+                {"const": "VISIBLE_PREFIX"}
+              ],
+              "items": false,
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "extra_model_visible_content_allowed": {"const": false}
+          }
+        }
       }
     },
     "fullContextPolicy": {

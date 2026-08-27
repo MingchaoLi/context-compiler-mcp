@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/continuity-bundle-1.0.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/continuity-bundle-1.1.0.schema.json",
   "title": "RippleContext bounded chapter continuity bundle",
   "type": "object",
   "additionalProperties": false,
@@ -9,6 +9,7 @@
     "dataset_id",
     "corpus_version",
     "bundle_version",
+    "canonical_json_policy",
     "chapter_id",
     "immutable_input_hashes",
     "local_entity_state",
@@ -21,10 +22,11 @@
     "forbidden_inputs"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-continuity-bundle/1.0.0"},
+    "schema_version": {"const": "rc-synth-long-continuity-bundle/1.1.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "corpus_version": {"type": "string", "minLength": 1},
     "bundle_version": {"type": "string", "minLength": 1},
+    "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
     "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
     "immutable_input_hashes": {"$ref": "#/$defs/immutableHashes"},
     "local_entity_state": {
@@ -151,11 +153,39 @@
     "futureConstraints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["opaque_future_event_ids", "generation_safe_prohibitions", "contains_future_event_payload"],
+      "required": ["projection", "projection_sha256"],
       "properties": {
-        "opaque_future_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}},
-        "generation_safe_prohibitions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-        "contains_future_event_payload": {"const": false}
+        "projection": {"$ref": "#/$defs/futureConstraintProjection"},
+        "projection_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "futureConstraintProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "derivation", "opaque_future_event_ids", "source_future_event_ids_sha256", "prohibition_rules"],
+      "properties": {
+        "schema_version": {"const": "rc-synth-long-future-constraint-projection/1.0.0"},
+        "derivation": {"const": "OPAQUE_EVENT_IDS_TO_GENERIC_PROHIBITIONS_V1"},
+        "opaque_future_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "source_future_event_ids_sha256": {"$ref": "#/$defs/sha256"},
+        "prohibition_rules": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/futureProhibitionRule"}
+        }
+      }
+    },
+    "futureProhibitionRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["opaque_future_event_id", "prohibition_code"],
+      "properties": {
+        "opaque_future_event_id": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+        "prohibition_code": {"enum": ["OMIT_OPAQUE_EVENT", "NO_FORWARD_REFERENCE", "PRESERVE_CUTOFF_STATE"]}
       }
     },
     "budget": {

@@ -23,7 +23,10 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **BUILDER DELIVERED / AWAITING
 INDEPENDENT QA / SPEC ONLY**。Planning baseline 为
-`d18e4d48717030f441f3a2e17e5c786cfa00c699`。Builder candidate 只新增 docs/data contract：八份
+`d18e4d48717030f441f3a2e17e5c786cfa00c699`。固定 candidate
+`b006029cad4eaff5e92dbd39f06cc57ccadb6e87` 已被 Independent QA
+`23d1cd4a66122043379008216b04520e47378de3` 退回；当前 append-only Builder 修复候选仍不得自批。本交付只包含
+docs/data contract：八份
 Draft 2020-12 Event/Evaluator-control Gold/Query-plan/Query/Timeline/Continuity/Surface-map/Manifest Schema、
 21-family Case taxonomy、40 章 / 26 万中文字 / 12 cutoff groups 目标规划，以及九阶段 task/model/cost/
 Freeze/invalid-run 合同。Query intent 在正文前冻结；每个 plan 包含 answer-neutral surface brief，固定主体/
@@ -33,7 +36,13 @@ plan/Gold/答案/未来/评分字段均不可见；brief/envelope/input hash 与
 answer-neutrality 和 same-information-need fidelity 明确留给 Builder semantic audit 与 Independent QA，不冒充
 纯程序证明。正文 surface 另以 hash + 稳定 span 映射到 Event/semantic unit。每章允许至多
 一次有记录的机械 repair，但原输出 invalid/ineligible，语义错误只能版本化重生成。所谓 Gold 明确限定为
-`EVALUATOR_CONTROL_GOLD`，不是 Independent Hidden Holdout；Sol audit 也只是 Builder-side consistency audit。
+`EVALUATOR_CONTROL_GOLD`，不是 Independent Hidden Holdout，且 answer-blind query-surface model 也在其禁止读取者
+exact set 内；Sol audit 也只是 Builder-side consistency audit。本次修复按 Sol 单请求 `>272K` 时整个请求
+2× input/1.5× output 重建 QCG-08–12 高位成本，generation 默认规划区间为
+`$16.98–$32.491`，25% reserve 为 `$21.225–$40.61375`。RFC 8785 JCS、JSON/JSONL LF、Unicode
+17.0.0 NFKC 与 tagged/length-prefixed query-surface request frame 现在唯一绑定 value/file/text/input SHA；continuity
+future-constraint 已改为仅 opaque Event ID/枚举禁止码/hash 的 closed projection，不再依赖自由文本或
+payload-absence 自声明。
 Full Context development 默认 deterministic token count，所有 calibration/final evaluator run 与 generation
 manifest/cost 分离。该候选没有生成 WORLD、canonical Event、Gold、Query plan、Query、正文或评测结果，
 没有调用 generation/query-surface/audit model，也没有修改 Core、retrieval、State、MCP、数据库、package、

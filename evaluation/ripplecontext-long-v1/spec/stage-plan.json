@@ -1,6 +1,6 @@
 {
-  "schema_version": "rc-synth-long-stage-plan/1.1.0",
-  "contract_version": "rc-synth-long-contract/1.0.0-draft.3",
+  "schema_version": "rc-synth-long-stage-plan/1.2.0",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.4",
   "task_isolation": {
     "one_long_lived_task_for_all_stages_allowed": false,
     "fresh_task_per_stage_required": true,
@@ -78,7 +78,7 @@
       "maximum_repair_model_calls": 40,
       "planned_low_initial_calls": 28,
       "planned_medium_initial_calls": 12,
-      "inputs": ["frozen world bible", "immutable style bible", "alias/name registry", "current local entity state", "current relation/state snapshot", "unresolved clue/open-thread ledger", "one chapter event plan", "bounded necessary-prior summary", "zero to two necessary prior exact-text snippets", "opaque future-event IDs and negative constraints", "continuity bundle"],
+      "inputs": ["frozen world bible", "immutable style bible", "alias/name registry", "current local entity state", "current relation/state snapshot", "unresolved clue/open-thread ledger", "one chapter event plan", "bounded necessary-prior summary", "zero to two necessary prior exact-text snippets", "closed future-constraint projection containing only opaque future-event IDs and enumerated generic prohibition codes", "continuity bundle"],
       "outputs": ["one corpus/chapters/CHxxx.md per task", "generation surface-anchor sidecar", "attempt call ledger entries", "one chapter handoff manifest", "one immutable continuity bundle"],
       "allowed_write_roots": ["datasets/<dataset_id>/corpus/chapters", "datasets/<dataset_id>/generation", "datasets/<dataset_id>/stage-handoffs/GENERATION", "datasets/<dataset_id>/validation/invalid-runs.jsonl"],
       "forbidden_inputs": ["prior full corpus", "future chapter plan", "query plan", "query oracle", "evaluator-control Gold", "comparator answers", "future-event payload"],
@@ -110,13 +110,13 @@
       "model": "gpt-5.6-sol",
       "reasoning": "medium",
       "planned_model_calls": 12,
-      "inputs": ["transient deterministic safe envelope containing only query_id + frozen answer-neutral query_surface_brief + brief hash", "exact corpus prefix bytes visible at one frozen cutoff"],
-      "outputs": ["queries/queries.json query_text records", "one answer-blind call ledger entry with safe-envelope hash per cutoff group"],
+      "inputs": ["exact contract/prompts/query-surface-v1.txt file bytes", "transient RFC 8785 deterministic safe envelope containing only query_id + frozen answer-neutral query_surface_brief + brief hash", "exact corpus prefix bytes visible at one frozen cutoff", "closed request metadata containing only component hashes/lengths plus fixed model/reasoning/output policy"],
+      "outputs": ["queries/queries.json query_text records", "one answer-blind call ledger entry with prompt/envelope/prefix/metadata/full-frame hashes per cutoff group"],
       "allowed_write_roots": ["datasets/<dataset_id>/queries", "datasets/<dataset_id>/stage-handoffs/QUERY_SURFACING", "datasets/<dataset_id>/validation/invalid-runs.jsonl"],
       "forbidden_inputs": ["raw query plan", "query oracle", "evaluator-control Gold", "cutoff-after corpus", "future events", "expected answer semantics or current truth", "expected action or abstention conclusion", "required or forbidden evidence labels", "case or failure scoring labels", "answer-bearing spans"],
       "forbidden_outputs": ["query-plan edit", "oracle edit", "cutoff edit", "case or facet edit", "corpus edit"],
-      "pass_condition": "Each final query text is generated from only its hashed safe brief and visible prefix, preserves the brief's subject/information need/as-of view/output shape, links one-to-one to the frozen plan, and passes structural and leakage checks plus semantic review.",
-      "stop_conditions": ["Sol unavailable", "reasoning medium unavailable", "raw control asset read", "safe-envelope hash mismatch", "brief subject or alias not visible by cutoff", "future-prefix read", "answer or evidence leakage", "information-need drift"]
+      "pass_condition": "Each final query text is generated from only its exact prompt, hashed safe brief, and visible prefix; RC_QUERY_SURFACE_REQUEST_FRAME_V1 reconstructs byte-for-byte; the output preserves the brief's subject/information need/as-of view/output shape, links one-to-one to the frozen plan, and passes structural and leakage checks plus semantic review.",
+      "stop_conditions": ["Sol unavailable", "reasoning medium unavailable", "raw control asset read", "safe-envelope hash mismatch", "prompt, metadata, frame, or input hash mismatch", "brief subject or alias not visible by cutoff", "future-prefix read", "answer or evidence leakage", "information-need drift"]
     },
     {
       "ordinal": 7,
@@ -162,7 +162,7 @@
       "model": "NONE",
       "reasoning": "NONE",
       "planned_model_calls": 0,
-      "inputs": ["all passed stage manifests", "all frozen dataset files", "exact model/attempt call ledger", "prompt/generator versions"],
+      "inputs": ["all passed stage manifests", "all frozen dataset files", "exact model/attempt call ledger", "prompt/generator versions", "RFC 8785 and Unicode 17.0.0 normalization policy", "query-surface request-frame policy"],
       "outputs": ["manifest.json", "freeze/hashes.json", "freeze/hashes.sha256", "freeze/manifest.sha256"],
       "allowed_write_roots": ["datasets/<dataset_id>/manifest.json", "datasets/<dataset_id>/freeze", "datasets/<dataset_id>/stage-handoffs/FREEZE"],
       "forbidden_outputs": ["any content mutation", "model call", "evaluation result"],

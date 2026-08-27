@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/gold-1.1.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/gold-1.2.0.schema.json",
   "title": "RippleContext synthetic long-context evaluator-control Gold",
   "type": "object",
   "additionalProperties": false,
@@ -20,7 +20,7 @@
     "query_oracles"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-gold/1.1.0"},
+    "schema_version": {"const": "rc-synth-long-gold/1.2.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "event_graph_version": {"type": "string", "minLength": 1},
     "gold_version": {"type": "string", "minLength": 1},
@@ -28,10 +28,10 @@
     "independent_hidden_holdout": {"const": false},
     "prohibited_reader_classes": {
       "type": "array",
-      "minItems": 4,
-      "maxItems": 4,
+      "minItems": 5,
+      "maxItems": 5,
       "uniqueItems": true,
-      "items": {"enum": ["CANDIDATE_IMPLEMENTATION", "ADAPTER", "INTERPRETER", "ANSWER_MODEL"]}
+      "items": {"enum": ["CANDIDATE_IMPLEMENTATION", "ADAPTER", "INTERPRETER", "ANSWER_MODEL", "ANSWER_BLIND_QUERY_SURFACE_MODEL"]}
     },
     "created_before_corpus": {"const": true},
     "source_groups": {

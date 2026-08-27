@@ -1,12 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/queries-1.2.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/queries-1.3.0.schema.json",
   "title": "RippleContext post-corpus answer-blind query surfaces",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "dataset_id", "corpus_version", "query_plan_version", "query_set_version", "created_after_corpus_base_validation", "surface_generation_mode", "metadata_join_mode", "raw_evaluator_control_read", "query_text_is_excluded_from_history_prefix", "queries"],
+  "required": ["schema_version", "canonical_json_policy", "text_normalization_policy", "dataset_id", "corpus_version", "query_plan_version", "query_set_version", "created_after_corpus_base_validation", "surface_generation_mode", "metadata_join_mode", "raw_evaluator_control_read", "query_text_is_excluded_from_history_prefix", "queries"],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-queries/1.2.0"},
+    "schema_version": {"const": "rc-synth-long-queries/1.3.0"},
+    "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
+    "text_normalization_policy": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "corpus_version": {"type": "string", "minLength": 1},
     "query_plan_version": {"type": "string", "minLength": 1},
@@ -43,7 +45,7 @@
         "exclude_current_query": {"const": true},
         "persist_before_answer": {"const": false},
         "exclude_cutoff_after_content": {"const": true},
-        "prefix_builder_version": {"type": "string", "minLength": 1}
+        "prefix_builder_version": {"const": "RC_VISIBLE_PREFIX_EXACT_BYTES_V1"}
       }
     },
     "conditionEligibility": {
@@ -58,25 +60,56 @@
         "full_context_policy": {"enum": ["NOT_RUN_BY_DEFAULT", "COST_CALIBRATION_NON_QUALIFYING", "FINAL_CAMPAIGN_ONLY"]}
       }
     },
+    "querySurfaceRequestMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "dataset_id", "cutoff_group_id", "model", "reasoning", "tool_policy", "output_contract", "query_surface_runner_version", "channel_policy", "surface_prompt_path", "surface_prompt_version", "surface_prompt_sha256", "surface_prompt_bytes", "safe_envelope_schema_version", "safe_envelope_sha256", "safe_envelope_bytes", "visible_prefix_sha256", "visible_prefix_bytes", "frame_policy_id"],
+      "properties": {
+        "schema_version": {"const": "rc-query-surface-request-metadata/1.0.0"},
+        "dataset_id": {"$ref": "#/$defs/datasetId"},
+        "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},
+        "model": {"const": "gpt-5.6-sol"},
+        "reasoning": {"const": "medium"},
+        "tool_policy": {"const": "NO_TOOLS"},
+        "output_contract": {"const": "QUERY_ID_AND_QUERY_TEXT_JSON_ONLY"},
+        "query_surface_runner_version": {"type": "string", "minLength": 1},
+        "channel_policy": {"const": "SEGMENT_02_INSTRUCTION_03_CONTROL_DATA_04_VISIBLE_CORPUS_NO_EXTRA_CONTENT_V1"},
+        "surface_prompt_path": {"const": "contract/prompts/query-surface-v1.txt"},
+        "surface_prompt_version": {"type": "string", "minLength": 1},
+        "surface_prompt_sha256": {"$ref": "#/$defs/sha256"},
+        "surface_prompt_bytes": {"type": "integer", "minimum": 0},
+        "safe_envelope_schema_version": {"const": "rc-synth-long-query-surface-envelope/1.1.0"},
+        "safe_envelope_sha256": {"$ref": "#/$defs/sha256"},
+        "safe_envelope_bytes": {"type": "integer", "minimum": 0},
+        "visible_prefix_sha256": {"$ref": "#/$defs/sha256"},
+        "visible_prefix_bytes": {"type": "integer", "minimum": 0},
+        "frame_policy_id": {"const": "RC_QUERY_SURFACE_REQUEST_FRAME_V1"}
+      }
+    },
     "surfaceGeneration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cutoff_group_id", "call_id", "model", "reasoning", "visible_prefix_sha256", "safe_envelope_schema_version", "safe_envelope_sha256", "input_assembly_mode", "only_safe_envelope_and_visible_prefix_read", "raw_query_plan_read", "gold_read", "cutoff_after_content_read", "surface_prompt_version", "surface_prompt_sha256", "generated_at"],
+      "required": ["cutoff_group_id", "call_id", "model", "reasoning", "query_surface_runner_version", "visible_prefix_sha256", "safe_envelope_schema_version", "safe_envelope_sha256", "surface_prompt_path", "surface_prompt_version", "surface_prompt_sha256", "request_metadata", "request_metadata_sha256", "call_input_sha256", "input_assembly_mode", "only_prompt_safe_envelope_and_visible_prefix_read", "raw_query_plan_read", "gold_read", "cutoff_after_content_read", "generated_at"],
       "properties": {
         "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},
         "call_id": {"type": "string", "pattern": "^CALL-[0-9]{5}$"},
         "model": {"const": "gpt-5.6-sol"},
         "reasoning": {"const": "medium"},
+        "query_surface_runner_version": {"type": "string", "minLength": 1},
         "visible_prefix_sha256": {"$ref": "#/$defs/sha256"},
-        "safe_envelope_schema_version": {"const": "rc-synth-long-query-surface-envelope/1.0.0"},
+        "safe_envelope_schema_version": {"const": "rc-synth-long-query-surface-envelope/1.1.0"},
         "safe_envelope_sha256": {"$ref": "#/$defs/sha256"},
-        "input_assembly_mode": {"const": "PROMPT_PLUS_SAFE_ENVELOPE_PLUS_VISIBLE_PREFIX_V1"},
-        "only_safe_envelope_and_visible_prefix_read": {"const": true},
+        "surface_prompt_path": {"const": "contract/prompts/query-surface-v1.txt"},
+        "surface_prompt_version": {"type": "string", "minLength": 1},
+        "surface_prompt_sha256": {"$ref": "#/$defs/sha256"},
+        "request_metadata": {"$ref": "#/$defs/querySurfaceRequestMetadata"},
+        "request_metadata_sha256": {"$ref": "#/$defs/sha256"},
+        "call_input_sha256": {"$ref": "#/$defs/sha256"},
+        "input_assembly_mode": {"const": "RC_QUERY_SURFACE_REQUEST_FRAME_V1"},
+        "only_prompt_safe_envelope_and_visible_prefix_read": {"const": true},
         "raw_query_plan_read": {"const": false},
         "gold_read": {"const": false},
         "cutoff_after_content_read": {"const": false},
-        "surface_prompt_version": {"type": "string", "minLength": 1},
-        "surface_prompt_sha256": {"$ref": "#/$defs/sha256"},
         "generated_at": {"type": "string", "format": "date-time"}
       }
     },

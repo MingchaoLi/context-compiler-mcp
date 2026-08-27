@@ -1,8 +1,11 @@
 {
-  "schema_version": "rc-synth-long-cost-plan/1.1.0",
-  "contract_version": "rc-synth-long-contract/1.0.0-draft.3",
+  "schema_version": "rc-synth-long-cost-plan/1.2.0",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.4",
   "pricing_reference": {
-    "source": "https://developers.openai.com/api/docs/models",
+    "sources": {
+      "model_catalog": "https://developers.openai.com/api/docs/models",
+      "gpt_5_6_sol_long_context": "https://developers.openai.com/api/docs/models/gpt-5.6-sol"
+    },
     "accessed_at": "2026-08-27",
     "currency": "USD",
     "unit": "per_1m_tokens",
@@ -11,7 +14,15 @@
       "gpt-5.6-terra": {"input": 2.0, "cached_input": 0.2, "output": 12.0},
       "gpt-5.6-luna": {"input": 0.2, "cached_input": 0.02, "output": 1.2}
     },
-    "interpretation": "Public API list-price equivalent only; not a Codex subscription invoice or account-availability guarantee."
+    "gpt_5_6_sol_long_context_tier": {
+      "trigger": "REQUEST_INPUT_TOKENS_GREATER_THAN_272000",
+      "scope": "ENTIRE_REQUEST",
+      "input_price_multiplier": 2.0,
+      "output_price_multiplier": 1.5,
+      "cached_input_multiplier": 2.0,
+      "threshold_includes_all_request_input": true
+    },
+    "interpretation": "Public API list-price equivalent only; not a Codex subscription invoice or account-availability guarantee. Each request is priced independently; a Sol request above 272K input applies 2x input and 1.5x output to the entire request."
   },
   "token_estimation": {
     "target_chinese_characters": 260000,
@@ -112,8 +123,8 @@
       "billed_output_tokens_low": 18000,
       "billed_output_tokens_high": 30000,
       "list_price_cost_low": 9.16,
-      "list_price_cost_high": 13.4,
-      "notes": "One independent answer-blind task per cutoff group reads only the deterministic safe-brief envelope plus visible corpus prefix. Brief overhead is covered by the existing range; this remains the dominant input-token stage."
+      "list_price_cost_high": 21.551,
+      "notes": "One independent answer-blind task per cutoff group reads only the deterministic safe-brief envelope plus visible corpus prefix. Per-request estimates include prompt, request metadata, safe envelope, exact visible prefix, and framing overhead. QCG-08 through QCG-12 cross the >272K high-bound threshold and are priced at the Sol long-context tier for the entire request."
     },
     {
       "stage": "MECHANICAL_VALIDATION",
@@ -161,6 +172,35 @@
       "notes": "SHA-256 and manifest finalization are fully deterministic."
     }
   ],
+  "query_surfacing_request_estimates": {
+    "allocation_method": "PREREGISTERED_PER_REQUEST_BOUNDS_RECONCILE_EXACTLY_TO_STAGE_BOUNDS",
+    "cached_input_tokens_assumed_per_request": 0,
+    "output_tokens_low_per_request": 1500,
+    "output_tokens_high_per_request": 2500,
+    "cost_formula": "((input_tokens-cached_input_tokens)*base_input_rate*input_tier_multiplier + cached_input_tokens*base_cached_input_rate*input_tier_multiplier + output_tokens*base_output_rate*output_tier_multiplier)/1000000",
+    "threshold_evaluation": "APPLY_TO_TOTAL_INPUT_TOKENS_FOR_EACH_REQUEST_INCLUDING_PROMPT_METADATA_ENVELOPE_PREFIX_AND_FRAME",
+    "requests": [
+      {"cutoff_group_id": "QCG-01", "query_occurs_after_chapter_id": "CH008", "input_tokens_low": 58208, "input_tokens_high": 69100, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.262832, "cost_high": 0.3264},
+      {"cutoff_group_id": "QCG-02", "query_occurs_after_chapter_id": "CH012", "input_tokens_low": 84208, "input_tokens_high": 102900, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.366832, "cost_high": 0.4616},
+      {"cutoff_group_id": "QCG-03", "query_occurs_after_chapter_id": "CH016", "input_tokens_low": 110208, "input_tokens_high": 136700, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.470832, "cost_high": 0.5968},
+      {"cutoff_group_id": "QCG-04", "query_occurs_after_chapter_id": "CH020", "input_tokens_low": 136208, "input_tokens_high": 170500, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.574832, "cost_high": 0.732},
+      {"cutoff_group_id": "QCG-05", "query_occurs_after_chapter_id": "CH024", "input_tokens_low": 162208, "input_tokens_high": 204300, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.678832, "cost_high": 0.8672},
+      {"cutoff_group_id": "QCG-06", "query_occurs_after_chapter_id": "CH028", "input_tokens_low": 188208, "input_tokens_high": 238100, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.782832, "cost_high": 1.0024},
+      {"cutoff_group_id": "QCG-07", "query_occurs_after_chapter_id": "CH032", "input_tokens_low": 214208, "input_tokens_high": 271900, "tier_low": "BASE", "tier_high": "BASE", "cost_low": 0.886832, "cost_high": 1.1376},
+      {"cutoff_group_id": "QCG-08", "query_occurs_after_chapter_id": "CH034", "input_tokens_low": 227208, "input_tokens_high": 372800, "tier_low": "BASE", "tier_high": "LONG_CONTEXT", "cost_low": 0.938832, "cost_high": 3.0574},
+      {"cutoff_group_id": "QCG-09", "query_occurs_after_chapter_id": "CH036", "input_tokens_low": 240208, "input_tokens_high": 389700, "tier_low": "BASE", "tier_high": "LONG_CONTEXT", "cost_low": 0.990832, "cost_high": 3.1926},
+      {"cutoff_group_id": "QCG-10", "query_occurs_after_chapter_id": "CH038", "input_tokens_low": 253208, "input_tokens_high": 406600, "tier_low": "BASE", "tier_high": "LONG_CONTEXT", "cost_low": 1.042832, "cost_high": 3.3278},
+      {"cutoff_group_id": "QCG-11", "query_occurs_after_chapter_id": "CH039", "input_tokens_low": 259708, "input_tokens_high": 415050, "tier_low": "BASE", "tier_high": "LONG_CONTEXT", "cost_low": 1.068832, "cost_high": 3.3954},
+      {"cutoff_group_id": "QCG-12", "query_occurs_after_chapter_id": "CH040", "input_tokens_low": 266212, "input_tokens_high": 422350, "tier_low": "BASE", "tier_high": "LONG_CONTEXT", "cost_low": 1.094848, "cost_high": 3.4538}
+    ],
+    "input_tokens_low_sum": 2200000,
+    "input_tokens_high_sum": 3200000,
+    "output_tokens_low_sum": 18000,
+    "output_tokens_high_sum": 30000,
+    "cost_low_sum": 9.16,
+    "cost_high_sum": 21.551,
+    "high_bound_long_context_request_count": 5
+  },
   "per_chapter_generation": {
     "model": "gpt-5.6-terra",
     "initial_attempt": {
@@ -222,10 +262,10 @@
     "planned_luna_calls_cap": 8,
     "planned_deterministic_stages": 3,
     "list_price_cost_low_excluding_optional_luna_repairs_and_evaluation": 16.98,
-    "list_price_cost_high_excluding_optional_luna_repairs_and_evaluation": 24.34,
+    "list_price_cost_high_excluding_optional_luna_repairs_and_evaluation": 32.491,
     "planning_reserve_multiplier_for_token_variance": 1.25,
     "reserved_cost_low": 21.225,
-    "reserved_cost_high": 30.425,
+    "reserved_cost_high": 40.61375,
     "reserve_authorizes_unrecorded_retry_or_upgrade": false,
     "primary_input_token_consumption_stage": "QUERY_SURFACING",
     "primary_visible_output_token_consumption_stage": "GENERATION"

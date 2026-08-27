@@ -6,7 +6,7 @@ Work order: `WO-BM-01`
 
 Dataset family: `rc-synth-long-zh`
 
-Contract version: `rc-synth-long-contract/1.0.0-draft.3`
+Contract version: `rc-synth-long-contract/1.0.0-draft.4`
 
 ## 1. Outcome and boundary
 
@@ -35,7 +35,8 @@ SPEC -> WORLD -> EVENTS/TIMELINE -> EVALUATOR_CONTROL_GOLD + QUERY_PLAN
 ```
 
 `gold.json` is `EVALUATOR_CONTROL_GOLD`. It may be hidden from an answer model, but it is not an Independent Hidden
-Holdout. Candidate implementations, host adapters, deterministic interpreters, and answer models must never read it.
+Holdout. Candidate implementations, host adapters, deterministic interpreters, answer models, and the answer-blind
+query-surface model must never read it.
 The pre-corpus `query-plan.json` is also evaluator control and is unavailable as a raw asset to the independent
 query-surfacing task. Only its frozen, answer-neutral `query_surface_brief` allowlist projection may cross that boundary.
 A true Independent Hidden Holdout, including its existence and status, is outside this SPEC and remains unaffected.
@@ -74,6 +75,7 @@ evaluation/ripplecontext-long-v1/
       contract/
         schema-lock.json
         prompt-registry.json
+        prompts/query-surface-v1.txt
       world/
         world-bible.json
         style-bible.json
@@ -150,6 +152,12 @@ prefix construction and has `persist_before_answer: false`. Query text/ID, later
 query-plan data, and evaluator-control Gold are absent from the historical prefix. A cutoff-after Event remains
 invisible even when its fictional occurrence precedes the cutoff.
 
+`RC_VISIBLE_PREFIX_EXACT_BYTES_V1` concatenates, without separator or transformation, every complete chapter file
+before the cutoff chapter and then the cutoff chapter's exact byte slice from byte zero through the registered
+exclusive end byte of `visible_through_corpus_unit_id`. Chapter final LF bytes are retained when included; no BOM,
+header, query, normalization, or implicit newline is added. The generation sidecar freezes each unit's byte boundary,
+and the validator rebuilds the prefix from eligible chapter-file bytes before hashing it.
+
 ## 6. Schema responsibilities
 
 | Asset | Authority | Required responsibility |
@@ -165,6 +173,24 @@ invisible even when its fictional occurrence precedes the cutoff.
 
 The eight Draft 2020-12 schemas are normative local shapes. Cross-file identity, uniqueness, lifecycle, cutoff,
 surface, coverage, attempt, cost, and hash invariants are deterministic validator responsibilities.
+
+### 6.1 Canonical bytes and text normalization
+
+`RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1` means RFC 8785 JSON Canonicalization Scheme (JCS) serialized as UTF-8,
+without BOM and without a trailing byte after the JSON value. Every generated-dataset `.json` file is those canonical
+value bytes plus exactly one LF byte (`0A`). Every generated-dataset `.jsonl` record is one canonical value followed
+by exactly one LF; blank records are forbidden and the file ends at the final record's LF. A canonical-value SHA
+hashes the JCS value bytes without the
+file LF; a file SHA hashes the exact stored bytes including its required final LF. Duplicate object keys, invalid
+UTF-8, BOMs, non-I-JSON values, and non-canonical JCS bytes fail validation.
+
+`RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1` is also closed: strictly decode UTF-8 and reject invalid sequences or
+a BOM; replace CRLF and lone CR with LF; apply UAX #15 NFKC using Unicode 17.0.0; do not trim, collapse whitespace,
+case-fold, or append a terminator. A normalized-text SHA hashes the UTF-8 bytes of that result. An exact-span SHA hashes
+the unmodified UTF-8 bytes of the substring selected by Unicode-code-point half-open offsets, with no BOM or added
+terminator. The normalization implementation must declare Unicode 17.0.0 support and pass a frozen conformance fixture
+before creating instances; a different Unicode data version is a contract-version change, not an implementation
+choice.
 
 ## 7. Event, evidence, State, Fact, and Relation rules
 
@@ -201,7 +227,8 @@ natural-language question. These fields may not change after corpus generation.
 
 The brief is a closed-world, answer-neutral object. It contains only stable subject/entity references with a
 cutoff-visible surface label, an information-need kind and neutral focus description, relationship direction, the
-as-of-cutoff perspective, and necessary response shape. Its sibling SHA-256 hashes the canonical brief bytes. It must
+as-of-cutoff perspective, and necessary response shape. Its sibling SHA-256 hashes the RFC 8785 JCS UTF-8 brief value
+bytes without BOM or terminator. It must
 not contain an oracle or answer value, a current-truth assertion, expected action or abstention conclusion,
 required/forbidden evidence, a future Event, case/failure scoring labels, or any answer-bearing corpus span.
 
@@ -212,7 +239,8 @@ visibility rather than treating the plan as sufficient evidence.
 `query-plan.json` also freezes the allowlist redaction policy and the `querySurfaceEnvelope` schema in its `$defs`.
 Deterministic code constructs a transient envelope per cutoff group containing only dataset/plan/cutoff-group identity,
 visible-prefix hash, and `{query_id, query_surface_brief, query_surface_brief_sha256}` records. This envelope is call
-input, not a ninth public dataset asset; its canonical SHA-256 is recorded in Query provenance and the call ledger.
+input, not a ninth public dataset asset; its RFC 8785 canonical-value SHA-256 is recorded in Query provenance and the
+call ledger. `briefs` is sorted by ASCII `query_id` ascending; duplicate or out-of-order IDs fail validation.
 
 `gold.json` owns canonical answer semantics. The plan points to that oracle but is the sole authority for cutoff,
 expected action, and evidence eligibility. This prevents query wording from becoming an early answer template while
@@ -223,6 +251,7 @@ keeping pre-corpus test intent frozen.
 Only after corpus generation and `SURFACE_MAPPING_BASE_VALIDATION` passes does a separate task create query text. The
 unit of isolation is one of 12 frozen cutoff groups. The task may read only:
 
+- the exact frozen bytes of `contract/prompts/query-surface-v1.txt`;
 - the transient deterministic safe envelope containing query IDs, frozen answer-neutral briefs, and brief hashes; and
 - the exact corpus prefix bytes visible at that cutoff.
 
@@ -231,6 +260,10 @@ action/abstention conclusion, required/forbidden evidence, future Events, case/f
 spans, cutoff-after corpus, chapter plans, or model answers. It uses `gpt-5.6-sol` / medium. Its only authority is
 wording; deterministic code joins each output to the existing plan and copies immutable metadata into `queries.json`.
 
+The prompt template is strict UTF-8 without BOM or CR and ends with exactly one LF; its file SHA includes that LF.
+The visible-prefix SHA hashes the exact `RC_VISIBLE_PREFIX_EXACT_BYTES_V1` bytes. Each `query_text_sha256` hashes the
+exact UTF-8 bytes of the JSON string value after JSON decoding, with no BOM, normalization, or terminator.
+
 Deterministic query-surface checks require one-to-one `query_plan_id`/`query_id`/brief-hash bindings; byte-identical brief
 projection and copied plan fields; envelope validation against the embedded closed-world schema; matching envelope,
 plan-record, brief, and prefix hashes; every referenced subject ID resolving to WORLD; every selected surface label or
@@ -238,9 +271,33 @@ alias occurring in eligible corpus bytes by the query cutoff; no query text/ID i
 asset or non-allowlisted path in task input; no cutoff-after bytes; no exact or normalized copy of an answer-bearing
 mapped span; and no imperative that changes benchmark protocol.
 
-To prove the input allowlist rather than trust an attestation, the validator reconstructs exact call bytes as the
-frozen prompt-template hash plus canonical safe-envelope bytes plus exact visible-prefix bytes under
-`PROMPT_PLUS_SAFE_ENVELOPE_PLUS_VISIBLE_PREFIX_V1`, then requires equality with the call-ledger `input_sha256`.
+All six Query records in one cutoff group must repeat identical `surface_generation` provenance and one call ID. Every
+duplicated prompt/envelope/prefix/runner field must equal its request-metadata sibling; byte lengths and component SHAs
+must reconstruct; `request_metadata_sha256`, `call_input_sha256`, and call-ledger `input_sha256` must match their named
+targets. A mismatch is invalid, not repairable metadata drift.
+
+To prove the input allowlist rather than trust an attestation, the validator reconstructs
+`RC_QUERY_SURFACE_REQUEST_FRAME_V1`. Its bytes are, in order: eight-byte magic `52 43 51 53 46 31 00 00`; segment
+`01` request-metadata JCS bytes; segment `02` exact prompt-template file bytes; segment `03` safe-envelope JCS bytes;
+segment `04` exact visible-prefix bytes; and final marker `00`. Each segment is one unsigned tag byte, an unsigned
+eight-byte big-endian payload length, then exactly that payload. There is no separator, padding, BOM, implicit
+newline, or terminal byte other than the stated final marker.
+
+The segment-`01` payload is a closed RFC 8785 object with exactly these keys: `schema_version` =
+`rc-query-surface-request-metadata/1.0.0`, `dataset_id`, `cutoff_group_id`, `model` = `gpt-5.6-sol`, `reasoning` =
+`medium`, `tool_policy` = `NO_TOOLS`, `output_contract` = `QUERY_ID_AND_QUERY_TEXT_JSON_ONLY`,
+`query_surface_runner_version`, `channel_policy` =
+`SEGMENT_02_INSTRUCTION_03_CONTROL_DATA_04_VISIBLE_CORPUS_NO_EXTRA_CONTENT_V1`,
+`surface_prompt_path`, `surface_prompt_version`, `surface_prompt_sha256`, `surface_prompt_bytes`,
+`safe_envelope_schema_version`, `safe_envelope_sha256`, `safe_envelope_bytes`, `visible_prefix_sha256`,
+`visible_prefix_bytes`, and `frame_policy_id` = `RC_QUERY_SURFACE_REQUEST_FRAME_V1`. String and integer JSON types are
+used exactly as named; byte lengths are non-negative base-10 JSON integers. Component SHAs use
+the byte targets in section 6.1. `request_metadata_sha256` hashes segment-`01` payload; `call_input_sha256` and the call
+ledger `input_sha256` both hash the entire frame from magic through final marker. The version-bound runner exposes
+segment 02 as instruction, 03 as control data, and 04 as visible corpus, in that order and with no tools or other
+model-visible content; metadata is runner control. Prompt path and SHA are inventory-bound. Any role/content wrapper
+outside this logical frame is runner transport metadata and
+must be fixed by runner version, not silently mixed into the benchmark input hash.
 
 Mechanical checks can prove shape, allowlist provenance, IDs, visibility, hashes, and exact/normalized leakage. They
 cannot prove that free-text `focus_description` is fully answer-neutral or that the generated question remains the
@@ -277,6 +334,10 @@ checks non-overlapping/allowed duplicate spans, rejects invalid-attempt document
 that all required evidence and semantic units have eligible pre-cutoff surfaces. Manifest inventory and coverage bind
 the map hash, record count, mapped Event count, and zero unmapped required Events/semantic units.
 
+The document hash covers exact stored chapter bytes, the surface hash uses the exact-span target, and the normalized
+hash uses `RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1`; implementations may not substitute NFC, a platform
+default Unicode version, trimming, or line-ending-dependent behavior.
+
 The map enables stable failure attribution:
 
 - retrieval omission: a required mapped pre-cutoff surface exists but is absent from the retrieved/context packet;
@@ -295,12 +356,25 @@ Every fresh chapter task receives one immutable bundle conforming to `continuity
 - current chapter Event plan;
 - unresolved clue/OpenQuestion ledger and bounded necessary-prior summary;
 - zero to two exact earlier text snippets, only when specifically necessary (`CH001` may have zero); and
-- an opaque future-Event/negative-constraint list that gives IDs and safe prohibitions but no future payload.
+- a deterministic closed future-constraint projection containing only opaque `EV-*` IDs, the hash of its source ID
+  set, and enumerated generic prohibition codes (`OMIT_OPAQUE_EVENT`, `NO_FORWARD_REFERENCE`, or
+  `PRESERVE_CUTOFF_STATE`).
 
 The bundle never contains the prior full corpus, future chapter plan, query plan, query oracle, evaluator-control Gold,
 future Event payload, or comparator answer. Input hashes and character/token budgets are recorded. The immutable style
 bible and alias registry are shared; all evolving snapshots/ledgers are materialized per chapter so continuity can be
 reconstructed without carrying the corpus forward.
+
+The future projection is produced only by deterministic allowlist projection from future Event IDs. IDs are unique
+and ASCII-sorted; `source_future_event_ids_sha256` hashes the RFC 8785 JSON array of that sorted list without a file
+LF. `opaque_future_event_ids` is byte-identical to that list. For each ID, `prohibition_rules` contains exactly three
+records in this fixed code order: `OMIT_OPAQUE_EVENT`, `NO_FORWARD_REFERENCE`, `PRESERVE_CUTOFF_STATE`; IDs remain the
+outer sort key. `projection_sha256` hashes the RFC 8785 projection object without a file LF. It has no
+free-text field and no payload-bearing name/date/location/claim/value slot. Its object and rule shapes are closed by
+Schema; every rule must reference one projected opaque ID, every projected ID must have the required generic rules,
+and `projection_sha256` plus `source_future_event_ids_sha256` must reconstruct. A fixture that injects an explicit
+future fact anywhere in this subtree must fail Schema or byte-for-byte projection equality. Self-declared
+`contains_future_event_payload: false` is not evidence and is not part of the contract.
 
 ## 12. Bounded generation repair
 
@@ -341,12 +415,21 @@ history as authority.
 The official model catalog accessed 2026-08-27 lists per-million-token API prices of Sol `$4` input / `$20` output,
 Terra `$2` / `$12`, and Luna `$0.20` / `$1.20`, with the required reasoning modes. These are planning references, not
 a Codex subscription invoice or availability guarantee: <https://developers.openai.com/api/docs/models>.
+For Sol, any request with more than 272,000 input tokens prices the entire request at 2x input and 1.5x output; this is
+applied per request, not to aggregate stage tokens:
+<https://developers.openai.com/api/docs/models/gpt-5.6-sol>.
 
 `cost-plan.json` reconciles 22 planned Sol calls, 40 initial Terra calls, zero repair calls by default (40 maximum),
 zero Luna calls by default (8 maximum), and three deterministic stages. Default dataset-generation list-price range
-is `$16.98–$24.34`, excluding optional Luna, repairs, and all evaluation campaigns; 25% token-variance reserve is
-`$21.225–$30.425`. Query surfacing is the largest input-token stage; corpus generation remains the largest visible
+is `$16.98–$32.491`, excluding optional Luna, repairs, and all evaluation campaigns; 25% token-variance reserve is
+`$21.225–$40.61375`. Query surfacing is the largest input-token stage; corpus generation remains the largest visible
 output-token stage.
+
+The 12 query-surfacing estimates include exact prompt, request metadata, safe envelope, visible prefix, and framing
+overhead. Low-bound requests all remain at or below 272K. At the high bound, QCG-08 through QCG-12 exceed 272K and use
+the long-context tier for their whole request; QCG-01 through QCG-07 remain base-tier. Their reconciled stage range is
+2.2M–3.2M input, 18K–30K output, and `$9.16–$21.551`. Cached input is conservatively zero in this plan; actual cached
+tokens are recorded if observable.
 
 An initial chapter is budgeted at 12k–16k input, 6.5k–8.5k visible output, 7.5k–10k billed output, or about
 `$0.114–$0.152`. Its optional single mechanical repair adds about `$0.116–$0.154`; a worst-case 40-repair contingency
@@ -368,10 +451,12 @@ The validator fails closed on:
 - surface-map document/text hash, coordinate, corpus-version, endpoint, cutoff, invalid-attempt, and required-coverage
   failures; missing map prevents retrieval/formation/answer attribution;
 - duplicate-source classification, sentinel, multi-facet, long-range, and all non-zero taxonomy denominators;
-- chapter character/Event counts and continuity-bundle allowlist/forbidden-input/hash/budget rules;
+- chapter character/Event counts and continuity-bundle allowlist/forbidden-input/hash/budget rules, including closed
+  future-projection derivation, endpoint equality, and rejection of every payload-bearing extra field;
 - more than two chapter attempts, an unapproved repair reason, changed model/reasoning/prompt/generator, missing
   diagnostics or attempt hashes, multiple eligible outputs, best-of, or selection of an invalid output;
-- call/model/fallback/token/cost arithmetic drift; file inventory, version, SHA-256, or freeze-sidecar mismatch.
+- request-level Sol threshold/tier/cost arithmetic drift; canonicalization/normalization/framing fixture failure;
+  prompt/envelope/prefix/metadata/frame hash mismatch; file inventory, version, SHA-256, or freeze-sidecar mismatch.
 
 Programmatic success cannot determine whether a surface subtly expresses the wrong canon or a query semantically
 suggests an answer. Those checks go to the Builder-side audit and Independent QA, without changing authority in place.
@@ -405,10 +490,16 @@ outside the dataset-generation manifest, and final evaluation cost is not genera
 
 ## 18. Freeze and invalid-run rules
 
-Freeze is mechanical: verify passed gates; canonicalize JSON as UTF-8/stable-key-order/LF; hash every inventory file;
-hash `hashes.json` and `manifest.json`; bind all authority/derived/prompt/generator/attempt versions and hashes; and set
+Freeze is mechanical: verify passed gates; serialize JSON/JSONL and normalize text exactly under section 6.1; hash
+canonical values and exact inventory-file bytes under their named targets; reconstruct every query-surface frame; hash
+`hashes.json` and `manifest.json`; bind all authority/derived/prompt/generator/attempt/policy versions and hashes; and set
 `FROZEN` only after an independent deterministic reconstruction. Dataset-generation `manifest.json` contains no model
 answer or evaluation-run record. The frozen dataset is immutable.
+
+`freeze.serialization_policy_sha256` hashes the RFC 8785 value bytes of the manifest's closed
+`serialization_and_hashing` object. `hashes.sha256` and `manifest.sha256` are lowercase hex plus one LF, and each hashes
+the exact stored bytes of `hashes.json` and `manifest.json`, respectively. The manifest cannot include its own digest;
+the sidecar is the sole manifest-file digest. Re-serialization before hashing is forbidden for file-hash targets.
 
 Immediate invalidation includes Gold/query-plan created or changed to fit visible prose; raw/non-allowlisted
 query-plan or future/control input read by query surfacing; safe-envelope/brief hash or same-information-need failure;
