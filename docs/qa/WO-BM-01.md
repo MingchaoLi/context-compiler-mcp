@@ -273,4 +273,3 @@ fixtures, reader-set checks, schema compilation, plan counts, and structured lea
 
 **RETURN.** Preserve the fixed candidate and this report append-only. R1 must be closed by a new bounded SPEC/Schema fix
 candidate and verified by another fresh Independent re-QA. WORLD and all downstream/model stages remain unauthorized.
-
