@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/events-1.0.0.schema.json",
+  "title": "RippleContext synthetic long-context canonical events",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "world_version",
+    "event_graph_version",
+    "created_before_corpus",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-events/1.0.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "world_version": {"type": "string", "minLength": 1},
+    "event_graph_version": {"type": "string", "minLength": 1},
+    "created_before_corpus": {"const": true},
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/event"}
+    }
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$"
+    },
+    "idArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "occurredTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["precision", "start"],
+      "properties": {
+        "precision": {
+          "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "RANGE", "UNKNOWN_WITHIN_RANGE"]
+        },
+        "start": {"type": "string", "minLength": 1},
+        "end": {"type": ["string", "null"]},
+        "timezone": {"type": ["string", "null"]},
+        "chronology_note": {"type": ["string", "null"]}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "proposition_id",
+        "stance",
+        "epistemic_mode",
+        "source_group_id",
+        "independence_group_id",
+        "repetition_class",
+        "derived_from_claim_ids",
+        "narrative_role"
+      ],
+      "properties": {
+        "claim_id": {"type": "string", "pattern": "^CLM-[0-9]{6}$"},
+        "proposition_id": {"type": "string", "pattern": "^FACT-[0-9]{4}$"},
+        "stance": {"enum": ["SUPPORTS", "CONTRADICTS", "MENTIONS", "QUESTIONS"]},
+        "epistemic_mode": {
+          "enum": [
+            "FORMAL_DECISION",
+            "BRAINSTORM",
+            "PROPOSAL",
+            "HYPOTHESIS",
+            "RUMOR",
+            "OBSERVATION",
+            "FACT_REPORT",
+            "CORRECTION",
+            "RETRACTION",
+            "SUPERSESSION",
+            "MISLEADING_ASSERTION",
+            "INERT_NOISE"
+          ]
+        },
+        "source_group_id": {"type": "string", "pattern": "^SRCG-[0-9]{4}$"},
+        "independence_group_id": {"type": "string", "pattern": "^SRCG-[0-9]{4}$"},
+        "repetition_class": {
+          "enum": [
+            "ORIGINAL",
+            "SAME_SOURCE_REPEAT",
+            "DERIVED_REPORT",
+            "INDEPENDENT_CONFIRMATION",
+            "INDEPENDENT_CONTRADICTION"
+          ]
+        },
+        "derived_from_claim_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CLM-[0-9]{6}$"}
+        },
+        "narrative_role": {
+          "enum": ["CANON_SUPPORT", "CANON_CONTRADICTION", "MISLEADING", "AMBIGUOUS", "NOISE"]
+        },
+        "canonical_surface_plan": {"type": ["string", "null"]}
+      }
+    },
+    "stateOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation",
+        "target_state_id",
+        "resulting_status",
+        "justification_claim_ids",
+        "evidence_event_ids"
+      ],
+      "properties": {
+        "operation_id": {"type": "string", "pattern": "^SOP-[0-9]{5}$"},
+        "operation": {
+          "enum": [
+            "CREATE",
+            "ADOPT",
+            "UPDATE",
+            "COMPLETE",
+            "ABANDON",
+            "RELAX",
+            "DEFER",
+            "RESOLVE",
+            "REOPEN",
+            "REJECT",
+            "SUPERSEDE",
+            "RETRACT"
+          ]
+        },
+        "target_state_id": {"type": "string", "pattern": "^STATE-[0-9]{4}$"},
+        "successor_state_id": {
+          "type": ["string", "null"],
+          "pattern": "^STATE-[0-9]{4}$"
+        },
+        "resulting_status": {
+          "enum": [
+            "ACTIVE",
+            "COMPLETED",
+            "ABANDONED",
+            "RELAXED",
+            "SUPERSEDED",
+            "RETRACTED",
+            "OPEN",
+            "DEFERRED",
+            "RESOLVED",
+            "REJECTED",
+            "REOPENED"
+          ]
+        },
+        "justification_claim_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CLM-[0-9]{6}$"}
+        },
+        "evidence_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref_type", "ref_id"],
+      "properties": {
+        "ref_type": {"enum": ["STATE_ITEM", "FACT", "EVENT", "ENTITY", "RELATION"]},
+        "ref_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "relationOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation",
+        "relation_id",
+        "relation_type",
+        "from",
+        "to",
+        "resulting_status",
+        "evidence_event_ids"
+      ],
+      "properties": {
+        "operation_id": {"type": "string", "pattern": "^ROP-[0-9]{5}$"},
+        "operation": {"enum": ["CREATE", "RETRACT", "SUPERSEDE"]},
+        "relation_id": {"type": "string", "pattern": "^REL-[0-9]{4}$"},
+        "relation_type": {
+          "enum": [
+            "DEPENDS_ON",
+            "SUPERSEDES",
+            "RESOLVES",
+            "REJECTS",
+            "RETRACTS",
+            "DERIVED_FROM",
+            "SUPPORTS",
+            "CONTRADICTS",
+            "DISTINCT_FROM",
+            "SAME_ENTITY_AS",
+            "AFFECTS",
+            "OWNED_BY",
+            "LOCATED_AT"
+          ]
+        },
+        "from": {"$ref": "#/$defs/endpoint"},
+        "to": {"$ref": "#/$defs/endpoint"},
+        "resulting_status": {"enum": ["ACTIVE", "RETRACTED", "SUPERSEDED"]},
+        "evidence_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        }
+      }
+    },
+    "negativeTransferPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sentinel_entity_ids", "distinct_from_relation_ids", "lure_strength"],
+      "properties": {
+        "sentinel_entity_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^ENT-[0-9]{4}$"}
+        },
+        "distinct_from_relation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^REL-[0-9]{4}$"}
+        },
+        "lure_strength": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+      }
+    },
+    "renderPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planned_chapter_ids",
+        "planned_corpus_unit_ids",
+        "minimum_surfaces",
+        "maximum_surfaces",
+        "allowed_forms"
+      ],
+      "properties": {
+        "planned_chapter_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CH[0-9]{3}$"}
+        },
+        "planned_corpus_unit_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"}
+        },
+        "minimum_surfaces": {"type": "integer", "minimum": 1},
+        "maximum_surfaces": {"type": "integer", "minimum": 1},
+        "allowed_forms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["SCENE", "DIALOGUE", "MEETING", "MESSAGE", "MEMO", "REPORT", "LOG", "LETTER"]
+          }
+        },
+        "must_be_subtle": {"type": "boolean"}
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "stream_seq",
+        "occurred_time",
+        "disclosed_at",
+        "timeline_ids",
+        "participant_entity_ids",
+        "topic_ids",
+        "event_kind",
+        "authority_level",
+        "claims",
+        "state_operations",
+        "relation_operations",
+        "supersedes_event_ids",
+        "retracts_event_ids",
+        "resolves_event_ids",
+        "case_ids",
+        "criticality",
+        "render_plan"
+      ],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+        "stream_seq": {"type": "integer", "minimum": 1},
+        "occurred_time": {"$ref": "#/$defs/occurredTime"},
+        "disclosed_at": {"type": "string", "format": "date-time"},
+        "timeline_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^TL-[0-9]{2}$"}
+        },
+        "participant_entity_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^ENT-[0-9]{4}$"}
+        },
+        "topic_ids": {"$ref": "#/$defs/idArray"},
+        "event_kind": {
+          "enum": [
+            "ACTION",
+            "OUTCOME",
+            "CONVERSATION",
+            "MEETING",
+            "DOCUMENT",
+            "OBSERVATION",
+            "FORMAL_DECISION",
+            "BRAINSTORM",
+            "STATUS_CHANGE",
+            "CORRECTION",
+            "RETRACTION",
+            "SUPERSESSION",
+            "QUESTION_CHANGE",
+            "NOISE"
+          ]
+        },
+        "authority_level": {
+          "enum": ["FORMAL_RECORD", "FIRSTHAND", "INDEPENDENT_MEASUREMENT", "SECONDHAND", "SPECULATION", "INERT"]
+        },
+        "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+        "state_operations": {"type": "array", "items": {"$ref": "#/$defs/stateOperation"}},
+        "relation_operations": {"type": "array", "items": {"$ref": "#/$defs/relationOperation"}},
+        "supersedes_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "retracts_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "resolves_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "case_ids": {"$ref": "#/$defs/idArray"},
+        "criticality": {"enum": ["NOISE", "SUPPORTING", "CRITICAL"]},
+        "negative_transfer_plan": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/negativeTransferPlan"}
+          ]
+        },
+        "render_plan": {"$ref": "#/$defs/renderPlan"}
+      }
+    }
+  }
+}

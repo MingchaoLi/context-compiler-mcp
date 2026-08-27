@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/gold-1.1.0.schema.json",
+  "title": "RippleContext synthetic long-context evaluator-control Gold",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "event_graph_version",
+    "gold_version",
+    "qualification",
+    "independent_hidden_holdout",
+    "prohibited_reader_classes",
+    "created_before_corpus",
+    "source_groups",
+    "state_items",
+    "facts",
+    "relations",
+    "query_oracles"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-gold/1.1.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "event_graph_version": {"type": "string", "minLength": 1},
+    "gold_version": {"type": "string", "minLength": 1},
+    "qualification": {"const": "EVALUATOR_CONTROL_GOLD"},
+    "independent_hidden_holdout": {"const": false},
+    "prohibited_reader_classes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {"enum": ["CANDIDATE_IMPLEMENTATION", "ADAPTER", "INTERPRETER", "ANSWER_MODEL"]}
+    },
+    "created_before_corpus": {"const": true},
+    "source_groups": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sourceGroup"}
+    },
+    "state_items": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/stateItem"}
+    },
+    "facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fact"}
+    },
+    "relations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relation"}
+    },
+    "query_oracles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/queryOracle"}
+    }
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "genericId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$"
+    },
+    "eventId": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+    "eventIdArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/eventId"}
+    },
+    "sourceGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_group_id",
+        "independence_group_id",
+        "origin_kind",
+        "derived_from_source_group_ids",
+        "description"
+      ],
+      "properties": {
+        "source_group_id": {"type": "string", "pattern": "^SRCG-[0-9]{4}$"},
+        "independence_group_id": {"type": "string", "pattern": "^SRCG-[0-9]{4}$"},
+        "origin_kind": {
+          "enum": ["PERSON", "INSTRUMENT", "DOCUMENT", "SYSTEM", "DERIVED_SUMMARY", "FICTIONAL_UNKNOWN"]
+        },
+        "derived_from_source_group_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SRCG-[0-9]{4}$"}
+        },
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "stateTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transition_id",
+        "at_event_id",
+        "at_stream_seq",
+        "operation",
+        "resulting_status",
+        "evidence_event_ids"
+      ],
+      "properties": {
+        "transition_id": {"type": "string", "pattern": "^STX-[0-9]{5}$"},
+        "at_event_id": {"$ref": "#/$defs/eventId"},
+        "at_stream_seq": {"type": "integer", "minimum": 1},
+        "operation": {
+          "enum": [
+            "CREATE",
+            "ADOPT",
+            "UPDATE",
+            "COMPLETE",
+            "ABANDON",
+            "RELAX",
+            "DEFER",
+            "RESOLVE",
+            "REOPEN",
+            "REJECT",
+            "SUPERSEDE",
+            "RETRACT"
+          ]
+        },
+        "resulting_status": {
+          "enum": [
+            "ACTIVE",
+            "COMPLETED",
+            "ABANDONED",
+            "RELAXED",
+            "SUPERSEDED",
+            "RETRACTED",
+            "OPEN",
+            "DEFERRED",
+            "RESOLVED",
+            "REJECTED",
+            "REOPENED"
+          ]
+        },
+        "successor_state_id": {
+          "type": ["string", "null"],
+          "pattern": "^STATE-[0-9]{4}$"
+        },
+        "evidence_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        }
+      }
+    },
+    "stateItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_id",
+        "state_type",
+        "canonical_content",
+        "scope_entity_ids",
+        "topic_ids",
+        "transitions"
+      ],
+      "properties": {
+        "state_id": {"type": "string", "pattern": "^STATE-[0-9]{4}$"},
+        "state_type": {
+          "enum": ["GOAL", "CONSTRAINT", "DECISION", "OPEN_QUESTION", "REJECTED_ALTERNATIVE"]
+        },
+        "canonical_content": {"type": "string", "minLength": 1},
+        "scope_entity_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^ENT-[0-9]{4}$"}
+        },
+        "topic_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/genericId"}
+        },
+        "transitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stateTransition"}
+        }
+      }
+    },
+    "factTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transition_id",
+        "at_event_id",
+        "at_stream_seq",
+        "truth_value",
+        "epistemic_status",
+        "change_kind",
+        "support_event_ids",
+        "contradiction_event_ids"
+      ],
+      "properties": {
+        "transition_id": {"type": "string", "pattern": "^FTX-[0-9]{5}$"},
+        "at_event_id": {"$ref": "#/$defs/eventId"},
+        "at_stream_seq": {"type": "integer", "minimum": 1},
+        "truth_value": {"enum": ["TRUE", "FALSE", "UNKNOWN", "DISPUTED"]},
+        "epistemic_status": {
+          "enum": ["VERIFIED", "OBSERVED", "REPORTED", "HYPOTHESIS", "CORRECTED", "RETRACTED"]
+        },
+        "change_kind": {
+          "enum": [
+            "INITIAL_ASSERTION",
+            "INDEPENDENT_CONFIRMATION",
+            "BECAME_TRUE",
+            "BECAME_FALSE",
+            "CORRECTION",
+            "RETRACTION",
+            "SCOPE_CHANGE",
+            "UNCERTAINTY_CHANGE"
+          ]
+        },
+        "valid_from_event_id": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/eventId"}]
+        },
+        "valid_through_event_id": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/eventId"}]
+        },
+        "support_event_ids": {"$ref": "#/$defs/eventIdArray"},
+        "contradiction_event_ids": {"$ref": "#/$defs/eventIdArray"}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_id",
+        "canonical_statement",
+        "subject_entity_ids",
+        "topic_ids",
+        "transitions"
+      ],
+      "properties": {
+        "fact_id": {"type": "string", "pattern": "^FACT-[0-9]{4}$"},
+        "canonical_statement": {"type": "string", "minLength": 1},
+        "subject_entity_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^ENT-[0-9]{4}$"}
+        },
+        "topic_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/genericId"}
+        },
+        "transitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/factTransition"}
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref_type", "ref_id"],
+      "properties": {
+        "ref_type": {"enum": ["STATE_ITEM", "FACT", "EVENT", "ENTITY", "RELATION"]},
+        "ref_id": {"$ref": "#/$defs/genericId"}
+      }
+    },
+    "relationTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at_event_id", "at_stream_seq", "operation", "resulting_status", "evidence_event_ids"],
+      "properties": {
+        "at_event_id": {"$ref": "#/$defs/eventId"},
+        "at_stream_seq": {"type": "integer", "minimum": 1},
+        "operation": {"enum": ["CREATE", "RETRACT", "SUPERSEDE"]},
+        "resulting_status": {"enum": ["ACTIVE", "RETRACTED", "SUPERSEDED"]},
+        "evidence_event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation_id", "relation_type", "from", "to", "transitions"],
+      "properties": {
+        "relation_id": {"type": "string", "pattern": "^REL-[0-9]{4}$"},
+        "relation_type": {
+          "enum": [
+            "DEPENDS_ON",
+            "SUPERSEDES",
+            "RESOLVES",
+            "REJECTS",
+            "RETRACTS",
+            "DERIVED_FROM",
+            "SUPPORTS",
+            "CONTRADICTS",
+            "DISTINCT_FROM",
+            "SAME_ENTITY_AS",
+            "AFFECTS",
+            "OWNED_BY",
+            "LOCATED_AT"
+          ]
+        },
+        "from": {"$ref": "#/$defs/endpoint"},
+        "to": {"$ref": "#/$defs/endpoint"},
+        "transitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/relationTransition"}
+        }
+      }
+    },
+    "semanticUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_unit_id",
+        "facet_id",
+        "criterion",
+        "canonical_claim",
+        "target_refs",
+        "qualification"
+      ],
+      "properties": {
+        "semantic_unit_id": {"type": "string", "pattern": "^SEM-[0-9]{4}$"},
+        "facet_id": {"type": "string", "pattern": "^FAC-[0-9]{4}$"},
+        "criterion": {"enum": ["REQUIRED", "OPTIONAL", "FORBIDDEN"]},
+        "canonical_claim": {"type": "string", "minLength": 1},
+        "target_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/endpoint"}
+        },
+        "qualification": {"type": ["string", "null"]}
+      }
+    },
+    "facet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["facet_id", "label", "required_semantic_unit_ids", "completeness_required"],
+      "properties": {
+        "facet_id": {"type": "string", "pattern": "^FAC-[0-9]{4}$"},
+        "label": {"type": "string", "minLength": 1},
+        "required_semantic_unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SEM-[0-9]{4}$"}
+        },
+        "completeness_required": {"type": "boolean"}
+      }
+    },
+    "ambiguity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "allowed_interpretations", "qualification_required"],
+      "properties": {
+        "mode": {"enum": ["UNIQUE", "MULTIPLE_ACCEPTABLE", "UNDERSPECIFIED_ABSTAIN", "PARTIAL_ABSTAIN"]},
+        "allowed_interpretations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "qualification_required": {"type": "boolean"}
+      }
+    },
+    "queryOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query_oracle_id",
+        "query_plan_id",
+        "query_id",
+        "semantic_units",
+        "facets",
+        "ambiguity"
+      ],
+      "properties": {
+        "query_oracle_id": {"type": "string", "pattern": "^QG-[0-9]{4}$"},
+        "query_plan_id": {"type": "string", "pattern": "^QP-[0-9]{4}$"},
+        "query_id": {"type": "string", "pattern": "^Q-[0-9]{4}$"},
+        "semantic_units": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/semanticUnit"}
+        },
+        "facets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/facet"}
+        },
+        "ambiguity": {"$ref": "#/$defs/ambiguity"}
+      }
+    }
+  }
+}

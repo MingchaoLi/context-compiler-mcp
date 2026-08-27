@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/surface-evidence-map-line-1.0.0.schema.json",
+  "title": "RippleContext corpus surface-to-evidence JSONL record",
+  "description": "Each line in derived/surface-evidence-map.jsonl validates as one record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "corpus_version",
+    "mapping_version",
+    "surface_id",
+    "chapter_id",
+    "corpus_unit_id",
+    "document_path",
+    "document_sha256",
+    "span",
+    "surface_text_sha256",
+    "normalized_text_sha256",
+    "event_ids",
+    "semantic_unit_ids",
+    "query_plan_ids",
+    "mapping_kind",
+    "diagnostic_roles",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-surface-evidence-map-line/1.0.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "corpus_version": {"type": "string", "minLength": 1},
+    "mapping_version": {"type": "string", "minLength": 1},
+    "surface_id": {"type": "string", "pattern": "^SURF-[0-9]{6}$"},
+    "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+    "corpus_unit_id": {"type": "string", "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"},
+    "document_path": {"type": "string", "pattern": "^corpus/chapters/CH[0-9]{3}\\.md$"},
+    "document_sha256": {"$ref": "#/$defs/sha256"},
+    "span": {"$ref": "#/$defs/span"},
+    "surface_text_sha256": {"$ref": "#/$defs/sha256"},
+    "normalized_text_sha256": {"$ref": "#/$defs/sha256"},
+    "event_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+    },
+    "semantic_unit_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^SEM-[0-9]{4}$"}
+    },
+    "query_plan_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^QP-[0-9]{4}$"}
+    },
+    "mapping_kind": {
+      "enum": [
+        "DIRECT_ASSERTION",
+        "PARAPHRASE",
+        "LIFECYCLE_SURFACE",
+        "RELATION_SURFACE",
+        "CONTRADICTION_SURFACE",
+        "NEGATIVE_TRANSFER_SURFACE",
+        "IMPLIED_BY_BOUNDED_CONTEXT"
+      ]
+    },
+    "diagnostic_roles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["RETRIEVAL", "FORMATION", "ANSWER"]}
+    },
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coordinate_system", "start", "end"],
+      "properties": {
+        "coordinate_system": {"const": "UNICODE_CODE_POINT_OFFSETS_HALF_OPEN_V1"},
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 1}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generation_call_id",
+        "chapter_anchor_source",
+        "semantic_join_method",
+        "deriver_version",
+        "authority_mutated"
+      ],
+      "properties": {
+        "generation_call_id": {"type": "string", "pattern": "^CALL-[0-9]{5}$"},
+        "chapter_anchor_source": {"const": "GENERATION_SIDECAR_EXACT_TEXT"},
+        "semantic_join_method": {"const": "DETERMINISTIC_EVENT_TO_QUERY_PLAN_SEMANTIC_JOIN"},
+        "deriver_version": {"type": "string", "minLength": 1},
+        "authority_mutated": {"const": false}
+      }
+    }
+  }
+}

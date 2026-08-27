@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/timeline-1.0.0.schema.json",
+  "title": "RippleContext synthetic long-context timeline and disclosure index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "timeline_version",
+    "event_graph_version",
+    "timelines",
+    "calendar_index",
+    "disclosure_index",
+    "corpus_units",
+    "cross_timeline_links",
+    "long_range_pairs"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-timeline/1.0.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "timeline_version": {"type": "string", "minLength": 1},
+    "event_graph_version": {"type": "string", "minLength": 1},
+    "timelines": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/timeline"}
+    },
+    "calendar_index": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/calendarEntry"}
+    },
+    "disclosure_index": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/disclosureEntry"}
+    },
+    "corpus_units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/corpusUnit"}
+    },
+    "cross_timeline_links": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/crossTimelineLink"}
+    },
+    "long_range_pairs": {
+      "type": "array",
+      "minItems": 10,
+      "items": {"$ref": "#/$defs/longRangePair"}
+    }
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "eventId": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+    "eventIdArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/eventId"}
+    },
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeline_id",
+        "name",
+        "domain",
+        "participant_entity_ids",
+        "event_ids_in_calendar_order"
+      ],
+      "properties": {
+        "timeline_id": {"type": "string", "pattern": "^TL-[0-9]{2}$"},
+        "name": {"type": "string", "minLength": 1},
+        "domain": {
+          "enum": [
+            "ENGINEERING_OPERATIONS",
+            "ECOLOGY_SAFETY",
+            "FINANCE_PROCUREMENT",
+            "GOVERNANCE_COMMUNITY",
+            "PEOPLE_LOGISTICS",
+            "CROSS_CUTTING"
+          ]
+        },
+        "participant_entity_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^ENT-[0-9]{4}$"}
+        },
+        "event_ids_in_calendar_order": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        }
+      }
+    },
+    "calendarEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["calendar_ordinal", "event_id", "occurred_start", "occurred_end", "precision"],
+      "properties": {
+        "calendar_ordinal": {"type": "integer", "minimum": 1},
+        "event_id": {"$ref": "#/$defs/eventId"},
+        "occurred_start": {"type": "string", "minLength": 1},
+        "occurred_end": {"type": ["string", "null"]},
+        "precision": {"enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "RANGE", "UNKNOWN_WITHIN_RANGE"]},
+        "chronology_exemption": {"type": ["string", "null"]}
+      }
+    },
+    "disclosureEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stream_seq", "event_id", "corpus_unit_id", "first_disclosure"],
+      "properties": {
+        "stream_seq": {"type": "integer", "minimum": 1},
+        "event_id": {"$ref": "#/$defs/eventId"},
+        "corpus_unit_id": {"type": "string", "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"},
+        "first_disclosure": {"type": "boolean"}
+      }
+    },
+    "corpusUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "corpus_unit_id",
+        "chapter_id",
+        "unit_ordinal",
+        "stream_seq_start",
+        "stream_seq_end",
+        "event_ids"
+      ],
+      "properties": {
+        "corpus_unit_id": {"type": "string", "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"},
+        "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "unit_ordinal": {"type": "integer", "minimum": 1},
+        "stream_seq_start": {"type": "integer", "minimum": 1},
+        "stream_seq_end": {"type": "integer", "minimum": 1},
+        "event_ids": {"$ref": "#/$defs/eventIdArray"}
+      }
+    },
+    "crossTimelineLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["link_id", "from_event_id", "to_event_id", "relation_type", "timeline_ids"],
+      "properties": {
+        "link_id": {"type": "string", "pattern": "^TLINK-[0-9]{4}$"},
+        "from_event_id": {"$ref": "#/$defs/eventId"},
+        "to_event_id": {"$ref": "#/$defs/eventId"},
+        "relation_type": {"enum": ["CAUSES", "CONSTRAINS", "INFORMS", "CONTRADICTS", "RESOLVES", "DISTRACTS_FROM"]},
+        "timeline_ids": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^TL-[0-9]{2}$"}
+        }
+      }
+    },
+    "longRangePair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pair_id",
+        "anchor_event_id",
+        "revival_event_id",
+        "anchor_chapter_id",
+        "revival_chapter_id",
+        "minimum_chapter_gap",
+        "role",
+        "query_ids"
+      ],
+      "properties": {
+        "pair_id": {"type": "string", "pattern": "^LRP-[0-9]{3}$"},
+        "anchor_event_id": {"$ref": "#/$defs/eventId"},
+        "revival_event_id": {"$ref": "#/$defs/eventId"},
+        "anchor_chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "revival_chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "minimum_chapter_gap": {"type": "integer", "minimum": 12},
+        "role": {"enum": ["OLD_RELEVANT", "SUPERSESSION_CHAIN", "STALE_TRAP", "CROSS_TIMELINE", "NEGATIVE_TRANSFER"]},
+        "query_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^Q-[0-9]{4}$"}
+        }
+      }
+    }
+  }
+}

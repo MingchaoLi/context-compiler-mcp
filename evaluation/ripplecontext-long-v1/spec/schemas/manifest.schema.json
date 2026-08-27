@@ -1,0 +1,456 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/manifest-1.1.0.schema.json",
+  "title": "RippleContext synthetic long-context run and freeze manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "run_id",
+    "status",
+    "versions",
+    "lineage",
+    "gates",
+    "file_inventory",
+    "chapter_inventory",
+    "model_policy",
+    "call_ledger",
+    "token_totals",
+    "coverage",
+    "validity",
+    "freeze",
+    "full_context_policy",
+    "evaluator_control_gold_qualification",
+    "evaluation_runs_included",
+    "contains_private_conversations",
+    "corpus_instructions_are_inert"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-manifest/1.1.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "run_id": {"type": "string", "pattern": "^RUN-[0-9]{8}-[A-Z0-9]{6}$"},
+    "status": {
+      "enum": [
+        "WORLD_PENDING",
+        "GOLD_PENDING",
+        "GOLD_FROZEN",
+        "QUERY_PLAN_FROZEN",
+        "GENERATION_IN_PROGRESS",
+        "GENERATED",
+        "SURFACE_MAPPED_BASE_VALIDATED",
+        "QUERIES_SURFACED",
+        "MECHANICALLY_VALIDATED",
+        "SEMANTICALLY_AUDITED",
+        "FROZEN",
+        "INVALID"
+      ]
+    },
+    "versions": {"$ref": "#/$defs/versions"},
+    "lineage": {"$ref": "#/$defs/lineage"},
+    "gates": {
+      "type": "array",
+      "minItems": 9,
+      "items": {"$ref": "#/$defs/gate"}
+    },
+    "file_inventory": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/fileEntry"}
+    },
+    "chapter_inventory": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/chapterEntry"}
+    },
+    "model_policy": {
+      "type": "array",
+      "minItems": 9,
+      "items": {"$ref": "#/$defs/modelPolicy"}
+    },
+    "call_ledger": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/callEntry"}
+    },
+    "token_totals": {"$ref": "#/$defs/tokenTotals"},
+    "coverage": {"$ref": "#/$defs/coverage"},
+    "validity": {"$ref": "#/$defs/validity"},
+    "freeze": {"$ref": "#/$defs/freeze"},
+    "full_context_policy": {"$ref": "#/$defs/fullContextPolicy"},
+    "evaluator_control_gold_qualification": {"const": "NOT_INDEPENDENT_HIDDEN_HOLDOUT"},
+    "evaluation_runs_included": {"const": false},
+    "contains_private_conversations": {"const": false},
+    "corpus_instructions_are_inert": {"const": true}
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableNonNegativeInteger": {"type": ["integer", "null"], "minimum": 0},
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "world",
+        "event_graph",
+        "gold",
+        "query_plan",
+        "query_set",
+        "corpus",
+        "surface_evidence_map",
+        "continuity_bundle",
+        "query_surface_prompt",
+        "prompt",
+        "generator",
+        "validator"
+      ],
+      "properties": {
+        "contract": {"type": "string", "minLength": 1},
+        "world": {"type": "string", "minLength": 1},
+        "event_graph": {"type": "string", "minLength": 1},
+        "gold": {"type": "string", "minLength": 1},
+        "query_plan": {"type": "string", "minLength": 1},
+        "query_set": {"type": "string", "minLength": 1},
+        "corpus": {"type": "string", "minLength": 1},
+        "surface_evidence_map": {"type": "string", "minLength": 1},
+        "continuity_bundle": {"type": "string", "minLength": 1},
+        "query_surface_prompt": {"type": "string", "minLength": 1},
+        "prompt": {"type": "string", "minLength": 1},
+        "generator": {"type": "string", "minLength": 1},
+        "validator": {"type": "string", "minLength": 1}
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parent_dataset_id", "parent_run_id", "change_class", "reason", "fresh_regeneration_required"],
+      "properties": {
+        "parent_dataset_id": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/datasetId"}]
+        },
+        "parent_run_id": {"type": ["string", "null"]},
+        "change_class": {"enum": ["INITIAL", "CONTRACT", "WORLD", "GOLD", "QUERY_PLAN", "QUERY_SURFACE", "CORPUS", "GENERATOR", "VALIDATOR"]},
+        "reason": {"type": "string", "minLength": 1},
+        "fresh_regeneration_required": {"type": "boolean"}
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "status", "input_manifest_sha256", "output_manifest_sha256", "completed_at"],
+      "properties": {
+        "stage": {
+          "enum": ["SPEC", "WORLD", "GOLD", "GENERATION", "SURFACE_MAPPING_BASE_VALIDATION", "QUERY_SURFACING", "MECHANICAL_VALIDATION", "SEMANTIC_AUDIT", "FREEZE"]
+        },
+        "status": {"enum": ["PENDING", "PASS", "FAIL", "BLOCKED"]},
+        "input_manifest_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "output_manifest_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "completed_at": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "fileEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "bytes", "sha256", "exposed_to_answer_model"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*\\.\\.).+$"},
+        "role": {
+          "enum": [
+            "CONTRACT",
+            "WORLD_CONTROL",
+            "EVALUATOR_CONTROL_EVENT_GRAPH",
+            "EVALUATOR_CONTROL_TIMELINE",
+            "EVALUATOR_CONTROL_GOLD",
+            "EVALUATOR_CONTROL_QUERY_PLAN",
+            "CONTINUITY_BUNDLE",
+            "QUERY_PROTOCOL",
+            "CORPUS_INPUT",
+            "SURFACE_EVIDENCE_MAP",
+            "DERIVED_PREFIX",
+            "DERIVED_CONTEXT_PACKET",
+            "VALIDATION_REPORT",
+            "AUDIT_REPORT",
+            "FREEZE_INDEX"
+          ]
+        },
+        "bytes": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "exposed_to_answer_model": {"type": "boolean"}
+      }
+    },
+    "chapterEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chapter_id",
+        "path",
+        "character_count",
+        "token_count",
+        "event_ids",
+        "query_ids_after_chapter",
+        "selected_generation_call_id",
+        "generation_attempt_count",
+        "invalid_generation_call_ids",
+        "sha256"
+      ],
+      "properties": {
+        "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "path": {"type": "string", "pattern": "^corpus/chapters/CH[0-9]{3}\\.md$"},
+        "character_count": {"type": "integer", "minimum": 0},
+        "token_count": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "query_ids_after_chapter": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^Q-[0-9]{4}$"}
+        },
+        "selected_generation_call_id": {"type": "string", "pattern": "^CALL-[0-9]{5}$"},
+        "generation_attempt_count": {"type": "integer", "minimum": 1, "maximum": 2},
+        "invalid_generation_call_ids": {
+          "type": "array",
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CALL-[0-9]{5}$"}
+        },
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "modelPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "execution", "model", "reasoning", "fallback_model", "unavailable_action"],
+      "properties": {
+        "stage": {
+          "enum": ["SPEC", "WORLD", "GOLD", "GENERATION", "SURFACE_MAPPING_BASE_VALIDATION", "QUERY_SURFACING", "MECHANICAL_VALIDATION", "SEMANTIC_AUDIT", "FREEZE"]
+        },
+        "execution": {"enum": ["MODEL", "DETERMINISTIC", "DETERMINISTIC_WITH_OPTIONAL_MODEL_EXCEPTION"]},
+        "model": {"enum": ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "NONE"]},
+        "reasoning": {"enum": ["low", "medium", "high", "NONE"]},
+        "fallback_model": {"const": "NONE"},
+        "unavailable_action": {"const": "STOP_AND_REPORT"}
+      }
+    },
+    "callEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "call_id",
+        "stage",
+        "task_id",
+        "model",
+        "reasoning",
+        "prompt_version",
+        "generator_version",
+        "attempt_number",
+        "attempt_kind",
+        "repairs_call_id",
+        "repair_reason_code",
+        "machine_diagnostics_sha256",
+        "eligible_output",
+        "selection_policy",
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_tokens",
+        "token_observability",
+        "fallback_occurred",
+        "stop_reason",
+        "input_sha256",
+        "output_sha256"
+      ],
+      "properties": {
+        "call_id": {"type": "string", "pattern": "^CALL-[0-9]{5}$"},
+        "stage": {"enum": ["SPEC", "WORLD", "GOLD", "GENERATION", "QUERY_SURFACING", "MECHANICAL_VALIDATION", "SEMANTIC_AUDIT"]},
+        "task_id": {"type": "string", "minLength": 1},
+        "model": {"enum": ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]},
+        "reasoning": {"enum": ["low", "medium", "high"]},
+        "prompt_version": {"type": "string", "minLength": 1},
+        "generator_version": {"type": "string", "minLength": 1},
+        "attempt_number": {"type": "integer", "minimum": 1, "maximum": 2},
+        "attempt_kind": {"enum": ["INITIAL", "MECHANICAL_REPAIR"]},
+        "repairs_call_id": {
+          "oneOf": [{"type": "null"}, {"type": "string", "pattern": "^CALL-[0-9]{5}$"}]
+        },
+        "repair_reason_code": {
+          "type": ["string", "null"],
+          "enum": [null, "TRUNCATION", "SCHEMA_FORMAT_FAILURE", "MISSING_PREREGISTERED_EVENT_SURFACE", "CHARACTER_BOUND_VIOLATION", "SURFACE_ANCHOR_FAILURE"]
+        },
+        "machine_diagnostics_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "eligible_output": {"type": "boolean"},
+        "selection_policy": {"const": "NO_CANDIDATE_SELECTION"},
+        "input_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "cached_input_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "output_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "reasoning_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "token_observability": {"enum": ["MEASURED", "PARTIALLY_OBSERVABLE", "NOT_OBSERVABLE"]},
+        "fallback_occurred": {"const": false},
+        "stop_reason": {"enum": ["COMPLETED", "MODEL_UNAVAILABLE", "TRUNCATED", "RATE_LIMIT", "TOOL_FAILURE", "SCHEMA_FORMAT_FAILURE", "MISSING_PREREGISTERED_EVENT_SURFACE", "CHARACTER_BOUND_VIOLATION", "SURFACE_ANCHOR_FAILURE", "SEMANTIC_INCONSISTENCY", "INVALID_OUTPUT"]},
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "output_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        }
+      }
+    },
+    "tokenTotals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_tokens", "cached_input_tokens", "output_tokens", "reasoning_tokens", "observability"],
+      "properties": {
+        "input_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "cached_input_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "output_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "reasoning_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "observability": {"enum": ["MEASURED", "PARTIALLY_OBSERVABLE", "NOT_OBSERVABLE"]}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chapter_count",
+        "corpus_chinese_character_count",
+        "event_count",
+        "fact_count",
+        "state_counts",
+        "relation_count",
+        "query_count",
+        "multi_facet_query_count",
+        "negative_transfer_query_count",
+        "stale_evidence_query_count",
+        "long_range_pair_count",
+        "query_cutoff_group_count",
+        "surface_evidence_record_count",
+        "surface_mapped_event_count",
+        "unmapped_required_event_count",
+        "unmapped_semantic_unit_count"
+      ],
+      "properties": {
+        "chapter_count": {"type": "integer", "minimum": 0},
+        "corpus_chinese_character_count": {"type": "integer", "minimum": 0},
+        "event_count": {"type": "integer", "minimum": 0},
+        "fact_count": {"type": "integer", "minimum": 0},
+        "state_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["GOAL", "CONSTRAINT", "DECISION", "OPEN_QUESTION", "REJECTED_ALTERNATIVE"],
+          "properties": {
+            "GOAL": {"type": "integer", "minimum": 0},
+            "CONSTRAINT": {"type": "integer", "minimum": 0},
+            "DECISION": {"type": "integer", "minimum": 0},
+            "OPEN_QUESTION": {"type": "integer", "minimum": 0},
+            "REJECTED_ALTERNATIVE": {"type": "integer", "minimum": 0}
+          }
+        },
+        "relation_count": {"type": "integer", "minimum": 0},
+        "query_count": {"type": "integer", "minimum": 0},
+        "multi_facet_query_count": {"type": "integer", "minimum": 0},
+        "negative_transfer_query_count": {"type": "integer", "minimum": 0},
+        "stale_evidence_query_count": {"type": "integer", "minimum": 0},
+        "long_range_pair_count": {"type": "integer", "minimum": 0},
+        "query_cutoff_group_count": {"type": "integer", "minimum": 0},
+        "surface_evidence_record_count": {"type": "integer", "minimum": 0},
+        "surface_mapped_event_count": {"type": "integer", "minimum": 0},
+        "unmapped_required_event_count": {"const": 0},
+        "unmapped_semantic_unit_count": {"const": 0}
+      }
+    },
+    "invalidReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "stage", "message", "affected_paths", "affected_ids"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+        "stage": {"enum": ["SPEC", "WORLD", "GOLD", "GENERATION", "SURFACE_MAPPING_BASE_VALIDATION", "QUERY_SURFACING", "MECHANICAL_VALIDATION", "SEMANTIC_AUDIT", "FREEZE"]},
+        "message": {"type": "string", "minLength": 1},
+        "affected_paths": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "affected_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evaluation_allowed", "invalidated_at", "invalid_reasons", "superseded_by_dataset_id"],
+      "properties": {
+        "evaluation_allowed": {"type": "boolean"},
+        "invalidated_at": {"type": ["string", "null"], "format": "date-time"},
+        "invalid_reasons": {"type": "array", "items": {"$ref": "#/$defs/invalidReason"}},
+        "superseded_by_dataset_id": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/datasetId"}]
+        }
+      }
+    },
+    "freeze": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hash_algorithm",
+        "json_canonicalization",
+        "hashes_path",
+        "hashes_sha256_path",
+        "manifest_sha256_path",
+        "frozen_at",
+        "independent_verification"
+      ],
+      "properties": {
+        "hash_algorithm": {"const": "SHA-256"},
+        "json_canonicalization": {"const": "UTF-8_STABLE_KEY_ORDER_LF"},
+        "hashes_path": {"const": "freeze/hashes.json"},
+        "hashes_sha256_path": {"const": "freeze/hashes.sha256"},
+        "manifest_sha256_path": {"const": "freeze/manifest.sha256"},
+        "frozen_at": {"type": ["string", "null"], "format": "date-time"},
+        "independent_verification": {"enum": ["PENDING", "PASS", "FAIL"]}
+      }
+    },
+    "fullContextPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routine_regression_allowed", "deterministic_token_count_preferred", "development_calibration", "final_campaign"],
+      "properties": {
+        "routine_regression_allowed": {"const": false},
+        "deterministic_token_count_preferred": {"const": true},
+        "development_calibration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maximum_campaigns", "model", "reasoning", "qualification", "separate_evaluation_work_order"],
+          "properties": {
+            "maximum_campaigns": {"const": 1},
+            "model": {"const": "gpt-5.6-terra"},
+            "reasoning": {"const": "low"},
+            "qualification": {"const": "COST_CALIBRATION_ONLY / NON_QUALIFYING"},
+            "separate_evaluation_work_order": {"const": true}
+          }
+        },
+        "final_campaign": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model", "prerequisite", "separate_evaluation_work_order", "generation_cost_excluded", "conditions_same_policy"],
+          "properties": {
+            "model": {"const": "gpt-5.6-sol"},
+            "prerequisite": {"const": "CORPUS_GOLD_QUERY_AND_RC_CANDIDATE_FROZEN"},
+            "separate_evaluation_work_order": {"const": true},
+            "generation_cost_excluded": {"const": true},
+            "conditions_same_policy": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {"enum": ["FULL_CONTEXT", "RECENT_ONLY", "RC_PROJECTION", "RC_PROJECTION_PLUS_BOUNDED_RECALL"]}
+            }
+          }
+        }
+      }
+    }
+  }
+}

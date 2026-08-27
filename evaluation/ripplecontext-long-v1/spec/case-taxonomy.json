@@ -1,0 +1,263 @@
+{
+  "schema_version": "rc-synth-long-case-taxonomy/1.1.0",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.3",
+  "target_query_count": 72,
+  "categories_may_overlap": true,
+  "zero_denominator_is_pass": false,
+  "diagnostic_attribution_rules": {
+    "retrieval_omission": "A required mapped surface exists before cutoff but is absent from the retrieved/context packet.",
+    "formation_omission": "A required mapped surface is available to formation, but the expected State/Fact/Relation proposal is absent or wrong.",
+    "answer_model_failure": "Required mapped surfaces are present in the answer input, and required formed artifacts are present where the condition uses them, but the answer still violates the oracle.",
+    "unattributable_if_surface_mapping_missing": true
+  },
+  "failure_families": [
+    {"id": "FF-FALSE-PROMOTION", "name": "False promotion", "definition": "Noise, brainstorming, rumor, hypothesis, or proposal is promoted into canonical State/Fact/Relation authority."},
+    {"id": "FF-FALSE-OMISSION", "name": "False omission", "definition": "A required current item, fact, relation, evidence source, or query facet is absent."},
+    {"id": "FF-LIFECYCLE", "name": "Lifecycle corruption", "definition": "A State/Fact/Relation has an illegal or outdated current status."},
+    {"id": "FF-STALE-RESURRECTION", "name": "Stale resurrection", "definition": "Superseded, retracted, resolved, or outdated evidence is treated as current authority."},
+    {"id": "FF-FUTURE-LEAKAGE", "name": "Future leakage", "definition": "Cutoff-after information affects a prefix, answer, classification, or packet."},
+    {"id": "FF-DUPLICATE", "name": "Duplicate confusion", "definition": "Semantic repetition is overcounted as independent corroboration or independent evidence is collapsed."},
+    {"id": "FF-SCOPE-TRANSFER", "name": "Scope transfer", "definition": "A fact or rule is transferred to a similar but distinct person, site, object, or timeline."},
+    {"id": "FF-CONTRADICTION", "name": "Contradiction mishandling", "definition": "Conflicting evidence is flattened without authority, timing, or ambiguity handling."},
+    {"id": "FF-RELATION", "name": "Relation corruption", "definition": "Relation type, direction, endpoint, lifecycle, or dependency closure is wrong."},
+    {"id": "FF-COMPLETENESS", "name": "Multi-facet incompleteness", "definition": "An answer is locally correct but omits one or more required facets."},
+    {"id": "FF-ABSTENTION", "name": "Selective classification failure", "definition": "The system answers when Gold requires abstention, or abstains when sufficient evidence exists."},
+    {"id": "FF-PROVENANCE", "name": "Provenance failure", "definition": "A claim lacks required evidence, cites forbidden evidence, or misstates source independence."},
+    {"id": "FF-LONG-RANGE", "name": "Long-range continuity failure", "definition": "Old but still relevant evidence is lost after a large chapter/token gap."},
+    {"id": "FF-HALLUCINATION", "name": "Unsupported addition", "definition": "The answer invents a person, event, status, rationale, or relation not supported at cutoff."},
+    {"id": "FF-SURFACE-TRACEABILITY", "name": "Surface traceability failure", "definition": "A required event or semantic unit cannot be stably located in eligible corpus bytes, preventing layer-specific failure attribution."}
+  ],
+  "case_families": [
+    {
+      "id": "CASE-FM-01",
+      "name": "Formation typing and selective promotion",
+      "description": "Separate canonical Goal/Constraint/Decision/OpenQuestion/RejectedAlternative proposals from Fact, observation, and noise.",
+      "minimum_event_count": 24,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["all_five_state_types", "fact_observation_separation", "true_negative_events", "ABSTAIN_or_empty_delta"],
+      "mechanical_checks": ["every target event has Gold delta", "non-empty and true-negative denominators are non-zero", "event epistemic modes resolve"],
+      "semantic_audit_question": "Did the corpus make the intended type and authority distinguishable without exam-like labels?",
+      "failure_family_ids": ["FF-FALSE-PROMOTION", "FF-FALSE-OMISSION", "FF-ABSTENTION"]
+    },
+    {
+      "id": "CASE-BD-02",
+      "name": "Brainstorming versus formal Decision",
+      "description": "A repeated proposal or brainstorming thread appears well before a separate formal adoption event.",
+      "minimum_event_count": 12,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["brainstorm_event", "proposal_repeat", "formal_adoption", "pre-adoption_cutoff"],
+      "mechanical_checks": ["Decision transition cannot precede formal event", "pre-adoption oracle forbids current Decision"],
+      "semantic_audit_question": "Could a fluent reader tell what was merely discussed and what was actually decided?",
+      "failure_family_ids": ["FF-FALSE-PROMOTION", "FF-LIFECYCLE"]
+    },
+    {
+      "id": "CASE-LC-03",
+      "name": "Typed State lifecycle",
+      "description": "Exercise legal creation, update, terminal, and current-status transitions for every State type.",
+      "minimum_event_count": 30,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["goal_complete_or_abandon", "constraint_relax_or_retract", "decision_change", "question_change", "alternative_change"],
+      "mechanical_checks": ["transition order is strictly increasing", "type/status matrix is legal", "current status at cutoff is deterministic"],
+      "semantic_audit_question": "Does prose express every lifecycle change and avoid implying unregistered changes?",
+      "failure_family_ids": ["FF-LIFECYCLE", "FF-FALSE-OMISSION"]
+    },
+    {
+      "id": "CASE-SS-04",
+      "name": "Supersession chain",
+      "description": "A current Decision, Constraint, Goal, Fact, or Relation is replaced while historical evidence remains.",
+      "minimum_event_count": 10,
+      "minimum_query_count": 10,
+      "required_mechanisms": ["pre-supersession_query", "successor_object", "SUPERSEDES_relation", "historical_mention_allowed"],
+      "mechanical_checks": ["successor resolves", "old item is not current after cutoff", "required/forbidden evidence usage differs"],
+      "semantic_audit_question": "Is the old authority clearly historical rather than erased or still current?",
+      "failure_family_ids": ["FF-LIFECYCLE", "FF-STALE-RESURRECTION", "FF-RELATION"]
+    },
+    {
+      "id": "CASE-RT-05",
+      "name": "Retraction without inverse invention",
+      "description": "An authority retracts a claim, Decision, Constraint, or Relation without automatically proving the opposite.",
+      "minimum_event_count": 6,
+      "minimum_query_count": 6,
+      "required_mechanisms": ["retraction_event", "target_preserved", "post-retraction_unknown_or_replacement"],
+      "mechanical_checks": ["RETRACTS relation matches transition", "opposite Fact requires separate evidence"],
+      "semantic_audit_question": "Does the text preserve uncertainty instead of implying the inverse after retraction?",
+      "failure_family_ids": ["FF-LIFECYCLE", "FF-CONTRADICTION", "FF-HALLUCINATION"]
+    },
+    {
+      "id": "CASE-RS-06",
+      "name": "Resolve and reopen",
+      "description": "OpenQuestions resolve on evidence and some later reopen on new evidence without losing history.",
+      "minimum_event_count": 14,
+      "minimum_query_count": 10,
+      "required_mechanisms": ["open", "resolve", "post-resolution_query", "at_least_four_reopens"],
+      "mechanical_checks": ["RESOLVES relation agrees with transition", "reopen returns same scoped question to OPEN"],
+      "semantic_audit_question": "Is tracker/meeting closure kept distinct from genuine semantic resolution?",
+      "failure_family_ids": ["FF-LIFECYCLE", "FF-STALE-RESURRECTION", "FF-RELATION"]
+    },
+    {
+      "id": "CASE-RA-07",
+      "name": "RejectedAlternative continuity",
+      "description": "Rejected alternatives remain historically visible and are not silently revived by recency or repetition.",
+      "minimum_event_count": 18,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["explicit_rejection", "later_repeat", "current_rejection_query", "registered_reopen_or_no_reopen"],
+      "mechanical_checks": ["repeat alone cannot change status", "reopen requires operation and evidence"],
+      "semantic_audit_question": "Does later discussion tempt a stale revival without actually authorizing it?",
+      "failure_family_ids": ["FF-FALSE-PROMOTION", "FF-STALE-RESURRECTION"]
+    },
+    {
+      "id": "CASE-FO-08",
+      "name": "Fact and observation authority",
+      "description": "Distinguish mutable world facts, firsthand observations, reports, hypotheses, and corrections.",
+      "minimum_event_count": 36,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["firsthand_observation", "independent_measurement", "reported_claim", "mutable_fact", "correction"],
+      "mechanical_checks": ["every claim proposition resolves", "fact transition distinguishes correction from world-state change"],
+      "semantic_audit_question": "Are observations neither overpromoted to certainty nor ignored when independently confirmed?",
+      "failure_family_ids": ["FF-FALSE-PROMOTION", "FF-CONTRADICTION", "FF-PROVENANCE"]
+    },
+    {
+      "id": "CASE-DP-09",
+      "name": "Semantic duplicate and source independence",
+      "description": "Repeated wording is classified as same-source, derived, independent confirmation, or independent contradiction.",
+      "minimum_event_count": 24,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["twelve_duplicate_clusters", "same_source_paraphrase", "derived_report", "independent_confirmation"],
+      "mechanical_checks": ["source and independence groups resolve", "derived provenance is acyclic", "cluster class is explicit"],
+      "semantic_audit_question": "Would a reader mistakenly count copied reports as several independent sources?",
+      "failure_family_ids": ["FF-DUPLICATE", "FF-PROVENANCE"]
+    },
+    {
+      "id": "CASE-MI-10",
+      "name": "Misleading and stage-error correction",
+      "description": "Plausible but wrong interim information is later corrected or left unresolved.",
+      "minimum_event_count": 10,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["plausible_error", "authority_or_measurement_correction", "pre_and_post_cutoff_queries"],
+      "mechanical_checks": ["wrong claim remains historical", "post-correction oracle forbids current use"],
+      "semantic_audit_question": "Is the error plausible without unfairly hiding the correction or telegraphing the answer?",
+      "failure_family_ids": ["FF-CONTRADICTION", "FF-STALE-RESURRECTION", "FF-PROVENANCE"]
+    },
+    {
+      "id": "CASE-SE-11",
+      "name": "Stale evidence",
+      "description": "Previously reliable evidence becomes outdated by later state change, supersession, retraction, or scope change.",
+      "minimum_event_count": 18,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["once_current_evidence", "staleness_trigger", "historical_mention_allowed", "current_use_forbidden"],
+      "mechanical_checks": ["forbidden usage is explicit", "stale event is before cutoff", "replacement evidence is visible"],
+      "semantic_audit_question": "Can the answer acknowledge history without resurrecting it as current truth?",
+      "failure_family_ids": ["FF-STALE-RESURRECTION", "FF-PROVENANCE"]
+    },
+    {
+      "id": "CASE-LR-12",
+      "name": "Long-range recall",
+      "description": "An early anchor becomes necessary again after at least twelve chapters and substantial unrelated material.",
+      "minimum_event_count": 20,
+      "minimum_query_count": 10,
+      "required_mechanisms": ["ten_anchor_revival_pairs", "minimum_twelve_chapter_gap", "intervening_noise", "late_query"],
+      "mechanical_checks": ["gap threshold holds", "anchor is visible at cutoff", "recent window excludes anchor"],
+      "semantic_audit_question": "Is the old evidence genuinely necessary, not merely decorative or restated nearby?",
+      "failure_family_ids": ["FF-LONG-RANGE", "FF-FALSE-OMISSION"]
+    },
+    {
+      "id": "CASE-OR-13",
+      "name": "Old-relevant versus recent-salient",
+      "description": "Recent vivid material competes with older, less salient evidence that actually answers the query.",
+      "minimum_event_count": 16,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["old_required_event", "recent_salient_distractor", "shared_keywords", "different_scope_or_authority"],
+      "mechanical_checks": ["recent event is visible but forbidden or optional", "old event belongs to required evidence set"],
+      "semantic_audit_question": "Does recency create a fair distraction without making the old answer unknowable?",
+      "failure_family_ids": ["FF-LONG-RANGE", "FF-SCOPE-TRANSFER", "FF-FALSE-OMISSION"]
+    },
+    {
+      "id": "CASE-NT-14",
+      "name": "Negative-transfer sentinel",
+      "description": "Highly similar entities, names, sites, or rules are explicitly distinct; evidence for one must not transfer to another.",
+      "minimum_event_count": 16,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["sentinel_entity_pair", "DISTINCT_FROM_relation", "shared_surface_terms", "scope_specific_query"],
+      "mechanical_checks": ["sentinel relation resolves", "forbidden usage is MUST_NOT_TRANSFER", "both entities appear before cutoff"],
+      "semantic_audit_question": "Is the similarity strong enough to test transfer while preserving a discoverable distinction?",
+      "failure_family_ids": ["FF-SCOPE-TRANSFER", "FF-RELATION", "FF-HALLUCINATION"]
+    },
+    {
+      "id": "CASE-MF-15",
+      "name": "Multi-facet completeness",
+      "description": "One query requires facts and current State across two or more topics or timelines.",
+      "minimum_event_count": 24,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["at_least_two_facets", "cross_timeline_evidence", "per_facet_required_units", "completeness_gate"],
+      "mechanical_checks": ["facet count >= 2", "every required semantic unit belongs to a facet", "all evidence is visible"],
+      "semantic_audit_question": "Can an answer be partly correct yet measurably incomplete without relying on style preferences?",
+      "failure_family_ids": ["FF-COMPLETENESS", "FF-FALSE-OMISSION", "FF-RELATION"]
+    },
+    {
+      "id": "CASE-XC-16",
+      "name": "Cross-chapter Fact join",
+      "description": "A Fact answer requires joining non-redundant evidence from separated chapters.",
+      "minimum_event_count": 16,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["ALL_OF_evidence_set", "separated_chapters", "no_single_event_suffices"],
+      "mechanical_checks": ["required evidence spans at least two chapters", "ALL_OF set has at least two events"],
+      "semantic_audit_question": "Does each evidence fragment contribute a necessary piece rather than repeat the same claim?",
+      "failure_family_ids": ["FF-FALSE-OMISSION", "FF-PROVENANCE", "FF-LONG-RANGE"]
+    },
+    {
+      "id": "CASE-PT-17",
+      "name": "Parallel timeline disambiguation",
+      "description": "Several timelines advance concurrently and occasionally disclose older events out of calendar order.",
+      "minimum_event_count": 30,
+      "minimum_query_count": 8,
+      "required_mechanisms": ["at_least_three_timelines", "delayed_disclosure", "cross_timeline_link", "calendar_vs_stream_order"],
+      "mechanical_checks": ["both time axes are total where required", "cutoff uses stream order", "calendar exemptions are explicit"],
+      "semantic_audit_question": "Does the reader have enough cues to distinguish when something happened from when it became known?",
+      "failure_family_ids": ["FF-FUTURE-LEAKAGE", "FF-RELATION", "FF-CONTRADICTION"]
+    },
+    {
+      "id": "CASE-AB-18",
+      "name": "Ambiguity and ABSTAIN",
+      "description": "Some cutoffs lack enough evidence, permit several answers, or support only qualified partial answers.",
+      "minimum_event_count": 12,
+      "minimum_query_count": 6,
+      "required_mechanisms": ["UNDERSPECIFIED_ABSTAIN", "MULTIPLE_ACCEPTABLE", "PARTIAL_ABSTAIN", "sufficient_answer_control"],
+      "mechanical_checks": ["ambiguity mode and expected action are explicit", "required evidence set reflects insufficiency"],
+      "semantic_audit_question": "Is abstention demanded by genuine evidence limits rather than vague wording?",
+      "failure_family_ids": ["FF-ABSTENTION", "FF-HALLUCINATION", "FF-CONTRADICTION"]
+    },
+    {
+      "id": "CASE-RL-19",
+      "name": "Relation chain and endpoint integrity",
+      "description": "Questions require following typed dependencies, supersession, resolution, provenance, or entity relations.",
+      "minimum_event_count": 20,
+      "minimum_query_count": 10,
+      "required_mechanisms": ["typed_endpoints", "eight_cross_timeline_chains", "direction_sensitive_relation", "relation_lifecycle"],
+      "mechanical_checks": ["all endpoints resolve", "relation direction matches Gold", "retracted relation is not active"],
+      "semantic_audit_question": "Does the corpus express direction and dependency strongly enough to distinguish adjacent relations?",
+      "failure_family_ids": ["FF-RELATION", "FF-FALSE-OMISSION", "FF-SCOPE-TRANSFER"]
+    },
+    {
+      "id": "CASE-FL-20",
+      "name": "Query cutoff and future leakage",
+      "description": "A later answer or correction exists but must remain invisible to an earlier query.",
+      "minimum_event_count": 16,
+      "minimum_query_count": 10,
+      "required_mechanisms": ["pre_answer_cutoff", "post_cutoff_resolution", "explicit_future_event_ids", "query_not_in_prefix"],
+      "mechanical_checks": ["prefix hash reconstructs cutoff", "future event absent", "query text and ID absent", "Gold file role never exposed"],
+      "semantic_audit_question": "Would the earlier prefix genuinely support only the registered pre-resolution answer?",
+      "failure_family_ids": ["FF-FUTURE-LEAKAGE", "FF-ABSTENTION", "FF-HALLUCINATION"]
+    },
+    {
+      "id": "CASE-SM-21",
+      "name": "Surface evidence traceability",
+      "description": "Required events and semantic units have stable corpus byte identity and exact coordinates so omissions can be attributed to retrieval, formation, or answering.",
+      "minimum_event_count": 24,
+      "minimum_query_count": 12,
+      "required_mechanisms": ["document_sha256", "surface_text_sha256", "unicode_codepoint_half_open_span", "event_and_semantic_unit_binding", "corpus_version_binding"],
+      "mechanical_checks": ["mapped substring hash matches", "document hash matches", "all required event and semantic unit IDs map before relevant cutoff", "no invalid generation attempt is mapped"],
+      "semantic_audit_question": "Does each mapped surface express the registered event or semantic unit rather than merely share vocabulary?",
+      "failure_family_ids": ["FF-SURFACE-TRACEABILITY", "FF-FALSE-OMISSION", "FF-PROVENANCE"]
+    }
+  ]
+}

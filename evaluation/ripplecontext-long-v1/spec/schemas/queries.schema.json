@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/queries-1.2.0.schema.json",
+  "title": "RippleContext post-corpus answer-blind query surfaces",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_id", "corpus_version", "query_plan_version", "query_set_version", "created_after_corpus_base_validation", "surface_generation_mode", "metadata_join_mode", "raw_evaluator_control_read", "query_text_is_excluded_from_history_prefix", "queries"],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-queries/1.2.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "corpus_version": {"type": "string", "minLength": 1},
+    "query_plan_version": {"type": "string", "minLength": 1},
+    "query_set_version": {"type": "string", "minLength": 1},
+    "created_after_corpus_base_validation": {"const": true},
+    "surface_generation_mode": {"const": "ANSWER_BLIND_SAFE_BRIEF_PLUS_VISIBLE_PREFIX_ONLY"},
+    "metadata_join_mode": {"const": "DETERMINISTIC_FROM_FROZEN_QUERY_PLAN_AFTER_SURFACING"},
+    "raw_evaluator_control_read": {"const": false},
+    "query_text_is_excluded_from_history_prefix": {"const": true},
+    "queries": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/query"}}
+  },
+  "$defs": {
+    "datasetId": {"type": "string", "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "cutoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visible_through_stream_seq", "visible_through_event_id", "visible_through_corpus_unit_id", "query_occurs_after_chapter_id", "query_persisted_before_answer"],
+      "properties": {
+        "visible_through_stream_seq": {"type": "integer", "minimum": 1},
+        "visible_through_event_id": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+        "visible_through_corpus_unit_id": {"type": "string", "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"},
+        "query_occurs_after_chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "query_persisted_before_answer": {"const": false}
+      }
+    },
+    "prefixPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["first_visible_stream_seq", "last_visible_stream_seq", "exclude_current_query", "persist_before_answer", "exclude_cutoff_after_content", "prefix_builder_version"],
+      "properties": {
+        "first_visible_stream_seq": {"type": "integer", "minimum": 1},
+        "last_visible_stream_seq": {"type": "integer", "minimum": 1},
+        "exclude_current_query": {"const": true},
+        "persist_before_answer": {"const": false},
+        "exclude_cutoff_after_content": {"const": true},
+        "prefix_builder_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "conditionEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formation", "context_utility", "selective_classification", "comparator", "full_context_policy"],
+      "properties": {
+        "formation": {"type": "boolean"},
+        "context_utility": {"type": "boolean"},
+        "selective_classification": {"type": "boolean"},
+        "comparator": {"type": "boolean"},
+        "full_context_policy": {"enum": ["NOT_RUN_BY_DEFAULT", "COST_CALIBRATION_NON_QUALIFYING", "FINAL_CAMPAIGN_ONLY"]}
+      }
+    },
+    "surfaceGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cutoff_group_id", "call_id", "model", "reasoning", "visible_prefix_sha256", "safe_envelope_schema_version", "safe_envelope_sha256", "input_assembly_mode", "only_safe_envelope_and_visible_prefix_read", "raw_query_plan_read", "gold_read", "cutoff_after_content_read", "surface_prompt_version", "surface_prompt_sha256", "generated_at"],
+      "properties": {
+        "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},
+        "call_id": {"type": "string", "pattern": "^CALL-[0-9]{5}$"},
+        "model": {"const": "gpt-5.6-sol"},
+        "reasoning": {"const": "medium"},
+        "visible_prefix_sha256": {"$ref": "#/$defs/sha256"},
+        "safe_envelope_schema_version": {"const": "rc-synth-long-query-surface-envelope/1.0.0"},
+        "safe_envelope_sha256": {"$ref": "#/$defs/sha256"},
+        "input_assembly_mode": {"const": "PROMPT_PLUS_SAFE_ENVELOPE_PLUS_VISIBLE_PREFIX_V1"},
+        "only_safe_envelope_and_visible_prefix_read": {"const": true},
+        "raw_query_plan_read": {"const": false},
+        "gold_read": {"const": false},
+        "cutoff_after_content_read": {"const": false},
+        "surface_prompt_version": {"type": "string", "minLength": 1},
+        "surface_prompt_sha256": {"$ref": "#/$defs/sha256"},
+        "generated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query_id", "ordinal", "query_plan_id", "query_plan_record_sha256", "query_surface_brief_sha256", "query_text", "query_text_sha256", "query_type", "cutoff", "prefix_policy", "case_ids", "facet_ids", "formation_target_event_ids", "answer_mode", "abstain_token", "condition_eligibility", "query_oracle_id", "surface_generation"],
+      "properties": {
+        "query_id": {"type": "string", "pattern": "^Q-[0-9]{4}$"},
+        "ordinal": {"type": "integer", "minimum": 1},
+        "query_plan_id": {"type": "string", "pattern": "^QP-[0-9]{4}$"},
+        "query_plan_record_sha256": {"$ref": "#/$defs/sha256"},
+        "query_surface_brief_sha256": {"$ref": "#/$defs/sha256"},
+        "query_text": {"type": "string", "minLength": 1},
+        "query_text_sha256": {"$ref": "#/$defs/sha256"},
+        "query_type": {"enum": ["STATE_SNAPSHOT", "FORMATION_DELTA", "FACT_LOOKUP", "DECISION_RATIONALE", "CONTRADICTION_RESOLUTION", "RELATION_TRACE", "EVIDENCE_SELECTION", "MULTI_FACET", "SELECTIVE_CLASSIFICATION"]},
+        "cutoff": {"$ref": "#/$defs/cutoff"},
+        "prefix_policy": {"$ref": "#/$defs/prefixPolicy"},
+        "case_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^CASE-[A-Z0-9]+-[0-9]{2}$"}},
+        "facet_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^FAC-[0-9]{4}$"}},
+        "formation_target_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}},
+        "answer_mode": {"enum": ["FREE_TEXT", "STRUCTURED", "FREE_TEXT_AND_STRUCTURED"]},
+        "abstain_token": {"const": "ABSTAIN"},
+        "condition_eligibility": {"$ref": "#/$defs/conditionEligibility"},
+        "query_oracle_id": {"type": "string", "pattern": "^QG-[0-9]{4}$"},
+        "surface_generation": {"$ref": "#/$defs/surfaceGeneration"}
+      }
+    }
+  }
+}

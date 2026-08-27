@@ -1,6 +1,6 @@
 # RippleContext project state
 
-Updated: 2026-08-26
+Updated: 2026-08-27
 
 ## Current approved baseline
 
@@ -20,6 +20,25 @@ The repository working-directory path, npm package, executable, MCP server ident
 compatibility surfaces. Official Host/Harness adapters remain outside this Core repository.
 
 ## Latest delivery status
+
+WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **BUILDER DELIVERED / AWAITING
+INDEPENDENT QA / SPEC ONLY**。Planning baseline 为
+`d18e4d48717030f441f3a2e17e5c786cfa00c699`。Builder candidate 只新增 docs/data contract：八份
+Draft 2020-12 Event/Evaluator-control Gold/Query-plan/Query/Timeline/Continuity/Surface-map/Manifest Schema、
+21-family Case taxonomy、40 章 / 26 万中文字 / 12 cutoff groups 目标规划，以及九阶段 task/model/cost/
+Freeze/invalid-run 合同。Query intent 在正文前冻结；每个 plan 包含 answer-neutral surface brief，固定主体/
+对象、信息需求、as-of 视角与输出形态。最终自然语言问题在 surface map 基础验证后，由只读 cutoff 可见 prefix
+及 deterministic allowlist safe envelope（query ID + brief + brief hash）的 answer-blind task 生成，raw query
+plan/Gold/答案/未来/评分字段均不可见；brief/envelope/input hash 与 cutoff 前主体/alias 可见性由程序校验，
+answer-neutrality 和 same-information-need fidelity 明确留给 Builder semantic audit 与 Independent QA，不冒充
+纯程序证明。正文 surface 另以 hash + 稳定 span 映射到 Event/semantic unit。每章允许至多
+一次有记录的机械 repair，但原输出 invalid/ineligible，语义错误只能版本化重生成。所谓 Gold 明确限定为
+`EVALUATOR_CONTROL_GOLD`，不是 Independent Hidden Holdout；Sol audit 也只是 Builder-side consistency audit。
+Full Context development 默认 deterministic token count，所有 calibration/final evaluator run 与 generation
+manifest/cost 分离。该候选没有生成 WORLD、canonical Event、Gold、Query plan、Query、正文或评测结果，
+没有调用 generation/query-surface/audit model，也没有修改 Core、retrieval、State、MCP、数据库、package、
+test 或既有 frozen evaluation。八份 Schema strict compile、全部 SPEC JSON、章节/调用/成本算术与 diff 检查
+结果记录在 handoff；Builder 不批准自己的结果，Independent QA PASS 前不得启动 WORLD。
 
 WO-PUB-03 Versioned Public Result Schemas 当前为 **ACCEPTED / COMPLETE**。planning baseline 为
 `2f3e590c24a35e1bc89deffbc3a5c6056078adfa`，Gate 为

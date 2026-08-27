@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/query-plan-1.1.0.schema.json",
+  "title": "RippleContext pre-corpus evaluator-control query plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "query_plan_version",
+    "gold_version",
+    "qualification",
+    "independent_hidden_holdout",
+    "created_before_corpus",
+    "final_query_text_frozen_here",
+    "prohibited_reader_classes",
+    "query_surface_envelope_policy",
+    "query_plans"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-query-plan/1.1.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "query_plan_version": {"type": "string", "minLength": 1},
+    "gold_version": {"type": "string", "minLength": 1},
+    "qualification": {"const": "EVALUATOR_CONTROL_QUERY_PLAN"},
+    "independent_hidden_holdout": {"const": false},
+    "created_before_corpus": {"const": true},
+    "final_query_text_frozen_here": {"const": false},
+    "prohibited_reader_classes": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "CANDIDATE_IMPLEMENTATION",
+          "ADAPTER",
+          "INTERPRETER",
+          "ANSWER_MODEL",
+          "ANSWER_BLIND_QUERY_SURFACE_MODEL"
+        ]
+      }
+    },
+    "query_surface_envelope_policy": {"$ref": "#/$defs/querySurfaceEnvelopePolicy"},
+    "query_plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/queryPlan"}
+    }
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "eventId": {"type": "string", "pattern": "^EV-[0-9]{6}$"},
+    "cutoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visible_through_stream_seq",
+        "visible_through_event_id",
+        "visible_through_corpus_unit_id",
+        "query_occurs_after_chapter_id",
+        "query_persisted_before_answer"
+      ],
+      "properties": {
+        "visible_through_stream_seq": {"type": "integer", "minimum": 1},
+        "visible_through_event_id": {"$ref": "#/$defs/eventId"},
+        "visible_through_corpus_unit_id": {
+          "type": "string",
+          "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"
+        },
+        "query_occurs_after_chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "query_persisted_before_answer": {"const": false}
+      }
+    },
+    "requiredEvidenceSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_set_id",
+        "mode",
+        "event_ids",
+        "minimum_required",
+        "supports_semantic_unit_ids"
+      ],
+      "properties": {
+        "evidence_set_id": {"type": "string", "pattern": "^ESET-[0-9]{4}$"},
+        "mode": {"enum": ["ALL_OF", "ANY_OF", "AT_LEAST_K"]},
+        "event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        },
+        "minimum_required": {"type": ["integer", "null"], "minimum": 1},
+        "supports_semantic_unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SEM-[0-9]{4}$"}
+        }
+      }
+    },
+    "forbiddenEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "reason", "forbidden_usage", "applies_to_semantic_unit_ids"],
+      "properties": {
+        "event_id": {"$ref": "#/$defs/eventId"},
+        "reason": {
+          "enum": [
+            "FUTURE",
+            "STALE",
+            "RETRACTED",
+            "SUPERSEDED",
+            "NEGATIVE_TRANSFER",
+            "UNRELATED",
+            "MISLEADING",
+            "WRONG_SCOPE"
+          ]
+        },
+        "forbidden_usage": {
+          "enum": ["MUST_NOT_CITE", "MUST_NOT_TREAT_AS_CURRENT", "MUST_NOT_TRANSFER"]
+        },
+        "applies_to_semantic_unit_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SEM-[0-9]{4}$"}
+        }
+      }
+    },
+    "conditionEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formation",
+        "context_utility",
+        "selective_classification",
+        "comparator",
+        "full_context_policy"
+      ],
+      "properties": {
+        "formation": {"type": "boolean"},
+        "context_utility": {"type": "boolean"},
+        "selective_classification": {"type": "boolean"},
+        "comparator": {"type": "boolean"},
+        "full_context_policy": {
+          "enum": ["NOT_RUN_BY_DEFAULT", "COST_CALIBRATION_NON_QUALIFYING", "FINAL_CAMPAIGN_ONLY"]
+        }
+      }
+    },
+    "querySurfaceSubjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id", "role", "label_kind", "surface_label", "normalized_surface_label_sha256"],
+      "properties": {
+        "entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
+        "role": {"enum": ["SUBJECT", "OBJECT", "COUNTERPART", "SCOPE_ANCHOR"]},
+        "label_kind": {"enum": ["CANONICAL_NAME", "REGISTERED_ALIAS"]},
+        "surface_label": {"type": "string", "minLength": 1, "maxLength": 80},
+        "normalized_surface_label_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "querySurfaceOutputShape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["form", "requested_components", "maximum_subquestions"],
+      "properties": {
+        "form": {"enum": ["SINGLE_FREE_TEXT", "SINGLE_STRUCTURED", "MULTI_PART_FREE_TEXT", "MULTI_PART_STRUCTURED"]},
+        "requested_components": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["SUBJECT_FINDING", "ATTRIBUTE_FINDING", "STATUS_FINDING", "CHANGE_FINDING", "RATIONALE_FINDING", "RELATION_FINDING", "COMPARISON_FINDING", "TIME_SCOPE", "SOURCE_BASIS"]}
+        },
+        "maximum_subquestions": {"type": "integer", "minimum": 1, "maximum": 5}
+      }
+    },
+    "querySurfaceBrief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["brief_version", "surface_language", "answer_neutral", "subject_refs", "information_need_kind", "focus_description", "relationship_direction", "as_of_perspective", "output_shape"],
+      "properties": {
+        "brief_version": {"type": "string", "minLength": 1},
+        "surface_language": {"const": "zh-CN"},
+        "answer_neutral": {"const": true},
+        "subject_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/querySurfaceSubjectRef"}
+        },
+        "information_need_kind": {"enum": ["STATUS", "ATTRIBUTE", "CHANGE", "RATIONALE", "RELATION", "EVIDENCE_BASIS", "COMPARISON", "MULTI_PART_SYNTHESIS", "CLASSIFICATION"]},
+        "focus_description": {"type": "string", "minLength": 1, "maxLength": 300},
+        "relationship_direction": {"enum": ["FROM_SUBJECT_TO_OBJECT", "FROM_OBJECT_TO_SUBJECT", "UNDIRECTED", "NOT_APPLICABLE"]},
+        "as_of_perspective": {"enum": ["CURRENT_AT_VISIBLE_CUTOFF", "HISTORY_THROUGH_VISIBLE_CUTOFF", "CHANGE_UP_TO_VISIBLE_CUTOFF", "EVIDENCE_AVAILABLE_AT_VISIBLE_CUTOFF"]},
+        "output_shape": {"$ref": "#/$defs/querySurfaceOutputShape"}
+      }
+    },
+    "querySurfaceEnvelopePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["derivation", "envelope_schema_ref", "included_query_plan_fields", "excluded_content_classes", "raw_query_plan_exposed", "evaluator_control_gold_exposed"],
+      "properties": {
+        "derivation": {"const": "DETERMINISTIC_ALLOWLIST_REDACTION"},
+        "envelope_schema_ref": {"const": "query-plan.schema.json#/$defs/querySurfaceEnvelope"},
+        "included_query_plan_fields": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {"enum": ["query_id", "query_surface_brief", "query_surface_brief_sha256"]}
+        },
+        "excluded_content_classes": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "uniqueItems": true,
+          "items": {"enum": ["ORACLE_OR_ANSWER_VALUE", "CURRENT_TRUTH_ASSERTION", "EXPECTED_ACTION", "ABSTENTION_CONCLUSION", "REQUIRED_EVIDENCE", "FORBIDDEN_EVIDENCE", "FUTURE_EVENT", "CASE_OR_FAILURE_SCORING_LABEL", "ANSWER_BEARING_SPAN"]}
+        },
+        "raw_query_plan_exposed": {"const": false},
+        "evaluator_control_gold_exposed": {"const": false}
+      }
+    },
+    "querySurfaceEnvelopeBrief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query_id", "query_surface_brief", "query_surface_brief_sha256"],
+      "properties": {
+        "query_id": {"type": "string", "pattern": "^Q-[0-9]{4}$"},
+        "query_surface_brief": {"$ref": "#/$defs/querySurfaceBrief"},
+        "query_surface_brief_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "querySurfaceEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "dataset_id", "query_plan_version", "cutoff_group_id", "visible_prefix_sha256", "raw_query_plan_included", "evaluator_control_gold_included", "briefs"],
+      "properties": {
+        "schema_version": {"const": "rc-synth-long-query-surface-envelope/1.0.0"},
+        "dataset_id": {"$ref": "#/$defs/datasetId"},
+        "query_plan_version": {"type": "string", "minLength": 1},
+        "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},
+        "visible_prefix_sha256": {"$ref": "#/$defs/sha256"},
+        "raw_query_plan_included": {"const": false},
+        "evaluator_control_gold_included": {"const": false},
+        "briefs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/querySurfaceEnvelopeBrief"}}
+      }
+    },
+    "queryPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query_plan_id",
+        "query_id",
+        "ordinal",
+        "cutoff_group_id",
+        "query_type",
+        "cutoff",
+        "case_ids",
+        "facet_ids",
+        "query_oracle_id",
+        "expected_action",
+        "abstain_token",
+        "abstention_required",
+        "answer_mode",
+        "formation_target_event_ids",
+        "required_evidence_sets",
+        "forbidden_evidence",
+        "explicit_future_event_ids",
+        "condition_eligibility",
+        "query_surface_brief",
+        "query_surface_brief_sha256"
+      ],
+      "properties": {
+        "query_plan_id": {"type": "string", "pattern": "^QP-[0-9]{4}$"},
+        "query_id": {"type": "string", "pattern": "^Q-[0-9]{4}$"},
+        "ordinal": {"type": "integer", "minimum": 1},
+        "cutoff_group_id": {"type": "string", "pattern": "^QCG-[0-9]{2}$"},
+        "query_type": {
+          "enum": [
+            "STATE_SNAPSHOT",
+            "FORMATION_DELTA",
+            "FACT_LOOKUP",
+            "DECISION_RATIONALE",
+            "CONTRADICTION_RESOLUTION",
+            "RELATION_TRACE",
+            "EVIDENCE_SELECTION",
+            "MULTI_FACET",
+            "SELECTIVE_CLASSIFICATION"
+          ]
+        },
+        "cutoff": {"$ref": "#/$defs/cutoff"},
+        "case_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CASE-[A-Z0-9]+-[0-9]{2}$"}
+        },
+        "facet_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^FAC-[0-9]{4}$"}
+        },
+        "query_oracle_id": {"type": "string", "pattern": "^QG-[0-9]{4}$"},
+        "expected_action": {"enum": ["ANSWER", "ABSTAIN", "ANSWER_WITH_QUALIFICATION"]},
+        "abstain_token": {"const": "ABSTAIN"},
+        "abstention_required": {"type": "boolean"},
+        "answer_mode": {"enum": ["FREE_TEXT", "STRUCTURED", "FREE_TEXT_AND_STRUCTURED"]},
+        "formation_target_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        },
+        "required_evidence_sets": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/requiredEvidenceSet"}
+        },
+        "forbidden_evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/forbiddenEvidence"}
+        },
+        "explicit_future_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/eventId"}
+        },
+        "condition_eligibility": {"$ref": "#/$defs/conditionEligibility"},
+        "query_surface_brief": {"$ref": "#/$defs/querySurfaceBrief"},
+        "query_surface_brief_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

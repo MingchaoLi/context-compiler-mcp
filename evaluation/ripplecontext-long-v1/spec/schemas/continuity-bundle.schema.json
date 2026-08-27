@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/continuity-bundle-1.0.0.schema.json",
+  "title": "RippleContext bounded chapter continuity bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "corpus_version",
+    "bundle_version",
+    "chapter_id",
+    "immutable_input_hashes",
+    "local_entity_state",
+    "relationship_state_snapshot",
+    "unresolved_open_thread_ledger",
+    "necessary_prior_summary",
+    "relevant_prior_snippets",
+    "future_negative_constraints",
+    "budget",
+    "forbidden_inputs"
+  ],
+  "properties": {
+    "schema_version": {"const": "rc-synth-long-continuity-bundle/1.0.0"},
+    "dataset_id": {"$ref": "#/$defs/datasetId"},
+    "corpus_version": {"type": "string", "minLength": 1},
+    "bundle_version": {"type": "string", "minLength": 1},
+    "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+    "immutable_input_hashes": {"$ref": "#/$defs/immutableHashes"},
+    "local_entity_state": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/stateSnapshotItem"}
+    },
+    "relationship_state_snapshot": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relationSnapshotItem"}
+    },
+    "unresolved_open_thread_ledger": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/openThread"}
+    },
+    "necessary_prior_summary": {"$ref": "#/$defs/priorSummary"},
+    "relevant_prior_snippets": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {"$ref": "#/$defs/priorSnippet"}
+    },
+    "future_negative_constraints": {"$ref": "#/$defs/futureConstraints"},
+    "budget": {"$ref": "#/$defs/budget"},
+    "forbidden_inputs": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "PRIOR_FULL_CORPUS",
+          "FUTURE_CHAPTER_PLAN",
+          "QUERY_PLAN",
+          "QUERY_ORACLE",
+          "EVALUATOR_CONTROL_GOLD"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "datasetId": {
+      "type": "string",
+      "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "immutableHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["world_bible", "style_bible", "alias_name_registry", "chapter_event_plan"],
+      "properties": {
+        "world_bible": {"$ref": "#/$defs/sha256"},
+        "style_bible": {"$ref": "#/$defs/sha256"},
+        "alias_name_registry": {"$ref": "#/$defs/sha256"},
+        "chapter_event_plan": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "stateSnapshotItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id", "state_ref_ids", "snapshot_text", "source_event_ids"],
+      "properties": {
+        "entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
+        "state_ref_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^STATE-[0-9]{4}$"}},
+        "snapshot_text": {"type": "string", "minLength": 1},
+        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+      }
+    },
+    "relationSnapshotItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation_id", "from_entity_id", "to_entity_id", "current_state", "source_event_ids"],
+      "properties": {
+        "relation_id": {"type": "string", "pattern": "^REL-[0-9]{4}$"},
+        "from_entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
+        "to_entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
+        "current_state": {"type": "string", "minLength": 1},
+        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+      }
+    },
+    "openThread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["thread_id", "thread_kind", "safe_summary", "source_event_ids"],
+      "properties": {
+        "thread_id": {"type": "string", "pattern": "^THREAD-[0-9]{4}$"},
+        "thread_kind": {"enum": ["CLUE", "OPEN_QUESTION", "UNRESOLVED_DEPENDENCY", "PROMISED_FOLLOWUP"]},
+        "safe_summary": {"type": "string", "minLength": 1},
+        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+      }
+    },
+    "priorSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "text_sha256", "source_event_ids", "token_estimate"],
+      "properties": {
+        "text": {"type": "string"},
+        "text_sha256": {"$ref": "#/$defs/sha256"},
+        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}},
+        "token_estimate": {"type": "integer", "minimum": 0}
+      }
+    },
+    "priorSnippet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_path", "document_sha256", "span", "text", "text_sha256", "relevance_reason", "latest_visible_stream_seq"],
+      "properties": {
+        "document_path": {"type": "string", "pattern": "^corpus/chapters/CH[0-9]{3}\\.md$"},
+        "document_sha256": {"$ref": "#/$defs/sha256"},
+        "span": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["coordinate_system", "start", "end"],
+          "properties": {
+            "coordinate_system": {"const": "UNICODE_CODE_POINT_OFFSETS_HALF_OPEN_V1"},
+            "start": {"type": "integer", "minimum": 0},
+            "end": {"type": "integer", "minimum": 1}
+          }
+        },
+        "text": {"type": "string", "minLength": 1},
+        "text_sha256": {"$ref": "#/$defs/sha256"},
+        "relevance_reason": {"type": "string", "minLength": 1},
+        "latest_visible_stream_seq": {"type": "integer", "minimum": 1}
+      }
+    },
+    "futureConstraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["opaque_future_event_ids", "generation_safe_prohibitions", "contains_future_event_payload"],
+      "properties": {
+        "opaque_future_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}},
+        "generation_safe_prohibitions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "contains_future_event_payload": {"const": false}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximum_input_tokens", "prior_summary_tokens", "prior_snippet_count"],
+      "properties": {
+        "maximum_input_tokens": {"type": "integer", "minimum": 1},
+        "prior_summary_tokens": {"type": "integer", "minimum": 0},
+        "prior_snippet_count": {"type": "integer", "minimum": 0, "maximum": 2}
+      }
+    }
+  }
+}
