@@ -1,6 +1,6 @@
 # WO-RF-02 — Legacy CompiledContext / Canonical ContextSnapshot Boundary
 
-Status: DOCS CANDIDATE COMPLETE / AWAITING INDEPENDENT QA
+Status: ACCEPTED / COMPLETE / DOCS ONLY
 
 Planning baseline: `a5ec6baeda06c48a9553d1230bf03d39dcc2dfee`
 
@@ -65,3 +65,11 @@ No private data, QA-only Case/Gold/payload, hidden holdout, database or deployed
 - No adoption of non-main WO-PUB-04 source or release claim.
 - Stop if the worktree becomes dirty from another actor, an active work order conflicts, or the docs-only
   append-only chain cannot be preserved.
+
+## Completion record
+
+Docs-only Builder candidate `2dc823e0497d37bac4d08e4d78c841f2a7946c56` and Builder handoff
+`5c087bfd09d7c8ac43b51bb07d58c4caea7b3902` were accepted by fresh Independent QA commit
+`4f5ca568d344d48f7f8f178b3ef3f975cc0ad13c`. QA independently verified the exact path sets, package-root
+entries, WO-05/WO-PUB-01 claim boundaries, all relative links, exact-nine MCP preservation, reconciliation
+ancestry and forbidden extrapolations. Acceptance remains docs-only and does not authorize any listed non-goal.

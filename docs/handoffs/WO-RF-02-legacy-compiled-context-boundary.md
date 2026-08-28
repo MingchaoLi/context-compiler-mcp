@@ -1,6 +1,6 @@
 # WO-RF-02 Builder Handoff
 
-Status: BUILDER COMPLETE / AWAITING INDEPENDENT QA
+Status: BUILDER RESULT ACCEPTED / COMPLETE
 
 ## Pinned append-only candidate
 
@@ -60,3 +60,7 @@ path set, compare claims to the routed package exports/source and WO-05/WO-PUB-0
 link and forbidden extrapolation, and add only
 `docs/qa/WO-RF-02-legacy-compiled-context-boundary.md`. QA must not approve deployment, a new API, a new MCP tool,
 WO-PUB-04 main availability, or legacy/canonical implementation convergence.
+
+Fresh Independent QA commit `4f5ca568d344d48f7f8f178b3ef3f975cc0ad13c` returned **PASS** for the
+fixed candidate and all eight work-order acceptance criteria. That acceptance does not broaden this handoff's
+scope or authorize any excluded capability.
