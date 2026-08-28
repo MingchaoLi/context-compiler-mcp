@@ -1,6 +1,6 @@
 # RippleContext project state
 
-Updated: 2026-08-27
+Updated: 2026-08-28
 
 ## Current approved baseline
 
@@ -21,14 +21,15 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 ## Latest delivery status
 
-WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **BUILDER DELIVERED / AWAITING
-FRESH INDEPENDENT QA / SPEC ONLY**。Planning baseline 为
+WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **ACCEPTED / COMPLETE / SPEC ONLY**。Planning baseline 为
 `d18e4d48717030f441f3a2e17e5c786cfa00c699`。固定 candidate
 `b006029cad4eaff5e92dbd39f06cc57ccadb6e87` 已被 Independent QA
 `23d1cd4a66122043379008216b04520e47378de3` 退回；first fix
 `f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0` 的 fresh QA RETURN
 `f361236e162a58bf211171413d6c4ada8efe30d6` 与 QA-only format fix
-`469c54aa3cf8a7fccde1efbd4ac88da548484d37` 已完整进入当前 append-only 祖先链；新 Builder 修复候选仍不得自批。本交付只包含
+`469c54aa3cf8a7fccde1efbd4ac88da548484d37` 已完整进入 append-only 祖先链。cutoff/disjointness fixed candidate
+`117611c859f9b94ce639e261e20e732d6e9d00d9` 已由其 direct-child QA-only commit
+`d353167a369f73c2f0e574288796adaf6c558293` 正式接受。本交付只包含
 docs/data contract：八份
 Draft 2020-12 Event/Evaluator-control Gold/Query-plan/Query/Timeline/Continuity/Surface-map/Manifest Schema、
 21-family Case taxonomy、40 章 / 26 万中文字 / 12 cutoff groups 目标规划，以及九阶段 task/model/cost/
@@ -55,8 +56,10 @@ visible/current/local/source/required-evidence 全部不晚于 cutoff、future/o
 Full Context development 默认 deterministic token count，所有 calibration/final evaluator run 与 generation
 manifest/cost 分离。该候选没有生成 WORLD、canonical Event、Gold、Query plan、Query、正文或评测结果，
 没有调用 generation/query-surface/audit model，也没有修改 Core、retrieval、State、MCP、数据库、package、
-test 或既有 frozen evaluation。八份 Schema strict compile、全部 SPEC JSON、章节/调用/成本算术与 diff 检查
-结果记录在 handoff；Builder 不批准自己的结果，fresh Independent QA PASS 前不得启动 WORLD。
+test 或既有 frozen evaluation。Independent QA 复核 13 份 SPEC JSON、八份 strict Schema、冻结三例 fixture，
+并以独立 26 项攻击确认原 cutoff/disjointness failure family 已机械关闭。该接受只完成 SPEC 工单；WORLD、
+GOLD、GENERATION、SURFACE_MAPPING_BASE_VALIDATION、QUERY_SURFACING、MECHANICAL_VALIDATION、SEMANTIC_AUDIT、
+FREEZE 及全部模型调用/数据生成仍 deferred，必须由控制线程另开明确的有界工单后才可启动。
 
 WO-PUB-03 Versioned Public Result Schemas 当前为 **ACCEPTED / COMPLETE**。planning baseline 为
 `2f3e590c24a35e1bc89deffbc3a5c6056078adfa`，Gate 为

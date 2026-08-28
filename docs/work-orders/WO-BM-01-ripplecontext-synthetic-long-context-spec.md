@@ -1,6 +1,6 @@
 # WO-BM-01 — RippleContext Synthetic Long-Context Benchmark SPEC
 
-状态：BUILDER DELIVERED / AWAITING FRESH INDEPENDENT QA / SPEC ONLY
+状态：ACCEPTED / COMPLETE / SPEC ONLY
 
 Planning baseline：`d18e4d48717030f441f3a2e17e5c786cfa00c699`
 
@@ -14,7 +14,9 @@ Fresh Independent QA return：`f361236e162a58bf211171413d6c4ada8efe30d6`
 
 QA-only format fix：`469c54aa3cf8a7fccde1efbd4ac88da548484d37`
 
-Current Builder candidate：`SELF_CONTAINING_COMMIT`（完整 SHA 由交付报告记录）
+Accepted Builder candidate：`117611c859f9b94ce639e261e20e732d6e9d00d9`
+
+Accepting Independent QA-only commit：`d353167a369f73c2f0e574288796adaf6c558293`
 
 ## 目标
 
@@ -154,7 +156,8 @@ package/test 或冻结 artifact。
   generation manifest 不收 evaluator run。
 - 本工单正文字符、WORLD/Event/Gold/Query 实例、generation/query-surface/audit model call、model answer、
   evaluator run 均为 0。Sol semantic audit 不得冒充 Independent QA。
-- `git diff --check` 通过；Independent QA PASS 前状态不得改为 ACCEPTED，不得进入 WORLD。
+- `git diff --check` 通过；状态只有在 Independent QA PASS 后才能改为 ACCEPTED。该 Gate 已由
+  `d353167a369f73c2f0e574288796adaf6c558293` 满足，但 SPEC acceptance 不授权进入 WORLD。
 
 ## 明确非目标
 
@@ -163,3 +166,11 @@ package/test 或冻结 artifact。
 - 不选择 Harness authority，不建立综合分，不宣称 RippleContext 优于 comparator。
 - 不运行 Full Context、污染扫描或模型回答质量比较。
 - 不改变真实 Independent Hidden Holdout 或既有 frozen evaluation 状态。
+
+## 完成裁决
+
+Independent QA-only commit `d353167a369f73c2f0e574288796adaf6c558293` 已正式接受 fixed candidate
+`117611c859f9b94ce639e261e20e732d6e9d00d9`，并确认原 cutoff/disjointness failure family 已机械关闭。
+本工单因此完成为 `ACCEPTED / COMPLETE / SPEC ONLY`。该裁决不启动或授权 WORLD、GOLD、GENERATION、
+SURFACE_MAPPING_BASE_VALIDATION、QUERY_SURFACING、MECHANICAL_VALIDATION、SEMANTIC_AUDIT、FREEZE、任何模型调用、
+任何 Benchmark 数据实例或任何产品评测；后续必须由控制线程另开明确的有界工单。
