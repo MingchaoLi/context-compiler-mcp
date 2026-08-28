@@ -273,3 +273,174 @@ fixtures, reader-set checks, schema compilation, plan counts, and structured lea
 
 **RETURN.** Preserve the fixed candidate and this report append-only. R1 must be closed by a new bounded SPEC/Schema fix
 candidate and verified by another fresh Independent re-QA. WORLD and all downstream/model stages remain unauthorized.
+
+## 2026-08-28 — Fresh cutoff/disjointness re-QA
+
+- Candidate: `117611c859f9b94ce639e261e20e732d6e9d00d9`
+- Candidate parent: `3bb15eb0b551a2d66fd227057d6a984e238ddbb4`
+- QA scope: WO-BM-01 SPEC and its frozen conformance validator/fixture only
+- Environment: Darwin `25.5.0`; Node.js `v25.6.1`; Unicode `17.0`; npm `11.9.0`; jq `1.7.1`;
+  Ajv `8.20.0`; ajv-formats `3.0.1`
+- Verdict: **ACCEPT**
+
+This is an independent re-QA of the append-only cutoff/disjointness fix. Repository files and Git history were the
+only authority. Builder fixture outcomes and handoff hashes were treated as claims and reproduced; the primary attack
+matrix was constructed separately in `docs/qa/fixtures/wo-bm-01-cutoff-disjointness-reqa.mjs`. No model was called,
+and no WORLD, Event, Gold, query-plan/query, corpus, surface-map, model-answer, or evaluator-run instance was created or
+read.
+
+### Candidate and ancestry
+
+At QA start, both `main` and detached `HEAD` resolved exactly to the candidate. Its repository ancestry is:
+
+```text
+117611c859f9b94ce639e261e20e732d6e9d00d9
+└─ 3bb15eb0b551a2d66fd227057d6a984e238ddbb4
+   ├─ 36d6466797dc5357bee2b8246075c7669350e258
+   │  └─ c0ee2462dffefc800812ee0c7913a31faa9f441f
+   │     └─ f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0
+   └─ 469c54aa3cf8a7fccde1efbd4ac88da548484d37
+      └─ f361236e162a58bf211171413d6c4ada8efe30d6
+         └─ f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0
+```
+
+`f361236...` and repository-side `c0ee246...` have the identical tree
+`0908ca3a40e91b090ff85d5293d35a8713aa6858`; `469c54a...`, repository-side `36d6466...`, and merge
+`3bb15eb...` have the identical tree `ae5e314b5467f2a604f53d3a894d09f0fa450b9b`. Thus the exact requested first
+fix, QA RETURN, and QA format commits are all ancestors, while the repository-recorded equivalent chain and merge are
+also preserved. Original RETURN `23d1cd4a66122043379008216b04520e47378de3` remains a sibling failure-provenance
+commit from `b006029cad4eaff5e92dbd39f06cc57ccadb6e87`, not an ancestor and not a substitute for this verification.
+
+The candidate changes 17 routed SPEC/governance/handoff files relative to its parent. It changes no `src/`, test,
+package/lockfile, database, existing frozen evaluation, or production source path. Every file under
+`evaluation/ripplecontext-long-v1/` remains below `spec/`.
+
+### Original blocker closure and fresh attacks
+
+The frozen Builder conformance fixture reproduced exactly:
+
+```text
+POSITIVE-CONTROL-DISJOINT                                  -> valid
+ORIGINAL-REPRODUCER-EV-000999-CURRENT-AND-FUTURE          -> VISIBLE_FUTURE_EVENT_INTERSECTION
+NEAR-MISS-ALIASED-NESTED-REPEATED-VISIBLE-REF             -> EVENT_ALIAS_FORBIDDEN
+```
+
+The QA-only fixture then built a different five-Event order, a different valid continuity bundle, and a separate Query
+boundary object. It did not materialize or modify the Builder cases. The valid bundle deliberately repeats legitimate
+visible references across local State, Relation, open-thread, and summary lists; it passes and reconstructs one
+canonical visible set. The following 26 mutations all fail with the exact closed error code asserted by the fixture:
+
+| Independent mutation | Exact error |
+| --- | --- |
+| Exact `EV-000999` in local current source and opaque future | `VISIBLE_FUTURE_EVENT_INTERSECTION` |
+| Forbidden alias repeated through nested ledger/snippet lists | `EVENT_ALIAS_FORBIDDEN` |
+| `EV-000999` laundered through a nested free-text field | `UNCLASSIFIED_OR_ALIASED_EVENT_TOKEN` |
+| Same future Event repeated across three visible structured lists | `VISIBLE_FUTURE_EVENT_INTERSECTION` |
+| Same Event duplicated inside one visible source list | `DUPLICATE_VISIBLE_EVENT_REFERENCE` |
+| Unresolved canonical-looking visible Event | `EVENT_REF_UNRESOLVED_OR_ALIAS` |
+| Cutoff Event/unit identity disagreement | `CUTOFF_EVENT_ID_MISMATCH` / `CUTOFF_CORPUS_UNIT_MISMATCH` |
+| Cutoff value hash/order-index hash drift | `CUTOFF_HASH_MISMATCH` / `CUTOFF_ORDER_HASH_MISMATCH` |
+| Generation cutoff not the exact latest prior prefix | `GENERATION_CUTOFF_NOT_EXACT_PRIOR_PREFIX` |
+| Visible/future projection hash drift | `VISIBLE_REFERENCE_PROJECTION_HASH_MISMATCH` / `FUTURE_REFERENCE_PROJECTION_HASH_MISMATCH` |
+| Current-chapter Event relabeled opaque future | `FUTURE_EVENT_NOT_AFTER_GENERATION_CHAPTER` |
+| Timeline/Event sequence, coverage, version, or order hash mismatch | `DISCLOSURE_STREAM_SEQ_MISMATCH`, `MISSING_FIRST_DISCLOSURE`, `EVENT_GRAPH_VERSION_MISMATCH`, `EVENT_ORDER_HASH_MISMATCH` |
+| Query required/non-future-forbidden evidence after cutoff | `QUERY_VISIBLE_EVENT_AFTER_CUTOFF` |
+| Query visible/future canonical-set intersection | `QUERY_VISIBLE_FUTURE_EVENT_INTERSECTION` |
+| Query future Event at or before cutoff | `QUERY_FUTURE_EVENT_AT_OR_BEFORE_CUTOFF` |
+| Query repeated nested alias | `EVENT_ALIAS_FORBIDDEN` |
+| `FUTURE` forbidden evidence absent from explicit-future set | `FUTURE_FORBIDDEN_NOT_EXPLICIT` |
+| Query cutoff identity or exact-prefix mismatch | `CUTOFF_EVENT_ID_MISMATCH` / `QUERY_CUTOFF_NOT_EXACT_PREFIX` |
+
+The same original current-plus-future object still passes the closed local JSON shape, as expected; the deterministic
+validator rejects its cross-field contradiction. A free-form `future_fact` injection fails Schema. This confirms the
+SPEC's declared responsibility split instead of crediting Schema with a proof it cannot perform.
+
+### Frozen files, schema and manifest bindings
+
+Actual file bytes match the handoff claims:
+
+```text
+a2e83de5b05b8193a9d5fbebfea7d8718f770e0cba5a125f690bab55aed6836c  validate-cutoff-disjointness.mjs
+d082ffc6796466849be6d41efc0455f960b9941c4c02a3997a7fdab9eab1dad5  cutoff-disjointness-fixtures.json
+```
+
+All 13 SPEC JSON files parse. All eight schemas declare Draft 2020-12, compile with Ajv strict mode plus formats, and
+every object subschema found by the QA traversal is closed with `additionalProperties:false`. Exact schema-file hashes
+at the candidate are:
+
+```text
+4326062d07681c738d7820b6395a21db5776136874e0b0c2774cdf26015ddf36  continuity-bundle.schema.json
+06d9f1cab657af0f46814fd3f99f3b1e3414430902f2a879a8a263eb8f4b705a  events.schema.json
+a93c4179006bc3635c28d9ba657c49836fc6504f63e8bf3ead8dcb259b93dc2a  gold.schema.json
+40137b0feb02147c871a5b203be2dafcf28e347103570d520391c878ea916306  manifest.schema.json
+225f52e09966395882a57c698798a68428a7261ad920936a8107327c007a8626  queries.schema.json
+7a98d4569790353762e3f1f16b252204dede339192d9be4bb18284097e5834ee  query-plan.schema.json
+2b23cad9489ca1af991134f27b1025bee785b2023795fe80c0d931a844e54b8b  surface-evidence-map.schema.json
+15eaf65b2516a508837e931cfca7b4bc944565155f6406e14a2bf98d718e8239  timeline.schema.json
+```
+
+Event and Timeline schemas require the order-index hash; continuity requires cutoff, cutoff hash, visible projection
+and projection hash; query-plan and final Query require per-query cutoff hashes. Manifest `versions` requires Timeline,
+order-index policy/hash, and exact validator/fixture version and SHA-256 fields, while file inventory requires every
+file's SHA-256. Stage plan paths and versions match the actual frozen files.
+
+### Non-regression reconstruction
+
+- Pricing remains versioned to repository access date `2026-08-27`. The `>272000` rule applies to the entire request
+  with `2×` input and `1.5×` output. QCG-08–12 are the five high-bound long-context calls. Query-surface cost rebuilds
+  to `$9.16–$21.551`; default generation total to `$16.98–$32.491`; 25% reserve to
+  `$21.225–$40.61375`. Sol/Terra/Luna silent upgrades remain prohibited.
+- Independent JCS bytes agree with the frozen validator on the focused I-JSON fixture; distinct legal values change
+  the hash; Unicode escape-equivalent JSON values agree; Unicode 17.0 NFKC plus CRLF/CR-to-LF normalization and exact
+  request magic/tag/uint64-length/final-byte framing reproduce.
+- Gold retains an exact five-reader prohibited set including `ANSWER_BLIND_QUERY_SURFACE_MODEL`; Gold and query plan
+  remain pre-prose, while final query text remains post-base-validation and answer-blind.
+- Taxonomy remains 21 case families and 15 referenced failure families with non-zero denominators. The abstract plan
+  remains 40 chapters, 260,000 target Chinese characters, 12 cutoff groups, 72 queries, and 9 ordered stages.
+- Gold-before-prose, at-most-one mechanical repair, permanent failed-output ineligibility, no candidate selection,
+  fresh versioned regeneration after semantic inconsistency, relation endpoint closure, required/forbidden evidence
+  shape, and zero-unmapped required Event/semantic-unit coverage requirements remain intact.
+
+### Commands and evidence
+
+```text
+git show -s --format='%H %P %T %s' <candidate-and-ancestry-commits>
+git merge-base --is-ancestor <required-commit> 117611c859f9b94ce639e261e20e732d6e9d00d9
+git diff --check 3bb15eb0b551a2d66fd227057d6a984e238ddbb4..117611c859f9b94ce639e261e20e732d6e9d00d9
+
+node evaluation/ripplecontext-long-v1/spec/validators/validate-cutoff-disjointness.mjs \
+  --self-test evaluation/ripplecontext-long-v1/spec/fixtures/cutoff-disjointness-fixtures.json
+
+shasum -a 256 \
+  evaluation/ripplecontext-long-v1/spec/validators/validate-cutoff-disjointness.mjs \
+  evaluation/ripplecontext-long-v1/spec/fixtures/cutoff-disjointness-fixtures.json
+
+WO_BM01_AJV_ROOT=/private/tmp/wo-bm-01-reqa-ajv-f1b183e \
+  node docs/qa/fixtures/wo-bm-01-cutoff-disjointness-reqa.mjs
+```
+
+The frozen self-test exits `0` with its three exact outcomes. The independent QA fixture exits `0`, records all 26
+negative cases and exact codes, compiles all eight schemas, reconstructs all listed regressions and hashes, and confirms
+that no downstream asset exists. `git diff --check` passes.
+
+`npm test` and `npm run build` were not run: candidate and QA changes contain no production source, and AGENTS.md
+requires those commands for source changes. No dependency was added to the repository; the already fixed Ajv versions
+were loaded from the QA-only temporary prefix.
+
+### Unproved and deferred scope
+
+- There is still no actual WORLD/Event/Gold/query-plan/query/timeline/corpus/surface-map/attempt/evaluation instance.
+  Actual semantic answer-neutrality, same-information-need fidelity, chapter continuity, surface coverage, relation
+  direction, repair eligibility, and model behavior remain unproved.
+- Focused RFC 8785, Unicode 17.0, normalization and frame fixtures passed; exhaustive RFC numeric/string vectors,
+  a frozen full Unicode conformance suite, and cross-runtime replay remain future pre-instance checks.
+- Cost arithmetic is verified only against repository-frozen assumptions. No live pricing, model availability,
+  billing, latency, or subscription behavior was queried.
+- This acceptance covers the WO-BM-01 SPEC and its SPEC conformance validator only. It does not approve a data
+  generator, product evaluator, general runtime validator, benchmark quality, or any claim against a comparator.
+
+### Disposition
+
+**ACCEPT.** The prior cutoff/disjointness blocker is mechanically closed at candidate
+`117611c859f9b94ce639e261e20e732d6e9d00d9`. This acceptance is SPEC-only. WORLD and every downstream/model stage
+remain deferred until the controlling thread deliberately opens the next bounded work order.
