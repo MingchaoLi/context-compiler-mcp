@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/continuity-bundle-1.1.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/continuity-bundle-1.2.0.schema.json",
   "title": "RippleContext bounded chapter continuity bundle",
   "type": "object",
   "additionalProperties": false,
@@ -11,23 +11,29 @@
     "bundle_version",
     "canonical_json_policy",
     "chapter_id",
+    "cutoff",
+    "cutoff_sha256",
     "immutable_input_hashes",
     "local_entity_state",
     "relationship_state_snapshot",
     "unresolved_open_thread_ledger",
     "necessary_prior_summary",
     "relevant_prior_snippets",
+    "visible_event_reference_projection",
+    "visible_event_reference_projection_sha256",
     "future_negative_constraints",
     "budget",
     "forbidden_inputs"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-continuity-bundle/1.1.0"},
+    "schema_version": {"const": "rc-synth-long-continuity-bundle/1.2.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "corpus_version": {"type": "string", "minLength": 1},
     "bundle_version": {"type": "string", "minLength": 1},
     "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
     "chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+    "cutoff": {"$ref": "#/$defs/visibilityCutoff"},
+    "cutoff_sha256": {"$ref": "#/$defs/sha256"},
     "immutable_input_hashes": {"$ref": "#/$defs/immutableHashes"},
     "local_entity_state": {
       "type": "array",
@@ -47,6 +53,8 @@
       "maxItems": 2,
       "items": {"$ref": "#/$defs/priorSnippet"}
     },
+    "visible_event_reference_projection": {"$ref": "#/$defs/visibleEventReferenceProjection"},
+    "visible_event_reference_projection_sha256": {"$ref": "#/$defs/sha256"},
     "future_negative_constraints": {"$ref": "#/$defs/futureConstraints"},
     "budget": {"$ref": "#/$defs/budget"},
     "forbidden_inputs": {
@@ -71,6 +79,23 @@
       "pattern": "^rc-synth-long-zh-v[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "visibilityCutoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "cutoff_id", "comparison_policy", "event_graph_version", "timeline_version", "event_order_index_sha256", "generation_chapter_id", "visible_through_stream_seq", "visible_through_event_id", "visible_through_corpus_unit_id"],
+      "properties": {
+        "schema_version": {"const": "rc-synth-long-generation-cutoff/1.0.0"},
+        "cutoff_id": {"type": "string", "pattern": "^GCUT-CH[0-9]{3}$"},
+        "comparison_policy": {"const": "INTEGER_STREAM_SEQ_INCLUSIVE_CUTOFF_V1"},
+        "event_graph_version": {"type": "string", "minLength": 1},
+        "timeline_version": {"type": "string", "minLength": 1},
+        "event_order_index_sha256": {"$ref": "#/$defs/sha256"},
+        "generation_chapter_id": {"type": "string", "pattern": "^CH[0-9]{3}$"},
+        "visible_through_stream_seq": {"type": "integer", "minimum": 0},
+        "visible_through_event_id": {"type": ["string", "null"], "pattern": "^EV-[0-9]{6}$"},
+        "visible_through_corpus_unit_id": {"type": ["string", "null"], "pattern": "^CH[0-9]{3}\\.S[0-9]{2}$"}
+      }
+    },
     "immutableHashes": {
       "type": "object",
       "additionalProperties": false,
@@ -90,7 +115,7 @@
         "entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
         "state_ref_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^STATE-[0-9]{4}$"}},
         "snapshot_text": {"type": "string", "minLength": 1},
-        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+        "source_event_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
       }
     },
     "relationSnapshotItem": {
@@ -102,7 +127,7 @@
         "from_entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
         "to_entity_id": {"type": "string", "pattern": "^ENT-[0-9]{4}$"},
         "current_state": {"type": "string", "minLength": 1},
-        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+        "source_event_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
       }
     },
     "openThread": {
@@ -113,7 +138,7 @@
         "thread_id": {"type": "string", "pattern": "^THREAD-[0-9]{4}$"},
         "thread_kind": {"enum": ["CLUE", "OPEN_QUESTION", "UNRESOLVED_DEPENDENCY", "PROMISED_FOLLOWUP"]},
         "safe_summary": {"type": "string", "minLength": 1},
-        "source_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
+        "source_event_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}}
       }
     },
     "priorSummary": {
@@ -130,7 +155,7 @@
     "priorSnippet": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["document_path", "document_sha256", "span", "text", "text_sha256", "relevance_reason", "latest_visible_stream_seq"],
+      "required": ["document_path", "document_sha256", "span", "text", "text_sha256", "relevance_reason", "source_event_ids", "latest_visible_stream_seq"],
       "properties": {
         "document_path": {"type": "string", "pattern": "^corpus/chapters/CH[0-9]{3}\\.md$"},
         "document_sha256": {"$ref": "#/$defs/sha256"},
@@ -147,7 +172,41 @@
         "text": {"type": "string", "minLength": 1},
         "text_sha256": {"$ref": "#/$defs/sha256"},
         "relevance_reason": {"type": "string", "minLength": 1},
+        "source_event_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}},
         "latest_visible_stream_seq": {"type": "integer", "minimum": 1}
+      }
+    },
+    "visibleEventReferenceOccurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["json_pointer", "event_id"],
+      "properties": {
+        "json_pointer": {
+          "type": "string",
+          "pattern": "^/(?:local_entity_state|relationship_state_snapshot|unresolved_open_thread_ledger)/[0-9]+/source_event_ids/[0-9]+$|^/necessary_prior_summary/source_event_ids/[0-9]+$|^/relevant_prior_snippets/[0-9]+/source_event_ids/[0-9]+$"
+        },
+        "event_id": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+      }
+    },
+    "visibleEventReferenceProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "derivation", "event_alias_policy", "visible_payload_sha256", "reference_occurrences", "canonical_event_ids", "canonical_event_ids_sha256"],
+      "properties": {
+        "schema_version": {"const": "rc-synth-long-visible-event-reference-projection/1.0.0"},
+        "derivation": {"const": "FIXED_VISIBLE_SOURCE_EVENT_PATHS_WITH_JSON_POINTERS_V1"},
+        "event_alias_policy": {"const": "CANONICAL_EVENT_ID_ONLY_ALIASES_FORBIDDEN"},
+        "visible_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "reference_occurrences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/visibleEventReferenceOccurrence"}
+        },
+        "canonical_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^EV-[0-9]{6}$"}
+        },
+        "canonical_event_ids_sha256": {"$ref": "#/$defs/sha256"}
       }
     },
     "futureConstraints": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/manifest-1.2.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/manifest-1.3.0.schema.json",
   "title": "RippleContext synthetic long-context run and freeze manifest",
   "type": "object",
   "additionalProperties": false,
@@ -28,7 +28,7 @@
     "corpus_instructions_are_inert"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-manifest/1.2.0"},
+    "schema_version": {"const": "rc-synth-long-manifest/1.3.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "run_id": {"type": "string", "pattern": "^RUN-[0-9]{8}-[A-Z0-9]{6}$"},
     "status": {
@@ -97,6 +97,7 @@
         "contract",
         "world",
         "event_graph",
+        "timeline",
         "gold",
         "query_plan",
         "query_set",
@@ -109,6 +110,12 @@
         "text_normalization",
         "visible_prefix_framing",
         "query_surface_request_framing",
+        "event_order_index_policy",
+        "event_order_index_sha256",
+        "cutoff_boundary_validator_version",
+        "cutoff_boundary_validator_sha256",
+        "cutoff_boundary_fixture_version",
+        "cutoff_boundary_fixture_sha256",
         "prompt",
         "generator",
         "validator"
@@ -117,6 +124,7 @@
         "contract": {"type": "string", "minLength": 1},
         "world": {"type": "string", "minLength": 1},
         "event_graph": {"type": "string", "minLength": 1},
+        "timeline": {"type": "string", "minLength": 1},
         "gold": {"type": "string", "minLength": 1},
         "query_plan": {"type": "string", "minLength": 1},
         "query_set": {"type": "string", "minLength": 1},
@@ -129,6 +137,12 @@
         "text_normalization": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
         "visible_prefix_framing": {"const": "RC_VISIBLE_PREFIX_EXACT_BYTES_V1"},
         "query_surface_request_framing": {"const": "RC_QUERY_SURFACE_REQUEST_FRAME_V1"},
+        "event_order_index_policy": {"const": "EVENT_ID_STREAM_SEQ_CORPUS_UNIT_ID_V1"},
+        "event_order_index_sha256": {"$ref": "#/$defs/sha256"},
+        "cutoff_boundary_validator_version": {"const": "rc-synth-long-cutoff-disjointness-validator/1.0.0"},
+        "cutoff_boundary_validator_sha256": {"$ref": "#/$defs/sha256"},
+        "cutoff_boundary_fixture_version": {"const": "rc-synth-long-cutoff-disjointness-fixtures/1.0.0"},
+        "cutoff_boundary_fixture_sha256": {"$ref": "#/$defs/sha256"},
         "prompt": {"type": "string", "minLength": 1},
         "generator": {"type": "string", "minLength": 1},
         "validator": {"type": "string", "minLength": 1}

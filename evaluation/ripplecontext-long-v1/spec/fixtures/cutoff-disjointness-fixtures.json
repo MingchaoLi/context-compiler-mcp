@@ -1,0 +1,42 @@
+{
+  "schema_version": "rc-synth-long-cutoff-disjointness-fixtures/1.0.0",
+  "qualification": "SPEC_VALIDATION_FIXTURE_NOT_BENCHMARK_INSTANCE",
+  "event_graph_version": "event-graph/fixture-1",
+  "timeline_version": "timeline/fixture-1",
+  "event_order_index": [
+    {"event_id": "EV-000100", "stream_seq": 100, "corpus_unit_id": "CH010.S03"},
+    {"event_id": "EV-000999", "stream_seq": 999, "corpus_unit_id": "CH040.S04"}
+  ],
+  "forbidden_event_aliases": {
+    "EV-009999": "EV-000999"
+  },
+  "base": {
+    "chapter_id": "CH011",
+    "cutoff_event_id": "EV-000100",
+    "visible_event_id": "EV-000100",
+    "future_event_id": "EV-000999"
+  },
+  "cases": [
+    {
+      "case_id": "POSITIVE-CONTROL-DISJOINT",
+      "description": "Visible sources resolve at the cutoff and the opaque future Event resolves after it.",
+      "mutation": {"kind": "NONE"},
+      "expected_valid": true,
+      "expected_error_code": null
+    },
+    {
+      "case_id": "ORIGINAL-REPRODUCER-EV-000999-CURRENT-AND-FUTURE",
+      "description": "The exact QA reproducer adds EV-000999 to local_entity_state.source_event_ids while it remains opaque future.",
+      "mutation": {"kind": "ADD_EVENT_TO_LOCAL_STATE", "event_id": "EV-000999"},
+      "expected_valid": false,
+      "expected_error_code": "VISIBLE_FUTURE_EVENT_INTERSECTION"
+    },
+    {
+      "case_id": "NEAR-MISS-ALIASED-NESTED-REPEATED-VISIBLE-REF",
+      "description": "A canonical-looking but forbidden alias for EV-000999 is repeated in two nested visible-side source lists.",
+      "mutation": {"kind": "ADD_ALIAS_TO_NESTED_REPEATED_VISIBLE_LISTS", "alias_event_id": "EV-009999"},
+      "expected_valid": false,
+      "expected_error_code": "EVENT_ALIAS_FORBIDDEN"
+    }
+  ]
+}

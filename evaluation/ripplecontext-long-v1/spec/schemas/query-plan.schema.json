@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/query-plan-1.2.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/query-plan-1.3.0.schema.json",
   "title": "RippleContext pre-corpus evaluator-control query plan",
   "type": "object",
   "additionalProperties": false,
@@ -11,6 +11,9 @@
     "dataset_id",
     "query_plan_version",
     "gold_version",
+    "event_graph_version",
+    "timeline_version",
+    "event_order_index_sha256",
     "qualification",
     "independent_hidden_holdout",
     "created_before_corpus",
@@ -20,12 +23,15 @@
     "query_plans"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-query-plan/1.2.0"},
+    "schema_version": {"const": "rc-synth-long-query-plan/1.3.0"},
     "canonical_json_policy": {"const": "RFC8785_JCS_VALUE_UTF8_NO_TERMINATOR_JSON_FILE_LF_V1"},
     "text_normalization_policy": {"const": "RC_TEXT_NORMALIZATION_NFKC_UNICODE_17_0_0_LF_V1"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "query_plan_version": {"type": "string", "minLength": 1},
     "gold_version": {"type": "string", "minLength": 1},
+    "event_graph_version": {"type": "string", "minLength": 1},
+    "timeline_version": {"type": "string", "minLength": 1},
+    "event_order_index_sha256": {"$ref": "#/$defs/sha256"},
     "qualification": {"const": "EVALUATOR_CONTROL_QUERY_PLAN"},
     "independent_hidden_holdout": {"const": false},
     "created_before_corpus": {"const": true},
@@ -63,6 +69,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "cutoff_id",
+        "comparison_policy",
+        "event_order_index_sha256",
         "visible_through_stream_seq",
         "visible_through_event_id",
         "visible_through_corpus_unit_id",
@@ -70,6 +79,9 @@
         "query_persisted_before_answer"
       ],
       "properties": {
+        "cutoff_id": {"type": "string", "pattern": "^QCUT-Q-[0-9]{4}$"},
+        "comparison_policy": {"const": "INTEGER_STREAM_SEQ_INCLUSIVE_CUTOFF_V1"},
+        "event_order_index_sha256": {"$ref": "#/$defs/sha256"},
         "visible_through_stream_seq": {"type": "integer", "minimum": 1},
         "visible_through_event_id": {"$ref": "#/$defs/eventId"},
         "visible_through_corpus_unit_id": {
@@ -267,6 +279,7 @@
         "cutoff_group_id",
         "query_type",
         "cutoff",
+        "cutoff_sha256",
         "case_ids",
         "facet_ids",
         "query_oracle_id",
@@ -301,6 +314,7 @@
           ]
         },
         "cutoff": {"$ref": "#/$defs/cutoff"},
+        "cutoff_sha256": {"$ref": "#/$defs/sha256"},
         "case_ids": {
           "type": "array",
           "minItems": 1,

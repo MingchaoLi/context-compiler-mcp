@@ -22,10 +22,13 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 ## Latest delivery status
 
 WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **BUILDER DELIVERED / AWAITING
-INDEPENDENT QA / SPEC ONLY**。Planning baseline 为
+FRESH INDEPENDENT QA / SPEC ONLY**。Planning baseline 为
 `d18e4d48717030f441f3a2e17e5c786cfa00c699`。固定 candidate
 `b006029cad4eaff5e92dbd39f06cc57ccadb6e87` 已被 Independent QA
-`23d1cd4a66122043379008216b04520e47378de3` 退回；当前 append-only Builder 修复候选仍不得自批。本交付只包含
+`23d1cd4a66122043379008216b04520e47378de3` 退回；first fix
+`f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0` 的 fresh QA RETURN
+`f361236e162a58bf211171413d6c4ada8efe30d6` 与 QA-only format fix
+`469c54aa3cf8a7fccde1efbd4ac88da548484d37` 已完整进入当前 append-only 祖先链；新 Builder 修复候选仍不得自批。本交付只包含
 docs/data contract：八份
 Draft 2020-12 Event/Evaluator-control Gold/Query-plan/Query/Timeline/Continuity/Surface-map/Manifest Schema、
 21-family Case taxonomy、40 章 / 26 万中文字 / 12 cutoff groups 目标规划，以及九阶段 task/model/cost/
@@ -42,12 +45,18 @@ exact set 内；Sol audit 也只是 Builder-side consistency audit。本次修�
 `$16.98–$32.491`，25% reserve 为 `$21.225–$40.61375`。RFC 8785 JCS、JSON/JSONL LF、Unicode
 17.0.0 NFKC 与 tagged/length-prefixed query-surface request frame 现在唯一绑定 value/file/text/input SHA；continuity
 future-constraint 已改为仅 opaque Event ID/枚举禁止码/hash 的 closed projection，不再依赖自由文本或
-payload-absence 自声明。
+payload-absence 自声明。针对 latest QA 的唯一 blocker，当前合同另冻结 Event/Timeline 共享的
+`EVENT_ID_STREAM_SEQ_CORPUS_UNIT_ID_V1` order index/hash、可机械比较的 generation/query cutoff identity，以及
+覆盖全部 allowlisted `source_event_ids` 路径和完整 visible payload hash 的 derived reference projection。
+Schema 只封闭形状；冻结 deterministic validator 递归检查 canonical/alias/nested/repeated Event refs，证明
+visible/current/local/source/required-evidence 全部不晚于 cutoff、future/opaque 全部晚于 cutoff 且两侧严格
+不相交。positive control 通过，原 `EV-000999` current-plus-future reproducer 与 alias/nested/repeated near-miss
+分别以固定错误码失败；这些只是 SPEC conformance fixture，不是 WORLD/Event/Gold 实例。
 Full Context development 默认 deterministic token count，所有 calibration/final evaluator run 与 generation
 manifest/cost 分离。该候选没有生成 WORLD、canonical Event、Gold、Query plan、Query、正文或评测结果，
 没有调用 generation/query-surface/audit model，也没有修改 Core、retrieval、State、MCP、数据库、package、
 test 或既有 frozen evaluation。八份 Schema strict compile、全部 SPEC JSON、章节/调用/成本算术与 diff 检查
-结果记录在 handoff；Builder 不批准自己的结果，Independent QA PASS 前不得启动 WORLD。
+结果记录在 handoff；Builder 不批准自己的结果，fresh Independent QA PASS 前不得启动 WORLD。
 
 WO-PUB-03 Versioned Public Result Schemas 当前为 **ACCEPTED / COMPLETE**。planning baseline 为
 `2f3e590c24a35e1bc89deffbc3a5c6056078adfa`，Gate 为

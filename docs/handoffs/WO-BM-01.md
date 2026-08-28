@@ -1,12 +1,18 @@
 # WO-BM-01 Builder Handoff
 
-Status: `BUILDER DELIVERED / AWAITING INDEPENDENT QA / SPEC ONLY`
+Status: `BUILDER DELIVERED / AWAITING FRESH INDEPENDENT QA / SPEC ONLY`
 
 Planning baseline: `d18e4d48717030f441f3a2e17e5c786cfa00c699`
 
 Returned candidate: `b006029cad4eaff5e92dbd39f06cc57ccadb6e87`
 
 Independent QA return: `23d1cd4a66122043379008216b04520e47378de3`
+
+First fixed candidate: `f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0`
+
+Fresh Independent QA return: `f361236e162a58bf211171413d6c4ada8efe30d6`
+
+QA-only format fix: `469c54aa3cf8a7fccde1efbd4ac88da548484d37`
 
 Builder candidate: `SELF_CONTAINING_COMMIT`
 
@@ -63,11 +69,36 @@ It changes no production source, retrieval, State, MCP, database, package/test, 
   required, and an injected explicit future-fact field must fail Schema or projection equality.
 - Gold's exact prohibited-reader set now includes `ANSWER_BLIND_QUERY_SURFACE_MODEL`.
 
+## Fresh re-QA return fix
+
+- The original QA commits are present in the append-only ancestry. This Builder change starts after candidate
+  `f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0`, QA RETURN
+  `f361236e162a58bf211171413d6c4ada8efe30d6`, and QA-only format fix
+  `469c54aa3cf8a7fccde1efbd4ac88da548484d37`.
+- Event and Timeline schemas now freeze one shared `EVENT_ID_STREAM_SEQ_CORPUS_UNIT_ID_V1` order index and SHA-256.
+  Event references are canonical exact IDs; aliases and unresolved IDs fail closed.
+- Continuity bundles now carry a hash-bound inclusive generation cutoff and a deterministic visible-reference
+  projection over every allowlisted `source_event_ids` path. The full visible payload, every occurrence JSON Pointer,
+  the canonical visible set, and the future projection are independently reconstructable.
+- The frozen deterministic validator proves relationships that JSON Schema cannot: cutoff identity/order, recursive
+  Event-reference classification, visible-at-or-before/future-after ordering, and canonical visible/future set
+  disjointness. Query formation targets and required/future evidence receive the same boundary checks.
+- The frozen fixture contains a positive control, the exact `EV-000999` current-plus-future reproducer, and an
+  aliased/nested/repeated-list near-miss. Their required results are respectively PASS,
+  `VISIBLE_FUTURE_EVENT_INTERSECTION`, and `EVENT_ALIAS_FORBIDDEN`.
+- Builder-handoff file hashes are `a2e83de5b05b8193a9d5fbebfea7d8718f770e0cba5a125f690bab55aed6836c`
+  for validator v1.0.0 and `d082ffc6796466849be6d41efc0455f960b9941c4c02a3997a7fdab9eab1dad5`
+  for fixture v1.0.0. Dataset construction must copy and re-hash these through its contract lock; it must not trust
+  the prose values alone.
+- Manifest versions bind the Event-order policy and the exact boundary validator/fixture versions. Previously accepted
+  pricing, canonicalization, reader policy, taxonomy, chapter/query counts, stages, and model-call arithmetic are
+  unchanged.
+
 ## Mechanical checks completed
 
 Builder-side checks completed successfully:
 
-1. all 12 SPEC JSON files parse;
+1. all 13 SPEC JSON files parse;
 2. all eight schemas compile under Ajv Draft 2020-12 strict mode with formats enabled, and all eight top-level
    objects are closed-world;
 3. 40 chapters sum to 260,000 target characters, 220,000/300,000 theoretical per-chapter min/max sums, a separate
@@ -82,16 +113,22 @@ Builder-side checks completed successfully:
    visibility responsibility, raw-plan prohibition, and unchanged query/call/cost counts;
 9. valid safe-envelope and future-constraint fixtures are accepted, while injected `expected_action` and explicit
    future-fact fields are rejected; RFC 8785/Unicode/frame hash fixtures reconstruct byte-for-byte;
-10. no file exists below `evaluation/ripplecontext-long-v1/` outside `spec/`; trailing-whitespace scan and
+10. the cutoff/disjointness validator accepts the positive control and rejects the exact `EV-000999` reproducer plus
+    aliased/nested/repeated near-miss with their registered error codes;
+11. all original QA commits are ancestors of this candidate; no file exists below
+    `evaluation/ripplecontext-long-v1/` outside `spec/`; trailing-whitespace scan and
    `git diff --check` pass.
 
 ## Deferred and QA boundary
 
-WORLD and all downstream instances, generator/validator implementation, Query surfacing, semantic audit, Freeze,
+WORLD and all downstream instances, the data generator/product evaluation/general validator runtime, Query surfacing,
+semantic audit, Freeze,
 Full Context calibration, final four-condition campaign, and any true Independent Hidden Holdout remain deferred.
 
 Independent QA should attack whether each answer-neutral brief identifies exactly the frozen information need without
 leaking its answer, whether the final question is semantically faithful to that brief, safe-envelope provenance,
 surface-map coverage, attempt eligibility/no-selection, continuity forbidden inputs, authority/version edges, and
-cost arithmetic. Shape/hash/visibility are deterministic; answer-neutrality and same-information-need fidelity are
-semantic review duties. Builder does not approve this work; WORLD remains unauthorized until Independent QA passes.
+cost arithmetic. QA should rerun the original reproducer and attempt alias/nesting/repetition laundering against the
+frozen validator. Shape/hash/visibility are deterministic; answer-neutrality and same-information-need fidelity are
+semantic review duties. Builder does not approve this work; WORLD remains unauthorized until fresh Independent QA
+passes.

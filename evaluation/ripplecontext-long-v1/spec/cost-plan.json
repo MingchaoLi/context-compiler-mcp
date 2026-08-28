@@ -1,6 +1,6 @@
 {
   "schema_version": "rc-synth-long-cost-plan/1.2.0",
-  "contract_version": "rc-synth-long-contract/1.0.0-draft.4",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.5",
   "pricing_reference": {
     "sources": {
       "model_catalog": "https://developers.openai.com/api/docs/models",

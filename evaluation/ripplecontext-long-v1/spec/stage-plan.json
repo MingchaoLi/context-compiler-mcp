@@ -1,6 +1,6 @@
 {
-  "schema_version": "rc-synth-long-stage-plan/1.2.0",
-  "contract_version": "rc-synth-long-contract/1.0.0-draft.4",
+  "schema_version": "rc-synth-long-stage-plan/1.3.0",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.5",
   "task_isolation": {
     "one_long_lived_task_for_all_stages_allowed": false,
     "fresh_task_per_stage_required": true,
@@ -20,6 +20,16 @@
     "allowed_reasons": ["TRUNCATION", "SCHEMA_FORMAT_FAILURE", "MISSING_PREREGISTERED_EVENT_SURFACE", "CHARACTER_BOUND_VIOLATION", "SURFACE_ANCHOR_FAILURE"],
     "semantic_inconsistency_action": "INVALIDATE_CORPUS_VERSION_AND_FRESH_REGENERATE_AFFECTED_CHAPTERS_AND_DEPENDENTS"
   },
+  "cutoff_boundary_validation": {
+    "program_path": "evaluation/ripplecontext-long-v1/spec/validators/validate-cutoff-disjointness.mjs",
+    "validator_version": "rc-synth-long-cutoff-disjointness-validator/1.0.0",
+    "fixture_path": "evaluation/ripplecontext-long-v1/spec/fixtures/cutoff-disjointness-fixtures.json",
+    "fixture_version": "rc-synth-long-cutoff-disjointness-fixtures/1.0.0",
+    "schema_boundary": "JSON_SCHEMA_CLOSES_LOCAL_SHAPES_ONLY",
+    "program_responsibilities": ["EVENT_ORDER_INDEX_RECONSTRUCTION", "CUTOFF_IDENTITY_AND_HASH", "EXACT_GENERATION_PRIOR_PREFIX_BOUNDARY", "EXACT_QUERY_VISIBLE_PREFIX_BOUNDARY", "RECURSIVE_EVENT_REFERENCE_CLASSIFICATION", "VISIBLE_AT_OR_BEFORE_CUTOFF_AND_IN_PRIOR_CHAPTER", "OPAQUE_FUTURE_STRICTLY_AFTER_CUTOFF_AND_GENERATION_CHAPTER", "CURRENT_CHAPTER_EVENT_PLAN_NOT_OPAQUE_FUTURE", "VISIBLE_FUTURE_CANONICAL_SET_DISJOINTNESS", "QUERY_REQUIRED_AND_FUTURE_EVIDENCE_BOUNDARIES", "FIXTURE_OUTCOME_REPRODUCTION"],
+    "must_pass_before_generation_model_call": true,
+    "must_repass_at_mechanical_validation_and_freeze": true
+  },
   "stages": [
     {
       "ordinal": 1,
@@ -30,8 +40,8 @@
       "reasoning": "high",
       "planned_model_calls": 1,
       "inputs": ["AGENTS.md", "docs/PROJECT_STATE.md", "docs/ROADMAP.md", "WO-BM-01 routed references"],
-      "outputs": ["docs/benchmarks/ripplecontext-long-v1-spec.md", "evaluation/ripplecontext-long-v1/spec/**", "docs/handoffs/WO-BM-01.md"],
-      "allowed_write_roots": ["docs/benchmarks", "docs/work-orders", "docs/handoffs", "evaluation/ripplecontext-long-v1/spec"],
+      "outputs": ["docs/benchmarks/ripplecontext-long-v1-spec.md", "evaluation/ripplecontext-long-v1/spec/**", "docs/handoffs/WO-BM-01.md", "docs/PROJECT_STATE.md", "docs/ROADMAP.md"],
+      "allowed_write_roots": ["docs/benchmarks", "docs/work-orders", "docs/handoffs", "docs/PROJECT_STATE.md", "docs/ROADMAP.md", "evaluation/ripplecontext-long-v1/spec"],
       "forbidden_outputs": ["world instance", "event instance", "Gold instance", "query-plan instance", "query instance", "corpus prose", "evaluator result"],
       "pass_condition": "Independent QA accepts contract, eight schemas, taxonomy, chapter plan, stage plan, cost plan, and zero downstream artifacts.",
       "stop_conditions": ["missing acceptance criterion", "schema parse failure", "Core or frozen artifact drift"]
@@ -48,7 +58,7 @@
       "outputs": ["world/world-bible.json", "world/style-bible.json", "world/alias-name-registry.json", "world/entities.json", "world/characters.json", "world/locations.json", "world/chapter-event-slot-map.json"],
       "allowed_write_roots": ["datasets/<dataset_id>/world", "datasets/<dataset_id>/stage-handoffs/WORLD"],
       "forbidden_outputs": ["canonical events", "Gold", "query plan", "query text", "corpus prose"],
-      "pass_condition": "World and immutable style/name controls satisfy entity, track, long-range, and chapter denominators without canonical answer generation.",
+      "pass_condition": "World and immutable style/name controls satisfy entity, track, long-range, and chapter denominators without canonical answer generation; the alias/name registry contains only Entity display-name aliases and no Event aliases or Event-ID-like alternatives.",
       "stop_conditions": ["Sol unavailable", "reasoning medium unavailable", "world contradicts SPEC", "coverage denominators cannot be met"]
     },
     {
@@ -63,7 +73,7 @@
       "outputs": ["evaluator-control/events.json", "evaluator-control/timeline.json", "evaluator-control/gold.json", "evaluator-control/query-plan.json", "world/chapter-event-plans/CH001.json..CH040.json"],
       "allowed_write_roots": ["datasets/<dataset_id>/evaluator-control", "datasets/<dataset_id>/world/chapter-event-plans", "datasets/<dataset_id>/stage-handoffs/GOLD"],
       "forbidden_outputs": ["final natural-language query text", "corpus prose", "model answers", "evaluation result"],
-      "pass_condition": "Events, timeline, evaluator-control Gold, query plan, and chapter event plans validate and are hash-frozen before GENERATION.",
+      "pass_condition": "Events, timeline, evaluator-control Gold, query plan, and chapter event plans validate and are hash-frozen before GENERATION; the unique Event order index, its hash, and every query cutoff identity/hash reconstruct exactly.",
       "stop_conditions": ["Sol unavailable", "reasoning medium unavailable", "non-zero denominator missing", "unresolved ID", "control assets cannot be frozen"]
     },
     {
@@ -78,13 +88,13 @@
       "maximum_repair_model_calls": 40,
       "planned_low_initial_calls": 28,
       "planned_medium_initial_calls": 12,
-      "inputs": ["frozen world bible", "immutable style bible", "alias/name registry", "current local entity state", "current relation/state snapshot", "unresolved clue/open-thread ledger", "one chapter event plan", "bounded necessary-prior summary", "zero to two necessary prior exact-text snippets", "closed future-constraint projection containing only opaque future-event IDs and enumerated generic prohibition codes", "continuity bundle"],
+      "inputs": ["frozen world bible", "immutable style bible", "alias/name registry", "current local entity state", "current relation/state snapshot", "unresolved clue/open-thread ledger", "one chapter event plan", "bounded necessary-prior summary", "zero to two necessary prior exact-text snippets", "explicit inclusive generation cutoff bound to the frozen Event order index", "hash-bound visible Event-reference projection over every allowlisted source-event path", "closed future-constraint projection containing only opaque future-event IDs and enumerated generic prohibition codes", "continuity bundle that has passed the frozen cutoff/disjointness validator before model invocation"],
       "outputs": ["one corpus/chapters/CHxxx.md per task", "generation surface-anchor sidecar", "attempt call ledger entries", "one chapter handoff manifest", "one immutable continuity bundle"],
       "allowed_write_roots": ["datasets/<dataset_id>/corpus/chapters", "datasets/<dataset_id>/generation", "datasets/<dataset_id>/stage-handoffs/GENERATION", "datasets/<dataset_id>/validation/invalid-runs.jsonl"],
       "forbidden_inputs": ["prior full corpus", "future chapter plan", "query plan", "query oracle", "evaluator-control Gold", "comparator answers", "future-event payload"],
       "forbidden_outputs": ["Gold edit", "event graph edit", "query-plan edit", "query text", "best-of candidates"],
-      "pass_condition": "All forty chapters have one eligible output after the initial attempt or at most one recorded mechanical repair, with no candidate selection and frozen authority unchanged.",
-      "stop_conditions": ["Terra unavailable", "required reasoning unavailable", "second mechanical failure", "semantic inconsistency", "rate-limit exhaustion", "tool failure", "unregistered repair"],
+      "pass_condition": "All forty pre-call continuity bundles pass cutoff/order/projection/disjointness validation, then all forty chapters have one eligible output after the initial attempt or at most one recorded mechanical repair, with no candidate selection and frozen authority unchanged.",
+      "stop_conditions": ["continuity cutoff or order mismatch", "visible/future Event intersection", "visible Event after cutoff", "future Event at or before cutoff", "unresolved or aliased Event reference", "unclassified nested Event token", "Terra unavailable", "required reasoning unavailable", "second mechanical failure", "semantic inconsistency", "rate-limit exhaustion", "tool failure", "unregistered repair"],
       "fallback": "NONE_STOP_AND_REPORT"
     },
     {
@@ -133,7 +143,7 @@
       "outputs": ["validation/mechanical-report.json", "validation/coverage-report.json", "derived/prefixes/**"],
       "allowed_write_roots": ["datasets/<dataset_id>/validation", "datasets/<dataset_id>/derived/prefixes", "datasets/<dataset_id>/stage-handoffs/MECHANICAL_VALIDATION"],
       "forbidden_outputs": ["source asset edit", "Gold edit", "corpus edit", "automatic fix"],
-      "pass_condition": "Every deterministic cross-file, lifecycle, mapping, cutoff, query-surface, attempt, hash, coverage, and cost invariant passes; any Luna exception is preregistered and separately recorded.",
+      "pass_condition": "Every deterministic cross-file, lifecycle, mapping, cutoff identity/order, recursively classified Event-reference, visible/future disjointness, query-surface, attempt, hash, coverage, and cost invariant passes; the frozen cutoff fixtures reproduce their named outcomes; any Luna exception is preregistered and separately recorded.",
       "stop_conditions": ["any deterministic failure", "Luna required but unavailable", "Luna cap exceeded", "unregistered model call"],
       "fallback": "NONE_STOP_AND_REPORT"
     },
@@ -162,7 +172,7 @@
       "model": "NONE",
       "reasoning": "NONE",
       "planned_model_calls": 0,
-      "inputs": ["all passed stage manifests", "all frozen dataset files", "exact model/attempt call ledger", "prompt/generator versions", "RFC 8785 and Unicode 17.0.0 normalization policy", "query-surface request-frame policy"],
+      "inputs": ["all passed stage manifests", "all frozen dataset files", "exact model/attempt call ledger", "prompt/generator versions", "RFC 8785 and Unicode 17.0.0 normalization policy", "query-surface request-frame policy", "frozen cutoff/disjointness validator version and SHA-256", "frozen cutoff/disjointness fixture version and SHA-256"],
       "outputs": ["manifest.json", "freeze/hashes.json", "freeze/hashes.sha256", "freeze/manifest.sha256"],
       "allowed_write_roots": ["datasets/<dataset_id>/manifest.json", "datasets/<dataset_id>/freeze", "datasets/<dataset_id>/stage-handoffs/FREEZE"],
       "forbidden_outputs": ["any content mutation", "model call", "evaluation result"],

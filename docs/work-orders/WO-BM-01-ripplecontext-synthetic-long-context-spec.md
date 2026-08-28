@@ -1,12 +1,20 @@
 # WO-BM-01 — RippleContext Synthetic Long-Context Benchmark SPEC
 
-状态：BUILDER DELIVERED / AWAITING INDEPENDENT QA / SPEC ONLY
+状态：BUILDER DELIVERED / AWAITING FRESH INDEPENDENT QA / SPEC ONLY
 
 Planning baseline：`d18e4d48717030f441f3a2e17e5c786cfa00c699`
 
 Returned candidate：`b006029cad4eaff5e92dbd39f06cc57ccadb6e87`
 
 Independent QA return：`23d1cd4a66122043379008216b04520e47378de3`
+
+First fixed candidate：`f1b183e309ae3c1ac502d6b0eca704f9f9c4d5c0`
+
+Fresh Independent QA return：`f361236e162a58bf211171413d6c4ada8efe30d6`
+
+QA-only format fix：`469c54aa3cf8a7fccde1efbd4ac88da548484d37`
+
+Current Builder candidate：`SELF_CONTAINING_COMMIT`（完整 SHA 由交付报告记录）
 
 ## 目标
 
@@ -92,6 +100,8 @@ package/test 或冻结 artifact。
 - `evaluation/starlette-v1/pilot/STR-05/oracle-state.json`
 - `evaluation/starlette-v1/pilot/STR-05/manifest.json`
 - `evaluation/state-replay-v0.1/gold/transition-coverage.json`
+- `docs/qa/WO-BM-01.md`
+- `docs/qa/fixtures/wo-bm-01-fresh-reqa.mjs`
 - 本工单新增的 `docs/benchmarks/ripplecontext-long-v1-spec.md`
 - 本工单新增的 `evaluation/ripplecontext-long-v1/spec/**`
 - `docs/handoffs/WO-BM-01.md`
@@ -132,6 +142,13 @@ package/test 或冻结 artifact。
   exact request frame。Manifest/Schema 必须绑定算法、版本、prompt path/hash 与 call input hash。
 - Continuity future constraints 不得包含自由文本或自声明 payload-absence；只允许 closed-world 的 opaque Event
   ID、枚举 prohibition code 和机械派生/hash 字段。注入未来事实的 QA 反例必须 Schema fail-closed。
+- Continuity 必须冻结可机械比较的 cutoff identity/order；validator 从 canonical Event index 解析
+  所有嵌套/重复/别名 Event reference，current/visible/local/source/required-evidence 侧必须全部在 cutoff
+  内，future/opaque 侧必须全部在 cutoff 后，两侧 canonical Event ID 集合必须严格不相交。
+- JSON Schema 只负责 closed shape/type；跨字段 cutoff order、alias resolution 和 disjointness 由冻结的
+  deterministic validator 负责，不得宣称 Schema 单独可证明。`EV-000999` 同时出现于
+  `local_entity_state.source_event_ids` 与 opaque future projection 的原 reproducer 必须失败；positive
+  control 必须通过；经 alias/嵌套转入可见侧的 near-miss 必须失败。
 - Gold `prohibited_reader_classes` 必须同时包含 `ANSWER_BLIND_QUERY_SURFACE_MODEL`，并保持 exact set。
 - Freeze 覆盖 SHA-256、schema/version/model/prompt/generator/chapter/Gold/query-plan/query/surface map/attempt ledger；
   generation manifest 不收 evaluator run。
@@ -141,7 +158,8 @@ package/test 或冻结 artifact。
 
 ## 明确非目标
 
-- 不实现生成器/validator，不生成任何 downstream instance 或正文。
+- 不实现数据生成器、产品 evaluator 或通用运行时 validator；本轮只允许冻结解决 QA blocker 所必需的
+  SPEC conformance validator 与纯合成 fixture，不生成任何 downstream instance 或正文。
 - 不选择 Harness authority，不建立综合分，不宣称 RippleContext 优于 comparator。
 - 不运行 Full Context、污染扫描或模型回答质量比较。
 - 不改变真实 Independent Hidden Holdout 或既有 frozen evaluation 状态。

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ripplecontext.local/schemas/rc-synth-long/events-1.0.0.schema.json",
+  "$id": "https://ripplecontext.local/schemas/rc-synth-long/events-1.1.0.schema.json",
   "title": "RippleContext synthetic long-context canonical events",
   "type": "object",
   "additionalProperties": false,
@@ -9,14 +9,18 @@
     "dataset_id",
     "world_version",
     "event_graph_version",
+    "event_order_policy",
+    "event_order_index_sha256",
     "created_before_corpus",
     "events"
   ],
   "properties": {
-    "schema_version": {"const": "rc-synth-long-events/1.0.0"},
+    "schema_version": {"const": "rc-synth-long-events/1.1.0"},
     "dataset_id": {"$ref": "#/$defs/datasetId"},
     "world_version": {"type": "string", "minLength": 1},
     "event_graph_version": {"type": "string", "minLength": 1},
+    "event_order_policy": {"$ref": "#/$defs/eventOrderPolicy"},
+    "event_order_index_sha256": {"$ref": "#/$defs/sha256"},
     "created_before_corpus": {"const": true},
     "events": {
       "type": "array",
@@ -32,6 +36,21 @@
     "id": {
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "eventOrderPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order_key", "comparison", "index_projection", "index_sort", "canonical_event_reference", "event_aliases_allowed", "hash_policy"],
+      "properties": {
+        "order_key": {"const": "stream_seq"},
+        "comparison": {"const": "INTEGER_STREAM_SEQ_INCLUSIVE_CUTOFF_V1"},
+        "index_projection": {"const": "EVENT_ID_STREAM_SEQ_CORPUS_UNIT_ID_V1"},
+        "index_sort": {"const": "STREAM_SEQ_ASCENDING"},
+        "canonical_event_reference": {"const": "EVENT_ID_EXACT"},
+        "event_aliases_allowed": {"const": false},
+        "hash_policy": {"const": "RFC8785_JCS_VALUE_SHA256_NO_TERMINATOR"}
+      }
     },
     "idArray": {
       "type": "array",

@@ -1,6 +1,6 @@
 {
   "schema_version": "rc-synth-long-chapter-plan/1.1.0",
-  "contract_version": "rc-synth-long-contract/1.0.0-draft.4",
+  "contract_version": "rc-synth-long-contract/1.0.0-draft.5",
   "status": "ABSTRACT_PLAN_NO_CANONICAL_WORLD_OR_EVENTS",
   "world_envelope": {
     "domain": "A fictional multi-year, multi-stakeholder coastal resilience program",

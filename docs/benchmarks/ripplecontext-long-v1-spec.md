@@ -6,7 +6,7 @@ Work order: `WO-BM-01`
 
 Dataset family: `rc-synth-long-zh`
 
-Contract version: `rc-synth-long-contract/1.0.0-draft.4`
+Contract version: `rc-synth-long-contract/1.0.0-draft.5`
 
 ## 1. Outcome and boundary
 
@@ -66,6 +66,10 @@ evaluation/ripplecontext-long-v1/
       continuity-bundle.schema.json
       surface-evidence-map.schema.json
       manifest.schema.json
+    validators/
+      validate-cutoff-disjointness.mjs
+    fixtures/
+      cutoff-disjointness-fixtures.json
     case-taxonomy.json
     chapter-plan.json
     stage-plan.json
@@ -76,6 +80,8 @@ evaluation/ripplecontext-long-v1/
         schema-lock.json
         prompt-registry.json
         prompts/query-surface-v1.txt
+        validators/validate-cutoff-disjointness.mjs
+        fixtures/cutoff-disjointness-fixtures.json
       world/
         world-bible.json
         style-bible.json
@@ -116,8 +122,9 @@ evaluation/ripplecontext-long-v1/
         manifest.sha256
 ```
 
-The dataset directory is created only after WORLD begins. This SPEC commits nothing under `datasets/`; the additions
-above are future paths and are compatible with the existing empty dataset tree.
+The validator and fixture are frozen SPEC validation assets, not benchmark instances and not a ninth public dataset
+asset class. The dataset directory is created only after WORLD begins. This SPEC commits nothing under `datasets/`;
+the additions above are future paths and are compatible with the existing empty dataset tree.
 
 ## 4. Stable identity and versioning
 
@@ -127,7 +134,8 @@ IDs are ASCII, case-sensitive, immutable, and never recycled within a dataset ve
 - entity `ENT-0001`; Event `EV-000001`; claim mention `CLM-000001`;
 - Fact `FACT-0001`; State `STATE-0001`; Relation `REL-0001`; timeline `TL-01`;
 - case `CASE-LR-01`; query plan `QP-0001`; query `Q-0001`; oracle `QG-0001`;
-- semantic unit `SEM-0001`; facet `FAC-0001`; surface `SURF-000001`; cutoff group `QCG-01`.
+- semantic unit `SEM-0001`; facet `FAC-0001`; surface `SURF-000001`; cutoff group `QCG-01`;
+- generation cutoff `GCUT-CH001`; Query cutoff `QCUT-Q-0001`.
 
 Display-name changes never change IDs. Split/merged canonical items receive new IDs and old IDs remain tombstoned.
 
@@ -147,10 +155,28 @@ Display-name changes never change IDs. Split/merged canonical items receive new 
 Every Event records fictional `occurred_time` and reader-disclosure `stream_seq`. Delayed disclosure can reorder them.
 Query visibility is determined only by `stream_seq` and `corpus_unit_id`, never calendar time.
 
+`EVENT_ID_STREAM_SEQ_CORPUS_UNIT_ID_V1` is the only mechanically comparable Event order index. It projects every
+canonical Event exactly once as `{event_id, stream_seq, corpus_unit_id}`, where `corpus_unit_id` is the Timeline's
+unique first-disclosure unit, sorts by strictly unique positive integer `stream_seq`, and hashes the RFC 8785 JCS
+array bytes. `events.json` and `timeline.json` must carry the same index SHA-256 and matching Event/timeline versions.
+Event-reference aliases are not an authority surface: every reference must be an exact canonical `EV-*` ID. An
+unknown ID or any declared/hinted alias fails closed; it is never silently resolved for eligibility.
+The WORLD alias/name registry is limited to Entity display names and human-language aliases; it must not define Event
+ID aliases or Event-ID-like alternative identifiers.
+
 A cutoff is inclusive through one frozen corpus unit and Event sequence. The current query is appended only after
 prefix construction and has `persist_before_answer: false`. Query text/ID, later corpus, future Events, answer hints,
 query-plan data, and evaluator-control Gold are absent from the historical prefix. A cutoff-after Event remains
 invisible even when its fictional occurrence precedes the cutoff.
+
+Every cutoff is a closed, hash-bound identity over the comparison policy, Event-order-index SHA, exact inclusive
+`visible_through_stream_seq`, the Event at that sequence, and its first-disclosure corpus unit. Generation cutoff IDs
+are `GCUT-CHxxx`; Query cutoff IDs are `QCUT-Q-xxxx`. A generation cutoff may use sequence zero only for a genuinely
+empty visible history, in which case Event and corpus-unit identities are both null. Otherwise all three boundary
+coordinates must resolve to the same index record. A Query cutoff is non-empty. The cutoff value hash is over its RFC
+8785 JCS bytes without a file LF. The generation cutoff is not freely selectable: it is exactly the greatest
+`stream_seq` whose first-disclosure chapter precedes the chapter being generated (or zero for `CH001`). A Query cutoff
+is exactly the greatest `stream_seq` disclosed no later than its `query_occurs_after_chapter_id`.
 
 `RC_VISIBLE_PREFIX_EXACT_BYTES_V1` concatenates, without separator or transformation, every complete chapter file
 before the cutoff chapter and then the cutoff chapter's exact byte slice from byte zero through the registered
@@ -172,7 +198,10 @@ and the validator rebuilds the prefix from eligible chapter-file bytes before ha
 | `manifest.json` | run/freeze ledger | versions, gates, file/hash roles, attempts, models/tokens, coverage, invalidation, freeze |
 
 The eight Draft 2020-12 schemas are normative local shapes. Cross-file identity, uniqueness, lifecycle, cutoff,
-surface, coverage, attempt, cost, and hash invariants are deterministic validator responsibilities.
+surface, coverage, attempt, cost, and hash invariants are deterministic validator responsibilities. In particular,
+JSON Schema closes the allowed object/list shapes but cannot prove Event order, recursive reference classification,
+cutoff comparison, hash equality, or cross-field set disjointness. Those proofs belong to the frozen deterministic
+validator; neither Schema acceptance nor a self-declared boolean substitutes for them.
 
 ### 6.1 Canonical bytes and text normalization
 
@@ -352,6 +381,7 @@ Without a valid surface mapping, layer-specific attribution is prohibited.
 Every fresh chapter task receives one immutable bundle conforming to `continuity-bundle.schema.json`:
 
 - frozen world bible, immutable style bible, and alias/name registry hashes;
+- one explicit inclusive generation cutoff bound to the frozen Event-order index, plus its canonical-value SHA-256;
 - current local entity State plus current person Relation/State snapshot;
 - current chapter Event plan;
 - unresolved clue/OpenQuestion ledger and bounded necessary-prior summary;
@@ -359,6 +389,14 @@ Every fresh chapter task receives one immutable bundle conforming to `continuity
 - a deterministic closed future-constraint projection containing only opaque `EV-*` IDs, the hash of its source ID
   set, and enumerated generic prohibition codes (`OMIT_OPAQUE_EVENT`, `NO_FORWARD_REFERENCE`, or
   `PRESERVE_CUTOFF_STATE`).
+
+All visible-side Event provenance is closed to the five allowlisted `source_event_ids` locations: local entity State,
+relationship State, unresolved-thread ledger, necessary-prior summary, and prior snippets. A derived
+`visible_event_reference_projection` records every occurrence with its exact JSON Pointer, the sorted unique canonical
+Event-ID set, the visible-payload hash, and both set/projection hashes. The projection is reconstructed from the
+payload; it is not an author-supplied claim. Prior snippets additionally bind their maximum referenced visible
+`stream_seq`. Every materialized local State, Relation snapshot, and unresolved-thread record has at least one canonical
+source Event; empty collections remain allowed when no such record exists.
 
 The bundle never contains the prior full corpus, future chapter plan, query plan, query oracle, evaluator-control Gold,
 future Event payload, or comparator answer. Input hashes and character/token budgets are recorded. The immutable style
@@ -375,6 +413,22 @@ Schema; every rule must reference one projected opaque ID, every projected ID mu
 and `projection_sha256` plus `source_future_event_ids_sha256` must reconstruct. A fixture that injects an explicit
 future fact anywhere in this subtree must fail Schema or byte-for-byte projection equality. Self-declared
 `contains_future_event_payload: false` is not evidence and is not part of the contract.
+
+Before any Terra call, `validate-cutoff-disjointness.mjs` reconstructs the Event-order index, cutoff, visible
+projection, and future projection. Every visible/current/local/source Event reference must resolve at or before the
+inclusive cutoff and originate in an earlier disclosure chapter; every opaque/future Event reference must resolve
+strictly after both the cutoff and the chapter being generated. Current-chapter Event-plan targets are a separate,
+hash-bound authorized input and cannot be relabeled opaque future. The visible and future canonical Event-ID sets must
+be disjoint. The validator recursively scans the complete continuity value: a canonical-looking Event token is
+valid only at one enumerated structured pointer, and nested/free-text/unclassified tokens fail. Repeated occurrences
+are all projected, so an Event cannot be laundered through another list. Exact aliases, canonical-looking aliases,
+unresolved IDs, and aliases supplied by an upstream registry all fail closed rather than resolving into the visible
+set. Hash-binding the entire visible payload makes an unprojected mutation detectable.
+
+The frozen fixture `fixtures/cutoff-disjointness-fixtures.json` contains: a positive disjoint control; the original
+`EV-000999` reproducer, which must fail `VISIBLE_FUTURE_EVENT_INTERSECTION`; and an aliased, nested, repeated-list
+near-miss, which must fail `EVENT_ALIAS_FORBIDDEN`. These outcomes are validator conformance requirements, not corpus
+content.
 
 ## 12. Bounded generation repair
 
@@ -443,6 +497,8 @@ token fields where observable, fallback, eligibility, and stop reason. `NOT_OBSE
 The validator fails closed on:
 
 - all schema failures; duplicate/unresolved IDs; chronology errors; illegal State/Fact/Relation lifecycle/endpoints;
+- Event-order-index projection/version/hash drift; ambiguous cutoff identity; cutoff Event/unit/sequence disagreement;
+  non-canonical or aliased Event references;
 - disagreement among Event operations and supersede/retract/resolve relations, or missing provenance;
 - any mismatch among query plan, oracle pointer, generated query metadata, cutoff, case/facets, expected action, or
   required/forbidden evidence; missing or multiply bound brief; brief subject/alias absent at cutoff; envelope allowlist/schema or
@@ -452,7 +508,12 @@ The validator fails closed on:
   failures; missing map prevents retrieval/formation/answer attribution;
 - duplicate-source classification, sentinel, multi-facet, long-range, and all non-zero taxonomy denominators;
 - chapter character/Event counts and continuity-bundle allowlist/forbidden-input/hash/budget rules, including closed
-  future-projection derivation, endpoint equality, and rejection of every payload-bearing extra field;
+  visible-reference and future-projection derivation, recursive Event-token classification, endpoint equality,
+  visible-at-or-before/future-after cutoff ordering, canonical set disjointness, and rejection of every payload-bearing
+  extra field;
+- Query formation targets and required evidence at or before their exact Query cutoff; `FUTURE` forbidden evidence
+  and explicit future Events strictly after it; all other forbidden evidence at or before it; canonical visible and
+  future Query evidence sets disjoint, including across nested/repeated lists;
 - more than two chapter attempts, an unapproved repair reason, changed model/reasoning/prompt/generator, missing
   diagnostics or attempt hashes, multiple eligible outputs, best-of, or selection of an invalid output;
 - request-level Sol threshold/tier/cost arithmetic drift; canonicalization/normalization/framing fixture failure;
@@ -496,6 +557,10 @@ canonical values and exact inventory-file bytes under their named targets; recon
 `FROZEN` only after an independent deterministic reconstruction. Dataset-generation `manifest.json` contains no model
 answer or evaluation-run record. The frozen dataset is immutable.
 
+The freeze version map also binds the Event-order-index policy plus exact cutoff/disjointness validator and fixture
+versions; their files are covered by the contract/schema lock and dataset-generation input manifest. A run that cannot
+reproduce all three fixture outcomes, every cutoff hash, and every visible/future projection hash is invalid.
+
 `freeze.serialization_policy_sha256` hashes the RFC 8785 value bytes of the manifest's closed
 `serialization_and_hashing` object. `hashes.sha256` and `manifest.sha256` are lowercase hex plus one LF, and each hashes
 the exact stored bytes of `hashes.json` and `manifest.json`, respectively. The manifest cannot include its own digest;
@@ -503,7 +568,9 @@ the sidecar is the sole manifest-file digest. Re-serialization before hashing is
 
 Immediate invalidation includes Gold/query-plan created or changed to fit visible prose; raw/non-allowlisted
 query-plan or future/control input read by query surfacing; safe-envelope/brief hash or same-information-need failure;
-query self-inclusion/future leakage; semantic chapter mismatch; unauthorized model,
+query self-inclusion/future leakage; any Event present on both visible and future sides; a visible/current/source or
+required-evidence Event after cutoff; a future/opaque Event at or before cutoff; an unclassified, unresolved, or aliased
+Event reference; semantic chapter mismatch; unauthorized model,
 reasoning, fallback, retry, best-of, or candidate selection; prior full corpus/query oracle in a chapter bundle;
 surface-map/hash/coverage failure; missing ledger; or unauthorized edit.
 
@@ -518,9 +585,11 @@ WORLD remains unauthorized until Independent QA confirms:
 
 - all SPEC JSON parses and all eight schemas compile under Draft 2020-12 strict mode with formats;
 - every cross-file invariant above has deterministic validator ownership;
+- the frozen cutoff/disjointness validator passes the positive fixture and rejects the original reproducer plus the
+  aliased/nested/repeated near-miss with their exact registered error codes;
 - taxonomy, 40-chapter/12-cutoff-group plan, 22 Sol/40 Terra-initial/0 default Luna calls, and cost arithmetic reconcile;
 - no WORLD/control instance/query instance/corpus/model answer/evaluator run exists;
 - Core production source, retrieval, State, MCP, database, packages/tests, and frozen evaluations are unchanged; and
 - `WO-BM-01` has no unresolved acceptance criterion.
 
-Status remains `BUILDER DELIVERED / AWAITING INDEPENDENT QA / SPEC ONLY`; Builder does not approve its own work.
+Status remains `BUILDER DELIVERED / AWAITING FRESH INDEPENDENT QA / SPEC ONLY`; Builder does not approve its own work.
