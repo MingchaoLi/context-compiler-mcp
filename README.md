@@ -31,6 +31,18 @@ UTC 月末 RFC 3339 leap second（`:60`）保持为独立 instant，不会折叠
 
 `compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。session 建立可信 compile telemetry baseline 之前，缺少 `operation_id` 仍保持历史 read-only；一旦首次带 id 的 trace 成功提交，后续该 session 缺 id compile 会以 `INVALID_INPUT` 拒绝，不能混用可观测与不可观测请求。带 id 时只把去正文、exact-shape 的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
 
+## `CompiledContext` 与 `ContextSnapshot` 的边界
+
+这两个名称对应不同的 package-root library surface，不可互换；本节不新增 MCP 工具或 API。
+
+| 类型 | 公开入口与保证 | `NOT_PROVEN` / 禁止外推 |
+| --- | --- | --- |
+| legacy `CompiledContext` | [`assembleContext`、`renderCompiledContext` 与 `CompiledContext`](src/index.ts) 是兼容保留的有界上下文组装入口；`ContextCompilerCore.call("compile_context", …)` 返回完整 library 结果。它按 [legacy assembler contract](src/assembler.ts) 组合当前输入、选中的 active State、依赖闭包、recent Raw 与可选 retrieval，并报告确定性的预算/metrics。stdio MCP 只公开上文所列的 closed-world 投影。 | 它不是 canonical `ContextSnapshot`，也不证明完整 revision vector、exact evidence/as-of、immutable manifest、AttemptStarted receipt 或 Authority closure。调用方不得把它序列化、宣传或消费为具有这些 Snapshot 语义的对象；`debug_manifest`、event/state 列表或 `rendered_context` 也不能补足该证明。MCP 的更窄结果边界见 [`WO-PUB-01`](docs/work-orders/WO-PUB-01-public-mcp-result-boundary.md)。 |
+| canonical `ContextSnapshot` | package root 导出的 [`ContextSnapshot` 类型与 policy constants](src/index.ts)，以及 `ContextCompilerCore.freezeContextSnapshot`、`readContextSnapshot`、`readContextAttemptStarted`，是独立的 library 入口。其冻结保证来自 [`ContextSnapshot` contract](docs/architecture/WO-05-context-snapshot-contract.md) 与 [stored implementation boundary](src/context-snapshot.ts)：显式 scope、exact five-axis as-of、Current Authority + Frontier-bound Hot Raw、immutable manifest/hash、同事务 AttemptStarted receipt、exact replay 与 fail-closed validation。 | 该 contract 不会反向提升 legacy `CompiledContext`，也不证明 Host 已消费、部署已激活、MCP 已公开 Snapshot、provider/model 已选择或某次 release 已接线。当前 repository authority 与这些非目标见 [`PROJECT_STATE`](docs/PROJECT_STATE.md) 和 [`ROADMAP`](docs/ROADMAP.md)。 |
+
+因此，兼容代码可以继续使用 `CompiledContext` 作为有界上下文输出；需要 revision/evidence/attempt/authority
+语义的代码必须通过 canonical `ContextSnapshot` 入口取得并验证对应对象，不能从 legacy 输出推断或补造。
+
 Operational compile 固定以下小边界：
 
 - `recent_raw_window_turns=N` 始终保留最近 N 个完整用户轮次原文，不排名、不摘要、不压缩；

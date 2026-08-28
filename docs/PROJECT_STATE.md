@@ -21,6 +21,17 @@ compatibility surfaces. Official Host/Harness adapters remain outside this Core 
 
 ## Latest delivery status
 
+WO-RF-02 Legacy CompiledContext / Canonical ContextSnapshot Boundary 当前为
+**DOCS CANDIDATE COMPLETE / AWAITING INDEPENDENT QA**，planning baseline 为
+`a5ec6baeda06c48a9553d1230bf03d39dcc2dfee`。该严格有界文档候选只在公开 README 明确：legacy
+`CompiledContext` 是兼容性的有界上下文输出，不等于 canonical `ContextSnapshot`，不得被宣传或消费为带完整
+revision/evidence/attempt/authority 语义的 Snapshot；两者的 package-root/library 入口、保证与 `NOT_PROVEN`
+边界均链接到现有 authority。production source、schema、runtime、测试、package、数据库、MCP exact-nine、
+Host/Adapter、部署和能力范围均未修改。可解析的 WO-PUB-04 accepted reconciliation
+`a85eab8eb69dab73042a0434398345f89dbd5179` 只位于
+`codex/wo-pub-04-exact-raw-receipt-lookup`，不是当前 `main` 的祖先；本候选没有合并、cherry-pick 或借其宣称
+main 已具备 exact Raw receipt lookup。状态只有在独立 QA PASS 后才能改为 accepted。
+
 WO-BM-01 RippleContext Synthetic Long-Context Benchmark SPEC 当前为 **ACCEPTED / COMPLETE / SPEC ONLY**。Planning baseline 为
 `d18e4d48717030f441f3a2e17e5c786cfa00c699`。固定 candidate
 `b006029cad4eaff5e92dbd39f06cc57ccadb6e87` 已被 Independent QA
