@@ -261,3 +261,40 @@ tokenizer or assertion-observation contract must change, or if any path outside 
   implementation can be accepted for measured use. It does not block this docs-only planning Gate.
 - `CR-03 REQUIRED IF NEEDED`: any request for natural-language assertion interpretation, hidden holdout, model-based
   semantic scoring, scalar weights, billing conversion, or a changed tokenizer requires a separately accepted contract.
+
+## Builder implementation receipt — 2026-08-30
+
+Status: `BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RUN`
+
+- Activated implementation baseline / exact planning Gate:
+  `8cf8ca7c24d34fe3c6b591dc721937992ea67c76`.
+- Bounded source candidate:
+  `1fe5da5da858cff5c1ed31d6b9163dce1dc67892`; its parent is exactly the planning Gate above.
+- The source candidate changes exactly the seven non-handoff implementation paths in the later Builder allowlist:
+  corpus, physically separate evaluator-control oracle, renderer profile, manifest controls, freeze receipt,
+  dependency-free offline runner, and focused test. It changes no `src/**`, existing evaluation asset, package,
+  lockfile, config, schema, database, build output, QA report, or governance file.
+- Population is exactly six ASCII-ordered `ALL_CASES`, one each for `RELEVANT_DISTRACTOR`,
+  `STALE_SUPERSEDED`, `CONFLICT_PROVENANCE`, `MISSING_UNCERTAIN`, `LONG_CONTEXT`, and `SAFE_FALLBACK`.
+  The corpus has 11 sequential opaque fact/source ids; the separate oracle has three sequential qualification ids.
+  C05 reference D0 history is exactly 39,332 UTF-8 bytes.
+- The positive conformance matrix is exactly 6 cases × 3 frozen arms = 18 cells. All 14 frozen invalid-run codes
+  reproduce exactly. The positive manifest run id is
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+- Exact file/value SHA-256 receipts are in `freeze.json`; the bundle SHA-256 is
+  `728bf406b9c4653d6a487938c23c1de5014c9b2c3357e42c9ebee5c19ef3743b`, and the exact `freeze.json` file
+  SHA-256 is `808fbc1daf2466e78d3e5b641dcb4057b3cb394c0bf437c4edf1f36b0eea75a1`.
+- Two independent CLI invocations reproduced byte-identical replay output at file SHA-256
+  `2e898fe21ec607727241993c5dd260ebe205edfcdf3daf9e280d746110772b39`; the normalized result value SHA-256 is
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+- Focused fixture tests: 6 passed. `npm run build`: passed. Final `npm test`: 38 test files passed, one skipped;
+  593 tests passed, one skipped. The first full run exposed the already-recorded ContextSnapshot concurrency lock
+  race plus an offline package-test artifact caused by copying a worktree `node_modules` symlink. No production code
+  changed: the two paths passed targeted reruns (24/24 and 17/17), the symlink was replaced only by an ignored local
+  copy of the pre-existing dependency tree, and the complete second run passed as reported.
+- Runner `validate`, internal two-fresh-directory replay, external two-invocation byte comparison,
+  `git diff --check`, exact seven-path source allowlist, ordinary-file checks, and public-control credential/URL/path
+  scans passed. No install, network, model/provider call, private/real/QA-only/hidden evidence, scalar winner, Core
+  authority/retrieval/ranking change, or measured Host execution occurred.
+- This is Builder evidence only. Fresh independent Evaluation Module QA and later controller-materialized governance
+  Submission QA remain mandatory; the Builder does not approve this candidate.
