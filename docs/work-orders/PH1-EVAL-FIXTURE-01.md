@@ -298,3 +298,48 @@ Status: `BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RUN`
   authority/retrieval/ranking change, or measured Host execution occurred.
 - This is Builder evidence only. Fresh independent Evaluation Module QA and later controller-materialized governance
   Submission QA remain mandatory; the Builder does not approve this candidate.
+
+## Builder append-only RETURN fix receipt — 2026-08-30
+
+Status: `FIXED BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RUN`
+
+- Returned family fixed: `EVALUATOR_CONTROL_QUALIFICATION_MARKER_LEAKAGE_NOT_REJECTED`.
+- Fixed source candidate: `767cd1bb0fc91c29da5945aaa79f23b0fcce8cec`; its parent is exactly the prior handoff
+  `416a1173179724ac9ec799c57c8ecf7fdfa66635`, whose source parent is the original candidate
+  `1fe5da5da858cff5c1ed31d6b9163dce1dc67892`.
+- The fix changes exactly `evaluation/phase-one-synthetic-v1/run-offline.mjs`,
+  `test/phase-one-evaluation-fixture.test.ts`, and `evaluation/phase-one-synthetic-v1/freeze.json`. It does not
+  change corpus, oracle, renderer, run-manifest controls, `src/**`, package/config/schema, existing evaluation,
+  product code, or QA-owned paths.
+- Corpus validation now derives the complete qualification-marker set from the already shape-checked frozen oracle
+  registry and recursively scans every cutoff-visible `sources`, `current_input`, and `fallback_scenario` key/value.
+  Any exact registered marker fails closed as `INVALID_ORACLE_EXPOSURE`; the legacy corpus scan remains limited to
+  prohibition tokens and no longer duplicates one qualification kind.
+- The focused coordinated-rewrite regression recomputes corpus and renderer bytes, corpus/oracle/renderer/manifest
+  file/value hashes, all current-input bindings, positive run id, freeze file entries, and bundle digest. A benign
+  coordinated rewrite validates, while all three registered markers across each of the three arm-input surfaces
+  fail closed (9/9 attacks).
+- Frozen corpus/oracle/renderer/manifest file/value bytes and the positive run id remain unchanged. New dependent
+  receipts are: runner file SHA-256 `da64091ede3a7f191fce8ffc938f2d4410259734f300787c7282596ffe99d8bf`;
+  bundle SHA-256 `ad8fbc95d74ab66019f6cb302eb142e99657ab2ba127e01cfe8d46fc2e6ab2f0`;
+  freeze file/value SHA-256 `f3e476b1774abd4ffb294d4898d05f60e5ba4f3e3b30ec1b4f31fbbe38e456d7` /
+  `f0e99b7e4e744a335029b8fe8ed9d2f634ef744bc977fdf7c7bc53a391be675b`; focused test file SHA-256
+  `b76ada5bc53a76516e4b4a103482a3f04118855055dfd6aa0b177753000be214`.
+- Positive run id remains
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  Two external replay invocations were byte-identical at receipt file SHA-256
+  `d5b4293e5daaaec0c3fb4a97cb43e3401a482725d9cc72a60dbbdd70b9e76dbe`; normalized result file/value SHA-256 are
+  `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+- Final checks passed: focused fixture 7/7; runner validate 6 cases / 14 invalid controls; internal and external replay;
+  `npm run build`; full `npm test` 38 files passed / 1 skipped and 594 tests passed / 1 skipped; `git diff --check`;
+  exact three-path source allowlist; ordinary-file checks; freeze-command byte equality; and unchanged
+  corpus/oracle/renderer/manifest bytes.
+- Process classification for fresh re-QA: the first `npx vitest` attempt found no local executable in this worktree
+  and attempted the npm registry, then failed DNS with `ENOTFOUND`. It downloaded nothing, installed nothing, and no
+  external content entered any artifact. A later pre-final PATH-only invocation exposed the same incomplete local
+  dependency tree plus an intermediate expected-code mismatch. Final required checks used only a copied, ignored
+  local dependency tree already present on this machine and completed offline. No product code was changed to mask
+  either environment event.
+- This remains Builder self-test evidence only. Fresh independent Evaluation Module re-QA must fix the exact source
+  candidate above and independently classify the process event; Submission QA remains a later controller-owned gate.

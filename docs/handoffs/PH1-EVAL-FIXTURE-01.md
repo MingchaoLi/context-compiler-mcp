@@ -85,3 +85,62 @@ No model, provider, network, install, private/real conversation, QA-only/hidden 
 claim, scalar winner, package/API promotion, or Core authority/retrieval/ranking change occurred. Module QA must fix
 the exact source candidate above, independently reconstruct all bytes/digests/matrix/missingness, and write its own
 QA-only commit. Governance Submission QA remains a later controller-owned gate and is not implied by this handoff.
+
+## Append-only RETURN fix handoff — 2026-08-30
+
+Status: `READY FOR FRESH EVALUATION MODULE RE-QA / BUILDER DOES NOT APPROVE`
+
+### Fixed lineage and bounded delta
+
+- Returned family: `EVALUATOR_CONTROL_QUALIFICATION_MARKER_LEAKAGE_NOT_REJECTED`.
+- Prior handoff / fixed source parent: `416a1173179724ac9ec799c57c8ecf7fdfa66635`.
+- Prior source candidate: `1fe5da5da858cff5c1ed31d6b9163dce1dc67892`.
+- Fixed source candidate: `767cd1bb0fc91c29da5945aaa79f23b0fcce8cec`, a direct child of the prior handoff.
+- The fixed source commit changes exactly the runner, focused fixture test, and freeze receipt. Corpus, oracle,
+  renderer, run-manifest controls, fairness/Requirement/Architecture/Interface contracts, product source, package,
+  config, schema, other evaluation, and QA paths are unchanged.
+
+### Closure evidence
+
+- The runner now builds its leakage set from every marker registered in the validated oracle, then recursively scans
+  every cutoff-visible corpus arm-input surface: `sources`, `current_input`, and `fallback_scenario`. Exact marker
+  presence fails closed with `INVALID_ORACLE_EXPOSURE`.
+- The regression independently coordinates corpus, renderer, manifest, run id, freeze entries, and bundle receipts.
+  Its benign rewrite passes; all 3 registered markers × all 3 surfaces fail closed (9/9 attacks), including the
+  originally missed `[[SOURCE_FX-S0006]]` and `[[AUTHORITY_OR_UNCERTAIN]]` markers.
+- Unchanged file/value receipts: corpus
+  `db8e13339f57434b06f83018886edd32e7227c70c80b9eaed23b63f647d46636` /
+  `003f36c13653f27b7f036cd97100d37b16d3dd4b9eb81e52945c79d5235daaad`; oracle
+  `efd8f9864e7625293a8aae416a10b6e352b98958468a74e342e03fff88d2f7ce` /
+  `0682e11d36800aaac049d900d696f2666448b738ac187c47c09b1693ae297a18`; renderer
+  `d0b861f404e473557847a7a7ea25457e8825c6a31d83cc2e1eecb7c2809f87f7` /
+  `4d61bd32d95b525832862bc967019ac422cf0db56ace3bf78ca963f59faf2e1f`; manifest controls
+  `77bdaa3e8c565efad3f7ef12197f0aa39a3f5e633facb1e49f9ec5325fa6b866` /
+  `c76810e5e6cce4f633924e462acca3dd9a634e19d0b0d9245536523efb91d529`.
+- New runner SHA-256: `da64091ede3a7f191fce8ffc938f2d4410259734f300787c7282596ffe99d8bf`.
+  New bundle SHA-256: `ad8fbc95d74ab66019f6cb302eb142e99657ab2ba127e01cfe8d46fc2e6ab2f0`.
+  New freeze file/value SHA-256:
+  `f3e476b1774abd4ffb294d4898d05f60e5ba4f3e3b30ec1b4f31fbbe38e456d7` /
+  `f0e99b7e4e744a335029b8fe8ed9d2f634ef744bc977fdf7c7bc53a391be675b`.
+  Focused test file SHA-256: `b76ada5bc53a76516e4b4a103482a3f04118855055dfd6aa0b177753000be214`.
+- Positive run id is unchanged at
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  External replay receipt file SHA-256 is
+  `d5b4293e5daaaec0c3fb4a97cb43e3401a482725d9cc72a60dbbdd70b9e76dbe`; normalized result file/value SHA-256 are
+  `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+
+### Final checks and process classification
+
+- Focused 7/7; validate 6 cases / 14 invalid controls; internal/external byte-identical replay; build passed; full
+  suite 38 files passed / 1 skipped and 594 tests passed / 1 skipped; diff check, exact allowlist, ordinary-file,
+  freeze-byte equality, and unchanged-control checks passed.
+- The first `npx vitest` attempt encountered the worktree's missing local executable, attempted the npm registry, and
+  failed DNS with `ENOTFOUND`. No download or install completed and no external content entered the artifacts. A
+  subsequent pre-final PATH-only invocation exposed incomplete worktree dependencies and an intermediate expected-code
+  mismatch. Final checks copied only the machine's already-existing dependency tree into ignored `node_modules` and
+  ran offline. No unrelated product change was made to hide these events; fresh re-QA owns their independent
+  classification.
+- No model/provider call, successful network access, measured Host run, private/real history, deployment, `ACTIVE`,
+  scalar winner, or fairness-contract change occurred. This handoff is not acceptance and does not authorize
+  Submission QA or measured use.
