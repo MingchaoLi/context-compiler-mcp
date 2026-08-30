@@ -411,3 +411,291 @@ upgrade candidate-roster evidence to official roster completion.
 Any new cross-module contract, unlisted path, changed tokenizer, expanded corpus population, model-generated corpus,
 private/hidden evidence, natural-language semantic inference, Host execution, or public API/package change stops this
 work order and requires a new CR/Gate.
+
+# RC025-H0 synthetic Formation skeleton — append-only Module Owner plan
+
+## 12. Plan control and claim ceiling
+
+This append-only section is the sole implementation plan for
+`RC025-H0-SYNTHETIC-FORMATION-SKELETON-PLAN-01`. It is bound to:
+
+- task capsule version `1.0.0`, content SHA-256
+  `236d054b63e96f76e6195232dce25b584f86d526e6c918bd0cd8f624227828d4`;
+- exact product parent `9046ecaf4790dbe8bd985e2ee86c426096c60cf0`;
+- `REQ-RC-025@rev-006` at requirement commit
+  `e851b5fe389efe4fb83685d5426ecf01fab2e4c4`;
+- Architecture reconciliation `064abb99f9f9f77e375633353275298ef9d53209` and its exact Gate, DAG and interface
+  references listed in the task capsule; and
+- Module Owner role contract
+  `RippleContext-governance@3b290921e51a9048749923cc98cd347ea6f2f24d:governance/roles/module-owner.v1.json`.
+
+The unchanged maximum claim is `SYNTHETIC_OFFLINE_FORMATION_SKELETON_ONLY`. This plan is not a Builder result, QA
+result, product-port implementation, integration result, deployment or `ACTIVE` state. Builder activation is
+`false` until Architecture returns `APPROVE` and a separate bounded Builder capsule is materialized.
+
+The task capsule deliberately preserves the known schema-composition defect represented by
+`baseline.accepted_reconciliation=false`. The legacy governance validator passes against the exact Architecture
+reconciliation, but this plan makes no Draft 2020-12 schema-conformance claim.
+
+## 13. Frozen module and Authority boundary
+
+The skeleton composes three roles without transferring product ownership:
+
+| Role in the skeleton | Owned behavior | Explicitly not owned |
+| --- | --- | --- |
+| Fake Core port | synthetic batch sealing, bounded same-scope candidate projection, atomic attempt claim, Core-assigned family/revision identity, deterministic whole-change validation, atomic disposable-state commit, receipts and current-card projection | no product Core implementation, no persistent product memory, no real Authority or Current State write |
+| Fake Adapter port | exactly one injected, scripted Formation invocation per claimed batch and closed-domain normalization | no provider/model/network call, family/Evidence/Authority identity assignment, scope widening, canonical mutation or candidate selection outside the presented set |
+| Evaluation harness | synthetic fixture construction, port composition, fault injection, observation and comparison of receipts/state snapshots | no semantic product decision, no product truth/data Authority, no QA verdict and no evidence transfer between QA stages |
+
+The fake ports are contract-faithful test doubles only. They preserve the public port meanings of
+`RC_FORMATION_BATCH_V1`, `RC_FORMATION_CANDIDATE_READ_V1`, `RC_FORMATION_INTERPRETER_V1`,
+`RC_FORMATION_ACTION_SET_V1`, `RC_CANONICAL_MEMORY_COMMIT_V1`, `RC_FORMATION_RECEIPT_READ_V1` and
+`RC_EXPERIENCE_CURRENT_CARD_READ_V1`; they do not publish new product interfaces. Fact and Experience remain
+non-authoritative and never write Current State by default.
+
+## 14. Exact H0 limits and serialization profile
+
+The H0 fixture binds the Architecture-required limits profile as follows:
+
+```text
+limits_profile_id = RC025_H0_LIMITS_V1
+max_source_events = 8
+max_serialized_input_tokens = 2048
+max_output_fact_actions = 8
+max_output_experience_actions = 2
+model_attempt_limit = 1
+tokenizer_ref = CC_ESTIMATE_TOKENS_JS_UTF16_CODE_UNITS_DIV4_V1
+max_total_serialized_action_bytes = 16384
+```
+
+`CC_ESTIMATE_TOKENS_JS_UTF16_CODE_UNITS_DIV4_V1` is the already frozen Evaluation estimator: empty input is `0`;
+otherwise `max(1, ceil(JavaScript UTF-16 code units / 4))`. It is an estimated fixture unit, not a provider token or
+billing measure. Input units are measured over the exact JCS-serialized interpreter request after the sealed batch,
+bounded candidate cards and full limits profile have been assembled. Action payload bytes are UTF-8 bytes of the
+exact JCS-normalized action set. The seven fields apply simultaneously.
+
+The values are deliberately H0-sized: eight Events allow one bounded multi-projection batch; 2,048 estimated units
+cover that batch plus the declared-small candidate set without permitting transcript-scale input; eight Fact actions
+cover eight total fixture actions, including several projections from one Event; two Experience actions exercise
+optional plural output while remaining few; and 16,384 action bytes exercise structural payload validation without
+becoming an unbounded escape hatch. A later numeric or tokenizer change is a new Architecture decision, not a Builder
+choice.
+
+The fake candidate reader additionally emits at most eight cards per read, with at most six Fact-family cards and at
+most two Experience-family cards. This is an Evaluation-local fixture cap, not a new public limits-profile field.
+Scope and privacy filtering occurs before relevance and before the cap. Candidate absence never means global
+absence.
+
+An input that exceeds either source or serialized-input bounds is rejected before attempt claim. A normalized action
+set that itself exceeds an output count or payload bound is invalid and commits no memory. A response that truthfully
+stops at a reached bound may use `PARTIAL` only when it includes exact `reached_limit_set` and `observed_counts`; its
+included subset must still validate and commit as one atomic transaction. `UNKNOWN` commits no memory. Complete valid
+Facts plus explicit `NO_EXPERIENCE` is `COMMITTED_FACTS_ONLY`, not `PARTIAL`.
+
+## 15. Exact identity passage
+
+Every fixture uses explicit, synthetic, immutable identifiers. The Builder must encode and compare these fields as
+opaque values; it must not infer one identity from display text.
+
+| Identity | Fixture rule and owner simulation |
+| --- | --- |
+| `operation_ref` | supplied once by the scenario and passed unchanged through batch, attempt, interpreter and outcome receipts |
+| `session_ref` / `context_ref` | supplied by the originating synthetic context and included unchanged in the sealed batch binding |
+| `scope_ref` / `scope_revision` | supplied by the fixture; fake Core filters on both before relevance and rejects any cross-scope action or candidate |
+| `evidence_ref` | supplied for one exact synthetic Event/Raw identity; exactly one body/provenance record exists per ref and the body is never copied into a Fact or Experience |
+| `limits_profile_ref` | SHA-256 of the JCS limits profile above; included in the batch binding |
+| sealed input identity | SHA-256 of the exact JCS sealed input projection, including ordered source refs and cutoff |
+| `batch_ref` | fake Core assigns `rc025-h0-batch:sha256:<digest>` over operation, ordered source refs, cutoff, session/context, scope/revision, limits-profile ref and sealed-input identity |
+| `attempt_ref` | fake Core creates `rc025-h0-attempt:<batch-digest>:1` atomically at claim; no second value exists for the same batch |
+| existing `family_ref` | supplied only by fake Core candidate cards and passed back unchanged when selected |
+| new family/revision refs | the Adapter returns only proposal-local handles; fake Core assigns deterministic synthetic Fact/Experience family and revision refs inside the successful atomic commit |
+
+Ordered `source_event_refs` are identity-bearing: reordering, replacing a ref, changing cutoff, context, scope revision,
+limits or sealed bytes yields a genuinely different batch. Repeated closure, context-exit or demand signals for the
+same binding resolve to the same `batch_ref`. Policy or injected-interpreter changes do not reset the attempt guard.
+A shared `evidence_ref` is one independent Evidence identity even when it supports several projections.
+
+The action set must echo the exact `batch_ref` and `attempt_ref`. Fake Core rejects stale/missing/mismatched refs,
+unpresented family refs, model-assigned family/revision refs, absent Evidence, duplicated/self links and cycles before
+any canonical swap.
+
+## 16. Evaluation-only artifact layout for the future Builder
+
+Architecture approval freezes the following proposed Builder surface; it does not authorize writing it. A future
+Builder capsule must independently bind its baseline and exact allowlist.
+
+```text
+evaluation/rc025-h0-synthetic-formation-v1/
+  contract.ts              # fixture-local types mirroring, not exporting, the frozen public port shapes
+  identity.ts              # JCS/SHA-256 fixture identities and exact comparison helpers
+  synthetic-state.ts       # fresh disposable receipt journal and canonical-memory snapshots
+  fake-core-port.ts        # Core-authority simulation and atomic transaction boundary
+  fake-adapter-port.ts     # injected scripted result plus closed-domain normalization and call counter
+  harness.ts               # frozen lifecycle orchestration, failpoints and receipt capture
+  scenarios.ts             # synthetic inputs and expected observations only
+  README.md                # boundary, limits, offline use and non-completion warning
+test/rc025-h0-synthetic-formation-skeleton.test.ts
+```
+
+No package export, production `src/` dependency, product schema, lockfile, public API or host wiring is part of H0.
+The implementation may reuse repository-local JCS/SHA-256 and test utilities only if their behavior is explicitly
+bound and does not couple the skeleton to product Authority. Otherwise the fixture-local helper remains unexported.
+
+## 17. Disposable state and atomicity model
+
+Each scenario starts from a fresh synthetic state value with two separately observable regions:
+
+1. a receipt journal containing sealed batches, attempt claims and terminal/nonterminal outcomes; and
+2. canonical synthetic memory containing Raw/Event identity records, Fact/Experience families and revisions, typed
+   relationships, representative navigation state and current-card projections.
+
+No scenario reads a real transcript, private history, credential, environment-owned memory store or `rc_memory`.
+State exists only in the test process or its newly created temporary directory and is destroyed after the scenario.
+Fixture inputs are literal sanitized synthetic records committed with the future Builder result.
+
+Fake Core validates on an isolated candidate snapshot and performs one compare-and-swap-style replacement only after
+the entire Fact + Experience + relation + representative/card change is valid. An invalid intended change performs
+no canonical replacement. A valid `PARTIAL` subset performs one complete replacement; transaction atomicity is never
+partial. The attempt receipt may persist even when canonical memory remains unchanged, matching the frozen one-paid-
+attempt rule.
+
+The harness records a state SHA-256 before and after every lifecycle step. A fault before commit must preserve the
+pre-step canonical SHA. A fault after a successful commit cannot undo that accepted transaction, but must produce no
+additional mutation beyond the state that existed at the fault point. This makes failure assertions precise without
+inventing rollback across an already completed public-port boundary.
+
+## 18. Frozen lifecycle, one-call rule and fault behavior
+
+The harness executes exactly this sequence and records one receipt per step:
+
+1. `SEAL_BATCH`
+2. `READ_ELIGIBLE_FAMILY_CARDS`
+3. `CLAIM_ATTEMPT`
+4. `FORM_ONCE`
+5. `NORMALIZE_ACTION_SET`
+6. `VALIDATE_AND_COMMIT_ACTION_SET`
+7. `MAINTAIN_CURRENT_EXPERIENCE_CARD`
+8. `READ_OUTCOME`
+
+`FORM_ONCE` receives only the sealed bounded batch projection, presented candidate cards and the exact limits
+profile. It is an injected deterministic script, never a semantic parser or model call. It returns zero to eight Fact
+actions and zero to two Experience actions in one invocation. No sentence, Event, Fact, Experience, family, trigger or
+read can cause another interpreter invocation.
+
+The fake fault controller can select one lifecycle port and one of `TIMEOUT`, `CANCELLED` or `FAILED`. Before claim,
+the run has no attempt. From claim onward, the exact batch retains attempt number one and a durable non-success
+receipt; timeout/cancel/provider or normalization failure never retries the same batch. A crash immediately after
+claim is represented by an `UNKNOWN`/non-success attempt receipt and requires a genuinely new batch revision for a
+later attempt. Validation failure records `FAILED` or `UNKNOWN` as dictated by the frozen domain and changes no
+canonical memory. Replay always returns the stored receipt/outcome with zero new calls, ids, relations, revisions or
+strength/support increments.
+
+## 19. Action, Experience and current-card rules
+
+The Adapter accepts only the closed action domain `SUPPORT_EXISTING`, `CREATE_FACT`, `SUPERSEDE_CURRENT`,
+`CONTRADICT_CURRENT`, `CREATE_EXPERIENCE`, `KEEP_SEPARATE` and `NO_CHANGE`, coverage
+`COMPLETE | PARTIAL | UNKNOWN`, and Experience disposition `PROPOSED | NO_EXPERIENCE`. Unknown fields or enum values
+fail closed.
+
+Fake Core applies deterministic fixture expectations rather than a product merge algorithm:
+
+- compatible presented meaning may support an existing family;
+- narrowed applicability creates a new revision and never widens or overwrites the prior meaning;
+- conflicting meaning creates a visible branch/relation with no silent winner;
+- incompatible or indeterminate Experience meaning stays separate or resolves to `NO_CHANGE`/`UNKNOWN`;
+- later batches update only referenced, presented families and never scan or recompute a library; and
+- repeated wording, references or replay cannot amplify truth, Authority, Utility, ranking, support or strength.
+
+A proposed Experience must include complete bounded situation/applicability, action, outcome or feedback, at least
+two exact current supporting Fact refs, and exact Evidence/provenance. It cannot self-support, summarize an Event,
+become a profile/instruction/current state, or introduce a disguised Fact. Missing or ambiguous structure yields
+explicit `NO_EXPERIENCE`; any invalid proposed Experience invalidates the whole intended memory change.
+
+Only an unambiguous current representative yields a compact card containing family/revision refs, bounded situation,
+action, observed result, applicability, temporal/personal scope, non-authority qualification and opaque Evidence refs.
+The first read never contains Evidence bodies. `CONFLICT`, `UNKNOWN`, invalid or absent representative state returns
+the corresponding non-card result; Evidence/history expansion is a later bounded continuation outside H0.
+
+## 20. Frozen synthetic scenario set
+
+The future Builder must give every scenario an exact input bundle, expected call count, expected outcome receipt,
+expected canonical pre/post SHA relationship and expected identity set. The minimum cases are:
+
+| ID | Required observation |
+| --- | --- |
+| `H0-01` | one sealed batch returns several valid Facts plus one qualified Experience in exactly one attempt and one atomic commit |
+| `H0-02` | insufficient Experience structure returns complete Facts plus `NO_EXPERIENCE` and `COMMITTED_FACTS_ONLY`, with no extra call |
+| `H0-03` | cross-scope/private candidates are removed before relevance; input contains no transcript/full-library material and absence is not global absence |
+| `H0-04` | Experience cites at least two current Fact refs and exact Evidence/provenance and is neither Event summary, profile nor Fact source |
+| `H0-05` | repeated closure/context-exit/demand signals resolve to one batch/attempt receipt and one call |
+| `H0-06` | Fact projection, family action and optional Experience share the same attempt; output cardinality never drives calls |
+| `H0-07` | a compatible later batch supports an existing presented family without global recomputation or duplicate active meaning |
+| `H0-08` | narrowed applicability creates a truthful new revision while preserving the old revision |
+| `H0-09` | conflicting later Evidence creates a visible relation/branch and representative `CONFLICT`, never a silent winner |
+| `H0-10` | incompatible/indeterminate Experience remains separate or returns `NO_CHANGE`/`UNKNOWN`, never forced merge |
+| `H0-11` | simultaneous source/input/output/payload bounds produce truthful `PARTIAL` with exact reached limits/counts, or `UNKNOWN` with no commit |
+| `H0-12` | missing/mismatched refs, scope, family state, relation, self-link, cycle or whole-change inconsistency commits no canonical change |
+| `H0-13` | an unambiguous current Experience returns one bounded, non-authoritative, opaque-Evidence card |
+| `H0-14` | first card read has no Evidence bodies; selected Evidence/conflict/history requires a later continuation outside H0 |
+| `H0-15` | ambiguous/invalid representative state returns `CONFLICT`, `UNKNOWN` or no card and never fabricates usability |
+| `H0-16` | every receipt/card explicitly withholds truth, current-task applicability, Utility and ranking verdicts |
+| `H0-17` | absence of P2 lazy-demand and structural-invalidation edges does not block Formation or first-card read |
+| `H0-18` | all Events/Facts/Experiences are sanitized synthetic values and execution remains offline/local with injected fake behavior |
+
+The same fixture family also contains an exact 24-cell fault matrix: `TIMEOUT`, `CANCELLED` and `FAILED` injected at
+each of the eight lifecycle ports. Synchronous fake ports still accept all three labels so the observable state and
+receipt rule is exhaustive rather than implementation-dependent. Crash-after-claim and exact replay are additional
+cases. These are contract checks, not new Requirement outcomes and not a substitute for final combination QA through
+real product ports.
+
+## 21. Future Builder slices and self-checks
+
+Architecture `APPROVE` permits the Module Owner to request one separately materialized bounded Builder capsule. The
+Builder plan is three ordered slices within that one capsule:
+
+1. **B1 — contracts, identities and fixtures:** add only fixture-local mirrored types, exact limits, identity helpers,
+   disposable state schema and the 18 synthetic scenario inputs/expectations.
+2. **B2 — fake ports and harness:** implement fake Core/Adapter behavior, the exact lifecycle, atomic state boundary,
+   one-call guard, fault controller and receipts.
+3. **B3 — executable checks:** add the one focused test surface covering the 18 cases, fault matrix, replay,
+   no-contamination scans and exact receipt/state reconstruction.
+
+The future Builder must run the focused test, `npm test`, `npm run build`, `git diff --check`, exact path allowlist,
+fixture forbidden-value/key scans and a clean-worktree check. It must record exact parent, commit, tree, changed path
+and blob identities in its handoff. These are Builder self-checks only and never an `ACCEPT` verdict.
+
+## 22. Independent QA and integration route
+
+No stage inherits another stage's verdict or evidence. Each future capsule binds its own exact input and report path:
+
+1. **Evaluation Module QA:** independently verifies the exact Builder candidate against this approved plan, public
+   port semantics, identities, limits, all H0 scenarios, fault/replay behavior, offline/no-private boundary and claim
+   ceiling. It reports per-check `PASS`/`FAIL` and final `ACCEPT`/`RETURN` in its own QA-only commit.
+2. **Submission QA:** independently binds the accepted Builder and Module-QA refs and decides whether the synthetic
+   H0 submission is admissible. It reruns its own evidence collection; Module QA evidence is not transferred.
+3. **Integration QA:** runs only after bounded mechanical integration onto the Architecture-selected single canonical
+   integration target. It binds the exact integration commit and verifies composition, ancestry, no-drift and the H0
+   ceiling. `ACCEPT` before canonical integration is only `ACCEPTED_NOT_INTEGRATED`.
+
+The final product combination route is separate: `PRODUCT_PORT_FAKE_COUNT_ZERO` and all eighteen
+`REQ-RC-025@rev-006` outcomes must pass through exact canonical Core and Adapter product ports. H0 fake-port success
+cannot satisfy that route or support a completion, deployment or `ACTIVE` claim.
+
+## 23. Risks, stop conditions and Architecture decision
+
+| Risk | Containment / falsifier |
+| --- | --- |
+| fake semantics drift from the public ports | closed mirrored types plus per-port contract assertions; any required interface change stops the Builder route |
+| fake Core becomes a second Authority | keep state disposable/unexported and ids explicitly synthetic; any product store/API dependency stops work |
+| one-call guard is weakened by replay or triggers | exact batch-keyed attempt journal and call counter must remain one under every repeated signal |
+| `PARTIAL` hides an invalid transaction | coverage and atomicity are asserted separately; any invalid included action leaves canonical SHA unchanged |
+| candidate text injects instructions or private history | candidates are untrusted structured data; literal forbidden-value scans and no transcript-loading path |
+| H0 result is mistaken for product readiness | every receipt/handoff carries `SYNTHETIC_OFFLINE_FORMATION_SKELETON_ONLY` and fake-count non-completion warning |
+
+Work stops and returns to Architecture if any required ref or Authority binding changes, any frozen public interface or
+Requirement meaning would need alteration, Evaluation would become product truth/Authority, a QA stage would collapse,
+or implementation would require real/private data, credentials, provider/model/network, installation, deployment or
+`ACTIVE` operation.
+
+This plan requests read-only Architecture review only. The allowed verdict domain is exactly `APPROVE`,
+`RETURN_WITH_REASONS` or `NEED_RESEARCH`. No Builder is started by this plan or its handoff.
