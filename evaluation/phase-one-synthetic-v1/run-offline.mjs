@@ -1353,7 +1353,7 @@ function unitsMetric(packet) {
 
 function recognizedFactIds(text) {
   const result = new Set();
-  const pattern = /(?:^|[^A-Z0-9-])(FX-F\d{4})(?![A-Z0-9-])/gu;
+  const pattern = /(?:^|[^A-Za-z0-9-])(FX-F\d{4})(?![A-Za-z0-9-])/gu;
   for (const match of text.matchAll(pattern)) result.add(match[1]);
   return [...result].sort(asciiCompare);
 }

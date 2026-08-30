@@ -202,6 +202,37 @@ function runCoordinatedCorpusRewrite(mutateCorpus: (corpus: any) => void): Retur
   }
 }
 
+function runCoordinatedObservationRewrite(text: string): ReturnType<typeof spawnSync> {
+  const root = mkdtempSync(join(tmpdir(), "rc-phase-one-observation-rewrite-"));
+  const copiedFixtureDirectory = join(root, "evaluation", "phase-one-synthetic-v1");
+  const copiedRunnerPath = join(copiedFixtureDirectory, "run-offline.mjs");
+  try {
+    rewriteCoordinatedFixture(root, () => undefined);
+    const fixtures = loadJsonFrom(copiedFixtureDirectory, "run-manifest-fixtures.json");
+    fixtures.positive_control.observations[1].packet_observation = { kind: "EXACT_TEXT", text };
+    const manifestWithoutRunId = { ...fixtures.positive_control.manifest };
+    delete manifestWithoutRunId.run_id;
+    fixtures.positive_control.manifest.run_id = `RUN-SHA256-${sha256(canonicalize(manifestWithoutRunId))}`;
+    writeFileSync(
+      join(copiedFixtureDirectory, "run-manifest-fixtures.json"),
+      `${canonicalize(fixtures)}\n`
+    );
+
+    const freeze = spawnSync(process.execPath, [copiedRunnerPath, "freeze"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    expect(freeze.status).toBe(0);
+    writeFileSync(join(copiedFixtureDirectory, "freeze.json"), freeze.stdout);
+    return spawnSync(process.execPath, [copiedRunnerPath, "replay"], {
+      cwd: root,
+      encoding: "utf8",
+    });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
 function runManifestNearMiss(mutator: (fixtures: any) => void): string {
   const root = mkdtempSync(join(tmpdir(), "rc-phase-one-near-miss-"));
   const copiedFixtureDirectory = join(root, "evaluation", "phase-one-synthetic-v1");
@@ -297,6 +328,42 @@ describe("phase-one public synthetic evaluation fixture", () => {
         expect(JSON.parse(result.stderr).error.code).toBe("INVALID_ORACLE_EXPOSURE");
       }
     }
+  });
+
+  it("recognizes fact ids only at exact ASCII delimiter-safe boundaries after coordinated rewrites", () => {
+    const positive = runCoordinatedObservationRewrite("[FX-F0001]");
+    expect(positive.status).toBe(0);
+    const positiveCell = JSON.parse(positive.stdout).normalized_result.cells[1];
+    expect(positiveCell.required_fact_recall).toEqual({
+      status: "EVALUABLE",
+      numerator: 1,
+      denominator: 1,
+      rate: 1,
+    });
+    expect(positiveCell.supported_precision).toEqual({
+      status: "EVALUABLE",
+      numerator: 1,
+      denominator: 1,
+      rate: 1,
+    });
+
+    const negative = runCoordinatedObservationRewrite(
+      "xFX-F0001y AFX-F0001 FX-F00010 xFX-F0001 FX-F0001y -FX-F0001 FX-F0001-"
+    );
+    expect(negative.status).toBe(0);
+    const negativeCell = JSON.parse(negative.stdout).normalized_result.cells[1];
+    expect(negativeCell.required_fact_recall).toEqual({
+      status: "EVALUABLE",
+      numerator: 0,
+      denominator: 1,
+      rate: 0,
+    });
+    expect(negativeCell.supported_precision).toEqual({
+      status: "NOT_EVALUABLE",
+      numerator: 0,
+      denominator: 0,
+      rate: null,
+    });
   });
 
   it("reconstructs every renderer byte count, digest shape, and frozen estimator unit", () => {
