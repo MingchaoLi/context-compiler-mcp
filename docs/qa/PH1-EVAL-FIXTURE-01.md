@@ -133,3 +133,122 @@ passing evidence and were not reproduced in this QA.
 Module QA status is `PASS`, limited to the fixed candidate and receipts above. Governance Submission QA remains
 unmaterialized and unauthorized. No Host roster, Host/version/package artifact, measured run, model/provider,
 private/real history, deployment, `ACTIVE`, billing conversion, or scalar decision is accepted or authorized here.
+
+## Fresh independent composite/integration QA — 2026-08-30
+
+Verdict: `PASS / READY FOR OWNER CAS / NOT COMPLETE`
+
+- Canonical target: `refs/heads/integration/v1@378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`.
+- Accepted public fixture ref: `17d716438483a9d965f5031434636c8013f45a69`.
+- Mechanical integration candidate: `ec1377505e1aff1e11ac5a589af4f172431de10e`.
+- Reviewed Builder handoff candidate / required QA parent:
+  `e9987651345f47640f1beb865cebc9289e694165`.
+- Common baseline: `f07257044e458d2edaad7821a95e3f9b9d18d63b`.
+
+This fresh review accepts only the bounded placement of the already accepted public synthetic fixture packet on the
+exact target above. The claim ceiling remains exactly `PUBLIC_SYNTHETIC_FIXTURE_PACKET_INCLUSION`.
+
+### Independent routing, lineage, and composition audit
+
+- The exact controller event files independently reproduced at SHA-256
+  `293f270d4aa1f959e73a511396282eb8df57e76d0026f8cd7ac6dbd358afd532` and
+  `bc39b38eaac330988b8e406714fa2f9ade582199b2471292468e2dc3b4b6b197`.
+- `e9987651` is the direct child of `ec137750`; its diff changes only this work order and the Builder handoff, by EOF
+  append only. The detached worktree was clean before QA.
+- The ten accepted commits and ten mechanically placed commits are exact direct-parent chains. Every non-empty pair
+  has the same stable patch identity; the allow-empty marker has the same tree as its parent on both sides. The exact
+  mapping is:
+
+  ```text
+  8cf8ca7c24d34fe3c6b591dc721937992ea67c76 -> e938f69075c2a5372ed23d8cc19d5574f11c3f1c
+  1fe5da5da858cff5c1ed31d6b9163dce1dc67892 -> 0960774568dfd539e595a4e91d81e8461d4853e1
+  416a1173179724ac9ec799c57c8ecf7fdfa66635 -> 5c20ad9a3ea2010755e57bb4965bc06d6aa05369
+  767cd1bb0fc91c29da5945aaa79f23b0fcce8cec -> acedc20ae48c5eb3cbf02545741f2bd0eabdf069
+  1b8c7738bac6395eacef11b4336c504d73bf430a -> 2269597ce2460070c1d4119039623d09a693affc
+  3c5629059af48fe845f0bacfc4f67c6e62ae9648 -> a166d34424dd772993669a541ccf4cd44f7c1b82
+  e877944d45457ca0fd8b3ae2020329285d8e892d -> 8217f69c80195519a428696e08c150f4700a1340
+  04acb738d70bd1a7be858e0bf418e8e2af0972b6 -> 3e093a5a655b0a744914d8454b548dc4b8116589
+  34cef69e74f031968f9cebd5712dc683771fc717 -> be50a48d0555eae8dd0edb5d9e916a5f26a2a3c7
+  17d716438483a9d965f5031434636c8013f45a69 -> ec1377505e1aff1e11ac5a589af4f172431de10e
+  ```
+
+- The exact old/new empty-marker trees are respectively
+  `42bad9669c895856809d7e2afa4fcf42a05e43f5` and
+  `54e6bbdad9ea6a92aae93984abdedc6bd83157ce`, each equal to its own direct parent's tree.
+- The worktree reflog records ten cherry-picks and no merge or rebase. Every commit is single-parent, the target and
+  accepted baseline-relative path sets have an empty intersection, stable patch identities are unchanged, conflict
+  state files are absent, and conflict-marker scans are empty. No semantic conflict resolution occurred.
+- All 17 target-owned baseline-relative paths are byte-identical to the target at the reviewed handoff. All 12
+  accepted paths are byte-identical to `17d7164` at the mechanical candidate. At the reviewed handoff, the ten
+  non-receipt accepted paths remain byte-identical and only the work order and handoff have append-only integration
+  suffixes.
+- The target-relative final path set is exactly:
+
+  ```text
+  docs/handoffs/PH1-EVAL-FIXTURE-01-MODULE-PLAN.md
+  docs/handoffs/PH1-EVAL-FIXTURE-01.md
+  docs/modules/evaluation-fixtures/implementation.md
+  docs/qa/PH1-EVAL-FIXTURE-01.md
+  docs/work-orders/PH1-EVAL-FIXTURE-01.md
+  evaluation/phase-one-synthetic-v1/corpus.json
+  evaluation/phase-one-synthetic-v1/freeze.json
+  evaluation/phase-one-synthetic-v1/oracle.json
+  evaluation/phase-one-synthetic-v1/renderer.json
+  evaluation/phase-one-synthetic-v1/run-manifest-fixtures.json
+  evaluation/phase-one-synthetic-v1/run-offline.mjs
+  test/phase-one-evaluation-fixture.test.ts
+  ```
+
+- Before this QA append, no named ref contained either integration candidate and the canonical ref still resolved
+  exactly to `378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`.
+
+### Submission-QA and Architecture binding
+
+- Fresh Submission-QA `ACCEPT` is exactly
+  `RippleContext-governance@a0dd1baeb5aaff6b760e7b975fbb3db993af26f5`; its sole changed path is the Submission-QA
+  report, and the report fixes its product subject at
+  `context-compiler-mcp@17d716438483a9d965f5031434636c8013f45a69`.
+- Architecture reconciliation is exactly
+  `RippleContext-governance@31c51d6e1de36ca69ff3ae442abd5527f2d03074`; its machine selection and reconciliation
+  records bind the same product ref and preserve `ACCEPTED_NOT_INTEGRATED` at the same claim ceiling.
+- Those two governance objects do not exist in the product repository object database. They were verified only as
+  cross-repository bindings and were not inserted into or used as product ancestry.
+
+### Fresh independent dynamic and byte checks
+
+Environment: Darwin arm64; Node `v25.6.1`; npm `11.9.0`; only the already-present local dependency tree;
+`npm_config_offline=true` for npm/Vitest. No retry was used.
+
+- Focused fixture: `8/8` passed. Runner `validate` independently returned exactly six cases and 14 invalid controls.
+- An independent coordinated-copy harness, separate from the focused test helper, passed one benign rewrite and
+  rejected all three registered qualification markers across `sources`, `current_input`, and `fallback_scenario`
+  `9/9` with `INVALID_ORACLE_EXPOSURE`.
+- The same independent harness accepted five delimiter-safe positive forms and rejected nine individual ASCII
+  letter/digit/hyphen adjacency forms. Required recall and supported precision remained `1/1` for positives; every
+  negative remained recall `0/1` with supported precision `NOT_EVALUABLE (0/0)`.
+- Independent canonical-byte reconstruction reproduced corpus, oracle, renderer, manifest-control, runner, freeze,
+  and bundle receipts. The runner's `freeze` command was byte-identical to committed `freeze.json`; C05 D0 history
+  independently remained exactly 39,332 UTF-8 bytes.
+- Two external invocations from different fresh working directories were byte-identical at SHA-256
+  `f906bcefd204745277e70925e65088a5b6f4dfaca1691fb1277f1d4bf91a9695`. Normalized result file/value SHA-256 remain
+  `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+- The normalized result contains exactly 18 cells, three arm aggregates, six same-case unit comparisons, and 14
+  separate `INVALID_RUN` controls. Genuine zero denominator remains `NOT_EVALUABLE`; `UNKNOWN`, `UNSUPPORTED`, and
+  `INPUT_UNOBSERVABLE` remain distinct. Recursive inspection found no scalar score, rank, winner, overall `passed`,
+  or weights authority.
+- Full `npm test`: 40 files passed / 1 intentional skip; 618 tests passed / 1 intentional skip, on the first and only
+  run. `npm run build`, both committed-range and worktree `git diff --check`, ordinary-file checks, exact path and
+  append-only checks, private/credential/local-path scan, runner network-capability scan, and no-drift checks passed.
+  Flaky classification: `NO_FLAKE_OBSERVED_IN_THIS_QA`; experimental SQLite warnings were environment noise only.
+- This QA used no `npx`, network attempt, installation, model/provider, private/real history, database/log capture,
+  measured Host run, deployment, or `ACTIVE` behavior.
+
+### Final integration boundary
+
+Fresh composite/integration QA status is `PASS` for the exact handoff candidate only. Owner compare-and-swap has not
+been executed. This QA does not move `refs/heads/integration/v1`, does not make the packet `CURRENT_EXECUTABLE`, and
+does not mark the task `COMPLETE`. A later Owner CAS must independently require the canonical ref to remain the exact
+target before any move. No measured Host use, natural-language correctness/truthfulness, final-input observability,
+provider tokens, billing savings, scalar decision, roster completion, deployment, or `ACTIVE` behavior is accepted
+or authorized here.
