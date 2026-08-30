@@ -21,10 +21,29 @@ import {
   type ContextCompilerCommandName,
   type ContextCompilerCommandPort,
   type ContextCompilerCoreResponse,
+  type RawEvent,
+  type RawEventInput,
+  type RawHistoryStore,
 } from "../src/index.js";
 import { CoreReadQuery } from "../src/query.js";
 
 const temporaryDirectories: string[] = [];
+
+class BaselineRawHistoryStoreConsumer implements RawHistoryStore {
+  ingest(_input: RawEventInput): RawEvent {
+    throw new Error("fixture only");
+  }
+
+  getEvent(_id: string): RawEvent | undefined {
+    return undefined;
+  }
+
+  getSessionEvents(_sessionId: string): RawEvent[] {
+    return [];
+  }
+
+  close(): void {}
+}
 
 afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
@@ -33,6 +52,13 @@ afterEach(() => {
 });
 
 describe("ContextCompilerCore boundary", () => {
+  it("compiles a baseline-valid RawHistoryStore consumer against candidate types", () => {
+    const baselineConsumer: RawHistoryStore = new BaselineRawHistoryStoreConsumer();
+    expect(Object.getOwnPropertyNames(Object.getPrototypeOf(baselineConsumer))).toEqual([
+      "constructor", "ingest", "getEvent", "getSessionEvents", "close",
+    ]);
+  });
+
   it("does not expose a generic revision writer on the package root", () => {
     expect("SqliteRevisionSubstrate" in publicSurface).toBe(false);
     expect("commitLedgerRevisionInsideCore" in publicSurface).toBe(false);

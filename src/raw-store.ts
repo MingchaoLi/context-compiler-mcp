@@ -167,8 +167,6 @@ export interface RawHistoryStore {
   ingest(input: RawEventInput): RawEvent;
   getEvent(id: string): RawEvent | undefined;
   getSessionEvents(sessionId: string): RawEvent[];
-  listSessions(input: SessionListInput): SessionListResult;
-  getSession(sessionId: string): SessionSummary | undefined;
   close(): void;
 }
 

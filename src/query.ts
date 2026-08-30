@@ -1,5 +1,6 @@
 import {
   SqliteRawHistoryStore,
+  validateCompatibleRawEventTimestamp,
   type SessionListInput,
   type SessionListResult,
   type SessionSummary,
@@ -32,6 +33,10 @@ export interface ReadStateProjection {
   revision: number;
 }
 
+const INVALID_QUERY_INPUT = "Invalid Core read query request";
+const QUERY_UNAVAILABLE = "Core read query is unavailable";
+const QUERY_CLOSED = "Core read query is closed";
+
 /**
  * Dedicated, read-only RippleContext query surface for page/Console backends.
  *
@@ -47,41 +52,63 @@ export class CoreReadQuery {
 
   constructor(databasePath: string) {
     if (typeof databasePath !== "string" || databasePath.length === 0) {
-      throw new Error("databasePath must not be empty");
+      throw queryFailure(INVALID_QUERY_INPUT);
     }
-    this.#raw = new SqliteRawHistoryStore(databasePath);
-    this.#state = new SqliteContextStateStore(databasePath);
-    this.#recall = new SqliteHistoryRecallStore(databasePath);
+    let raw: SqliteRawHistoryStore | undefined;
+    let state: SqliteContextStateStore | undefined;
+    let recall: SqliteHistoryRecallStore | undefined;
+    try {
+      raw = new SqliteRawHistoryStore(databasePath);
+      state = new SqliteContextStateStore(databasePath);
+      recall = new SqliteHistoryRecallStore(databasePath);
+    } catch {
+      safeClose(raw);
+      safeClose(state);
+      safeClose(recall);
+      throw queryFailure(QUERY_UNAVAILABLE);
+    }
+    this.#raw = raw;
+    this.#state = state;
+    this.#recall = recall;
   }
 
   listSessions(input: SessionListInput): SessionListResult {
     this.#assertOpen();
-    return this.#raw.listSessions(input);
+    const normalized = normalizeSessionListInput(input);
+    return this.#read(() => normalizeSessionListResult(
+      this.#raw.listSessions(normalized),
+      normalized
+    ));
   }
 
   getSession(sessionId: string): SessionSummary | undefined {
     this.#assertOpen();
-    return this.#raw.getSession(sessionId);
+    const normalizedSessionId = normalizeSessionId(sessionId);
+    return this.#read(() => {
+      const session = this.#raw.getSession(normalizedSessionId);
+      return session === undefined ? undefined : normalizeSessionSummary(session);
+    });
   }
 
   getState(sessionId: string): ReadStateProjection {
     this.#assertOpen();
-    return {
-      session_id: sessionId,
-      items: this.#state.getItems(sessionId),
-      relations: this.#state.getSessionRelations(sessionId),
-      revision: this.#state.getRevision(sessionId),
-    };
+    const normalizedSessionId = normalizeSessionId(sessionId);
+    return this.#read(() => ({
+      session_id: normalizedSessionId,
+      items: this.#state.getItems(normalizedSessionId),
+      relations: this.#state.getSessionRelations(normalizedSessionId),
+      revision: this.#state.getRevision(normalizedSessionId),
+    }));
   }
 
   recallExact(query: ExactRecallQuery): ExactRecallResult {
     this.#assertOpen();
-    return this.#recall.recallExact(query);
+    return this.#read(() => this.#recall.recallExact(query));
   }
 
   recallKeyword(query: KeywordRecallQuery): KeywordRecallHit[] {
     this.#assertOpen();
-    return this.#recall.recallKeyword(query);
+    return this.#read(() => this.#recall.recallKeyword(query));
   }
 
   close(): void {
@@ -105,6 +132,90 @@ export class CoreReadQuery {
   }
 
   #assertOpen(): void {
-    if (this.#closed) throw new Error("query surface is closed");
+    if (this.#closed) throw queryFailure(QUERY_CLOSED);
   }
+
+  #read<Result>(read: () => Result): Result {
+    try {
+      return read();
+    } catch {
+      throw queryFailure(QUERY_UNAVAILABLE);
+    }
+  }
+}
+
+function normalizeSessionListInput(input: SessionListInput): SessionListInput {
+  try {
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      throw new Error();
+    }
+    const limit = input.limit;
+    const cursor = input.cursor;
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100 ||
+        (cursor !== undefined && (typeof cursor !== "string" || cursor.length > 512))) {
+      throw new Error();
+    }
+    return cursor === undefined ? { limit } : { limit, cursor };
+  } catch {
+    throw queryFailure(INVALID_QUERY_INPUT);
+  }
+}
+
+function normalizeSessionId(sessionId: string): string {
+  if (typeof sessionId !== "string" || sessionId.length === 0) {
+    throw queryFailure(INVALID_QUERY_INPUT);
+  }
+  return sessionId;
+}
+
+function normalizeSessionListResult(
+  result: SessionListResult,
+  input: SessionListInput
+): SessionListResult {
+  if (typeof result !== "object" || result === null || !Array.isArray(result.items) ||
+      result.items.length > input.limit ||
+      (result.next_cursor !== null && typeof result.next_cursor !== "string")) {
+    throw new Error();
+  }
+  const items = result.items.map(normalizeSessionSummary);
+  if (result.next_cursor !== null &&
+      (items.length === 0 || result.next_cursor !== items[items.length - 1]!.session_id)) {
+    throw new Error();
+  }
+  return { items, next_cursor: result.next_cursor };
+}
+
+function normalizeSessionSummary(summary: SessionSummary): SessionSummary {
+  if (typeof summary !== "object" || summary === null ||
+      typeof summary.session_id !== "string" || summary.session_id.length === 0 ||
+      typeof summary.created_at !== "string") {
+    throw new Error();
+  }
+  validateCompatibleRawEventTimestamp(summary.created_at);
+  return { session_id: summary.session_id, created_at: summary.created_at };
+}
+
+function safeClose(store: { close(): void } | undefined): void {
+  try {
+    store?.close();
+  } catch {
+    /* construction failure remains a stable query-surface failure */
+  }
+}
+
+function queryFailure(message: string): Error {
+  const error = new Error(message);
+  Object.defineProperty(error, "name", {
+    value: "CoreReadQueryError",
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  Object.defineProperty(error, "stack", {
+    value: `CoreReadQueryError: ${message}`,
+    configurable: false,
+    enumerable: false,
+    writable: false,
+  });
+  return error;
 }

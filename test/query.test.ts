@@ -1,8 +1,10 @@
 // @vitest-environment node
 
+import { writeFile } from "node:fs/promises";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CoreReadQuery } from "../src/query.js";
 import { SqliteHistoryRecallStore } from "../src/recall.js";
@@ -116,14 +118,85 @@ describe("CoreReadQuery", () => {
     expect("databasePath" in readQuery).toBe(false);
   });
 
-  it("rejects invalid pagination and all operations after close", () => {
+  it("returns stable sanitized failures for invalid pagination", () => {
     seed();
     readQuery = new CoreReadQuery(databasePath);
-    expect(() => readQuery!.listSessions({ limit: 0 })).toThrow();
-    expect(() => readQuery!.listSessions({ limit: 101 })).toThrow();
-    expect(() => readQuery!.listSessions({ limit: 1, cursor: "x".repeat(513) })).toThrow();
+    for (const operation of [
+      () => readQuery!.listSessions({ limit: 0 }),
+      () => readQuery!.listSessions({ limit: 101 }),
+      () => readQuery!.listSessions({ limit: 1, cursor: "x".repeat(513) }),
+    ]) {
+      expectSanitizedFailure(operation, "Invalid Core read query request", databasePath);
+    }
+  });
+
+  it("returns stable sanitized failures from every read after close", () => {
+    seed();
+    readQuery = new CoreReadQuery(databasePath);
     readQuery.close();
-    expect(() => readQuery!.listSessions({ limit: 1 })).toThrow("query surface is closed");
-    expect(() => readQuery!.getSession("session-a")).toThrow("query surface is closed");
+    for (const operation of [
+      () => readQuery!.listSessions({ limit: 1 }),
+      () => readQuery!.getSession("session-a"),
+      () => readQuery!.getState("session-a"),
+      () => readQuery!.recallExact({
+        kind: "seq_range" as const,
+        session_id: "session-a",
+        event_start_seq: 1,
+        event_end_seq: 2,
+      }),
+      () => readQuery!.recallKeyword({ session_id: "session-a", query: "launch", limit: 5 }),
+    ]) {
+      expectSanitizedFailure(operation, "Core read query is closed", databasePath);
+    }
+  });
+
+  it("sanitizes storage failures discovered after opening", () => {
+    seed();
+    readQuery = new CoreReadQuery(databasePath);
+    const tamper = new DatabaseSync(databasePath);
+    tamper.exec("ALTER TABLE sessions RENAME TO query_storage_marker");
+    tamper.close();
+
+    expectSanitizedFailure(
+      () => readQuery!.listSessions({ limit: 1 }),
+      "Core read query is unavailable",
+      databasePath
+    );
+    expectSanitizedFailure(
+      () => readQuery!.getSession("session-a"),
+      "Core read query is unavailable",
+      databasePath
+    );
+  });
+
+  it("sanitizes constructor storage failures", async () => {
+    await writeFile(databasePath, "synthetic invalid storage bytes", "utf8");
+    expectSanitizedFailure(
+      () => new CoreReadQuery(databasePath),
+      "Core read query is unavailable",
+      databasePath
+    );
   });
 });
+
+function expectSanitizedFailure(
+  operation: () => unknown,
+  message: string,
+  databasePath: string
+): void {
+  let failure: unknown;
+  try {
+    operation();
+  } catch (error) {
+    failure = error;
+  }
+  expect(failure).toBeInstanceOf(Error);
+  const error = failure as Error;
+  expect(error.name).toBe("CoreReadQueryError");
+  expect(error.message).toBe(message);
+  expect(error.stack).toBe(`CoreReadQueryError: ${message}`);
+  const publicEvidence = `${error.name}\n${error.message}\n${error.stack ?? ""}`;
+  for (const forbidden of [databasePath, "sessions", "query_storage_marker", "SELECT", "SQLITE", "src/query.ts", " at "]) {
+    expect(publicEvidence).not.toContain(forbidden);
+  }
+}
