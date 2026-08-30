@@ -268,3 +268,63 @@ no `npx`, network attempt, installation, model/provider call, private/real histo
 Host run, scalar result, or contract change. This handoff is Builder evidence, not acceptance. Fresh independent
 Evaluation Module re-QA must fix and judge the exact source candidate above; Submission QA and measured use remain
 unauthorized.
+
+## Bounded canonical integration handoff — 2026-08-30
+
+Status: `READY FOR FRESH COMPOSITE-INTEGRATION QA / BUILDER DOES NOT APPROVE`
+
+### Frozen subject and placement precondition
+
+- Dedicated detached worktree: `/private/tmp/rc-ph1-eval-integration.MlxL3o`.
+- Canonical target: `refs/heads/integration/v1@378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`.
+- Accepted public fixture ref: `17d716438483a9d965f5031434636c8013f45a69`.
+- Common baseline: `f07257044e458d2edaad7821a95e3f9b9d18d63b`.
+- Mechanical integration candidate: `ec1377505e1aff1e11ac5a589af4f172431de10e`.
+- The docs-only handoff candidate is the direct child of that mechanical candidate and changes only this append-only
+  handoff plus the matching work-order receipt. Its exact SHA is reported after commit because it cannot contain its
+  own identity.
+
+No branch/ref was created or moved, no dirty checkout was used, and no merge/rebase occurred. The canonical ref was
+re-read after composition and checks and remained the exact target object.
+
+### Exact accepted-to-integration mapping
+
+```text
+8cf8ca7c24d34fe3c6b591dc721937992ea67c76 -> e938f69075c2a5372ed23d8cc19d5574f11c3f1c
+1fe5da5da858cff5c1ed31d6b9163dce1dc67892 -> 0960774568dfd539e595a4e91d81e8461d4853e1
+416a1173179724ac9ec799c57c8ecf7fdfa66635 -> 5c20ad9a3ea2010755e57bb4965bc06d6aa05369
+767cd1bb0fc91c29da5945aaa79f23b0fcce8cec -> acedc20ae48c5eb3cbf02545741f2bd0eabdf069
+1b8c7738bac6395eacef11b4336c504d73bf430a -> 2269597ce2460070c1d4119039623d09a693affc
+3c5629059af48fe845f0bacfc4f67c6e62ae9648 -> a166d34424dd772993669a541ccf4cd44f7c1b82
+e877944d45457ca0fd8b3ae2020329285d8e892d -> 8217f69c80195519a428696e08c150f4700a1340
+04acb738d70bd1a7be858e0bf418e8e2af0972b6 -> 3e093a5a655b0a744914d8454b548dc4b8116589
+34cef69e74f031968f9cebd5712dc683771fc717 -> be50a48d0555eae8dd0edb5d9e916a5f26a2a3c7
+17d716438483a9d965f5031434636c8013f45a69 -> ec1377505e1aff1e11ac5a589af4f172431de10e
+```
+
+All ten accepted commits were linear single-parent commits and applied cleanly in this order. The empty marker
+`3c5629059af48fe845f0bacfc4f67c6e62ae9648` was preserved with `--allow-empty`. The baseline-relative target and
+accepted changed-path intersection was empty; three-way inspection and every cherry-pick exposed no conflict, so the
+Builder performed no semantic conflict resolution.
+
+### Boundary and Gate evidence
+
+- Before the append-only receipt, all twelve accepted product paths were content-identical to the accepted ref; the
+  target's seventeen baseline-relative paths remained content-identical to the target commit. Final candidate drift
+  is limited to the two receipt suffixes. Governance Submission QA
+  `a0dd1baeb5aaff6b760e7b975fbb3db993af26f5` and Architecture reconciliation
+  `31c51d6e1de36ca69ff3ae442abd5527f2d03074` were verified in the separate governance repository but not
+  cherry-picked.
+- Focused fixture `8/8`; runner validation `6/14`; marker attacks `9/9`; delimiter-boundary matrix; two different
+  fresh-cwd replay outputs byte-identical at SHA-256
+  `f906bcefd204745277e70925e65088a5b6f4dfaca1691fb1277f1d4bf91a9695`; freeze bytes and exact digests; full
+  offline suite `40` files passed / `1` intentional skip and `618` tests passed / `1` intentional skip; build and
+  diff/path/no-drift checks passed.
+- Frozen bundle SHA-256 remains `65ff3965ee54f7d71b4c5408f172e2100e870db4af115ac415ea599e31e5be26`;
+  `freeze.json` file SHA-256 remains `9d5edbbee19ebf4e76fbbdeeb0a0a538baefe7752e4f602d529777766bb743a4`.
+- Claim ceiling remains `PUBLIC_SYNTHETIC_FIXTURE_PACKET_INCLUSION`. No model/provider/network/install, private/real
+  data, measured Host run, deployment, `ACTIVE`, scalar winner, contract change, or capability expansion occurred.
+
+This is bounded Integration Builder evidence only. Fresh independent composite/integration QA must fix and judge the
+exact docs-only candidate. Only a later Owner CAS may move `refs/heads/integration/v1`; until then the canonical ref
+must remain `378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`. The Builder does not mark completion or self-accept.

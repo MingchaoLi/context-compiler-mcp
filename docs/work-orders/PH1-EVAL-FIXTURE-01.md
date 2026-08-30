@@ -448,3 +448,74 @@ Status: `FIXED BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST R
   receipt plus `docs/handoffs/PH1-EVAL-FIXTURE-01.md`; its exact SHA is reported after commit because it cannot contain
   its own identity. This is Builder evidence only. Fresh independent Evaluation Module re-QA remains mandatory; the
   Builder does not approve this candidate.
+
+## Bounded canonical integration Builder receipt — 2026-08-30
+
+Status: `INTEGRATION BUILDER CANDIDATE / AWAITING INDEPENDENT COMPOSITE-INTEGRATION QA AND OWNER CAS`
+
+- Dedicated detached worktree: `/private/tmp/rc-ph1-eval-integration.MlxL3o`. It was created from the exact canonical
+  target object `378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`; no dirty main/current checkout was used, no branch/ref was created,
+  and no merge or rebase was performed.
+- Canonical target was frozen as `refs/heads/integration/v1@378d53536f991a67e4ecc45d3ae35cfa8fdbd63c` before
+  composition and remained exact after the mechanical candidate and all local checks. The accepted product ref is
+  `17d716438483a9d965f5031434636c8013f45a69`; their exact common baseline is
+  `f07257044e458d2edaad7821a95e3f9b9d18d63b`.
+- The controller-routed event receipts reproduced at SHA-256
+  `293f270d4aa1f959e73a511396282eb8df57e76d0026f8cd7ac6dbd358afd532` and
+  `bc39b38eaac330988b8e406714fa2f9ade582199b2471292468e2dc3b4b6b197`. Governance Submission-QA `ACCEPT`
+  `RippleContext-governance@a0dd1baeb5aaff6b760e7b975fbb3db993af26f5` and Architecture reconciliation
+  `RippleContext-governance@31c51d6e1de36ca69ff3ae442abd5527f2d03074` were verified as bindings only and were not
+  cherry-picked or otherwise copied into this product repository.
+- The accepted side is exactly ten linear single-parent commits with no merge. They were cherry-picked in the frozen
+  order without conflict; the accepted empty append-only marker was preserved with `--allow-empty`:
+
+  ```text
+  8cf8ca7c24d34fe3c6b591dc721937992ea67c76 -> e938f69075c2a5372ed23d8cc19d5574f11c3f1c
+  1fe5da5da858cff5c1ed31d6b9163dce1dc67892 -> 0960774568dfd539e595a4e91d81e8461d4853e1
+  416a1173179724ac9ec799c57c8ecf7fdfa66635 -> 5c20ad9a3ea2010755e57bb4965bc06d6aa05369
+  767cd1bb0fc91c29da5945aaa79f23b0fcce8cec -> acedc20ae48c5eb3cbf02545741f2bd0eabdf069
+  1b8c7738bac6395eacef11b4336c504d73bf430a -> 2269597ce2460070c1d4119039623d09a693affc
+  3c5629059af48fe845f0bacfc4f67c6e62ae9648 -> a166d34424dd772993669a541ccf4cd44f7c1b82
+  e877944d45457ca0fd8b3ae2020329285d8e892d -> 8217f69c80195519a428696e08c150f4700a1340
+  04acb738d70bd1a7be858e0bf418e8e2af0972b6 -> 3e093a5a655b0a744914d8454b548dc4b8116589
+  34cef69e74f031968f9cebd5712dc683771fc717 -> be50a48d0555eae8dd0edb5d9e916a5f26a2a3c7
+  17d716438483a9d965f5031434636c8013f45a69 -> ec1377505e1aff1e11ac5a589af4f172431de10e
+  ```
+
+- The target-side and accepted-side changed-path sets from the common baseline have an empty intersection, and the
+  three-way tree inspection exposed no conflict. No semantic conflict resolution was performed. Before this receipt,
+  all twelve accepted product paths were content-identical to `17d716438483a9d965f5031434636c8013f45a69`; all
+  seventeen target-owned paths were content-identical to `378d53536f991a67e4ecc45d3ae35cfa8fdbd63c`. This receipt
+  and the matching handoff append only to the accepted work-order/handoff suffix; `docs/qa/PH1-EVAL-FIXTURE-01.md`
+  was mechanically materialized from the accepted QA commit and was not edited by the Integration Builder.
+- The final integrated changed-path set remains exactly the accepted twelve paths:
+
+  ```text
+  docs/handoffs/PH1-EVAL-FIXTURE-01-MODULE-PLAN.md
+  docs/handoffs/PH1-EVAL-FIXTURE-01.md
+  docs/modules/evaluation-fixtures/implementation.md
+  docs/qa/PH1-EVAL-FIXTURE-01.md
+  docs/work-orders/PH1-EVAL-FIXTURE-01.md
+  evaluation/phase-one-synthetic-v1/corpus.json
+  evaluation/phase-one-synthetic-v1/freeze.json
+  evaluation/phase-one-synthetic-v1/oracle.json
+  evaluation/phase-one-synthetic-v1/renderer.json
+  evaluation/phase-one-synthetic-v1/run-manifest-fixtures.json
+  evaluation/phase-one-synthetic-v1/run-offline.mjs
+  test/phase-one-evaluation-fixture.test.ts
+  ```
+
+- Offline checks used only the already-present local dependency tree with `npm_config_offline=true`: focused fixture
+  `8/8`; runner `validate` `6` cases / `14` invalid controls; qualification-marker matrix `9/9`; delimiter-boundary
+  positive/negative matrix; two fresh-cwd byte-identical replays at receipt SHA-256
+  `f906bcefd204745277e70925e65088a5b6f4dfaca1691fb1277f1d4bf91a9695`; freeze-command byte equality and exact
+  file/value/bundle digests; full `npm test` `40` files passed / `1` intentional skip and `618` tests passed / `1`
+  intentional skip; `npm run build`; exact accepted/target path equality; and `git diff --check`.
+- Claim ceiling remains exactly `PUBLIC_SYNTHETIC_FIXTURE_PACKET_INCLUSION`. No model/provider/network/install,
+  private/real data, measured Host run, deployment, `ACTIVE`, scalar result, fairness change, or capability expansion
+  occurred. The docs-only integration handoff commit is the direct child of mechanical candidate
+  `ec1377505e1aff1e11ac5a589af4f172431de10e` and changes only this append-only receipt plus the matching handoff;
+  its exact identity is reported after commit because a commit cannot contain itself.
+- This receipt is Builder evidence, not acceptance. Completion requires fresh independent composite/integration QA
+  on the exact docs-only candidate and a later Owner compare-and-swap decision for the still-unmoved canonical ref.
+  The Integration Builder does not mark this work `COMPLETE` and does not approve its own composition.
