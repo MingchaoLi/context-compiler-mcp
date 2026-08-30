@@ -144,3 +144,69 @@ Status: `READY FOR FRESH EVALUATION MODULE RE-QA / BUILDER DOES NOT APPROVE`
 - No model/provider call, successful network access, measured Host run, private/real history, deployment, `ACTIVE`,
   scalar winner, or fairness-contract change occurred. This handoff is not acceptance and does not authorize
   Submission QA or measured use.
+
+## Append-only offline reconstruction handoff — 2026-08-30
+
+Status: `READY FOR FRESH EVALUATION MODULE RE-QA / BUILDER DOES NOT APPROVE`
+
+### Exact offline lineage and unchanged artifact tree
+
+- Returned process family:
+  `FORBIDDEN_IMPLEMENTATION_NETWORK_ATTEMPT_VIOLATES_FROZEN_NO_NETWORK_BOUNDARY`.
+- Fixed source artifact candidate remains `767cd1bb0fc91c29da5945aaa79f23b0fcce8cec`; the preceding handoff HEAD was
+  `1b8c7738bac6395eacef11b4336c504d73bf430a`.
+- Fresh offline reconstruction marker: `3c5629059af48fe845f0bacfc4f67c6e62ae9648`, a direct child of `1b8c7738`.
+  It is an allow-empty commit: marker and parent tree are exactly
+  `42bad9669c895856809d7e2afa4fcf42a05e43f5`. The fixture subtree is
+  `30b8dc401d962abf43a6c68c657f1041f99edbf2`, equal to fixed source `767cd1b`.
+- The handoff commit is the direct child of that empty marker and changes only this handoff plus the append-only
+  receipt in `docs/work-orders/PH1-EVAL-FIXTURE-01.md`. Its exact SHA is reported after commit because a commit cannot
+  contain its own identity.
+
+### Fresh independent offline evidence
+
+- Complete qualification registry: `FX-Q0001` / `[[SOURCE_FX-S0006]]` / `SOURCE_PROVENANCE`, `FX-Q0002` /
+  `[[AUTHORITY_OR_UNCERTAIN]]` / `AUTHORITY_OR_UNCERTAINTY`, and `FX-Q0003` /
+  `[[ABSTAIN_OR_QUALIFY]]` / `ABSTAIN_OR_QUALIFY`.
+- Corpus/oracle key and closed-shape checks passed. A benign coordinated rewrite passed. All 3 markers × cutoff-visible
+  `sources`, `current_input`, and `fallback_scenario` were independently coordinated through renderer, manifest,
+  current-input bindings, run id, freeze entries, and bundle receipt, then rejected 9/9 with
+  `INVALID_ORACLE_EXPOSURE`.
+- Focused fixture: 7/7. Runner validate: 6 cases / 14 invalid controls. Internal replay and two external invocations:
+  byte-identical. The result contains 18 cells; genuine zero denominator stays `NOT_EVALUABLE`; `UNKNOWN`,
+  `UNSUPPORTED`, `INPUT_UNOBSERVABLE`, and 14 `INVALID_RUN` controls remain separate; recursive no-scalar audit passed.
+- Build passed. The first full offline suite reproduced the known ContextSnapshot concurrent cleanup/lock race at
+  593 passed / 1 failed / 1 skipped; no source changed. Targeted rerun passed 24/24, and the complete second run passed
+  38 files / 1 skipped and 594 tests / 1 skipped. `git diff --check`, lineage/allowlist, ordinary-file, unchanged-byte,
+  freeze-byte, digest, and clean-status checks passed.
+
+### Exact unchanged receipts
+
+- Corpus file/value: `db8e13339f57434b06f83018886edd32e7227c70c80b9eaed23b63f647d46636` /
+  `003f36c13653f27b7f036cd97100d37b16d3dd4b9eb81e52945c79d5235daaad`.
+- Oracle file/value: `efd8f9864e7625293a8aae416a10b6e352b98958468a74e342e03fff88d2f7ce` /
+  `0682e11d36800aaac049d900d696f2666448b738ac187c47c09b1693ae297a18`.
+- Renderer file/value: `d0b861f404e473557847a7a7ea25457e8825c6a31d83cc2e1eecb7c2809f87f7` /
+  `4d61bd32d95b525832862bc967019ac422cf0db56ace3bf78ca963f59faf2e1f`.
+- Manifest controls file/value: `77bdaa3e8c565efad3f7ef12197f0aa39a3f5e633facb1e49f9ec5325fa6b866` /
+  `c76810e5e6cce4f633924e462acca3dd9a634e19d0b0d9245536523efb91d529`.
+- Runner: `da64091ede3a7f191fce8ffc938f2d4410259734f300787c7282596ffe99d8bf`; focused test:
+  `b76ada5bc53a76516e4b4a103482a3f04118855055dfd6aa0b177753000be214`.
+- Bundle: `ad8fbc95d74ab66019f6cb302eb142e99657ab2ba127e01cfe8d46fc2e6ab2f0`; freeze file/value:
+  `f3e476b1774abd4ffb294d4898d05f60e5ba4f3e3b30ec1b4f31fbbe38e456d7` /
+  `f0e99b7e4e744a335029b8fe8ed9d2f634ef744bc977fdf7c7bc53a391be675b`.
+- Positive run id: `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  External replay receipt file: `d5b4293e5daaaec0c3fb4a97cb43e3401a482725d9cc72a60dbbdd70b9e76dbe`;
+  normalized result file/value: `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+
+### Process boundary and next owner
+
+This fresh execution used only Node `v25.6.1`, npm `11.9.0`, repository bytes, system temporary directories, and the
+already-present dependency tree at `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules`. The
+worktree used an ignored ordinary-directory copy whose Vitest and TypeScript entry/package bytes matched that local
+source. Focused Vitest used the absolute local executable path; npm checks used `npm_config_offline=true`. There was no
+`npx`, network attempt, install, model/provider, real/private history, deployment, `ACTIVE`, measured Host run, or
+artifact/source modification. This does not expunge the prior historical process violation. Builder self-tests and
+this handoff are not acceptance; fresh independent Evaluation Module re-QA owns the next verdict, and Submission QA
+and measured use remain unauthorized.

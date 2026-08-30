@@ -343,3 +343,64 @@ Status: `FIXED BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST R
   either environment event.
 - This remains Builder self-test evidence only. Fresh independent Evaluation Module re-QA must fix the exact source
   candidate above and independently classify the process event; Submission QA remains a later controller-owned gate.
+
+## Builder append-only offline reconstruction receipt — 2026-08-30
+
+Status: `OFFLINE RECONSTRUCTION COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RUN`
+
+- Returned process family addressed by this fresh execution:
+  `FORBIDDEN_IMPLEMENTATION_NETWORK_ATTEMPT_VIOLATES_FROZEN_NO_NETWORK_BOUNDARY`. This receipt does not erase,
+  rewrite, or reclassify the preceding Builder's recorded `npx` registry/DNS attempt. It records a new execution in
+  which no `npx`, network attempt, dependency installation, model/provider call, real/private history, deployment,
+  `ACTIVE` behavior, or measured Host run occurred.
+- The frozen artifact source remains `767cd1bb0fc91c29da5945aaa79f23b0fcce8cec`. Fresh reconstruction started from
+  clean handoff HEAD `1b8c7738bac6395eacef11b4336c504d73bf430a`. The direct-child allow-empty offline
+  candidate marker is `3c5629059af48fe845f0bacfc4f67c6e62ae9648`; its tree and its parent's tree are both
+  `42bad9669c895856809d7e2afa4fcf42a05e43f5`. The fixture subtree at the marker is
+  `30b8dc401d962abf43a6c68c657f1041f99edbf2`, exactly equal to the fixture subtree at fixed source `767cd1b`.
+  Thus the marker changes no tree bytes and does not replace or modify the already-correct runner, test, freeze,
+  corpus, oracle, renderer, or manifest controls.
+- An independent temporary-directory reconstruction fixed the complete oracle qualification registry as
+  `FX-Q0001` / `[[SOURCE_FX-S0006]]` / `SOURCE_PROVENANCE`, `FX-Q0002` /
+  `[[AUTHORITY_OR_UNCERTAIN]]` / `AUTHORITY_OR_UNCERTAINTY`, and `FX-Q0003` /
+  `[[ABSTAIN_OR_QUALIFY]]` / `ABSTAIN_OR_QUALIFY`. Corpus/oracle closed shapes passed; one benign coordinated
+  corpus/renderer/manifest/run-id/freeze/bundle rewrite passed; all three markers injected independently into each
+  of cutoff-visible `sources`, `current_input`, and `fallback_scenario` were rejected 9/9 with
+  `INVALID_ORACLE_EXPOSURE`.
+- Unchanged file/value receipts independently reproduced: corpus
+  `db8e13339f57434b06f83018886edd32e7227c70c80b9eaed23b63f647d46636` /
+  `003f36c13653f27b7f036cd97100d37b16d3dd4b9eb81e52945c79d5235daaad`; oracle
+  `efd8f9864e7625293a8aae416a10b6e352b98958468a74e342e03fff88d2f7ce` /
+  `0682e11d36800aaac049d900d696f2666448b738ac187c47c09b1693ae297a18`; renderer
+  `d0b861f404e473557847a7a7ea25457e8825c6a31d83cc2e1eecb7c2809f87f7` /
+  `4d61bd32d95b525832862bc967019ac422cf0db56ace3bf78ca963f59faf2e1f`; manifest controls
+  `77bdaa3e8c565efad3f7ef12197f0aa39a3f5e633facb1e49f9ec5325fa6b866` /
+  `c76810e5e6cce4f633924e462acca3dd9a634e19d0b0d9245536523efb91d529`; runner
+  `da64091ede3a7f191fce8ffc938f2d4410259734f300787c7282596ffe99d8bf`; focused test
+  `b76ada5bc53a76516e4b4a103482a3f04118855055dfd6aa0b177753000be214`.
+- The unchanged bundle SHA-256 is `ad8fbc95d74ab66019f6cb302eb142e99657ab2ba127e01cfe8d46fc2e6ab2f0`;
+  freeze file/value SHA-256 are `f3e476b1774abd4ffb294d4898d05f60e5ba4f3e3b30ec1b4f31fbbe38e456d7` /
+  `f0e99b7e4e744a335029b8fe8ed9d2f634ef744bc977fdf7c7bc53a391be675b`. The freeze command
+  reproduced byte-identical `freeze.json`. Positive run id remains
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  Two external replay invocations were byte-identical at receipt file SHA-256
+  `d5b4293e5daaaec0c3fb4a97cb43e3401a482725d9cc72a60dbbdd70b9e76dbe`; normalized result
+  file/value SHA-256 remain `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+- Offline checks passed: focused fixture 7/7; runner validate 6 cases / 14 invalid controls; internal and two external
+  byte-identical replays; 18 normalized cells; genuine zero denominator remained `NOT_EVALUABLE`; `UNKNOWN`,
+  `UNSUPPORTED`, `INPUT_UNOBSERVABLE`, and 14 `INVALID_RUN` controls remained distinct; recursive no-scalar audit
+  passed; `npm run build` passed; `git diff --check`, lineage/three-path source-fix allowlist, current-artifact
+  byte equality, ordinary-file, renderer/freeze/digest, and clean-worktree checks passed.
+- The first offline full-suite run reproduced the already-recorded ContextSnapshot concurrent cleanup/lock race:
+  37 files passed / 1 failed / 1 skipped and 593 tests passed / 1 failed / 1 skipped. No source changed. The exact
+  ContextSnapshot file then passed 24/24, and the complete offline rerun passed 38 files / 1 skipped and 594 tests /
+  1 skipped. This execution used Node `v25.6.1`, npm `11.9.0`, and the already-present dependency tree at
+  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules`; the worktree's ignored ordinary-directory
+  copy had byte-equal Vitest and TypeScript entry/package files. Focused Vitest was invoked by that absolute local
+  path, and npm checks ran with `npm_config_offline=true`.
+- The docs-only handoff commit is the direct child of the empty marker and changes only this append-only receipt plus
+  `docs/handoffs/PH1-EVAL-FIXTURE-01.md`; its exact SHA is reported after commit because it cannot contain its own
+  identity. This is Builder execution evidence only. The Builder does not approve it; fresh independent Evaluation
+  Module re-QA must fix the exact marker candidate and independently accept or return it before any Submission QA or
+  measured use.
