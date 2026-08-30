@@ -6,6 +6,17 @@
   "description": "RippleContext: local, model-independent context state and recall service exposed over MCP",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "context-compiler-mcp": "dist/mcp-server.js",
     "context-compiler-eval": "dist/evaluation-cli.js"

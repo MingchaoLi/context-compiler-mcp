@@ -419,26 +419,39 @@ export function readLedgerRawEventsInsideCore(
 export function migrateLedgerHotRaw(database: DatabaseSync): void {
   database.exec("BEGIN IMMEDIATE;");
   try {
+    migrateLedgerHotRawInsideTransaction(database);
+    database.exec("COMMIT;");
+  } catch (error) {
+    rollback(database);
+    throw error;
+  }
+}
+
+/** @internal Caller owns the surrounding SQLite write transaction. */
+export function migrateLedgerHotRawInsideTransaction(database: DatabaseSync): void {
+  try {
     if (sqliteObjectExists(database, "table", "cc_ledger_hot_raw_schema")) {
-      validateHotRawSchema(database);
-      assertCurrentSchemaVersion(database);
-      database.exec("COMMIT;");
+      validateLedgerHotRawSchema(database);
       return;
     }
     for (const object of HOT_RAW_SCHEMA_OBJECTS.slice(1)) {
       if (sqliteObjectExists(database, object.type, object.name)) corrupt();
     }
     database.exec(HOT_RAW_SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n"));
-    validateHotRawSchema(database);
+    validateHotRawSchemaObjects(database);
     database.prepare(
       "INSERT INTO cc_ledger_hot_raw_schema (version, completed_at) VALUES (?, ?)"
     ).run(LEDGER_HOT_RAW_SCHEMA_VERSION, new Date().toISOString());
     assertCurrentSchemaVersion(database);
-    database.exec("COMMIT;");
   } catch (error) {
-    rollback(database);
     throw error;
   }
+}
+
+/** @internal Exact live schema, trigger, constraint and version proof for Core composition. */
+export function validateLedgerHotRawSchema(database: DatabaseSync): void {
+  validateHotRawSchemaObjects(database);
+  assertCurrentSchemaVersion(database);
 }
 
 function normalizeRawSourceInput(value: unknown): NormalizedRawSourceInput {
@@ -762,7 +775,7 @@ function storedNumber(value: unknown): number {
   return value;
 }
 
-function validateHotRawSchema(database: DatabaseSync): void {
+function validateHotRawSchemaObjects(database: DatabaseSync): void {
   assertTableColumns(database, "cc_ledger_hot_raw_schema", ["version", "completed_at"]);
   assertTableColumns(database, "cc_ledger_raw_events", [
     "namespace", "stream_id", "ledger_revision", "event_id", "source_kind",

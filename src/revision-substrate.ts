@@ -520,10 +520,19 @@ function coreCommitCapability(substrate: SqliteRevisionSubstrate): CoreCommitCap
 export function migrateRevisionSubstrate(database: DatabaseSync): void {
   database.exec("BEGIN IMMEDIATE;");
   try {
+    migrateRevisionSubstrateInsideTransaction(database);
+    database.exec("COMMIT;");
+  } catch (error) {
+    rollback(database);
+    throw error;
+  }
+}
+
+/** @internal Caller owns the surrounding SQLite write transaction. */
+export function migrateRevisionSubstrateInsideTransaction(database: DatabaseSync): void {
+  try {
     if (sqliteObjectExists(database, "table", "cc_revision_substrate_schema")) {
-      validateSubstrateSchema(database);
-      assertCurrentSchemaVersion(database);
-      database.exec("COMMIT;");
+      validateRevisionSubstrateSchema(database);
       return;
     }
     for (const [type, name] of [
@@ -539,16 +548,20 @@ export function migrateRevisionSubstrate(database: DatabaseSync): void {
       }
     }
     database.exec(SUBSTRATE_SCHEMA_OBJECTS.map(({ sql }) => `${sql};`).join("\n"));
-    validateSubstrateSchema(database);
+    validateSubstrateSchemaObjects(database);
     database.prepare(
       "INSERT INTO cc_revision_substrate_schema (version, completed_at) VALUES (?, ?)"
     ).run(REVISION_SUBSTRATE_SCHEMA_VERSION, new Date().toISOString());
     assertCurrentSchemaVersion(database);
-    database.exec("COMMIT;");
   } catch (error) {
-    rollback(database);
     throw error;
   }
+}
+
+/** @internal Exact live schema, trigger, constraint and version proof for Core composition. */
+export function validateRevisionSubstrateSchema(database: DatabaseSync): void {
+  validateSubstrateSchemaObjects(database);
+  assertCurrentSchemaVersion(database);
 }
 
 function normalizeCommitInput(
@@ -1012,7 +1025,7 @@ function readExactObject(value: unknown, expectedKeys: readonly string[]): Recor
   return value as Record<string, unknown>;
 }
 
-function validateSubstrateSchema(database: DatabaseSync): void {
+function validateSubstrateSchemaObjects(database: DatabaseSync): void {
   assertTableColumns(database, "cc_revision_substrate_schema", ["version", "completed_at"]);
   assertTableColumns(database, "cc_revision_streams", [
     "namespace", "stream_id", "ledger_revision", "state_revision",

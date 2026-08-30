@@ -66,12 +66,18 @@ import {
   type SemanticTakeoverCommitInput,
 } from "./semantic-takeover.js";
 import {
+  EXACT_RAW_RECEIPT_LOOKUP_CAPABILITY_NAME,
+  EXACT_RAW_RECEIPT_LOOKUP_VERSION,
   SqliteRawHistoryStore,
   RawEventTimestampError,
+  RawReceiptLookupInputError,
   estimateTokens,
   normalizeDenseEmbedding,
   type DenseEmbedding,
   type RawEventInput,
+  type RawReceiptLookupInput,
+  type RawReceiptLookupPort,
+  type RawReceiptLookupResult,
 } from "./raw-store.js";
 import {
   RevisionSubstrateError,
@@ -156,7 +162,7 @@ export class ContextCompilerCoreError extends Error {
  * MCP and future Host adapters depend on this surface rather than Store, Reducer,
  * or SQLite implementation classes.
  */
-export class ContextCompilerCore implements ContextCompilerCommandPort {
+export class ContextCompilerCore implements ContextCompilerCommandPort, RawReceiptLookupPort {
   private readonly rawStore: SqliteRawHistoryStore;
   private readonly stateStore: SqliteContextStateStore;
   private readonly stateUpdate: StateUpdateCoordinator;
@@ -279,6 +285,23 @@ export class ContextCompilerCore implements ContextCompilerCommandPort {
       return this.ledgerStore.getSessionRecords(sessionId);
     } catch {
       throw new ContextCompilerCoreError("STORAGE_FAILURE");
+    }
+  }
+
+  /** Read-only package contract for restart-safe ambiguous Raw commit reconciliation. */
+  lookupRawReceipt(input: RawReceiptLookupInput): RawReceiptLookupResult {
+    try {
+      return this.rawStore.lookupRawReceipt(input);
+    } catch (error) {
+      if (error instanceof ContextCompilerCoreError) throw error;
+      if (error instanceof RawReceiptLookupInputError) {
+        throw new ContextCompilerCoreError("INVALID_INPUT");
+      }
+      return {
+        capability: EXACT_RAW_RECEIPT_LOOKUP_CAPABILITY_NAME,
+        version: EXACT_RAW_RECEIPT_LOOKUP_VERSION,
+        status: "UNAVAILABLE",
+      };
     }
   }
 

@@ -1,12 +1,27 @@
 export {
+  EXACT_RAW_RECEIPT_LOOKUP_CAPABILITY_NAME,
+  EXACT_RAW_RECEIPT_LOOKUP_STATUSES,
+  EXACT_RAW_RECEIPT_LOOKUP_VERSION,
+  RAW_INGEST_FINGERPRINT_VERSION,
   SqliteRawHistoryStore,
+  RawReceiptLookupInputError,
+  computeRawIngestFingerprint,
   estimateTokens,
+  getExactRawReceiptLookupCapability,
+  type ExactRawReceiptLookupCapability,
+  type ExactRawReceiptLookupStatus,
+  type FoundExactRawReceiptLookupResult,
   type JsonObject,
   type JsonValue,
   type RawEvent,
   type RawEventInput,
   type RawEventRole,
   type RawHistoryStore,
+  type RawIngestFingerprintInput,
+  type RawIngestReceiptIdentity,
+  type RawReceiptLookupInput,
+  type RawReceiptLookupPort,
+  type RawReceiptLookupResult,
   type DenseEmbedding,
 } from "./raw-store.js";
 
@@ -281,6 +296,21 @@ export {
   type RevisionSubstrateErrorCode,
   type RevisionVector,
 } from "./revision-substrate.js";
+
+export {
+  ISOLATED_CONTEXT_PROVISIONER_CAPABILITY,
+  ISOLATED_CONTEXT_PROVISIONER_CONTRACT_VERSION,
+  ISOLATED_CONTEXT_PROVISIONER_SCHEMA_VERSION,
+  IsolatedContextProvisioner,
+  IsolatedContextProvisionerError,
+  type IsolatedContextProvisionDisposition,
+  type IsolatedContextProvisionIdentity,
+  type IsolatedContextProvisionNamespace,
+  type IsolatedContextProvisionReceipt,
+  type IsolatedContextProvisionRequest,
+  type IsolatedContextProvisionerCapability,
+  type IsolatedContextProvisionerErrorCode,
+} from "./isolated-context-provisioner.js";
 
 export {
   CONTEXT_COMPILER_CAPABILITIES,

@@ -12,11 +12,17 @@ import {
   ContextCompilerCore,
   ContextCompilerCoreError,
   ContextCompilerMcpService,
+  ISOLATED_CONTEXT_PROVISIONER_CONTRACT_VERSION,
+  IsolatedContextProvisioner,
+  computeRawIngestFingerprint,
   createEmptyStateDelta,
+  getExactRawReceiptLookupCapability,
+  runEvaluationSuiteV2,
   type ContextCompilerCommandName,
   type ContextCompilerCommandPort,
   type ContextCompilerCoreResponse,
 } from "../src/index.js";
+import { CoreReadQuery } from "../src/query.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -75,6 +81,174 @@ describe("ContextCompilerCore boundary", () => {
       )
     )).toBe(false);
     core.close();
+  });
+
+  it("exports exact receipt and provisioner roots without changing the nine-command surface", () => {
+    expect(CONTEXT_COMPILER_COMMANDS).toEqual([
+      "health", "ingest_event", "compile_context", "get_state", "prepare_state_update",
+      "apply_state_delta", "create_headline", "recall_exact", "recall_keyword",
+    ]);
+    expect(CONTEXT_COMPILER_COMMANDS).not.toContain("lookup_raw_receipt");
+    expect(getExactRawReceiptLookupCapability()).toMatchObject({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      requires_explicit_created_at: true,
+    });
+    expect(typeof publicSurface.IsolatedContextProvisioner).toBe("function");
+    expect("CoreReadQuery" in publicSurface).toBe(false);
+    expect("migrateRawHistoryStoreInsideTransaction" in publicSurface).toBe(false);
+    expect("validateRevisionSubstrateSchema" in publicSurface).toBe(false);
+
+    const core = new ContextCompilerCore(databasePath());
+    const input = {
+      session_id: "receipt-core-session",
+      source_event_id: "receipt-core-source",
+      role: "user" as const,
+      content: "synthetic core boundary fixture",
+      created_at: "2026-08-28T11:00:00.000Z",
+      metadata: { fixture: true },
+    };
+    const fingerprint = computeRawIngestFingerprint(input);
+    const event = unwrap(core.call("ingest_event", input)) as { id: string; seq: number };
+    expect(core.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: fingerprint,
+    })).toEqual({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      status: "FOUND_EXACT",
+      ingest_fingerprint: fingerprint,
+      receipt: {
+        id: event.id,
+        session_id: input.session_id,
+        seq: event.seq,
+        source_event_id: input.source_event_id,
+      },
+    });
+    expect(() => core.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: "invalid",
+    })).toThrow(expect.objectContaining<Partial<ContextCompilerCoreError>>({ code: "INVALID_INPUT" }));
+    core.close();
+    expect(core.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: fingerprint,
+    }).status).toBe("UNAVAILABLE");
+  });
+
+  it("coexists across provision, query, ingest, receipt, recall, compile, and evaluation v2", () => {
+    const database = databasePath();
+    const provisioner = new IsolatedContextProvisioner(database);
+    expect(provisioner.preflight().ready).toBe(true);
+    const receipt = provisioner.provision({
+      contract_version: ISOLATED_CONTEXT_PROVISIONER_CONTRACT_VERSION,
+      operation_id: "coexistence-provision",
+      namespace: "authority",
+    });
+    expect(receipt.disposition).toBe("CREATED");
+
+    let query = new CoreReadQuery(database);
+    expect(query.getSession(receipt.session_id)).toMatchObject({ session_id: receipt.session_id });
+    expect(query.getState(receipt.session_id)).toMatchObject({ items: [], relations: [], revision: 0 });
+    query.close();
+
+    const core = new ContextCompilerCore(database);
+    const ingestInput = {
+      session_id: receipt.session_id,
+      source_event_id: "coexistence-source",
+      role: "user" as const,
+      content: "Synthetic coexistence launch marker",
+      created_at: "2026-08-30T01:02:03.456Z",
+      token_count: 6,
+      metadata: { fixture: "coexistence" },
+    };
+    const fingerprint = computeRawIngestFingerprint(ingestInput);
+    expect(core.lookupRawReceipt({
+      session_id: ingestInput.session_id,
+      source_event_id: ingestInput.source_event_id,
+      ingest_fingerprint: fingerprint,
+    }).status).toBe("NOT_FOUND");
+    const event = unwrap(core.call("ingest_event", ingestInput)) as {
+      id: string; seq: number; session_id: string; role: "user"; content: string;
+      event_type: string; created_at: string; token_count: number; metadata: { fixture: string };
+      source_event_id: string;
+    };
+    expect(unwrap(core.call("ingest_event", ingestInput))).toEqual(event);
+    expect(core.lookupRawReceipt({
+      session_id: ingestInput.session_id,
+      source_event_id: ingestInput.source_event_id,
+      ingest_fingerprint: fingerprint,
+    })).toMatchObject({
+      status: "FOUND_EXACT",
+      receipt: { id: event.id, session_id: receipt.session_id, seq: 1 },
+    });
+    expect(core.lookupRawReceipt({
+      session_id: ingestInput.session_id,
+      source_event_id: ingestInput.source_event_id,
+      ingest_fingerprint: computeRawIngestFingerprint({ ...ingestInput, content: "changed proof" }),
+    }).status).toBe("IDENTITY_COLLISION");
+
+    unwrap(core.call("create_headline", {
+      session_id: receipt.session_id,
+      event_start_seq: 1,
+      event_end_seq: 1,
+      headline: "Synthetic coexistence launch",
+      keywords: ["coexistence", "launch"],
+      created_at: "2026-08-30T01:02:04.000Z",
+    }));
+    query = new CoreReadQuery(database);
+    const exact = query.recallExact({
+      kind: "event_id", session_id: receipt.session_id, event_id: event.id,
+    });
+    expect(exact).toMatchObject({ kind: "event_id", found: true, event: { id: event.id } });
+    expect(query.recallKeyword({
+      session_id: receipt.session_id, query: "coexistence", limit: 5,
+    })).toHaveLength(1);
+    query.close();
+
+    expect(unwrap(core.call("compile_context", {
+      session_id: receipt.session_id,
+      current_input: "Continue the synthetic coexistence check",
+      operation_id: "coexistence-compile",
+    }))).toMatchObject({ context: { session_id: receipt.session_id } });
+
+    const report = runEvaluationSuiteV2({
+      version: 2,
+      cases: [{
+        id: "coexistence-eval-v2",
+        session_id: receipt.session_id,
+        raw_events: [event],
+        context_items: [],
+        state_relations: [],
+        current_input: "Continue the synthetic evaluation",
+        recent_raw_window_turns: 1,
+        token_budget: 200,
+        headlines: [],
+        recall_queries: [],
+        probes: {
+          constraints: [], decisions: [], resolved_issues: [], open_questions: [],
+        },
+      }],
+      thresholds: {
+        minimum_d2_token_reduction_ratio: 0,
+        minimum_d2_constraint_retention: 0,
+        minimum_d2_decision_continuity: 0,
+        maximum_d2_resolved_issue_reopening: 1,
+        minimum_d2_open_question_continuity: 0,
+        minimum_d2_recall_recovery: 0,
+        maximum_d2_mean_latency_ms: 1_000,
+      },
+    });
+    expect(report).toMatchObject({ version: 2, case_count: 1 });
+
+    core.close();
+    provisioner.close();
+    const reopened = new IsolatedContextProvisioner(database);
+    expect(reopened.lookupByOperation(receipt.operation_id).disposition).toBe("EXISTS");
+    reopened.close();
   });
 
   it("covers current commands and research records without Store imports", () => {

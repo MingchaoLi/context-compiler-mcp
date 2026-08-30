@@ -5,7 +5,16 @@ import { mkdtemp, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { SqliteRawHistoryStore, type JsonObject } from "../src/raw-store.js";
+import {
+  EXACT_RAW_RECEIPT_LOOKUP_STATUSES,
+  RAW_INGEST_FINGERPRINT_VERSION,
+  RawReceiptLookupInputError,
+  SqliteRawHistoryStore,
+  computeRawIngestFingerprint,
+  getExactRawReceiptLookupCapability,
+  type JsonObject,
+  type RawIngestFingerprintInput,
+} from "../src/raw-store.js";
 
 describe("SqliteRawHistoryStore", () => {
   let temporaryDirectory: string;
@@ -407,5 +416,180 @@ describe("SqliteRawHistoryStore", () => {
     store.close();
     store = new SqliteRawHistoryStore(databasePath);
     expect(store.getSessionEvents("session-a")).toEqual([valid]);
+  });
+
+  it("reconciles an exact receipt without disclosing Raw fields and survives reopen", () => {
+    const input: RawIngestFingerprintInput = {
+      session_id: "receipt-session",
+      source_event_id: "source/receipt-1",
+      role: "tool",
+      content: "synthetic-private-shaped-payload\r\nsecond-byte-line",
+      event_type: "tool_result",
+      created_at: "2026-08-28T18:30:00.125+08:00",
+      token_count: 13,
+      metadata: { synthetic: true, nested: { ordinal: 1 } },
+      dense_embedding: { vector_space_id: "fixture-v1", values: [0.25, -0.5] },
+    };
+    const fingerprint = computeRawIngestFingerprint(input);
+    store = new SqliteRawHistoryStore(databasePath);
+    const event = store.ingest(input);
+    const found = store.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: fingerprint,
+    });
+    expect(found).toEqual({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      status: "FOUND_EXACT",
+      ingest_fingerprint: fingerprint,
+      receipt: {
+        id: event.id,
+        session_id: input.session_id,
+        seq: event.seq,
+        source_event_id: input.source_event_id,
+      },
+    });
+    expect(Reflect.ownKeys(found)).toEqual([
+      "capability", "version", "status", "ingest_fingerprint", "receipt",
+    ]);
+    expect(JSON.stringify(found)).not.toMatch(
+      /synthetic-private-shaped-payload|metadata|dense_embedding|created_at|event_type|content|sql|trace|path/iu
+    );
+
+    store.close();
+    store = new SqliteRawHistoryStore(databasePath);
+    expect(store.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: fingerprint,
+    })).toEqual(found);
+    expect(store.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: "missing-source",
+      ingest_fingerprint: fingerprint,
+    }).status).toBe("NOT_FOUND");
+    expect(store.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: computeRawIngestFingerprint({ ...input, content: "other bytes" }),
+    }).status).toBe("IDENTITY_COLLISION");
+  });
+
+  it("binds every ingest field while preserving equivalent timestamp identity", () => {
+    const base: RawIngestFingerprintInput = {
+      session_id: "fingerprint-session",
+      source_event_id: "fingerprint-source",
+      role: "user",
+      content: "line-one\r\nline-two",
+      created_at: "2026-08-28T18:30:00.120+08:00",
+    };
+    const fingerprint = computeRawIngestFingerprint(base);
+    expect(fingerprint).toMatch(
+      new RegExp(`^${RAW_INGEST_FINGERPRINT_VERSION}:[0-9a-f]{64}$`, "u")
+    );
+    expect(computeRawIngestFingerprint({
+      ...base,
+      created_at: "2026-08-28T10:30:00.12Z",
+      event_type: "message",
+      token_count: 5,
+      metadata: {},
+    })).toBe(fingerprint);
+    for (const changed of [
+      { ...base, session_id: "other-session" },
+      { ...base, source_event_id: "other-source" },
+      { ...base, role: "assistant" as const },
+      { ...base, content: "line-one\nline-two" },
+      { ...base, event_type: "other" },
+      { ...base, created_at: "2026-08-28T10:30:00.121Z" },
+      { ...base, token_count: 99 },
+      { ...base, metadata: { key: "value" } },
+      { ...base, dense_embedding: { vector_space_id: "fixture-v1", values: [1] } },
+    ]) {
+      expect(computeRawIngestFingerprint(changed)).not.toBe(fingerprint);
+    }
+  });
+
+  it("publishes a frozen closed capability and rejects hostile proof graphs", () => {
+    const capability = getExactRawReceiptLookupCapability();
+    expect(capability).toEqual({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      fingerprint_version: RAW_INGEST_FINGERPRINT_VERSION,
+      requires_explicit_created_at: true,
+      statuses: [
+        "FOUND_EXACT", "NOT_FOUND", "IDENTITY_COLLISION", "CORRUPT_DATA", "UNAVAILABLE",
+      ],
+    });
+    expect(capability.statuses).toBe(EXACT_RAW_RECEIPT_LOOKUP_STATUSES);
+    expect(Object.isFrozen(capability)).toBe(true);
+    expect(Object.isFrozen(capability.statuses)).toBe(true);
+    expect(() => computeRawIngestFingerprint({
+      session_id: "session",
+      source_event_id: "source",
+      role: "user",
+      content: "missing explicit timestamp",
+    } as RawIngestFingerprintInput)).toThrow(RawReceiptLookupInputError);
+
+    store = new SqliteRawHistoryStore(databasePath);
+    let trapCount = 0;
+    const proxy = new Proxy({
+      session_id: "session",
+      source_event_id: "source",
+      ingest_fingerprint: `${RAW_INGEST_FINGERPRINT_VERSION}:${"0".repeat(64)}`,
+    }, {
+      ownKeys() {
+        trapCount += 1;
+        throw new Error("private trap");
+      },
+    });
+    expect(() => store!.lookupRawReceipt(proxy)).toThrow(RawReceiptLookupInputError);
+    expect(trapCount).toBe(0);
+  });
+
+  it("returns CORRUPT_DATA for coordinated Raw tamper", () => {
+    const input: RawIngestFingerprintInput = {
+      session_id: "tamper-session",
+      source_event_id: "tamper-source",
+      role: "user",
+      content: "original synthetic bytes",
+      created_at: "2026-08-28T10:00:00.000Z",
+      metadata: { proof: "original" },
+    };
+    const fingerprint = computeRawIngestFingerprint(input);
+    store = new SqliteRawHistoryStore(databasePath);
+    store.ingest(input);
+    const direct = new DatabaseSync(databasePath);
+    direct.exec("DROP TRIGGER raw_events_prevent_update;");
+    direct.exec("UPDATE raw_events SET content = 'tampered' WHERE source_event_id = 'tamper-source';");
+    direct.close();
+    expect(store.lookupRawReceipt({
+      session_id: input.session_id,
+      source_event_id: input.source_event_id,
+      ingest_fingerprint: fingerprint,
+    })).toEqual({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      status: "CORRUPT_DATA",
+    });
+  });
+
+  it("returns UNAVAILABLE instead of leaking storage failures", () => {
+    store = new SqliteRawHistoryStore(databasePath);
+    const proof = {
+      session_id: "unavailable-session",
+      source_event_id: "unavailable-source",
+      ingest_fingerprint: `${RAW_INGEST_FINGERPRINT_VERSION}:${"0".repeat(64)}`,
+    };
+    const direct = new DatabaseSync(databasePath);
+    direct.exec("DROP TABLE raw_events;");
+    direct.close();
+    expect(store.lookupRawReceipt(proof)).toEqual({
+      capability: "exact_raw_receipt_lookup",
+      version: 1,
+      status: "UNAVAILABLE",
+    });
+    store.close();
+    expect(store.lookupRawReceipt(proof).status).toBe("UNAVAILABLE");
   });
 });
