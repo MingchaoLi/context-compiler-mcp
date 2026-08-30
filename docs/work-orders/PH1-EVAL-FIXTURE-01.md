@@ -404,3 +404,47 @@ Status: `OFFLINE RECONSTRUCTION COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RU
   identity. This is Builder execution evidence only. The Builder does not approve it; fresh independent Evaluation
   Module re-QA must fix the exact marker candidate and independently accept or return it before any Submission QA or
   measured use.
+
+## Builder append-only fact-id delimiter-boundary RETURN fix receipt — 2026-08-30
+
+Status: `FIXED BUILDER CANDIDATE COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RUN`
+
+- Returned family fixed: `NON_DELIMITER_SAFE_FACT_ID_SUBSTRING_FALSE_POSITIVE`.
+- Fixed source candidate: `04acb738d70bd1a7be858e0bf418e8e2af0972b6`; its parent is exactly
+  `e877944d45457ca0fd8b3ae2020329285d8e892d`, and its tree is
+  `4d1d1ea1c090c5093cdec7ee7d7d99d64417231f`.
+- The fixed source commit changes exactly `evaluation/phase-one-synthetic-v1/run-offline.mjs`,
+  `test/phase-one-evaluation-fixture.test.ts`, and the runner-dependent
+  `evaluation/phase-one-synthetic-v1/freeze.json`. Corpus, oracle, renderer, manifest controls, fairness,
+  Requirement/Architecture/Interface contracts, `src/**`, package/config/schema, other evaluation, and QA-owned
+  paths are unchanged.
+- `recognizedFactIds` still recognizes only exact uppercase `FX-Fdddd` tokens, but its delimiter guard now treats
+  every adjacent ASCII letter, digit, or hyphen as token continuation. The coordinated-copy regression proves
+  `[FX-F0001]` remains one supported assertion, while `xFX-F0001y`, `AFX-F0001`, `FX-F00010`, one-sided lowercase
+  adjacency, and hyphen adjacency contribute no recognized fact.
+- The existing coordinated qualification-marker regression also passed unchanged: all three registered markers
+  across cutoff-visible `sources`, `current_input`, and `fallback_scenario` were rejected 9/9 with
+  `INVALID_ORACLE_EXPOSURE`.
+- Frozen corpus/oracle/renderer/manifest file and value receipts remain unchanged. The positive run id remains
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  New dependent receipts are: runner file SHA-256
+  `2386cca0e93d03c92d9cbf833b74a9302b16ae4a4c2a2a8d0a0bfbff6103d12c`; focused test file SHA-256
+  `d0b0e2cbecb460f10c0c51f1fe7223f89c93f807f8beab21f328475ac1168821`; bundle SHA-256
+  `65ff3965ee54f7d71b4c5408f172e2100e870db4af115ac415ea599e31e5be26`; freeze file/value SHA-256
+  `9d5edbbee19ebf4e76fbbdeeb0a0a538baefe7752e4f602d529777766bb743a4` /
+  `16bdd5fac594beaa5de1742ec423e9169ca7b6b384bf7558a676cd19cca0253d`.
+- Two external replay invocations were byte-identical. The replay receipt file SHA-256 is
+  `f906bcefd204745277e70925e65088a5b6f4dfaca1691fb1277f1d4bf91a9695`; normalized result file/value SHA-256 remain
+  `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+- Final offline checks passed: focused fixture 8/8; runner validate 6 cases / 14 invalid controls; independent
+  coordinated boundary positive/negative rewrite; existing marker-leakage 3×3; internal and external replay/diff;
+  freeze-command byte equality; `npm test` 38 files passed / 1 skipped and 595 tests passed / 1 skipped;
+  `npm run build`; `git diff --check`; exact three-path source allowlist; and clean source-candidate status.
+- All commands used `npm_config_offline=true` where npm/Vitest was involved and only the already-present local
+  dependency tree. No `npx`, network attempt, install, model/provider, private/real history, deployment, `ACTIVE`,
+  measured Host run, scalar winner, or fairness-contract change occurred.
+- The docs-only handoff commit is the direct child of the fixed source candidate and changes only this append-only
+  receipt plus `docs/handoffs/PH1-EVAL-FIXTURE-01.md`; its exact SHA is reported after commit because it cannot contain
+  its own identity. This is Builder evidence only. Fresh independent Evaluation Module re-QA remains mandatory; the
+  Builder does not approve this candidate.

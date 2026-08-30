@@ -210,3 +210,61 @@ source. Focused Vitest used the absolute local executable path; npm checks used 
 artifact/source modification. This does not expunge the prior historical process violation. Builder self-tests and
 this handoff are not acceptance; fresh independent Evaluation Module re-QA owns the next verdict, and Submission QA
 and measured use remain unauthorized.
+
+## Append-only fact-id delimiter-boundary RETURN fix handoff — 2026-08-30
+
+Status: `READY FOR FRESH EVALUATION MODULE RE-QA / BUILDER DOES NOT APPROVE`
+
+### Exact lineage and bounded delta
+
+- Returned family: `NON_DELIMITER_SAFE_FACT_ID_SUBSTRING_FALSE_POSITIVE`.
+- Fixed source candidate: `04acb738d70bd1a7be858e0bf418e8e2af0972b6`; exact parent:
+  `e877944d45457ca0fd8b3ae2020329285d8e892d`; source tree:
+  `4d1d1ea1c090c5093cdec7ee7d7d99d64417231f`.
+- The source commit changes exactly the offline runner, focused fixture test, and runner-dependent freeze receipt.
+  It does not change corpus, oracle, renderer, manifest controls, fairness/Requirement/Architecture/Interface,
+  product source, package/config/schema, other evaluation assets, or QA-owned paths.
+- This docs-only handoff commit is the direct child of that source candidate and changes only this handoff plus the
+  append-only work-order receipt. Its exact SHA is reported after commit because a commit cannot contain its own
+  identity.
+
+### Failure closure and regression evidence
+
+- The delimiter guard for exact uppercase `FX-Fdddd` now excludes all adjacent ASCII letters, digits, and hyphens.
+- Independent coordinated-copy scoring kept `[FX-F0001]` as one supported assertion and rejected substring forms
+  `xFX-F0001y`, `AFX-F0001`, `FX-F00010`, one-sided lowercase adjacency, and both hyphen adjacencies as facts.
+- Existing evaluator-control separation stayed intact: three registered qualification markers × cutoff-visible
+  `sources`, `current_input`, and `fallback_scenario` were rejected 9/9 with `INVALID_ORACLE_EXPOSURE`.
+- Focused fixture passed 8/8; validate passed 6 cases / 14 invalid controls; internal replay and two external replay
+  invocations were byte-identical; freeze command reproduced exact bytes. Full offline suite passed 38 files / 1
+  skipped and 595 tests / 1 skipped; build and `git diff --check` passed.
+
+### Exact receipts
+
+- Unchanged corpus file/value: `db8e13339f57434b06f83018886edd32e7227c70c80b9eaed23b63f647d46636` /
+  `003f36c13653f27b7f036cd97100d37b16d3dd4b9eb81e52945c79d5235daaad`.
+- Unchanged oracle file/value: `efd8f9864e7625293a8aae416a10b6e352b98958468a74e342e03fff88d2f7ce` /
+  `0682e11d36800aaac049d900d696f2666448b738ac187c47c09b1693ae297a18`.
+- Unchanged renderer file/value: `d0b861f404e473557847a7a7ea25457e8825c6a31d83cc2e1eecb7c2809f87f7` /
+  `4d61bd32d95b525832862bc967019ac422cf0db56ace3bf78ca963f59faf2e1f`.
+- Unchanged manifest controls file/value:
+  `77bdaa3e8c565efad3f7ef12197f0aa39a3f5e633facb1e49f9ec5325fa6b866` /
+  `c76810e5e6cce4f633924e462acca3dd9a634e19d0b0d9245536523efb91d529`.
+- Runner: `2386cca0e93d03c92d9cbf833b74a9302b16ae4a4c2a2a8d0a0bfbff6103d12c`; focused test:
+  `d0b0e2cbecb460f10c0c51f1fe7223f89c93f807f8beab21f328475ac1168821`.
+- Bundle: `65ff3965ee54f7d71b4c5408f172e2100e870db4af115ac415ea599e31e5be26`; freeze file/value:
+  `9d5edbbee19ebf4e76fbbdeeb0a0a538baefe7752e4f602d529777766bb743a4` /
+  `16bdd5fac594beaa5de1742ec423e9169ca7b6b384bf7558a676cd19cca0253d`.
+- Positive run id remains
+  `RUN-SHA256-5b061c46627e651da35d788decc11cfe5500dc2440451021db67f9367468f947`.
+  External replay receipt file: `f906bcefd204745277e70925e65088a5b6f4dfaca1691fb1277f1d4bf91a9695`;
+  normalized result file/value remain `bd46477669f11f07bdc588b1cdbcea5f09da9a20d3b6b01f8c93781ab19e75ff` /
+  `30c2f54f61ba5071b0d9a1c465ca7eddb54657f09d090055f6e101b83032c893`.
+
+### Process boundary and next owner
+
+All npm/Vitest checks ran with `npm_config_offline=true` against the already-present local dependency tree. There was
+no `npx`, network attempt, installation, model/provider call, private/real history, deployment, `ACTIVE`, measured
+Host run, scalar result, or contract change. This handoff is Builder evidence, not acceptance. Fresh independent
+Evaluation Module re-QA must fix and judge the exact source candidate above; Submission QA and measured use remain
+unauthorized.
