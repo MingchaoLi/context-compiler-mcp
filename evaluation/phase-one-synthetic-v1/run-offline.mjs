@@ -529,12 +529,12 @@ function validateCorpus(corpus) {
     assert(!normalized.includes("expected terminal"), `${path} contains expected-terminal data`);
   });
 
-  const oracleOnlyTokens = ["CONFLICTING", "UNRELATED", "ABSTAIN_OR_QUALIFY"];
+  const prohibitionTokens = ["CONFLICTING", "UNRELATED"];
   for (const item of corpus.cases) {
     scanStringsAndKeys(
       { sources: item.sources, current_input: item.current_input, fallback_scenario: item.fallback_scenario },
       (value, path) => {
-        for (const token of oracleOnlyTokens) {
+        for (const token of prohibitionTokens) {
           assert(!value.includes(token), `${item.case_id}.${path} leaks oracle token ${token}`);
         }
       }
@@ -571,6 +571,37 @@ function scanStringsAndKeys(value, visitor, path = "$") {
   for (const [key, item] of Object.entries(value)) {
     visitor(key, `${path}.{key}`);
     scanStringsAndKeys(item, visitor, `${path}.${key}`);
+  }
+}
+
+function validateQualificationMarkerSeparation(oracle, corpus) {
+  const qualificationMarkers = oracle.cases.flatMap(({ qualification_labels: labels }) =>
+    labels.map(({ marker }) => marker)
+  );
+  assert(
+    new Set(qualificationMarkers).size === qualificationMarkers.length,
+    "qualification marker registry must be duplicate-free"
+  );
+  for (const item of corpus.cases) {
+    const cutoffVisibleSources = item.sources.filter(
+      ({ stream_seq: streamSeq }) => streamSeq <= item.common_cutoff.visible_through_stream_seq
+    );
+    scanStringsAndKeys(
+      {
+        sources: cutoffVisibleSources,
+        current_input: item.current_input,
+        fallback_scenario: item.fallback_scenario,
+      },
+      (value, path) => {
+        for (const marker of qualificationMarkers) {
+          assert(
+            !value.includes(marker),
+            `${item.case_id}.${path} leaks registered qualification marker ${marker}`,
+            "INVALID_ORACLE_EXPOSURE"
+          );
+        }
+      }
+    );
   }
 }
 
@@ -671,6 +702,7 @@ function validateOracle(oracle, corpus) {
       oracle.cases[3].qualification_labels[0].marker === "[[ABSTAIN_OR_QUALIFY]]",
     "qualification markers do not match the frozen registry"
   );
+  validateQualificationMarkerSeparation(oracle, corpus);
 }
 
 function renderCase(corpusCase) {

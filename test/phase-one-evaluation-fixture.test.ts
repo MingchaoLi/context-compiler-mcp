@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   copyFileSync,
   mkdirSync,
@@ -67,6 +68,10 @@ function loadJson(name: string): any {
   return JSON.parse(readFileSync(join(fixtureDirectory, name), "utf8"));
 }
 
+function sha256(value: string | Buffer): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
 function renderCase(corpusCase: any): { history: string; full: string } {
   const history = corpusCase.sources
     .filter((source: any) => source.stream_seq <= corpusCase.common_cutoff.visible_through_stream_seq)
@@ -88,6 +93,112 @@ function assertNoScalarAuthority(value: unknown): void {
   for (const [key, nested] of Object.entries(value)) {
     expect(["score", "rank", "winner", "passed", "weights"]).not.toContain(key);
     assertNoScalarAuthority(nested);
+  }
+}
+
+function rewriteCoordinatedFixture(
+  root: string,
+  mutateCorpus: (corpus: any) => void
+): void {
+  const copiedFixtureDirectory = join(root, "evaluation", "phase-one-synthetic-v1");
+  mkdirSync(copiedFixtureDirectory, { recursive: true });
+  const names = [
+    "corpus.json",
+    "oracle.json",
+    "renderer.json",
+    "run-manifest-fixtures.json",
+    "freeze.json",
+    "run-offline.mjs",
+  ];
+  for (const name of names) {
+    copyFileSync(join(fixtureDirectory, name), join(copiedFixtureDirectory, name));
+  }
+
+  const writeCanonicalJson = (name: string, value: unknown): void => {
+    writeFileSync(join(copiedFixtureDirectory, name), `${canonicalize(value)}\n`);
+  };
+  const descriptor = (name: string): { file: string; value: string } => {
+    const file = readFileSync(join(copiedFixtureDirectory, name));
+    return { file: sha256(file), value: sha256(file.subarray(0, file.length - 1)) };
+  };
+
+  const corpus = loadJsonFrom(copiedFixtureDirectory, "corpus.json");
+  mutateCorpus(corpus);
+  writeCanonicalJson("corpus.json", corpus);
+
+  const renderer = loadJsonFrom(copiedFixtureDirectory, "renderer.json");
+  renderer.case_renderings = corpus.cases.map((corpusCase: any) => {
+    const rendered = renderCase(corpusCase);
+    return {
+      case_id: corpusCase.case_id,
+      d0_history_utf8_bytes: Buffer.byteLength(rendered.history, "utf8"),
+      full_packet_utf8_bytes: Buffer.byteLength(rendered.full, "utf8"),
+      full_packet_sha256: sha256(rendered.full),
+      declared_context_units: rendered.full.length === 0 ? 0 : Math.max(1, Math.ceil(rendered.full.length / 4)),
+      evidence_status: "ESTIMATED",
+    };
+  });
+  writeCanonicalJson("renderer.json", renderer);
+
+  const corpusDigest = descriptor("corpus.json");
+  const oracleDigest = descriptor("oracle.json");
+  const rendererDigest = descriptor("renderer.json");
+  const fixtures = loadJsonFrom(copiedFixtureDirectory, "run-manifest-fixtures.json");
+  for (const manifest of [fixtures.template, fixtures.positive_control.manifest]) {
+    manifest.workload.corpus_file_sha256 = corpusDigest.file;
+    manifest.workload.corpus_value_sha256 = corpusDigest.value;
+    manifest.workload.oracle_file_sha256 = oracleDigest.file;
+    manifest.workload.oracle_value_sha256 = oracleDigest.value;
+    manifest.workload.renderer_file_sha256 = rendererDigest.file;
+    manifest.workload.renderer_value_sha256 = rendererDigest.value;
+    manifest.workload.case_bindings.forEach((binding: any, index: number) => {
+      binding.current_input_sha256 = sha256(corpus.cases[index].current_input);
+    });
+  }
+  const manifestWithoutRunId = { ...fixtures.positive_control.manifest };
+  delete manifestWithoutRunId.run_id;
+  fixtures.positive_control.manifest.run_id = `RUN-SHA256-${sha256(canonicalize(manifestWithoutRunId))}`;
+  writeCanonicalJson("run-manifest-fixtures.json", fixtures);
+
+  const freeze = loadJsonFrom(copiedFixtureDirectory, "freeze.json");
+  const roles = new Map(freeze.files.map((item: any) => [item.path, item.role]));
+  const valueNames = new Set(["corpus.json", "oracle.json", "renderer.json", "run-manifest-fixtures.json"]);
+  freeze.files = names
+    .filter((name) => name !== "freeze.json")
+    .map((name) => {
+      const path = `evaluation/phase-one-synthetic-v1/${name}`;
+      const file = readFileSync(join(copiedFixtureDirectory, name));
+      return {
+        path,
+        role: roles.get(path),
+        file_sha256: sha256(file),
+        value_sha256_or_NOT_APPLICABLE: valueNames.has(name)
+          ? sha256(file.subarray(0, file.length - 1))
+          : "NOT_APPLICABLE",
+      };
+    })
+    .sort((left, right) => left.path.localeCompare(right.path));
+  freeze.fixture_bundle_sha256 = sha256(canonicalize(
+    freeze.files.map(({ path, file_sha256 }: any) => ({ path, sha256: file_sha256 }))
+  ));
+  writeCanonicalJson("freeze.json", freeze);
+}
+
+function loadJsonFrom(directory: string, name: string): any {
+  return JSON.parse(readFileSync(join(directory, name), "utf8"));
+}
+
+function runCoordinatedCorpusRewrite(mutateCorpus: (corpus: any) => void): ReturnType<typeof spawnSync> {
+  const root = mkdtempSync(join(tmpdir(), "rc-phase-one-coordinated-rewrite-"));
+  try {
+    rewriteCoordinatedFixture(root, mutateCorpus);
+    return spawnSync(
+      process.execPath,
+      [join(root, "evaluation", "phase-one-synthetic-v1", "run-offline.mjs"), "validate"],
+      { cwd: root, encoding: "utf8" }
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 }
 
@@ -162,6 +273,30 @@ describe("phase-one public synthetic evaluation fixture", () => {
     expect(corpusText).not.toContain("EVALUATOR_CONTROL");
     expect(oracle.classification).toBe("PUBLIC_SYNTHETIC_EVALUATOR_CONTROL_NOT_HIDDEN_HOLDOUT");
     expect(new Set(corpus.cases.map((item: any) => item.primary_category)).size).toBe(6);
+  });
+
+  it("rejects every registered qualification marker after a coordinated corpus receipt rewrite", () => {
+    const benign = runCoordinatedCorpusRewrite((corpus) => {
+      corpus.cases[0].sources[0].text += " Synthetic coordinated receipt control.";
+    });
+    expect(benign.status).toBe(0);
+
+    const oracle = loadJson("oracle.json");
+    const markers = oracle.cases.flatMap((item: any) =>
+      item.qualification_labels.map(({ marker }: any) => marker)
+    );
+    const surfaces = [
+      (corpus: any, marker: string) => { corpus.cases[0].sources[0].text += ` ${marker}`; },
+      (corpus: any, marker: string) => { corpus.cases[0].current_input += ` ${marker}`; },
+      (corpus: any, marker: string) => { corpus.cases[0].fallback_scenario.trigger += ` ${marker}`; },
+    ];
+    for (const marker of markers) {
+      for (const inject of surfaces) {
+        const result = runCoordinatedCorpusRewrite((corpus) => inject(corpus, marker));
+        expect(result.status).toBe(1);
+        expect(JSON.parse(result.stderr).error.code).toBe("INVALID_ORACLE_EXPOSURE");
+      }
+    }
   });
 
   it("reconstructs every renderer byte count, digest shape, and frozen estimator unit", () => {
