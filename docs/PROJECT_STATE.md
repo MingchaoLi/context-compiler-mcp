@@ -1,5 +1,9 @@
 # RippleContext project state
 
+## 当前执行规则（2026-08-31）
+
+普通任务采用 `中文任务 → 设计 → 一次架构评审 → 开发 → 独立 Module QA → main → main smoke → 完成`。不再强制新建 work order、Task Capsule、Fresh re-QA、reconciliation 或 `integration/*`；下文旧工单与多轮 QA 只作为历史证据，不得恢复为当前路由。
+
 Updated: 2026-08-28
 
 ## Current approved baseline

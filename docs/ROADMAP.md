@@ -1,5 +1,9 @@
 # Roadmap
 
+## 当前流程覆盖（2026-08-31）
+
+下列编号工单保留产品历史和功能范围，不再规定新任务的交付流程。普通任务由 Module Owner 在一次 Architecture 评审后连续完成开发、同一独立 QA 的必要复核、直接合入 `main` 和 main smoke；不再创建 Fresh re-QA 路线、reconciliation 或 `integration/*`。
+
 Work proceeds in this order:
 
 1. **ST-01 — Model-independent State Delta pipeline. ACCEPTED.** Independent QA passed on 2026-08-23. Prepare/apply operations use durable snapshot validation, revision checks inside the SQLite transaction, strict parsing, and atomic reducer application.

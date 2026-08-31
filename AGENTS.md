@@ -1,13 +1,15 @@
-# Context Compiler MCP collaboration rules
+# Context Compiler Core 扁平化协作规则
 
 Repository files and Git history are the source of truth. Chat history is not.
 
-Before changing code:
+开始任务前：
 
 1. Read `docs/PROJECT_STATE.md` and `docs/ROADMAP.md`.
-2. Read exactly one current work order under `docs/work-orders/`.
-3. Read only the architecture, decisions, and source files routed by that work order.
-4. If acceptance criteria are missing, update the work order before implementation.
+2. Read the current Chinese mailbox task or task document and its referenced public Architecture/Interface.
+3. Read only the source and evidence required by that task.
+4. If Requirement or a public protocol is undefined, return one bounded question; Module Owner decides undefined internal implementation details.
+
+普通任务不要求 work order、Task Capsule、逐提交 manifest、reconciliation、`integration/*` 或每模块 Submission QA。历史工单只保留功能范围和证据价值，其旧流程条款不再用于新路由。
 
 ## Boundaries
 
@@ -17,13 +19,16 @@ Before changing code:
 - No model provider is selected here. A future optional `ExtractorTransport` may be supplied from outside.
 - Never put credentials, raw private conversations, database files, logs, or generated build output in Git.
 
-## Delivery and QA
+## 交付与 QA
 
-- One work order must produce one bounded result.
-- Implementers write `docs/handoffs/<WORK-ORDER>.md` and must not approve their own work.
-- Independent QA writes `docs/qa/<WORK-ORDER>.md`. A failure returns to the implementation branch for a new append-only fix commit.
+- 默认直线流程：`接到任务 → 模块设计 → 一次架构评审 → 开发 → 独立 Module QA → 合入 main → main smoke → 完成`。
+- Builder 不得批准自己的实现；Module Owner 负责组织独立 Module QA。
+- QA RETURN 留在同一模块任务中连续修复，由同一独立 QA 定点复核失败项和必要回归；不得创建新的 Fresh re-QA 路线。
+- Module QA PASS 后，Module Owner 在 expected-old 与工作树安全条件满足时直接合入 `refs/heads/main` 并执行 main smoke。
+- 只有 `main` 包含已测试实现且 main smoke 通过才算模块完成；候选分支、`integration/*`、handoff 或 reconciliation 均不算完成。
+- 所有必要模块完成后只执行一次独立 Golden Path QA 和有限本地安全检查。
 - Preserve unrelated changes and filtered history; do not rewrite published commits.
-- Run the work order's checks, plus at least `npm test` and `npm run build` for source changes.
+- Run the task's focused checks, plus at least `npm test` and `npm run build` for source changes.
 
 ## 对抗审查
 
