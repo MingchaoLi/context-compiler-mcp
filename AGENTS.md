@@ -11,6 +11,22 @@ Repository files and Git history are the source of truth. Chat history is not.
 
 普通任务不要求 work order、Task Capsule、逐提交 manifest、reconciliation、`integration/*` 或每模块 Submission QA。历史工单只保留功能范围和证据价值，其旧流程条款不再用于新路由。
 
+## 上下文纪律
+
+- 把上下文当作工作记忆，不把仓库整体倾倒进上下文；上下文更多不天然更好。
+- 优先使用定向搜索、窄范围读取、当前 Authority、确定性过滤与生命周期清理，而不是穷举探索。
+- 继续取证前，先写清尚未解决的问题以及回答它所需的最小证据。
+- 不得仅因仍有上下文容量而继续调查。
+- 除非具体歧义要求，不重复读取已经检查过的范围。
+- 优先读取当前实现与生效合同；已取代计划、历史工单和过期设计讨论默认排除。
+- 源码默认按小范围定向读取（通常不超过约 120 行）；只有确需连续语境时才扩展。明确要求完整读取的 Authority、指令文件与当前合同仍须完整读取。
+- Shell 与测试输出默认裁剪；只有诊断具体失败时使用详细输出。
+- 新获取证据累计约 30K tokens 后，停止继续取证并重新判断任务是否已经可以回答。**停止并决策，不是停止后再总结。**
+- 优先删除无关、重复、已关闭或已取代材料，而不是依赖模型压缩。
+- 只有保留内容仍与决策相关、且很可能复用时才使用压缩。
+- 优化目标是正确性、决策相关信息密度、请求次数、延迟与信息保真，而不是单独追求 Token 减少。
+- 这些是默认调查预算，不是正确性上限；只有具体未决问题确实需要更多证据时才超出。
+
 ## Boundaries
 
 - This repository owns the model-independent Context Compiler core and its MCP service.
