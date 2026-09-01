@@ -56,6 +56,24 @@ Library ledger 的公开 `append` 只接收未来研究记录 `ACTION / OUTCOME 
 
 `ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy` 与 `operation_id`。MCP 工具仍精确为九个。
 
+## Context Pressure Router library
+
+The package-root `routeContextPressure` export is the provider-neutral,
+side-effect-free PI-001-D state machine. Callers provide exact
+Host/session/generation/lineage identity, trusted request/window/reserve
+measurements, C SHORT readiness, E promotion status, and explicit LONG
+Binding/receipt/coverage/frontier/causal/semantic/budget gates. The result is a
+deterministic `SHORT_ACTIVE / PROMOTING / LONG_ACTIVE / FALLBACK` decision and
+`NATIVE / SHORT_REPLACE / LONG_REPLACE / SHADOW_ONLY` action suggestion.
+
+Policy v1 fixes the normal Semantic Spine at 30 user-visible interactions,
+starts real shadow/promotion governance at 50% usable-window pressure, marks
+80% as high pressure, and requires at least 20% savings on the same complete
+provider request before LONG. A trusted versioned conservative reserve/safety
+baseline may fill those two boundaries; current request tokens and model
+window still require credible sources. The function never compiles, ingests,
+persists, calls a model/provider, or deletes history.
+
 ## Requirements and setup
 
 Node.js 24 or newer is required.
