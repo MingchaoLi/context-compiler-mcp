@@ -117,7 +117,9 @@ export class CanonicalStateError extends Error {
   }
 }
 
-interface NormalizedCanonicalStateCommitInput extends CanonicalStateCommitInput {
+/** @internal Normalized owner input accepted by same-handle Core composition. */
+export interface NormalizedCanonicalStateCommitInputInsideCore
+  extends CanonicalStateCommitInput {
   request: Record<string, JsonValue>;
 }
 
@@ -326,57 +328,9 @@ export class SqliteCanonicalStateStore {
           expected_state_revision: normalized.expected_state_revision,
           request: normalized.request,
         },
-        ({ previous, current, database }) => {
-          if (normalized.policy_hash !== CANONICAL_STATE_POLICY_HASH) invalid();
-          const previousState = previous.state_revision === 0
-            ? cloneState(EMPTY_CANONICAL_STATE)
-            : this.#readStateInsideTransaction(database, normalized.scope, previous.state_revision);
-          assertCommittedProvenance(
-            database,
-            normalized.scope,
-            normalized.provenance_event_ids,
-            previous.ledger_revision
-          );
-          const nextState = reduceState(previousState, normalized.proposal);
-          if (canonicalJson(stateAsJson(nextState)) === canonicalJson(stateAsJson(previousState))) {
-            conflict();
-          }
-          const createdAt = new Date().toISOString();
-          const committed: CommittedCanonicalStateRevision = {
-            ...normalized.scope,
-            state_revision: current.state_revision,
-            state_commit_id: normalized.state_commit_id,
-            commit_mode: normalized.commit_mode,
-            previous_state_revision: previous.state_revision,
-            proposal: cloneProposal(normalized.proposal),
-            state: cloneState(nextState),
-            state_hash: sha256(canonicalJson(stateAsJson(nextState))),
-            policy_hash: CANONICAL_STATE_POLICY_HASH,
-            provenance_event_ids: [...normalized.provenance_event_ids],
-            created_at: createdAt,
-          };
-          database.prepare(
-            `INSERT INTO cc_canonical_state_revisions (
-               namespace, stream_id, state_revision, state_commit_id, commit_mode,
-               previous_state_revision, proposal_json, state_json, state_hash,
-               policy_hash, provenance_event_ids_json, created_at
-             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-          ).run(
-            committed.namespace,
-            committed.stream_id,
-            committed.state_revision,
-            committed.state_commit_id,
-            committed.commit_mode,
-            committed.previous_state_revision,
-            canonicalJson(proposalAsJson(committed.proposal)),
-            canonicalJson(stateAsJson(committed.state)),
-            committed.state_hash,
-            committed.policy_hash,
-            canonicalJson(committed.provenance_event_ids),
-            committed.created_at
-          );
-          return committedAsJson(committed);
-        }
+        ({ previous, current, database }) => committedAsJson(
+          applyCanonicalStateInsideCore(database, normalized, previous, current)
+        )
       );
       const replayed = parseCommittedValue(record.result);
       if (
@@ -537,22 +491,112 @@ export class SqliteCanonicalStateStore {
     scope: RevisionScope,
     stateRevision: number
   ): CanonicalState {
-    const row = database.prepare(
-      `SELECT state_json, state_hash FROM cc_canonical_state_revisions
-       WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
-    ).get(scope.namespace, scope.stream_id, stateRevision) as {
-      state_json: string;
-      state_hash: string;
-    } | undefined;
-    if (row === undefined) corrupt();
-    const state = parseStoredState(row.state_json);
-    if (storedHash(row.state_hash) !== sha256(canonicalJson(stateAsJson(state)))) corrupt();
-    return state;
+    return readCanonicalStateSnapshotInsideCore(database, scope, stateRevision);
   }
 
   #assertOpen(): void {
     if (this.#closed) throw new CanonicalStateError("CLOSED");
   }
+}
+
+/**
+ * @internal Applies one normalized State proposal on the caller-owned substrate
+ * transaction. Transaction lifecycle and the State marker remain substrate-owned.
+ */
+export function applyCanonicalStateInsideCore(
+  database: DatabaseSync,
+  normalized: NormalizedCanonicalStateCommitInputInsideCore,
+  previous: RevisionVector,
+  current: RevisionVector
+): CommittedCanonicalStateRevision {
+  if (normalized.policy_hash !== CANONICAL_STATE_POLICY_HASH) invalid();
+  if (
+    previous.namespace !== normalized.scope.namespace ||
+    previous.stream_id !== normalized.scope.stream_id ||
+    current.namespace !== normalized.scope.namespace ||
+    current.stream_id !== normalized.scope.stream_id ||
+    current.state_revision !== previous.state_revision + 1 ||
+    !sameNonStateAxes(previous, current) ||
+    normalized.expected_state_revision !== previous.state_revision
+  ) {
+    conflict();
+  }
+  const previousState = previous.state_revision === 0
+    ? cloneState(EMPTY_CANONICAL_STATE)
+    : readCanonicalStateSnapshotInsideCore(
+      database,
+      normalized.scope,
+      previous.state_revision
+    );
+  assertCommittedProvenance(
+    database,
+    normalized.scope,
+    normalized.provenance_event_ids,
+    previous.ledger_revision
+  );
+  const nextState = reduceState(previousState, normalized.proposal);
+  if (canonicalJson(stateAsJson(nextState)) === canonicalJson(stateAsJson(previousState))) {
+    conflict();
+  }
+  const committed: CommittedCanonicalStateRevision = {
+    ...normalized.scope,
+    state_revision: current.state_revision,
+    state_commit_id: normalized.state_commit_id,
+    commit_mode: normalized.commit_mode,
+    previous_state_revision: previous.state_revision,
+    proposal: cloneProposal(normalized.proposal),
+    state: cloneState(nextState),
+    state_hash: sha256(canonicalJson(stateAsJson(nextState))),
+    policy_hash: CANONICAL_STATE_POLICY_HASH,
+    provenance_event_ids: [...normalized.provenance_event_ids],
+    created_at: new Date().toISOString(),
+  };
+  database.prepare(
+    `INSERT INTO cc_canonical_state_revisions (
+       namespace, stream_id, state_revision, state_commit_id, commit_mode,
+       previous_state_revision, proposal_json, state_json, state_hash,
+       policy_hash, provenance_event_ids_json, created_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    committed.namespace,
+    committed.stream_id,
+    committed.state_revision,
+    committed.state_commit_id,
+    committed.commit_mode,
+    committed.previous_state_revision,
+    canonicalJson(proposalAsJson(committed.proposal)),
+    canonicalJson(stateAsJson(committed.state)),
+    committed.state_hash,
+    committed.policy_hash,
+    canonicalJson(committed.provenance_event_ids),
+    committed.created_at
+  );
+  return parseCommittedValue(committedAsJson(committed));
+}
+
+/** @internal Strict normalization before a Core-owned composition transaction opens. */
+export function normalizeCanonicalStateInputInsideCore(
+  value: unknown
+): NormalizedCanonicalStateCommitInputInsideCore {
+  return normalizeCommitInput(value);
+}
+
+function readCanonicalStateSnapshotInsideCore(
+  database: DatabaseSync,
+  scope: RevisionScope,
+  stateRevision: number
+): CanonicalState {
+  const row = database.prepare(
+    `SELECT state_json, state_hash FROM cc_canonical_state_revisions
+     WHERE namespace = ? AND stream_id = ? AND state_revision = ?`
+  ).get(scope.namespace, scope.stream_id, stateRevision) as {
+    state_json: string;
+    state_hash: string;
+  } | undefined;
+  if (row === undefined) corrupt();
+  const state = parseStoredState(row.state_json);
+  if (storedHash(row.state_hash) !== sha256(canonicalJson(stateAsJson(state)))) corrupt();
+  return state;
 }
 
 export function migrateCanonicalState(database: DatabaseSync): void {
@@ -709,7 +753,7 @@ export function readCanonicalStateProjectionInsideCore(
   return projectionFromCommitted(authority.committed, observed);
 }
 
-function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInput {
+function normalizeCommitInput(value: unknown): NormalizedCanonicalStateCommitInputInsideCore {
   const input = readExactObject(value, [
     "scope",
     "state_commit_id",

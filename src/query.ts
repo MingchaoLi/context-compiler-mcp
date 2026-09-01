@@ -23,6 +23,11 @@ import {
   type SessionScope,
 } from "./session-scope.js";
 import type { RawEvent } from "./raw-store.js";
+import {
+  SqliteCaseFormationStore,
+  type CaseFormationReadRequestV1,
+  type CaseFormationReadResultV1,
+} from "./case-formation.js";
 
 export type {
   SessionListInput,
@@ -33,6 +38,8 @@ export type {
   KeywordRecallHit,
   KeywordRecallQuery,
   ScopedKeywordRecallQuery,
+  CaseFormationReadRequestV1,
+  CaseFormationReadResultV1,
 };
 
 /** Read-only projection of the existing Context State for one session. */
@@ -57,7 +64,7 @@ const QUERY_CLOSED = "Core read query is closed";
 /**
  * Dedicated, read-only RippleContext query surface for page/Console backends.
  *
- * It exposes only enumeration and recall reads. It never exposes write,
+ * It exposes only enumeration, recall and versioned Case/Conclusion reads. It never exposes write,
  * authority, storage schema, database paths or credentials. This is a separate
  * package subpath from the nine-tool MCP service and the full library root.
  */
@@ -65,6 +72,7 @@ export class CoreReadQuery {
   readonly #raw: SqliteRawHistoryStore;
   readonly #state: SqliteContextStateStore;
   readonly #recall: SqliteHistoryRecallStore;
+  readonly #caseFormation: Pick<SqliteCaseFormationStore, "read" | "close">;
   #closed = false;
 
   constructor(databasePath: string) {
@@ -74,19 +82,23 @@ export class CoreReadQuery {
     let raw: SqliteRawHistoryStore | undefined;
     let state: SqliteContextStateStore | undefined;
     let recall: SqliteHistoryRecallStore | undefined;
+    let caseFormation: SqliteCaseFormationStore | undefined;
     try {
       raw = new SqliteRawHistoryStore(databasePath);
       state = new SqliteContextStateStore(databasePath);
       recall = new SqliteHistoryRecallStore(databasePath);
+      caseFormation = new SqliteCaseFormationStore(databasePath, raw);
     } catch {
       safeClose(raw);
       safeClose(state);
       safeClose(recall);
+      safeClose(caseFormation);
       throw queryFailure(QUERY_UNAVAILABLE);
     }
     this.#raw = raw;
     this.#state = state;
     this.#recall = recall;
+    this.#caseFormation = caseFormation;
   }
 
   listSessions(input: SessionListInput): SessionListResult {
@@ -170,6 +182,12 @@ export class CoreReadQuery {
     }));
   }
 
+  /** Versioned Case/Conclusion view for Console and page backends. */
+  readCaseFormation(request: CaseFormationReadRequestV1): CaseFormationReadResultV1 {
+    this.#assertOpen();
+    return this.#read(() => this.#caseFormation.read(request));
+  }
+
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
@@ -185,6 +203,11 @@ export class CoreReadQuery {
     }
     try {
       this.#recall.close();
+    } catch {
+      /* shutdown remains deterministic */
+    }
+    try {
+      this.#caseFormation.close();
     } catch {
       /* shutdown remains deterministic */
     }

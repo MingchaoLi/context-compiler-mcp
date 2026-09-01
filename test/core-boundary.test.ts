@@ -76,6 +76,12 @@ describe("ContextCompilerCore boundary", () => {
     expect("executeSemanticEnrichmentInsideCore" in publicSurface).toBe(false);
     expect("readCanonicalStateAuthorityInsideCore" in publicSurface).toBe(false);
     expect("applyCanonicalFactRelationInsideCore" in publicSurface).toBe(false);
+    expect("SqliteSemanticFormationStore" in publicSurface).toBe(false);
+    expect("readLedgerRawEventReceiptsInsideCore" in publicSurface).toBe(false);
+    expect("applyCanonicalStateInsideCore" in publicSurface).toBe(false);
+    expect("normalizeCanonicalStateInputInsideCore" in publicSurface).toBe(false);
+    expect("parseSemanticPreparationRequestV1" in publicSurface).toBe(true);
+    expect("parseCanonicalSemanticProposalV1" in publicSurface).toBe(true);
 
     const core = new ContextCompilerCore(databasePath());
     const ownValues = Reflect.ownKeys(core).map((key) => Reflect.get(core, key));

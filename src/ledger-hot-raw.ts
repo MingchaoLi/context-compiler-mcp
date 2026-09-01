@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -56,6 +57,15 @@ export interface HotRawProjection extends RevisionScope {
   events: LedgerRawEvent[];
 }
 
+/** @internal Exact immutable Raw row/marker witness for Core composition owners. */
+export interface LedgerRawEventReceiptInsideCore {
+  event: LedgerRawEvent;
+  event_hash: string;
+  marker_request_fingerprint: string;
+  marker_current: RevisionVector;
+  receipt_hash: string;
+}
+
 export class LedgerHotRawError extends Error {
   constructor(readonly code: LedgerHotRawErrorCode) {
     super(code);
@@ -95,6 +105,16 @@ interface EventRow extends Record<string, unknown> {
   payload_json: string;
   occurred_at: string | null;
   created_at: string;
+}
+
+interface RawEventMarkerRow extends Record<string, unknown> {
+  operation: string;
+  kind: string;
+  request_fingerprint: string;
+  request_json: string;
+  previous_json: string;
+  current_json: string;
+  result_json: string;
 }
 
 const MAX_SCOPE_IDENTIFIER_LENGTH = 500;
@@ -416,6 +436,93 @@ export function readLedgerRawEventsInsideCore(
     (left.event_id < right.event_id ? -1 : left.event_id > right.event_id ? 1 : 0));
 }
 
+/** @internal Reads exact Raw rows and proves their immutable substrate append receipts. */
+export function readLedgerRawEventReceiptsInsideCore(
+  database: DatabaseSync,
+  scopeValue: RevisionScope,
+  eventIdsValue: readonly string[],
+  observedValue: RevisionVector
+): LedgerRawEventReceiptInsideCore[] {
+  const scope = normalizeScope(scopeValue);
+  const observed = vectorFromRow({
+    namespace: observedValue.namespace,
+    stream_id: observedValue.stream_id,
+    ledger_revision: observedValue.ledger_revision,
+    state_revision: observedValue.state_revision,
+    raw_frontier_revision: observedValue.raw_frontier_revision,
+    frontier_position: observedValue.frontier_position,
+    takeover_commit_revision: observedValue.takeover_commit_revision,
+  }, scope);
+  const events = readLedgerRawEventsInsideCore(
+    database,
+    scope,
+    eventIdsValue,
+    observed.ledger_revision
+  );
+  return events.map((event) => {
+    const row = database.prepare(
+      `SELECT operation, kind, request_fingerprint, request_json,
+              previous_json, current_json, result_json
+       FROM cc_revision_commits
+       WHERE namespace = ? AND stream_id = ? AND commit_id = ?`
+    ).get(scope.namespace, scope.stream_id, event.event_id) as RawEventMarkerRow | undefined;
+    if (row === undefined || row.operation !== "LEDGER" || row.kind !== "RAW_EVENT_APPEND") {
+      corrupt();
+    }
+    const previous = parseStoredVector(row.previous_json, scope);
+    const current = parseStoredVector(row.current_json, scope);
+    if (
+      current.ledger_revision !== previous.ledger_revision + 1 ||
+      current.ledger_revision !== event.ledger_revision ||
+      current.state_revision !== previous.state_revision ||
+      current.raw_frontier_revision !== previous.raw_frontier_revision ||
+      current.frontier_position !== previous.frontier_position ||
+      current.takeover_commit_revision !== previous.takeover_commit_revision ||
+      !vectorAtOrAfter(observed, current)
+    ) {
+      corrupt();
+    }
+    const request = {
+      scope: { namespace: scope.namespace, stream_id: scope.stream_id },
+      commit_id: event.event_id,
+      operation: "LEDGER",
+      kind: "RAW_EVENT_APPEND",
+      request: {
+        source_kind: event.source_kind,
+        source_id: event.source_id,
+        ...(event.source_session_id === undefined
+          ? {}
+          : { source_session_id: event.source_session_id }),
+        payload: event.payload,
+        ...(event.occurred_at === undefined ? {} : { occurred_at: event.occurred_at }),
+      },
+    } satisfies Record<string, JsonValue>;
+    const requestJson = canonicalJson(request);
+    const requestFingerprint = storedHash(row.request_fingerprint);
+    if (row.request_json !== requestJson || requestFingerprint !== sha256(requestJson)) corrupt();
+    const eventJson = canonicalJson(eventAsJson(event));
+    if (canonicalJson(parseStoredJson(row.result_json)) !== eventJson) corrupt();
+    const eventHash = sha256(eventJson);
+    const receiptBase: JsonValue = {
+      schema_version: 1,
+      namespace: scope.namespace,
+      stream_id: scope.stream_id,
+      event_id: event.event_id,
+      ledger_revision: event.ledger_revision,
+      event_hash: eventHash,
+      marker_request_fingerprint: requestFingerprint,
+      marker_current: vectorAsJson(current),
+    };
+    return {
+      event: cloneEvent(event),
+      event_hash: eventHash,
+      marker_request_fingerprint: requestFingerprint,
+      marker_current: { ...current },
+      receipt_hash: sha256(canonicalJson(receiptBase)),
+    };
+  });
+}
+
 export function migrateLedgerHotRaw(database: DatabaseSync): void {
   database.exec("BEGIN IMMEDIATE;");
   try {
@@ -684,6 +791,44 @@ function eventAsJson(event: LedgerRawEvent): JsonValue {
   };
 }
 
+function cloneEvent(event: LedgerRawEvent): LedgerRawEvent {
+  return {
+    ...event,
+    payload: cloneJson(event.payload),
+  };
+}
+
+function vectorAsJson(vector: RevisionVector): JsonValue {
+  return {
+    namespace: vector.namespace,
+    stream_id: vector.stream_id,
+    ledger_revision: vector.ledger_revision,
+    state_revision: vector.state_revision,
+    raw_frontier_revision: vector.raw_frontier_revision,
+    frontier_position: vector.frontier_position,
+    takeover_commit_revision: vector.takeover_commit_revision,
+  };
+}
+
+function parseStoredVector(json: string, scope: RevisionScope): RevisionVector {
+  const object = readExactObject(parseStoredJson(json), [
+    "namespace", "stream_id", "ledger_revision", "state_revision",
+    "raw_frontier_revision", "frontier_position", "takeover_commit_revision",
+  ], [
+    "namespace", "stream_id", "ledger_revision", "state_revision",
+    "raw_frontier_revision", "frontier_position", "takeover_commit_revision",
+  ]);
+  return vectorFromRow({
+    namespace: storedString(object.namespace),
+    stream_id: storedString(object.stream_id),
+    ledger_revision: storedNumber(object.ledger_revision),
+    state_revision: storedNumber(object.state_revision),
+    raw_frontier_revision: storedNumber(object.raw_frontier_revision),
+    frontier_position: storedNumber(object.frontier_position),
+    takeover_commit_revision: storedNumber(object.takeover_commit_revision),
+  }, scope);
+}
+
 function vectorFromRow(row: StreamRow, expectedScope: RevisionScope): RevisionVector {
   const scope = storedScope(row.namespace, row.stream_id);
   if (scope.namespace !== expectedScope.namespace || scope.stream_id !== expectedScope.stream_id) {
@@ -773,6 +918,15 @@ function storedString(value: unknown): string {
 function storedNumber(value: unknown): number {
   if (typeof value !== "number") corrupt();
   return value;
+}
+
+function storedHash(value: unknown): string {
+  if (typeof value !== "string" || !/^[a-f0-9]{64}$/u.test(value)) corrupt();
+  return value;
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 function validateHotRawSchemaObjects(database: DatabaseSync): void {

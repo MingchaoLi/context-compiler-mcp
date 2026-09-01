@@ -32,8 +32,9 @@
     "test": "vitest run test",
     "test:protocol": "vitest run test/mcp-protocol.test.ts",
     "benchmark:session-scope": "npm run build && node evaluation/session-scope-broad-keyword.mjs",
+    "verify:query-artifact": "node validation/query-artifact.mjs",
     "start": "node dist/mcp-server.js",
-    "prepack": "npm run build"
+    "prepack": "npm run build && npm run verify:query-artifact"
   },
   "engines": {
     "node": ">=24"

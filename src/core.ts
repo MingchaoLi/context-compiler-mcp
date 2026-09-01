@@ -66,6 +66,27 @@ import {
   type SemanticTakeoverCommitInput,
 } from "./semantic-takeover.js";
 import {
+  SemanticFormationError,
+  SqliteSemanticFormationStore,
+  type CanonicalSemanticProposalV1,
+  type SemanticAttestationAuthority,
+  type SemanticInterpretationPreparationV1,
+  type SemanticPreparationRequestV1,
+  type SemanticProposalApplyResultV1,
+} from "./semantic-formation.js";
+import {
+  CaseFormationError,
+  RuntimeRawEvidenceProjector,
+  SqliteCaseFormationStore,
+  type CaseConclusionCommitInputV1,
+  type CaseFormationAbstainInputV1,
+  type CaseFormationFinalizationReceiptV1,
+  type CaseFormationReadRequestV1,
+  type CaseFormationReadResultV1,
+  type RuntimeRawEvidenceProjectionRequestV1,
+  type RuntimeRawEvidenceProjectionResultV1,
+} from "./case-formation.js";
+import {
   EXACT_RAW_RECEIPT_LOOKUP_CAPABILITY_NAME,
   EXACT_RAW_RECEIPT_LOOKUP_VERSION,
   SqliteRawHistoryStore,
@@ -190,6 +211,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
   readonly #hotRawStore: SqliteLedgerHotRawStore;
   readonly #canonicalStateStore: SqliteCanonicalStateStore;
   readonly #canonicalFactRelationStore: SqliteCanonicalFactRelationStore;
+  readonly #semanticFormationStore: SqliteSemanticFormationStore;
+  readonly #runtimeRawEvidenceProjector: RuntimeRawEvidenceProjector;
+  readonly #caseFormationStore: SqliteCaseFormationStore;
   readonly #authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator;
   readonly #contextSnapshotStore: SqliteContextSnapshotStore;
   private closed = false;
@@ -207,6 +231,8 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     let hotRawStore: SqliteLedgerHotRawStore | undefined;
     let canonicalStateStore: SqliteCanonicalStateStore | undefined;
     let canonicalFactRelationStore: SqliteCanonicalFactRelationStore | undefined;
+    let semanticFormationStore: SqliteSemanticFormationStore | undefined;
+    let caseFormationStore: SqliteCaseFormationStore | undefined;
     let authorityTransactionCoordinator: SqliteAuthorityTransactionCoordinator | undefined;
     let contextSnapshotStore: SqliteContextSnapshotStore | undefined;
     try {
@@ -218,6 +244,8 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
       hotRawStore = new SqliteLedgerHotRawStore(databasePath, revisionSubstrate);
       canonicalStateStore = new SqliteCanonicalStateStore(databasePath, revisionSubstrate);
       canonicalFactRelationStore = new SqliteCanonicalFactRelationStore(databasePath);
+      semanticFormationStore = new SqliteSemanticFormationStore(databasePath, revisionSubstrate);
+      caseFormationStore = new SqliteCaseFormationStore(databasePath, rawStore);
       authorityTransactionCoordinator = new SqliteAuthorityTransactionCoordinator(
         databasePath,
         revisionSubstrate
@@ -226,6 +254,8 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     } catch {
       try { contextSnapshotStore?.close(); } catch { /* preserve stable startup failure */ }
       try { authorityTransactionCoordinator?.close(); } catch { /* preserve stable startup failure */ }
+      try { caseFormationStore?.close(); } catch { /* preserve stable startup failure */ }
+      try { semanticFormationStore?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalFactRelationStore?.close(); } catch { /* preserve stable startup failure */ }
       try { canonicalStateStore?.close(); } catch { /* preserve stable startup failure */ }
       try { hotRawStore?.close(); } catch { /* preserve stable startup failure */ }
@@ -245,6 +275,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     this.#hotRawStore = hotRawStore;
     this.#canonicalStateStore = canonicalStateStore;
     this.#canonicalFactRelationStore = canonicalFactRelationStore;
+    this.#semanticFormationStore = semanticFormationStore;
+    this.#runtimeRawEvidenceProjector = new RuntimeRawEvidenceProjector(rawStore, hotRawStore);
+    this.#caseFormationStore = caseFormationStore;
     this.#authorityTransactionCoordinator = authorityTransactionCoordinator;
     this.#contextSnapshotStore = contextSnapshotStore;
   }
@@ -498,6 +531,111 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     }
   }
 
+  /** Freezes a provider-neutral, receipt-proven semantic interpretation read view. */
+  prepareSemanticInterpretation(
+    input: SemanticPreparationRequestV1,
+    attestationAuthority?: SemanticAttestationAuthority
+  ): SemanticInterpretationPreparationV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "semantic preparation input");
+      return this.#semanticFormationStore.prepare(input, attestationAuthority);
+    } catch (error) {
+      throw mapSemanticFormationError(error);
+    }
+  }
+
+  /** Reads one exact immutable semantic interpretation preparation. */
+  readSemanticInterpretationPreparation(
+    scope: RevisionScope,
+    preparationId: string
+  ): SemanticInterpretationPreparationV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "semantic preparation scope");
+      return this.#semanticFormationStore.readPreparation(scope, preparationId);
+    } catch (error) {
+      throw mapSemanticFormationError(error);
+    }
+  }
+
+  /** Validates and atomically applies one final provider-neutral semantic proposal. */
+  applyCanonicalSemanticProposal(
+    proposal: CanonicalSemanticProposalV1
+  ): SemanticProposalApplyResultV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(proposal, "canonical semantic proposal");
+      return this.#semanticFormationStore.apply(proposal);
+    } catch (error) {
+      throw mapSemanticFormationError(error);
+    }
+  }
+
+  /** Reads one exact immutable semantic proposal result. */
+  readCanonicalSemanticProposalResult(
+    scope: RevisionScope,
+    proposalId: string
+  ): SemanticProposalApplyResultV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(scope, "semantic proposal scope");
+      return this.#semanticFormationStore.readResult(scope, proposalId);
+    } catch (error) {
+      throw mapSemanticFormationError(error);
+    }
+  }
+
+  /** Validates E's exact legacy Raw receipts and idempotently projects canonical Formation refs. */
+  projectRuntimeRawEvidence(
+    input: RuntimeRawEvidenceProjectionRequestV1
+  ): RuntimeRawEvidenceProjectionResultV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "runtime Raw evidence projection input");
+      return this.#runtimeRawEvidenceProjector.project(input);
+    } catch (error) {
+      throw mapCaseFormationError(error);
+    }
+  }
+
+  /** CAS-commits one immutable effective-for-now conclusion and optional Experience candidate. */
+  commitCaseConclusion(
+    input: CaseConclusionCommitInputV1
+  ): CaseFormationFinalizationReceiptV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "Case conclusion input");
+      return this.#caseFormationStore.commit(input);
+    } catch (error) {
+      throw mapCaseFormationError(error);
+    }
+  }
+
+  /** Durably records an explicit RAW_ONLY disposition after semantic ABSTAINED. */
+  abstainCaseFormation(
+    input: CaseFormationAbstainInputV1
+  ): CaseFormationFinalizationReceiptV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "Case Formation abstention input");
+      return this.#caseFormationStore.abstain(input);
+    } catch (error) {
+      throw mapCaseFormationError(error);
+    }
+  }
+
+  /** Official read contract for current effective conclusions, history and provenance. */
+  readCaseFormation(input: CaseFormationReadRequestV1): CaseFormationReadResultV1 {
+    this.assertOpen();
+    try {
+      assertPlainData(input, "Case Formation read input");
+      return this.#caseFormationStore.read(input);
+    } catch (error) {
+      throw mapCaseFormationError(error);
+    }
+  }
+
   /** Atomically commits one contiguous semantic Takeover and Frontier advance. */
   commitSemanticTakeover(input: SemanticTakeoverCommitInput): SemanticTakeoverCommit {
     this.assertOpen();
@@ -617,6 +755,8 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     for (const store of [
       this.#contextSnapshotStore,
       this.#authorityTransactionCoordinator,
+      this.#caseFormationStore,
+      this.#semanticFormationStore,
       this.#canonicalFactRelationStore,
       this.#canonicalStateStore,
       this.#hotRawStore,
@@ -952,6 +1092,35 @@ function mapCanonicalFactRelationError(error: unknown): ContextCompilerCoreError
   if (error.code === "NOT_FOUND") return new ContextCompilerCoreError("NOT_FOUND");
   if (error.code === "CONFLICT") return new ContextCompilerCoreError("CONFLICT");
   return new ContextCompilerCoreError("STORAGE_FAILURE");
+}
+
+function mapSemanticFormationError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof SemanticFormationError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  switch (error.code) {
+    case "INVALID_INPUT":
+    case "ATTESTATION_REJECTED": return new ContextCompilerCoreError("INVALID_INPUT");
+    case "NOT_FOUND": return new ContextCompilerCoreError("NOT_FOUND");
+    case "CONFLICT": return new ContextCompilerCoreError("CONFLICT");
+    case "CORRUPT_DATA": return new ContextCompilerCoreError("CORRUPT_DATA");
+    case "CLOSED":
+    case "STORAGE_FAILURE": return new ContextCompilerCoreError("STORAGE_FAILURE");
+  }
+}
+
+function mapCaseFormationError(error: unknown): ContextCompilerCoreError {
+  if (!(error instanceof CaseFormationError)) {
+    return new ContextCompilerCoreError("INTERNAL_FAILURE");
+  }
+  switch (error.code) {
+    case "INVALID_INPUT": return new ContextCompilerCoreError("INVALID_INPUT");
+    case "NOT_FOUND": return new ContextCompilerCoreError("NOT_FOUND");
+    case "CONFLICT": return new ContextCompilerCoreError("CONFLICT");
+    case "CORRUPT_DATA": return new ContextCompilerCoreError("CORRUPT_DATA");
+    case "CLOSED":
+    case "STORAGE_FAILURE": return new ContextCompilerCoreError("STORAGE_FAILURE");
+  }
 }
 
 function mapSemanticTakeoverError(error: unknown): ContextCompilerCoreError {

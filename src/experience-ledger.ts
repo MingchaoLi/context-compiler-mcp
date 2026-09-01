@@ -273,6 +273,14 @@ export function withCompileTelemetryBoundaryInsideService<T>(
   return store[WITH_COMPILE_TELEMETRY_BOUNDARY](operation);
 }
 
+/** @internal Core-owned Formation transaction hook; caller owns BEGIN/COMMIT. */
+export function appendFormationExperienceInsideTransaction(
+  database: DatabaseSync,
+  input: ExperienceLedgerInput
+): ExperienceLedgerRecord {
+  return appendExperienceLedgerRecord(database, normalizeInput(input, "public"));
+}
+
 function normalizeCompileHit(input: unknown, index: number): Required<ContextCompileHitInput> {
   if (!isPlainObject(input)) invalid(`hits[${index}] must be a plain object`);
   assertExactKeys(input, ["subject_kind", "subject_id", "reason"], ["raw_event_ids"]);

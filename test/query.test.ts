@@ -7,6 +7,10 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CoreReadQuery } from "../src/query.js";
+import {
+  CASE_FORMATION_READ_CONTRACT_VERSION,
+  CASE_FORMATION_SESSION_SCOPE_VERSION,
+} from "../src/case-formation.js";
 import { SqliteHistoryRecallStore } from "../src/recall.js";
 import { SqliteRawHistoryStore } from "../src/raw-store.js";
 
@@ -118,6 +122,25 @@ describe("CoreReadQuery", () => {
     expect("databasePath" in readQuery).toBe(false);
   });
 
+  it("exposes Case/Conclusion through the dedicated read-only query surface", () => {
+    seed();
+    readQuery = new CoreReadQuery(databasePath);
+    expect(readQuery.readCaseFormation({
+      contract: CASE_FORMATION_READ_CONTRACT_VERSION,
+      schema_version: 1,
+      session_scope: {
+        contract_version: CASE_FORMATION_SESSION_SCOPE_VERSION,
+        write_session: { namespace: "authority", session_id: "session-a" },
+        read_scope: [{
+          session: { namespace: "authority", session_id: "session-a" },
+          frontier: { kind: "CURRENT" }, precedence: 0,
+        }],
+      },
+    })).toMatchObject({ cases: [], raw_only_finalizations: [] });
+    expect("commitCaseConclusion" in readQuery).toBe(false);
+    expect("abstainCaseFormation" in readQuery).toBe(false);
+  });
+
   it("returns stable sanitized failures for invalid pagination", () => {
     seed();
     readQuery = new CoreReadQuery(databasePath);
@@ -145,6 +168,18 @@ describe("CoreReadQuery", () => {
         event_end_seq: 2,
       }),
       () => readQuery!.recallKeyword({ session_id: "session-a", query: "launch", limit: 5 }),
+      () => readQuery!.readCaseFormation({
+        contract: CASE_FORMATION_READ_CONTRACT_VERSION,
+        schema_version: 1,
+        session_scope: {
+          contract_version: CASE_FORMATION_SESSION_SCOPE_VERSION,
+          write_session: { namespace: "authority", session_id: "session-a" },
+          read_scope: [{
+            session: { namespace: "authority", session_id: "session-a" },
+            frontier: { kind: "CURRENT" }, precedence: 0,
+          }],
+        },
+      }),
     ]) {
       expectSanitizedFailure(operation, "Core read query is closed", databasePath);
     }
