@@ -23,13 +23,15 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "evaluation/session-scope-broad-keyword.mjs"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "evaluate": "npm run build && node dist/evaluation-cli.js",
     "test": "vitest run test",
     "test:protocol": "vitest run test/mcp-protocol.test.ts",
+    "benchmark:session-scope": "npm run build && node evaluation/session-scope-broad-keyword.mjs",
     "start": "node dist/mcp-server.js",
     "prepack": "npm run build"
   },

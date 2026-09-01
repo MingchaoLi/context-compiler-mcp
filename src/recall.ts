@@ -146,6 +146,7 @@ interface RawEventRow extends Record<string, unknown> {
 const MAX_HEADLINE_EVENTS = 200;
 const MAX_EXACT_RANGE = 1_000;
 const MAX_KEYWORD_RESULTS = 20;
+const MAX_SCOPED_KEYWORD_RESULTS = 50;
 const MAX_IDENTIFIER_LENGTH = 500;
 const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
@@ -382,7 +383,7 @@ export class SqliteHistoryRecallStore {
       throw invalidInput("query must be a non-empty string");
     }
     const limit = input.limit ?? 10;
-    if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAX_KEYWORD_RESULTS) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAX_SCOPED_KEYWORD_RESULTS) {
       throw invalidInput("limit is invalid");
     }
     const matchQuery = buildLiteralFtsQuery(input.query);
@@ -395,14 +396,18 @@ export class SqliteHistoryRecallStore {
     ]);
     try {
       const rows = this.database.prepare(
-        `WITH requested(session_id, max_seq, precedence) AS (VALUES ${values})
-         SELECT h.*, bm25(history_headlines_fts) AS rank
-         FROM history_headlines_fts
-         JOIN history_headlines AS h ON h.id = history_headlines_fts.headline_id
+        `WITH requested(session_id, max_seq, precedence) AS MATERIALIZED (VALUES ${values}),
+              matched(headline_id, rank) AS MATERIALIZED (
+                SELECT headline_id, bm25(history_headlines_fts)
+                FROM history_headlines_fts
+                WHERE history_headlines_fts MATCH ?
+              )
+         SELECT h.*, matched.rank
+         FROM matched
+         JOIN history_headlines AS h ON h.id = matched.headline_id
          JOIN requested AS r ON r.session_id = h.session_id
-         WHERE history_headlines_fts MATCH ?
-           AND h.event_end_seq <= r.max_seq
-         ORDER BY rank ASC, r.precedence DESC, h.id ASC
+         WHERE h.event_end_seq <= r.max_seq
+         ORDER BY matched.rank ASC, r.precedence DESC, h.id ASC
          LIMIT ?`
       ).all(...scopeParameters, matchQuery, limit) as RankedHeadlineRow[];
       return rows.map((row) => {

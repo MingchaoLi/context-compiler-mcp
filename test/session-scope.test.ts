@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
@@ -147,6 +148,80 @@ describe("provider-neutral multi-Session Scope", () => {
     query.close();
     core.close();
   });
+
+  it("ranks one broad FTS candidate set across four 3000-headline sessions", () => {
+    const database = databasePath();
+    const bootstrap = new ContextCompilerCore(database);
+    bootstrap.close();
+    const recallBootstrap = new SqliteHistoryRecallStore(database);
+    recallBootstrap.close();
+
+    const direct = new DatabaseSync(database);
+    const insertSession = direct.prepare("INSERT INTO sessions (id, created_at) VALUES (?, ?)");
+    const insertRaw = direct.prepare(
+      `INSERT INTO raw_events (
+         id, session_id, seq, source_event_id, role, content, event_type,
+         created_at, token_count, metadata_json, dense_embedding_json
+       ) VALUES (?, ?, ?, ?, 'user', ?, 'message', ?, 1, '{}', NULL)`
+    );
+    const insertHeadline = direct.prepare(
+      `INSERT INTO history_headlines (
+         id, session_id, event_start_seq, event_end_seq, headline, keywords_json, created_at
+       ) VALUES (?, ?, ?, ?, 'shared common headline', '["common"]', ?)`
+    );
+    const insertFts = direct.prepare(
+      `INSERT INTO history_headlines_fts (headline_id, session_id, headline, keywords)
+       VALUES (?, ?, 'shared common headline', 'common')`
+    );
+    const timestamp = "2026-09-01T00:00:00.000Z";
+    direct.exec("BEGIN IMMEDIATE;");
+    for (let sessionIndex = 0; sessionIndex < 4; sessionIndex += 1) {
+      const sessionId = `broad-${sessionIndex}`;
+      insertSession.run(sessionId, timestamp);
+      for (let sequence = 1; sequence <= 3_000; sequence += 1) {
+        const padded = String(sequence).padStart(4, "0");
+        const rawId = `raw-${sessionIndex}-${padded}`;
+        const headlineId = `headline-${sessionIndex}-${padded}`;
+        insertRaw.run(
+          rawId,
+          sessionId,
+          sequence,
+          `source-${sessionIndex}-${padded}`,
+          `common evidence ${sessionIndex}/${sequence}`,
+          timestamp,
+        );
+        insertHeadline.run(headlineId, sessionId, sequence, sequence, timestamp);
+        insertFts.run(headlineId, sessionId);
+      }
+    }
+    direct.exec("COMMIT;");
+    direct.close();
+
+    const scope: SessionScope = {
+      contract_version: SESSION_SCOPE_CONTRACT_VERSION,
+      write_session: { namespace: "authority", session_id: "broad-3" },
+      read_scope: [
+        { session: { namespace: "authority", session_id: "broad-0" }, frontier: { kind: "FROZEN", raw_sequence: 2_500, state_revision: 0 }, precedence: 0 },
+        { session: { namespace: "authority", session_id: "broad-1" }, frontier: { kind: "FROZEN", raw_sequence: 2_600, state_revision: 0 }, precedence: 1 },
+        { session: { namespace: "authority", session_id: "broad-2" }, frontier: { kind: "FROZEN", raw_sequence: 2_700, state_revision: 0 }, precedence: 2 },
+        { session: { namespace: "authority", session_id: "broad-3" }, frontier: { kind: "CURRENT" }, precedence: 3 },
+      ],
+    };
+    const recall = new SqliteHistoryRecallStore(database);
+    const started = performance.now();
+    const hits = recall.recallKeywordInScope({ session_scope: scope, query: "common", limit: 50 });
+    const elapsedMs = performance.now() - started;
+    recall.close();
+
+    expect(hits).toHaveLength(50);
+    expect(hits.every(({ headline, events }) =>
+      headline.session_id === "broad-3" &&
+      events.length === 1 &&
+      events[0]?.session_id === headline.session_id &&
+      events[0]?.seq === headline.event_end_seq
+    )).toBe(true);
+    expect(elapsedMs).toBeLessThan(5_000);
+  }, 30_000);
 
   it("fails closed for malformed order, dynamic ancestors and unavailable frontier", () => {
     const database = databasePath();
