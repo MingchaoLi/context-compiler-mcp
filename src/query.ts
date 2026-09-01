@@ -11,9 +11,18 @@ import {
   type ExactRecallResult,
   type KeywordRecallHit,
   type KeywordRecallQuery,
+  type ScopedKeywordRecallQuery,
 } from "./recall.js";
 import { SqliteContextStateStore } from "./state-store.js";
 import type { ContextItem, StateRelation } from "./state-types.js";
+import {
+  cloneSessionScope,
+  assertCoreSessionNamespace,
+  normalizeSessionScope,
+  overlayScopedState,
+  type SessionScope,
+} from "./session-scope.js";
+import type { RawEvent } from "./raw-store.js";
 
 export type {
   SessionListInput,
@@ -23,6 +32,7 @@ export type {
   ExactRecallResult,
   KeywordRecallHit,
   KeywordRecallQuery,
+  ScopedKeywordRecallQuery,
 };
 
 /** Read-only projection of the existing Context State for one session. */
@@ -31,6 +41,13 @@ export interface ReadStateProjection {
   items: ContextItem[];
   relations: StateRelation[];
   revision: number;
+}
+
+export interface ReadScopedStateProjection {
+  session_scope: SessionScope;
+  items: ContextItem[];
+  relations: StateRelation[];
+  revisions: Array<{ session_id: string; revision: number }>;
 }
 
 const INVALID_QUERY_INPUT = "Invalid Core read query request";
@@ -101,6 +118,35 @@ export class CoreReadQuery {
     }));
   }
 
+  getStateScope(scopeValue: SessionScope): ReadScopedStateProjection {
+    this.#assertOpen();
+    const scope = normalizeScopeInput(scopeValue);
+    return this.#read(() => {
+      const raw = this.#raw.getSessionEventsInScope(scope);
+      const projection = overlayScopedState(
+        this.#state.getScopeState(scope),
+        new Set(raw.map(({ id }) => id)),
+      );
+      return {
+        session_scope: cloneSessionScope(scope),
+        items: projection.items,
+        relations: projection.relations,
+        revisions: scope.read_scope.map((entry) => ({
+          session_id: entry.session.session_id,
+          revision: entry.frontier.kind === "FROZEN"
+            ? entry.frontier.state_revision
+            : this.#state.getRevision(entry.session.session_id),
+        })),
+      };
+    });
+  }
+
+  getRawEventsScope(scopeValue: SessionScope): RawEvent[] {
+    this.#assertOpen();
+    const scope = normalizeScopeInput(scopeValue);
+    return this.#read(() => this.#raw.getSessionEventsInScope(scope));
+  }
+
   recallExact(query: ExactRecallQuery): ExactRecallResult {
     this.#assertOpen();
     return this.#read(() => this.#recall.recallExact(query));
@@ -109,6 +155,19 @@ export class CoreReadQuery {
   recallKeyword(query: KeywordRecallQuery): KeywordRecallHit[] {
     this.#assertOpen();
     return this.#read(() => this.#recall.recallKeyword(query));
+  }
+
+  recallKeywordScope(input: ScopedKeywordRecallQuery): KeywordRecallHit[] {
+    this.#assertOpen();
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      throw queryFailure(INVALID_QUERY_INPUT);
+    }
+    const scope = normalizeScopeInput(input.session_scope);
+    return this.#read(() => this.#recall.recallKeywordInScope({
+      session_scope: scope,
+      query: input.query,
+      ...(input.limit === undefined ? {} : { limit: input.limit }),
+    }));
   }
 
   close(): void {
@@ -166,6 +225,16 @@ function normalizeSessionId(sessionId: string): string {
     throw queryFailure(INVALID_QUERY_INPUT);
   }
   return sessionId;
+}
+
+function normalizeScopeInput(scope: SessionScope): SessionScope {
+  try {
+    const normalized = normalizeSessionScope(scope);
+    assertCoreSessionNamespace(normalized);
+    return normalized;
+  } catch {
+    throw queryFailure(INVALID_QUERY_INPUT);
+  }
 }
 
 function normalizeSessionListResult(

@@ -54,6 +54,32 @@ const contextPolicySchema = objectSchema({
   dense_weight: { type: "number", minimum: 0, maximum: 1 },
   recovery_failure_event_id: identifier,
 }, []);
+const sessionRefSchema = objectSchema({
+  namespace: identifier,
+  session_id: identifier,
+}, ["namespace", "session_id"]);
+const sessionScopeEntrySchema = objectSchema({
+  session: sessionRefSchema,
+  frontier: {
+    oneOf: [
+      objectSchema({ kind: { const: "CURRENT" } }, ["kind"]),
+      objectSchema({
+        kind: { const: "FROZEN" },
+        raw_sequence: { type: "integer", minimum: 0 },
+        state_revision: { type: "integer", minimum: 0 },
+      }, ["kind", "raw_sequence", "state_revision"]),
+    ],
+  },
+  precedence: { type: "integer", minimum: 0, maximum: 63 },
+}, ["session", "frontier", "precedence"]);
+const sessionScopeSchema = objectSchema({
+  contract_version: { const: "ripplecontext-session-scope/v1" },
+  write_session: sessionRefSchema,
+  read_scope: {
+    type: "array", minItems: 1, maxItems: 64,
+    items: sessionScopeEntrySchema,
+  },
+}, ["contract_version", "write_session", "read_scope"]);
 
 const jsonValueSchema = {
   oneOf: [
@@ -316,6 +342,7 @@ const TOOLS: Tool[] = [
     operation_id: identifier,
     dense_query: denseEmbeddingSchema,
     context_policy: contextPolicySchema,
+    session_scope: sessionScopeSchema,
   }, ["session_id", "current_input"]), compileContextOutputSchema),
   tool("get_state", "Read session state and revision", objectSchema({ session_id: sessionId }, ["session_id"])),
   tool("prepare_state_update", "Prepare a bounded immutable extractor snapshot", objectSchema({

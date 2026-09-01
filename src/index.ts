@@ -168,6 +168,7 @@ export {
   type StateItemPatch,
   type StateTransactionResult,
   StateRevisionConflictError,
+  StateRevisionSnapshotError,
   type StateUpdatePreparationRecord,
 } from "./state-store.js";
 export {
@@ -266,6 +267,7 @@ export {
   type HistoryRecallErrorCode,
   type KeywordRecallHit,
   type KeywordRecallQuery,
+  type ScopedKeywordRecallQuery,
   type SeqRangeRecallQuery,
   type SeqRangeRecallResult,
 } from "./recall.js";
@@ -283,7 +285,26 @@ export {
   type ContextCompilerCoreFailure,
   type ContextCompilerCoreResponse,
   type ContextCompilerCoreSuccess,
+  type SessionFrontier,
 } from "./core.js";
+
+export {
+  CORE_SESSION_NAMESPACE,
+  SESSION_SCOPE_CONTRACT_VERSION,
+  SCOPE_OVERLAY_KEY_METADATA,
+  SessionScopeValidationError,
+  assertCoreSessionNamespace,
+  cloneSessionScope,
+  isSingleSessionScope,
+  normalizeSessionScope,
+  singleSessionScope,
+  type ScopedStateEntry,
+  type ScopedStateProjection,
+  type SessionReadFrontier,
+  type SessionRef,
+  type SessionScope,
+  type SessionScopeEntry,
+} from "./session-scope.js";
 
 export {
   AUTHORITY_NAMESPACE,

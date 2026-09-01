@@ -31,6 +31,18 @@ UTC 月末 RFC 3339 leap second（`:60`）保持为独立 instant，不会折叠
 
 `compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。session 建立可信 compile telemetry baseline 之前，缺少 `operation_id` 仍保持历史 read-only；一旦首次带 id 的 trace 成功提交，后续该 session 缺 id compile 会以 `INVALID_INPUT` 拒绝，不能混用可观测与不可观测请求。带 id 时只把去正文、exact-shape 的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
 
+Library 与同名 MCP 输入可选接收 provider-neutral
+`ripplecontext-session-scope/v1`。Scope 按祖先到当前 leaf 排序：祖先必须带
+Raw/State frozen frontier，leaf 必须是 `CURRENT` 且等于 `session_id`。
+Raw 在 SQLite 查询中先按 `(session_id, seq)` 和 frontier 过滤，再作为一个
+候选集合统一编译/排序；来源 Session 与原始 seq 在结果中恢复。State 的
+显式 `metadata.ripplecontext_scope_key` 按 precedence overlay，原 provenance
+不改写。缺失的 frozen State snapshot、越界 frontier、重复/动态祖先或非
+`authority` namespace 一律 fail-closed；后者避免当前无 namespace 列的
+SQLite authority plane 静默别名。旧单 Session 输入及公开 MCP 的窄输出
+保持不变。正式 library 查询入口 `CoreReadQuery` 同时提供 scoped Raw、
+State 与统一 keyword Top-K。
+
 ## `CompiledContext` 与 `ContextSnapshot` 的边界
 
 这两个名称对应不同的 package-root library surface，不可互换；本节不新增 MCP 工具或 API。

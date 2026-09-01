@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -11,6 +11,11 @@ import type {
   RelationType,
   StateRelation,
 } from "./state-types.js";
+import {
+  assertCoreSessionNamespace,
+  type ScopedStateEntry,
+  type SessionScope,
+} from "./session-scope.js";
 
 export interface StateItemInput {
   session_id: string;
@@ -47,6 +52,13 @@ export class StateRevisionConflictError extends Error {
   constructor() {
     super("Context state revision conflict");
     this.name = "StateRevisionConflictError";
+  }
+}
+
+export class StateRevisionSnapshotError extends Error {
+  constructor() {
+    super("Requested Context State revision is unavailable");
+    this.name = "StateRevisionSnapshotError";
   }
 }
 
@@ -181,6 +193,7 @@ export class SqliteContextStateStore {
       const revision = this.transactionDirty
         ? this.advanceRevisionInsideTransaction(sessionId)
         : this.getRevision(sessionId);
+      if (this.transactionDirty) this.persistRevisionSnapshotInsideTransaction(sessionId, revision);
       this.database.exec("COMMIT;");
       return { value, revision };
     } catch (error) {
@@ -348,6 +361,24 @@ export class SqliteContextStateStore {
       .prepare("SELECT * FROM context_items WHERE session_id = ? ORDER BY created_at, id")
       .all(sessionId) as ItemRow[];
     return rows.map(rowToItem);
+  }
+
+  /** Read every Scope element at its exact current/frozen State frontier. */
+  getScopeState(scope: SessionScope): ScopedStateEntry[] {
+    this.assertOpen();
+    assertCoreSessionNamespace(scope);
+    return scope.read_scope.map((scopeEntry) => {
+      const sessionId = scopeEntry.session.session_id;
+      if (scopeEntry.frontier.kind === "CURRENT") {
+        return {
+          scope_entry: scopeEntry,
+          items: this.getItems(sessionId),
+          relations: this.getSessionRelations(sessionId),
+        };
+      }
+      const projection = this.readRevisionSnapshot(sessionId, scopeEntry.frontier.state_revision);
+      return { scope_entry: scopeEntry, ...projection };
+    });
   }
 
   updateItem(
@@ -543,6 +574,35 @@ export class SqliteContextStateStore {
     return this.getRevision(sessionId);
   }
 
+  private persistRevisionSnapshotInsideTransaction(sessionId: string, revision: number): void {
+    const items = this.getItems(sessionId);
+    const relations = this.getSessionRelations(sessionId);
+    const snapshotJson = stateSnapshotJson(sessionId, revision, items, relations);
+    const snapshotSha256 = sha256(snapshotJson);
+    this.database.prepare(
+      `INSERT INTO context_state_revision_snapshots (
+         session_id, revision, snapshot_json, snapshot_sha256, created_at
+       ) VALUES (?, ?, ?, ?, ?)`
+    ).run(sessionId, revision, snapshotJson, snapshotSha256, new Date().toISOString());
+  }
+
+  private readRevisionSnapshot(
+    sessionId: string,
+    revision: number
+  ): { items: ContextItem[]; relations: StateRelation[] } {
+    validateSessionId(sessionId);
+    if (!Number.isSafeInteger(revision) || revision < 0) throw new StateRevisionSnapshotError();
+    if (revision === 0) return { items: [], relations: [] };
+    const row = this.database.prepare(
+      `SELECT snapshot_json, snapshot_sha256 FROM context_state_revision_snapshots
+       WHERE session_id = ? AND revision = ?`
+    ).get(sessionId, revision) as { snapshot_json: string; snapshot_sha256: string } | undefined;
+    if (row === undefined || sha256(row.snapshot_json) !== row.snapshot_sha256) {
+      throw new StateRevisionSnapshotError();
+    }
+    return parseStateSnapshot(row.snapshot_json, sessionId, revision);
+  }
+
   close(): void {
     if (this.closed) return;
     if (this.transactionOpen) throw new Error("Cannot close context-state store in a transaction");
@@ -722,6 +782,30 @@ function migrate(database: DatabaseSync): void {
       revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0)
     );
 
+    CREATE TABLE IF NOT EXISTS context_state_revision_snapshots (
+      session_id TEXT NOT NULL REFERENCES sessions(id),
+      revision INTEGER NOT NULL CHECK (revision > 0),
+      snapshot_json TEXT NOT NULL
+        CHECK (json_valid(snapshot_json) AND json_type(snapshot_json) = 'object'),
+      snapshot_sha256 TEXT NOT NULL CHECK (
+        length(snapshot_sha256) = 64 AND snapshot_sha256 NOT GLOB '*[^0-9a-f]*'
+      ),
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (session_id, revision)
+    );
+
+    CREATE TRIGGER IF NOT EXISTS context_state_revision_snapshots_prevent_update
+    BEFORE UPDATE ON context_state_revision_snapshots
+    BEGIN
+      SELECT RAISE(ABORT, 'context state revision snapshots are immutable');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS context_state_revision_snapshots_prevent_delete
+    BEFORE DELETE ON context_state_revision_snapshots
+    BEGIN
+      SELECT RAISE(ABORT, 'context state revision snapshots are immutable');
+    END;
+
     CREATE TABLE IF NOT EXISTS state_update_preparations (
       preparation_token TEXT PRIMARY KEY CHECK (length(preparation_token) > 0),
       session_id TEXT NOT NULL REFERENCES sessions(id),
@@ -749,6 +833,70 @@ function migrate(database: DatabaseSync): void {
       SELECT RAISE(ABORT, 'state_update_preparations is immutable');
     END;
   `);
+  backfillCurrentStateSnapshots(database);
+}
+
+function backfillCurrentStateSnapshots(database: DatabaseSync): void {
+  const revisions = database.prepare(
+    `SELECT r.session_id, r.revision
+     FROM context_state_revisions AS r
+     LEFT JOIN context_state_revision_snapshots AS s
+       ON s.session_id = r.session_id AND s.revision = r.revision
+     WHERE r.revision > 0 AND s.session_id IS NULL
+     ORDER BY r.session_id`
+  ).all() as Array<{ session_id: string; revision: number }>;
+  for (const entry of revisions) {
+    const items = (database.prepare(
+      "SELECT * FROM context_items WHERE session_id = ? ORDER BY created_at, id"
+    ).all(entry.session_id) as ItemRow[]).map(rowToItem);
+    const relations = (database.prepare(
+      `SELECT * FROM state_relations WHERE session_id = ?
+       ORDER BY created_at, source_id, relation_type, target_id`
+    ).all(entry.session_id) as RelationRow[]).map(rowToRelation);
+    const snapshotJson = stateSnapshotJson(entry.session_id, entry.revision, items, relations);
+    database.prepare(
+      `INSERT INTO context_state_revision_snapshots (
+         session_id, revision, snapshot_json, snapshot_sha256, created_at
+       ) VALUES (?, ?, ?, ?, ?)`
+    ).run(entry.session_id, entry.revision, snapshotJson, sha256(snapshotJson), new Date().toISOString());
+  }
+}
+
+function stateSnapshotJson(
+  sessionId: string,
+  revision: number,
+  items: ContextItem[],
+  relations: StateRelation[]
+): string {
+  return JSON.stringify({ session_id: sessionId, revision, items, relations });
+}
+
+function parseStateSnapshot(
+  json: string,
+  sessionId: string,
+  revision: number
+): { items: ContextItem[]; relations: StateRelation[] } {
+  let value: unknown;
+  try { value = JSON.parse(json); } catch { throw new StateRevisionSnapshotError(); }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new StateRevisionSnapshotError();
+  }
+  const record = value as Record<string, unknown>;
+  if (
+    record.session_id !== sessionId || record.revision !== revision ||
+    !Array.isArray(record.items) || !Array.isArray(record.relations)
+  ) throw new StateRevisionSnapshotError();
+  const items = record.items as ContextItem[];
+  const relations = record.relations as StateRelation[];
+  if (
+    items.some((item) => typeof item !== "object" || item === null || item.session_id !== sessionId) ||
+    relations.some((relation) => typeof relation !== "object" || relation === null || relation.session_id !== sessionId)
+  ) throw new StateRevisionSnapshotError();
+  return { items: structuredClone(items), relations: structuredClone(relations) };
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
 function validateRelationEndpoint(

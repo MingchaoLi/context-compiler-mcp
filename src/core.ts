@@ -86,7 +86,19 @@ import {
   type RevisionVector,
 } from "./revision-substrate.js";
 import { SqliteContextStateStore } from "./state-store.js";
+import { StateRevisionSnapshotError } from "./state-store.js";
 import { StateUpdateCoordinator, StateUpdateError } from "./state-update.js";
+import {
+  SessionScopeValidationError,
+  assertCoreSessionNamespace,
+  cloneSessionScope,
+  isSingleSessionScope,
+  normalizeSessionScope,
+  overlayScopedState,
+  singleSessionScope,
+  type SessionRef,
+  type SessionScope,
+} from "./session-scope.js";
 
 export const CONTEXT_COMPILER_CORE_VERSION = "0.1.0";
 export const CONTEXT_COMPILER_COMMANDS = [
@@ -140,6 +152,12 @@ export interface CompileContextMetrics {
 export interface CompileContextResult {
   context: CompiledContext;
   metrics: CompileContextMetrics;
+}
+
+export interface SessionFrontier {
+  session: SessionRef;
+  raw_sequence: number;
+  state_revision: number;
 }
 
 export interface ContextCompilerCommandPort {
@@ -302,6 +320,32 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
         version: EXACT_RAW_RECEIPT_LOOKUP_VERSION,
         status: "UNAVAILABLE",
       };
+    }
+  }
+
+  /** Provider-neutral read frontier used by adapters when freezing a child Scope. */
+  getSessionFrontier(sessionValue: SessionRef): SessionFrontier {
+    this.assertOpen();
+    let scope: SessionScope;
+    try {
+      scope = normalizeSessionScope({
+        contract_version: "ripplecontext-session-scope/v1",
+        write_session: sessionValue,
+        read_scope: [{ session: sessionValue, frontier: { kind: "CURRENT" }, precedence: 0 }],
+      });
+      assertCoreSessionNamespace(scope);
+    } catch {
+      throw new ContextCompilerCoreError("INVALID_INPUT");
+    }
+    const session = scope.write_session;
+    try {
+      return {
+        session: { ...session },
+        raw_sequence: this.rawStore.getSessionMaxSequence(session.session_id),
+        state_revision: this.stateStore.getRevision(session.session_id),
+      };
+    } catch {
+      throw new ContextCompilerCoreError("STORAGE_FAILURE");
     }
   }
 
@@ -630,8 +674,20 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
   private compile(value: unknown): CompileContextResult {
     const input = readObject(value, ["session_id", "current_input"], [
       "token_budget", "recent_raw_window_turns", "operation_id", "dense_query", "context_policy",
+      "session_scope",
     ]);
     const sessionId = requireNonEmptyString(input.session_id);
+    const explicitSessionScope = input.session_scope !== undefined;
+    let sessionScope: SessionScope;
+    try {
+      sessionScope = input.session_scope === undefined
+        ? singleSessionScope(sessionId)
+        : normalizeSessionScope(input.session_scope);
+      assertCoreSessionNamespace(sessionScope);
+    } catch {
+      invalid();
+    }
+    if (sessionScope.write_session.session_id !== sessionId) invalid();
     const currentInput = requireNonBlankString(input.current_input);
     optionalIntegerInRange(input.token_budget, 0, Number.MAX_SAFE_INTEGER);
     optionalIntegerInRange(input.recent_raw_window_turns, 1, 100);
@@ -653,12 +709,25 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     let context: CompiledContext;
     try {
       context = withCompileTelemetryBoundaryInsideService(this.ledgerStore, () => {
-        const items = this.stateStore.getItems(sessionId)
+        for (const entry of sessionScope.read_scope) {
+          if (entry.frontier.kind !== "FROZEN") continue;
+          if (
+            this.rawStore.getSessionMaxSequence(entry.session.session_id) < entry.frontier.raw_sequence ||
+            this.stateStore.getRevision(entry.session.session_id) < entry.frontier.state_revision
+          ) throw new SessionScopeValidationError();
+        }
+        const sourceRawEvents = this.rawStore.getSessionEventsInScope(sessionScope);
+        const visibleRawIds = new Set(sourceRawEvents.map(({ id }) => id));
+        const scopedState = overlayScopedState(
+          this.stateStore.getScopeState(sessionScope),
+          visibleRawIds,
+        );
+        const items = scopedState.items
           .map((item) => ({ ...item, session_id: assemblerSessionId }));
-        const relations = this.stateStore.getSessionRelations(sessionId)
+        const relations = scopedState.relations
           .map((relation) => ({ ...relation, session_id: assemblerSessionId }));
-        const rawEvents = this.rawStore.getSessionEvents(sessionId)
-          .map((event) => ({ ...event, session_id: assemblerSessionId }));
+        const rawEvents = sourceRawEvents
+          .map((event, index) => ({ ...event, session_id: assemblerSessionId, seq: index + 1 }));
         const ledgerRecords = this.ledgerStore.getSessionRecords(sessionId);
         if (input.operation_id === undefined &&
             hasTrustedContextCompileBaseline(ledgerRecords, sessionId)) {
@@ -688,7 +757,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
           })),
         });
         const compiled = operational.context;
-        if (input.operation_id !== undefined) {
+        if (input.operation_id !== undefined && isSingleSessionScope(sessionScope)) {
           const trace = appendContextCompileTraceInsideService(this.ledgerStore, {
             session_id: sessionId,
             operation_id: input.operation_id as string,
@@ -703,13 +772,23 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
             retrieval_hit_ledger_ids: trace.hits.map((record) => record.id),
           };
         }
+        if (!isSingleSessionScope(sessionScope)) {
+          compiled.operational_debug = {
+            ...compiled.operational_debug,
+            scope_telemetry: "NOT_PERSISTED_CROSS_SESSION",
+          };
+        }
+        restoreCompiledContextProvenance(compiled, sourceRawEvents, scopedState.items);
+        if (explicitSessionScope) compiled.session_scope = cloneSessionScope(sessionScope);
         return compiled;
       });
     } catch (error) {
       if (error instanceof RawEventTimestampError ||
           error instanceof ContextAssemblerValidationError ||
           error instanceof OperationalContextError ||
-          error instanceof ExperienceLedgerError) throw error;
+          error instanceof ExperienceLedgerError ||
+          error instanceof SessionScopeValidationError ||
+          error instanceof StateRevisionSnapshotError) throw error;
       throw new ContextCompilerCoreError("STORAGE_FAILURE");
     }
     if (assemblerSessionId !== sessionId) restoreCompiledContextSessionId(context, sessionId);
@@ -906,6 +985,8 @@ function classifyError(error: unknown): ContextCompilerCoreErrorCode {
   if (error instanceof ContextAssemblerValidationError) return "INVALID_INPUT";
   if (error instanceof OperationalContextError) return "INVALID_INPUT";
   if (error instanceof ExperienceLedgerError) return mapExperienceLedgerError(error).code;
+  if (error instanceof SessionScopeValidationError) return "INVALID_INPUT";
+  if (error instanceof StateRevisionSnapshotError) return "CORRUPT_DATA";
   return "INTERNAL_FAILURE";
 }
 
@@ -1027,4 +1108,34 @@ function restoreCompiledContextSessionId(context: CompiledContext, original: str
   }
   for (const event of context.recent_conversation) event.session_id = original;
   for (const event of context.retrieved_history ?? []) event.session_id = original;
+}
+
+function restoreCompiledContextProvenance(
+  context: CompiledContext,
+  rawEvents: ReadonlyArray<{ id: string; session_id: string; seq: number }>,
+  items: ReadonlyArray<{ id: string; session_id: string }>,
+): void {
+  const rawById = new Map(rawEvents.map((event) => [event.id, event]));
+  const itemById = new Map(items.map((item) => [item.id, item]));
+  for (const values of [
+    context.active_goals,
+    context.active_constraints,
+    context.active_decisions,
+    context.open_questions,
+    context.dependency_items,
+  ]) {
+    for (const item of values) {
+      const source = itemById.get(item.id);
+      if (source !== undefined) item.session_id = source.session_id;
+    }
+  }
+  for (const values of [context.recent_conversation, context.retrieved_history ?? []]) {
+    for (const event of values) {
+      const source = rawById.get(event.id);
+      if (source !== undefined) {
+        event.session_id = source.session_id;
+        event.seq = source.seq;
+      }
+    }
+  }
 }

@@ -10,6 +10,7 @@ import {
   migrateExperienceLedger,
 } from "./experience-ledger.js";
 import { initializeSqliteConnection } from "./sqlite-initialization.js";
+import { assertCoreSessionNamespace, type SessionScope } from "./session-scope.js";
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject;
 export interface JsonObject {
@@ -167,6 +168,8 @@ export interface RawHistoryStore {
   ingest(input: RawEventInput): RawEvent;
   getEvent(id: string): RawEvent | undefined;
   getSessionEvents(sessionId: string): RawEvent[];
+  getSessionEventsInScope(scope: SessionScope): RawEvent[];
+  getSessionMaxSequence(sessionId: string): number;
   close(): void;
 }
 
@@ -391,6 +394,41 @@ export class SqliteRawHistoryStore implements RawHistoryStore, RawReceiptLookupP
       .prepare("SELECT * FROM raw_events WHERE session_id = ? ORDER BY seq ASC")
       .all(sessionId) as DatabaseRow[];
     return rows.map(rowToEvent);
+  }
+
+  /**
+   * Read one ordered Session Scope in a single indexed query. Frozen ancestor
+   * frontiers are applied before rows leave SQLite; the caller receives one
+   * branch-visible stream while every RawEvent retains its source session/seq.
+   */
+  getSessionEventsInScope(scope: SessionScope): RawEvent[] {
+    this.assertOpen();
+    assertCoreSessionNamespace(scope);
+    const values = scope.read_scope.map(() => "(?, ?, ?)").join(", ");
+    const parameters = scope.read_scope.flatMap((entry) => [
+      entry.session.session_id,
+      entry.frontier.kind === "FROZEN" ? entry.frontier.raw_sequence : Number.MAX_SAFE_INTEGER,
+      entry.precedence,
+    ]);
+    const rows = this.database.prepare(
+      `WITH requested(session_id, max_seq, scope_order) AS (VALUES ${values})
+       SELECT e.* FROM requested AS r
+       JOIN raw_events AS e
+         ON e.session_id = r.session_id AND e.seq <= r.max_seq
+       ORDER BY r.scope_order ASC, e.seq ASC, e.id ASC`
+    ).all(...parameters) as DatabaseRow[];
+    return rows.map(rowToEvent);
+  }
+
+  getSessionMaxSequence(sessionId: string): number {
+    this.assertOpen();
+    if (typeof sessionId !== "string" || sessionId.length === 0) {
+      throw new Error("sessionId must not be empty");
+    }
+    const row = this.database.prepare(
+      "SELECT COALESCE(MAX(seq), 0) AS max_seq FROM raw_events WHERE session_id = ?"
+    ).get(sessionId) as { max_seq: number };
+    return row.max_seq;
   }
 
   listSessions(input: SessionListInput): SessionListResult {

@@ -11,6 +11,7 @@ import type {
   RelationType,
   StateRelation,
 } from "./state-types.js";
+import type { SessionScope } from "./session-scope.js";
 
 const ITEM_TYPES: readonly ContextItemType[] = [
   "GOAL",
@@ -90,6 +91,8 @@ export interface ContextMetrics {
 
 export interface CompiledContext {
   session_id: string;
+  /** Present when the caller selected an explicit provider-neutral read Scope. */
+  session_scope?: SessionScope;
   current_input: string;
   active_goals: ContextItem[];
   active_constraints: ContextItem[];

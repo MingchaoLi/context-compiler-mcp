@@ -9,6 +9,7 @@ import {
   type RawEventRole,
 } from "./raw-store.js";
 import { initializeSqliteConnection } from "./sqlite-initialization.js";
+import { assertCoreSessionNamespace, type SessionScope } from "./session-scope.js";
 
 export type HistoryRecallErrorCode =
   | "INVALID_INPUT"
@@ -107,6 +108,12 @@ export interface KeywordRecallHit {
   headline: HistoryHeadline;
   rank: number;
   events: RawEvent[];
+}
+
+export interface ScopedKeywordRecallQuery {
+  session_scope: SessionScope;
+  query: string;
+  limit?: number;
 }
 
 interface HeadlineRow extends Record<string, unknown> {
@@ -367,6 +374,54 @@ export class SqliteHistoryRecallStore {
     }
   }
 
+  /** One FTS candidate set, one global ranking and ancestor frontier filtering. */
+  recallKeywordInScope(input: ScopedKeywordRecallQuery): KeywordRecallHit[] {
+    this.assertOpen();
+    assertCoreSessionNamespace(input.session_scope);
+    if (typeof input.query !== "string" || input.query.trim().length === 0) {
+      throw invalidInput("query must be a non-empty string");
+    }
+    const limit = input.limit ?? 10;
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAX_KEYWORD_RESULTS) {
+      throw invalidInput("limit is invalid");
+    }
+    const matchQuery = buildLiteralFtsQuery(input.query);
+    if (matchQuery === undefined) return [];
+    const values = input.session_scope.read_scope.map(() => "(?, ?, ?)").join(", ");
+    const scopeParameters = input.session_scope.read_scope.flatMap((entry) => [
+      entry.session.session_id,
+      entry.frontier.kind === "FROZEN" ? entry.frontier.raw_sequence : Number.MAX_SAFE_INTEGER,
+      entry.precedence,
+    ]);
+    try {
+      const rows = this.database.prepare(
+        `WITH requested(session_id, max_seq, precedence) AS (VALUES ${values})
+         SELECT h.*, bm25(history_headlines_fts) AS rank
+         FROM history_headlines_fts
+         JOIN history_headlines AS h ON h.id = history_headlines_fts.headline_id
+         JOIN requested AS r ON r.session_id = h.session_id
+         WHERE history_headlines_fts MATCH ?
+           AND h.event_end_seq <= r.max_seq
+         ORDER BY rank ASC, r.precedence DESC, h.id ASC
+         LIMIT ?`
+      ).all(...scopeParameters, matchQuery, limit) as RankedHeadlineRow[];
+      return rows.map((row) => {
+        const headline = rowToHeadline(row);
+        const events = this.selectRange(
+          headline.session_id,
+          headline.event_start_seq,
+          headline.event_end_seq
+        ).map(rowToEvent);
+        if (events.length !== headline.event_end_seq - headline.event_start_seq + 1 ||
+            !Number.isFinite(row.rank)) throw storageFailure();
+        return { headline: cloneHeadline(headline), rank: row.rank, events };
+      });
+    } catch (error) {
+      if (error instanceof HistoryRecallError) throw error;
+      throw storageFailure();
+    }
+  }
+
   close(): void {
     if (this.closed) return;
     try {
@@ -415,6 +470,9 @@ function migrate(database: DatabaseSync): void {
 
       CREATE INDEX IF NOT EXISTS idx_history_headlines_session_id
         ON history_headlines(session_id, id);
+
+      CREATE INDEX IF NOT EXISTS idx_history_headlines_session_end_seq
+        ON history_headlines(session_id, event_end_seq, id);
 
       CREATE VIRTUAL TABLE IF NOT EXISTS history_headlines_fts USING fts5(
         headline_id UNINDEXED,
