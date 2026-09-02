@@ -2,11 +2,18 @@
 
 # RippleContext
 
-**A local-first context and experience layer for long-running AI agents.**
+**RippleContext aims to put users—not any single AI agent—in control of long-term context.**
 
-RippleContext aims to give users a context layer that can outlive any one agent or session. It keeps
-raw evidence local, tracks what is still valid, and compiles bounded context for the agent you are
-using.
+**Short term.** We want useful context to continue across Sessions and, as Host integrations mature,
+across Agents. Changing tools should not mean reconstructing months of important decisions,
+constraints, unfinished work, and supporting evidence from scratch.
+
+**Long term.** We want to explore how events from Agents, devices, applications, and other personal
+data sources can become an evolving, user-owned Context and Experience layer—one that can distinguish
+what happened, what still holds now, and which Experience patterns may be reusable.
+
+**Today.** This repository is an experimental, local-first implementation of the storage, State,
+lifecycle, provenance, recall, and context-compilation foundations for that direction.
 
 > [!WARNING]
 > **Experimental Research Preview — Not Production Ready.** This is a working but incomplete research
@@ -16,32 +23,46 @@ using.
 The public project name is **RippleContext**. The package, executable, MCP server, and repository retain
 the compatibility name **`context-compiler-mcp`**.
 
-## What we are building
+## Why RippleContext exists
 
-### Short-term goal
+Imagine working with one Agent for months. Over time, you accumulate important decisions, long-lived
+constraints, failed approaches, and unfinished work. When you move to another Agent, you should not
+have to explain everything again—or pour the entire chat history into a new Context.
 
-We want to give users a local, user-controlled context assistant that is not locked to one Agent or
-Session. When work moves to a new Session—or eventually another Agent or Host—important older events,
-current valid state, and supporting evidence should not have to be reconstructed from scratch.
+What needs to continue is more specific:
 
-The current Core already supports explicit multi-Session read scopes. Seamless cross-Agent and
-cross-Host continuity still depends on adapters and Host capabilities and is not complete today.
+- decisions and constraints that still apply;
+- goals and questions that remain unfinished;
+- old State that has been rejected, resolved, or superseded;
+- Experience that may be worth reusing;
+- the original evidence when exact recovery is needed.
 
-### Long-term direction
+The core problem is simple: **history is not current State**.
 
-As personal digital histories grow, we want to explore a user-owned Context and Experience layer that
-can organize events from different Agents, devices, applications, and other sources.
+Agent histories accumulate information that was once valid. Basic retrieval can bring an old decision,
+expired constraint, or abandoned plan back into a current decision without knowing whether it still
+holds.
 
-The goal is not simply to save everything forever. The system should gradually be able to distinguish:
+RippleContext keeps what happened as append-only local evidence, maintains what still holds as typed
+State, tracks how information is revised or superseded, and compiles bounded, relevant,
+evidence-linked Context when an Agent needs to act.
 
-- what happened;
-- what is still valid now;
-- what has become stale or was superseded;
-- which Action–Outcome–Feedback sequences may form reusable Experience;
-- how to return to the original evidence when needed.
+```text
+What happened
+      ↓
+What still holds now
+      ↓
+What evidence supports it
+      ↓
+What this decision needs
+```
 
-This is a research direction, not a claim that cross-device sync, universal source integration, or
-automatic Experience Formation already exists.
+**The goal is not merely to help Agents remember more. It is to let useful Context continue with the
+user while reducing the risk of acting on information that is no longer valid.**
+
+The current Core supports explicit multi-Session read scopes. Seamless cross-Agent and cross-Host
+continuity still depends on adapters and Host capabilities and is not complete. Cross-device sync,
+universal source integration, and automatic Experience Formation remain research directions.
 
 ## What works today
 

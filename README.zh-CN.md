@@ -2,10 +2,17 @@
 
 # RippleContext
 
-**面向长期运行 AI Agent 的本地 Context 与 Experience 层。**
+**RippleContext 想把长期上下文的控制权从单个 Agent 手中交还给用户。**
 
-RippleContext 希望为用户提供一个不依附于单一 Agent 或 Session 的 Context 层。它在本地保留原始证据，
-维护现在仍然有效的状态，并为当前使用的 Agent 编译有界 Context。
+**短期。** 我们希望有价值的 Context 能够跨 Session 延续，并随着 Host integration 逐步成熟而跨 Agent
+延续。切换工具不应该意味着从头重建几个月积累的重要决定、约束、未完成事项和支持证据。
+
+**长期。** 我们希望探索如何把来自 Agent、设备、应用和其他个人数据来源的事件，整理成一个持续演化、
+由用户掌握的 Context 与 Experience 层——知道发生过什么、现在什么仍然成立，以及哪些 Experience
+可能值得复用。
+
+**当前。** 本仓库是这个方向的 experimental、local-first 基础实现，主要验证存储、State、lifecycle、
+provenance、recall 和 Context compilation。
 
 > [!WARNING]
 > **Experimental Research Preview — Not Production Ready。** 这是一个可以运行但仍未完成的研究实现，
@@ -14,31 +21,42 @@ RippleContext 希望为用户提供一个不依附于单一 Agent 或 Session �
 公开项目名是 **RippleContext**。package、executable、MCP server 和 repository 继续保留兼容技术名
 **`context-compiler-mcp`**。
 
-## 我们想做什么
+## RippleContext 为什么存在
 
-### 短期目标
+假设你和一个 Agent 工作了几个月，已经积累了重要决定、长期约束、失败方案和未完成事项。当你换到另一个
+Agent 时，不应该只能从头解释一遍，也不应该把几个月的完整聊天历史全部塞进新的 Context。
 
-我们希望给用户一个本地、由用户掌握，并且不被单一 Agent 或 Session 锁定的 Context 辅助系统。
-当工作转移到新 Session，乃至未来切换到另一个 Agent 或 Host 时，重要的久远事件、当前有效状态和支持证据
-不必从零开始重新建立。
+真正需要延续的是：
+
+- 现在仍然有效的决定和约束；
+- 尚未完成的目标和问题；
+- 已经被否定、解决或取代的旧 State；
+- 可能值得复用的 Experience；
+- 需要精确恢复时能够返回的原始证据。
+
+这里的核心问题很简单：**历史不等于当前 State。**
+
+Agent 的历史会不断积累“曾经成立”的信息。普通检索可能把旧决定、过期约束和已经放弃的方案重新带回当前
+决策，却不知道它们现在是否仍然成立。
+
+RippleContext 将发生过的事情保存为本地 append-only 证据，将现在仍然成立的内容维护为 typed State，
+追踪信息如何被修订或取代，并在 Agent 需要行动时编译出有界、相关且与证据相连的 Context。
+
+```text
+发生过什么
+    ↓
+现在什么仍然成立
+    ↓
+什么证据支持它
+    ↓
+当前决策需要什么
+```
+
+**它的目标不只是让 Agent 记住更多，而是让有价值的 Context 能够随用户延续，并降低 Agent 继续依据
+过时信息行动的风险。**
 
 当前 Core 已支持显式的跨 Session read scope。无缝的跨 Agent、跨 Host continuity 仍然依赖 adapter
-和具体 Host 能力，目前尚未完整实现。
-
-### 长期方向
-
-随着个人数字历史不断增长，我们希望探索一个由用户掌握的 Context 与 Experience 层，持续整理来自不同
-Agent、设备、应用和其他来源的事件。
-
-目标不是简单地永久保存所有内容，而是逐渐能够区分：
-
-- 发生过什么；
-- 什么现在仍然有效；
-- 什么已经失效或被取代；
-- 哪些 Action–Outcome–Feedback 序列可能形成可复用 Experience；
-- 需要时如何回到原始证据。
-
-这是研究方向，不表示跨设备同步、通用来源整合或 automatic Experience Formation 已经实现。
+和具体 Host 能力，尚未完成。跨设备同步、通用来源整合和 automatic Experience Formation 仍是研究方向。
 
 ## 我们已经做到什么
 
