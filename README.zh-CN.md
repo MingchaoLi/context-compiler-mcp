@@ -2,11 +2,10 @@
 
 # RippleContext
 
-**面向长期运行 AI Agent 的本地上下文与经验基础设施。**
+**面向长期运行 AI Agent 的本地 Context 与 Experience 层。**
 
-RippleContext 不只保存“过去发生过什么”。它提供一个与模型无关的 Core，用来维护“现在什么仍然成立、
-状态如何变化，以及哪些原始证据支持这些状态”。仓库包含本地 SQLite 数据面、
-TypeScript/JavaScript library 和 stdio MCP server。
+RippleContext 希望为用户提供一个不依附于单一 Agent 或 Session 的 Context 层。它在本地保留原始证据，
+维护现在仍然有效的状态，并为当前使用的 Agent 编译有界 Context。
 
 > [!WARNING]
 > **Experimental Research Preview — Not Production Ready。** 这是一个可以运行但仍未完成的研究实现，
@@ -15,75 +14,158 @@ TypeScript/JavaScript library 和 stdio MCP server。
 公开项目名是 **RippleContext**。package、executable、MCP server 和 repository 继续保留兼容技术名
 **`context-compiler-mcp`**。
 
-## 为什么需要它
+## 我们想做什么
 
-长期运行的 Agent 会积累越来越多的历史，而这些历史不适合全部进入每一次模型调用：
+### 短期目标
 
-- 对话和工具结果不断增长；
-- 已被取代的旧决定可能重新出现；
-- 已失效的信息仍然可能很容易被检索出来；
-- “过去相关”不等于“现在具有权威性”；
-- 加入更多历史或另一份 summary，本身不能建立 current truth。
+我们希望给用户一个本地、由用户掌握，并且不被单一 Agent 或 Session 锁定的 Context 辅助系统。
+当工作转移到新 Session，乃至未来切换到另一个 Agent 或 Host 时，重要的久远事件、当前有效状态和支持证据
+不必从零开始重新建立。
 
-一次基础的 memory search 可能同时找到原始决定和后来取代它的证据。困难不只在于找到相关文本，
-还在于维护决定的 lifecycle、识别哪个版本当前有效，并保留返回原始证据的路径。
+当前 Core 已支持显式的跨 Session read scope。无缝的跨 Agent、跨 Host continuity 仍然依赖 adapter
+和具体 Host 能力，目前尚未完整实现。
 
-## RippleContext 做什么
+### 长期方向
 
-```text
-原始历史（append-only、可追溯）
-                 ↓
-          显式 State 更新
-                 ↓
-当前 State + lifecycle + provenance
-                 ↓
-    有界 Context compilation 与 recall
-                 ↓
-            Host / Agent
-```
+随着个人数字历史不断增长，我们希望探索一个由用户掌握的 Context 与 Experience 层，持续整理来自不同
+Agent、设备、应用和其他来源的事件。
 
-RippleContext 将可追溯历史与当前工作状态分开：
+目标不是简单地永久保存所有内容，而是逐渐能够区分：
 
-- Raw Event 保持 append-only，并可作为证据精确恢复；
-- typed State 通过显式、受校验的 lifecycle transition 变化；
-- 派生 State 保留来源证据链接；Core/library compilation 保留内部 provenance diagnostics，
-  而公开 MCP result 有意使用更窄的投影；
-- context compilation 组合 current input、active State、recent Raw Event 和有界 recall；
-- Host integration 是独立职责，因此内容最终如何送入模型取决于具体 Host。
+- 发生过什么；
+- 什么现在仍然有效；
+- 什么已经失效或被取代；
+- 哪些 Action–Outcome–Feedback 序列可能形成可复用 Experience；
+- 需要时如何回到原始证据。
 
-长期研究方向包括从 Action、Outcome 和 Feedback 记录中形成经验。当前仓库已经提供 append-only
-Experience Ledger 数据面，但 automatic Experience Formation、promotion 和 learned behavior 尚未实现。
+这是研究方向，不表示跨设备同步、通用来源整合或 automatic Experience Formation 已经实现。
 
-## 它与基础 Memory Store 有什么不同
+## 我们已经做到什么
 
-> 基础 memory retrieval 问：**过去哪些内容相关？**
->
-> RippleContext 还会问：**它现在是否仍然有效、什么取代了它，以及哪些证据支持它？**
-
-这不表示普通历史、summary 或 retrieval 没有必要。RippleContext 将它们视为不同层：
-Raw history 是证据，retrieval 用来发现候选，而显式 State/lifecycle 规则决定什么可以被视为当前有效。
-
-## 当前已经可以做什么
-
-当前仓库已经实现并测试：
+RippleContext 仍是 Research Preview，但主要的本地数据与 Context 链路已经可以运行：
 
 - **本地 append-only 历史：** SQLite Raw Event 存储，具有按 Session 排序和 source-event 幂等语义。
 - **显式当前 State：** typed Goal、Constraint、Decision、Open Question 和 Rejected Alternative，
   以及确定性的 lifecycle 和 relation 更新。
-- **安全的 State 更新边界：** immutable preparation snapshot，以及对外部生成 State Delta 的严格、
-  原子 apply。
+- **跨 Session scope：** 调用方可以声明有 frozen ancestor frontier 和当前 write Session 的有序
+  read scope。
 - **有界 Context compilation：** current input、active State、dependency closure、最近完整用户轮次、
   有界 BM25 recall，以及可选的 caller-supplied Dense vector。
-- **可追溯证据 recall：** 按 Event、范围或 headline 精确恢复，以及对已存 headline 的 literal keyword
-  search。
-- **Canonical authority primitives：** revisioned Raw、State、Fact、Relation、provenance、replay，
-  以及独立、仅供 library 使用的 canonical `ContextSnapshot` contract。
-- **本地 MCP 访问：** 提供精确九个工具和脱敏公开结果的 stdio server。
-- **离线研究评估：** versioned、provider-neutral 的 D0/D1/D2 fixture 和 deterministic measurement。
-  它们是研究诊断，不是一般有效性的证明。
+- **可追溯证据：** 派生 State 保留 source event 链接；可以按 Event、范围或 headline 精确恢复证据。
+- **本地 MCP 访问：** 提供精确九个工具和窄化、脱敏公开结果的 stdio server。
+- **Canonical integrity primitives：** revisioned Raw、State、Fact、Relation、immutable Snapshot、
+  provenance 和 exact replay。
 
-Core 不选择模型 provider，也不发起网络请求。可选 library transport 可以调用本地 extractor
-subprocess，但该进程自行负责 provider、网络和凭据。
+存储、事务、revision、幂等、replay、provenance 和 Snapshot 边界已经具有较多 deterministic 与
+adversarial QA 覆盖。这是 implementation correctness 证据，不是跨 Host 产品质量证明。
+
+### 开发评测证据：更少的回答输入与接近的有界质量
+
+我们使用维护者自己的真实长期聊天历史，构造了六个冻结 Case 的有界开发评测。由于来源历史属于私密数据，
+对话、回答、日志和数据库不会公开；这里只公开聚合结果和解释边界。
+
+比较中的 `RC Raw-only` 只使用 Raw history retrieval 与 compilation，**没有**启用计划中的
+Semantic Formation、State/Fact/Relation Formation 或小模型 fallback。
+
+#### Codex Compaction vs RC Raw-only
+
+原始 run 中五个共同有效 Case：
+
+| 指标 | Codex Compaction | RC Raw-only |
+| --- | ---: | ---: |
+| Gold 保留 | 16/19 | 15.5/19 |
+| 质量中位数 | 4.25 | 3.75 |
+| 回答阶段输入 token | 208,354 | 122,407 |
+| stale resurrection Case | 0/5 | 0/5 |
+| negative transfer Case | 0/5 | 1/5 |
+
+在这次有界 run 中，RC 使用少约 **41.3% 的回答阶段输入 token**，同时保留 Codex
+**96.875%** 的 Gold 分数。它的质量中位数低 0.5，并仍有一个 negative-transfer Case。
+
+#### Pi Native vs RC Raw-only
+
+后续 post-hoc Pi Native supplement 中五个共同有效 Case：
+
+| 指标 | RC Raw-only | Pi Native |
+| --- | ---: | ---: |
+| 有效回答 | 5/5 | 5/5 |
+| 补充盲评 Gold | 14/19 | 15.5/19 |
+| 质量中位数 | 3.25 | 3.25 |
+| Critical-false Case | 2/5 | 5/5 |
+| stale-resurrection Case | 0/5 | 4/5 |
+| negative-transfer Case | 1/5 | 3/5 |
+| 回答阶段输入 token | 122,407 | 2,723,763 |
+| 最长 Case（C06） | 完成 | Context overflow |
+
+在五个共同 Case 中，RC 的回答阶段输入少约 **95.5%**。Pi Native 在补充盲评中覆盖了更多 Gold，
+但也带回了更多矛盾或已失效内容。最长 Case 中 RC 完成运行，而 Pi Native 的回答请求和
+overflow-compaction recovery 都超过了容量。
+
+这些结果有希望，但边界很窄：
+
+- Pi run 是更晚执行的 post-hoc development supplement，存在时间漂移风险；
+- supplement 不是 Independent QA、hidden holdout 或最终资格；
+- Pi 结果总体分类为 `PARTIAL`；
+- Codex 的 compaction-generation usage 不可观测，因此 41.3% 只是回答阶段输入比较，
+  不是严格的端到端成本比较；
+- Pi token 在 Pi provider boundary 观察，不是精确 provider HTTP payload；
+- 五个共同 Case 不能证明稳健性、一般化或跨 Host final-input 收益。
+
+## 我们怎么理解和实现这个问题
+
+RippleContext 不把每一段被记住的内容都视为同样有效，而是关注一个事件的 lifecycle：
+
+```text
+发生了一件事
+      ↓
+Raw Event
+保留原始来源
+      ↓
+Fact / State
+表示它对“现在”意味着什么
+      ↓
+Lifecycle
+后续证据可能更新、解决、否定或取代它
+      ↓
+Action → Outcome → Feedback
+形成潜在 Experience 的研究数据
+      ↓
+Context Compilation
+为当前任务选择有界、当前有效且可追溯的 Context
+      ↓
+Agent / Host
+```
+
+实现遵循几个原则：
+
+- **历史不等于当前事实。**
+- **Relevant 不一定表示现在仍然 Valid。**
+- **Summary 不是 Authority boundary。**
+- **派生 State 应继续连接原始证据。**
+- **外部 extractor 可以提出 State Delta，但 deterministic Core 代码负责校验并 apply transition。**
+- **前台 suppress 或 compact 不得删除 authoritative Raw history。**
+- **Experience 不只是一次对话摘要，而是关于可复用 Action–Outcome–Feedback 结构的研究假设。**
+
+Raw history、typed State、lifecycle、provenance、Snapshot、deterministic compilation 和
+append-only Experience Ledger 数据面目前已经存在。Automatic Experience Formation、promotion 和
+learned behavior 尚未实现。
+
+## 我们准备继续做什么
+
+近期方向包括：
+
+- 更简单的本地安装和配置；
+- 不同 Agent 与 Host 的快速、有界接入；
+- 开展 `Pi + RC Semantic` pilot，验证能否保留更广覆盖，同时减少 Pi Native 的旧状态复活、
+  负迁移和容量成本；
+- 基于真实 Action–Outcome–Feedback 记录的 Experience Formation 与 promotion 实验；
+- 更强的跨 Session 与跨 Host continuity；
+- 本地诊断能力和更简单的 UI；
+- 更多真实长期 dogfood，以及可审计的 quality–token frontier；
+- 长期探索具备隐私边界的跨设备、跨来源整理。
+
+这些是方向，不是已经交付的功能或 release 承诺。长期目标不是让用户手动管理一个 memory database，
+而是让 Context 层逐渐退到后台。
 
 ## 5 分钟 Quickstart
 
@@ -200,9 +282,9 @@ Server 精确提供以下九个工具：
 ## 当前限制
 
 - RippleContext 是 experimental、未完成且 not production ready 的 Research Preview。
-- 当前没有任何 Host 拥有由本仓库正式验证的 compiler mode。Host adapter 和 deployment behavior
-  位于 Core 之外。
-- Append 或 context injection 不等于 history replacement。`SHORT_REPLACE` 和
+- 当前没有任何 Host 拥有由本 Core 仓库正式验证的 compiler mode。Host adapter 和 deployment behavior
+  位于其他仓库。
+- Append 或 Context injection 不等于 history replacement。`SHORT_REPLACE` 和
   `LONG_REPLACE` 是 provider-neutral router suggestion，不证明某个 Host 已替换 native history。
 - Core 不拥有最终 provider request。本项目**没有证明跨 Host 的最终模型输入 token reduction**。
 - `compile_context` 和 `ingest_event` 不会隐式调用 extractor、model、provider 或 network，
@@ -210,8 +292,8 @@ Server 精确提供以下九个工具：
 - Dense retrieval 需要 caller 提供完整兼容覆盖的 vector。它的 semantic benefit、更广泛的 Context
   benefit 和 Experience Formation benefit 尚未验证。
 - Automatic headline generation 尚未实现。
-- 离线 evaluator 和当前 dogfood 记录只属于诊断证据，不证明 D2 优于 D1、稳健性、一般化，
-  或优于其他系统。
+- 上述私有历史评测属于 development evidence，不是公开可复现 benchmark。来源记录不能在不泄露
+  私密对话的情况下公开。
 - Legacy `CompiledContext` 与 canonical `ContextSnapshot` 是两个独立的 library surface。
   不得把 `CompiledContext` 当作具备 canonical Snapshot 的 exact
   revision/evidence/attempt/authority 保证。
@@ -219,18 +301,16 @@ Server 精确提供以下九个工具：
 
 ## Architecture
 
-理解基本问题之后，主要内部概念如下：
-
 | 概念 | 作用 |
 | --- | --- |
-| **Raw Event** | Append-only 的来源历史，可用于 replay 和 evidence recovery。 |
+| **Raw Event** | Append-only 的来源历史，用于 replay 和 evidence recovery。 |
 | **State** | 关于当前什么仍有效的 typed claim，例如 Goal、Constraint、Decision 和 Open Question。 |
 | **Lifecycle** | Supersede、resolve、reject 等显式 transition；由代码拥有并校验。 |
 | **Provenance** | 从派生 State 或 Context 返回来源证据与 revision identity 的链接。 |
-| **Experience** | Action、Outcome、Feedback 和 candidate experience 的 append-only 研究记录；automatic formation 属于未来研究。 |
+| **Experience** | Action、Outcome、Feedback 和 candidate experience 的 append-only 记录；automatic formation 属于未来研究。 |
 | **CompiledContext** | 当前 compiler 与公开 MCP projection 使用、以兼容为目标的有界 Context 输出。 |
 | **ContextSnapshot** | 独立的 canonical library contract，提供 immutable scope/as-of/manifest/attempt evidence 与 exact replay；它不是 MCP tool，也不证明 Host 已消费。 |
-| **Deterministic authority boundary** | 外部 extractor 可以提出 State Delta；Core 代码严格校验并原子 apply transition。 |
+| **Deterministic authority boundary** | 外部 extractor 可以提出 State Delta；Core 代码严格校验并原子 apply。 |
 
 建议从 [Architecture overview](docs/ARCHITECTURE.md) 开始。Canonical Snapshot 边界另见
 [ContextSnapshot contract](docs/architecture/WO-05-context-snapshot-contract.md)。
@@ -243,12 +323,11 @@ Server 精确提供以下九个工具：
 - [Work Orders](docs/work-orders/) 记录有界实现和研究范围。
 - [QA findings](docs/qa/) 包含 accepted result、return 和已复现反例。
 - [Adversarial reviews](docs/adversarial-reviews/) 质疑假设和投入顺序。
-- [Evaluation artifacts](evaluation/) 保留 fixture、诊断结果及其解释边界。
+- [Evaluation artifacts](evaluation/) 保留公开 fixture、诊断结果及其解释边界。
 - [Decisions](docs/DECISIONS.md) 和 [Roadmap](docs/ROADMAP.md) 标明当前及历史边界。
 
 部分早期设计在实验或 QA 反例后被修正。这些记录是有价值的研究 provenance，但并非每份历史文档都是
-当前 Authority。大多数开发者可以先阅读本 README、Architecture overview 和 PROJECT_STATE，
-不必通读全部历史材料。
+当前 Authority。
 
 ## License
 

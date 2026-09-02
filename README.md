@@ -2,11 +2,11 @@
 
 # RippleContext
 
-**Local-first context and experience infrastructure for long-running AI agents.**
+**A local-first context and experience layer for long-running AI agents.**
 
-RippleContext does more than store what happened. It provides a model-independent core for tracking
-what is still true, how that state changed, and which raw evidence supports it. The repository includes
-a local SQLite data plane, a TypeScript/JavaScript library, and a stdio MCP server.
+RippleContext aims to give users a context layer that can outlive any one agent or session. It keeps
+raw evidence local, tracks what is still valid, and compiles bounded context for the agent you are
+using.
 
 > [!WARNING]
 > **Experimental Research Preview — Not Production Ready.** This is a working but incomplete research
@@ -16,80 +16,168 @@ a local SQLite data plane, a TypeScript/JavaScript library, and a stdio MCP serv
 The public project name is **RippleContext**. The package, executable, MCP server, and repository retain
 the compatibility name **`context-compiler-mcp`**.
 
-## The problem
+## What we are building
 
-Long-running agents accumulate more history than is useful in every model call:
+### Short-term goal
 
-- conversations and tool results keep growing;
-- an old decision can reappear after it has been superseded;
-- information can remain easy to retrieve even after it is no longer valid;
-- “relevant in the past” is not the same as “authoritative now”;
-- adding more history or another summary does not by itself establish current truth.
+We want to give users a local, user-controlled context assistant that is not locked to one Agent or
+Session. When work moves to a new Session—or eventually another Agent or Host—important older events,
+current valid state, and supporting evidence should not have to be reconstructed from scratch.
 
-A basic memory search might find both an original decision and the later evidence that replaced it.
-The difficult part is not only finding related text. It is preserving the lifecycle of the decision,
-identifying which version is current, and retaining a path back to the evidence.
+The current Core already supports explicit multi-Session read scopes. Seamless cross-Agent and
+cross-Host continuity still depends on adapters and Host capabilities and is not complete today.
 
-## What RippleContext does
+### Long-term direction
 
-```text
-Raw history (append-only and traceable)
-                 ↓
-       explicit state updates
-                 ↓
-current state + lifecycle + provenance
-                 ↓
- bounded context compilation and recall
-                 ↓
-          host / agent
-```
+As personal digital histories grow, we want to explore a user-owned Context and Experience layer that
+can organize events from different Agents, devices, applications, and other sources.
 
-RippleContext separates traceable history from current working state:
+The goal is not simply to save everything forever. The system should gradually be able to distinguish:
 
-- raw events remain append-only and can be recovered as evidence;
-- typed state can change through explicit, validated lifecycle transitions;
-- derived state remains linked to source evidence; Core/library compilation retains internal
-  provenance diagnostics, while the public MCP result is intentionally narrower;
-- context compilation combines current input, active state, recent raw events, and bounded recall;
-- host integration remains a separate responsibility, so actual delivery to a model depends on the host.
+- what happened;
+- what is still valid now;
+- what has become stale or was superseded;
+- which Action–Outcome–Feedback sequences may form reusable Experience;
+- how to return to the original evidence when needed.
 
-The long-term research direction includes learning from Action, Outcome, and Feedback records. The
-repository already provides an append-only Experience Ledger data plane, but automatic Experience
-Formation, promotion, and learned behavior are not implemented.
-
-## Why this is different from a basic memory store
-
-> Basic memory retrieval asks: **What from the past is relevant?**
->
-> RippleContext additionally asks: **Is it still valid now, what superseded it, and what evidence
-> supports it?**
-
-This does not make ordinary history, summaries, or retrieval unnecessary. RippleContext treats them as
-different layers: raw history is evidence, retrieval finds candidates, and explicit state/lifecycle
-rules determine what can be treated as current.
+This is a research direction, not a claim that cross-device sync, universal source integration, or
+automatic Experience Formation already exists.
 
 ## What works today
 
-The current repository implements and tests:
+RippleContext is still a Research Preview, but the main local data and context path is runnable:
 
-- **Local append-only history:** SQLite raw-event storage with per-session ordering and source-event
+- **Local append-only history:** SQLite Raw Event storage with per-Session ordering and source-event
   idempotency.
-- **Explicit current state:** typed Goals, Constraints, Decisions, Open Questions, and Rejected
+- **Explicit current State:** typed Goals, Constraints, Decisions, Open Questions, and Rejected
   Alternatives with deterministic lifecycle and relation updates.
-- **Safe state-update boundaries:** immutable preparation snapshots and strict, atomic application of
-  externally produced State Deltas.
-- **Bounded context compilation:** current input, active state, dependency closure, recent complete
+- **Cross-Session scope:** callers can declare an ordered read scope with frozen ancestor frontiers and
+  a current write Session.
+- **Bounded context compilation:** current input, active State, dependency closure, recent complete
   user turns, bounded BM25 recall, and optional caller-supplied Dense vectors.
-- **Traceable evidence recall:** exact recovery by event, range, or headline, plus literal keyword
-  search over stored headlines.
-- **Canonical authority primitives:** revisioned Raw, State, Fact, Relation, provenance, replay, and a
-  separate library-only canonical `ContextSnapshot` contract.
-- **Local MCP access:** a stdio server with exactly nine tools and sanitized public results.
-- **Offline research evaluation:** versioned, provider-neutral D0/D1/D2 fixtures and deterministic
-  measurement. These are research diagnostics, not proof of general effectiveness.
+- **Traceable evidence:** derived State remains linked to source events; exact evidence can be recovered
+  by Event, range, or headline.
+- **Local MCP access:** a stdio server with exactly nine tools and a narrow, sanitized public result.
+- **Canonical integrity primitives:** revisioned Raw, State, Fact, Relation, immutable snapshots,
+  provenance, and exact replay.
 
-The Core does not select a model provider and makes no network request. An optional library transport
-can call a local extractor subprocess, but that process owns its provider, network, and credentials.
+The storage, transaction, revision, idempotency, replay, provenance, and snapshot boundaries have
+substantial deterministic and adversarial QA coverage. This is evidence for implementation
+correctness—not proof of product-level quality across Hosts.
+
+### Development evidence: less answer input with comparable bounded quality
+
+We ran a bounded development evaluation over six frozen cases derived from the maintainer's real,
+long-running chat history. Because that source history is private, the conversations, answers, logs,
+and databases are not published. The aggregate results and their limitations are summarized here.
+
+`RC Raw-only` in these comparisons used Raw history retrieval and compilation only. It did **not** use
+the planned Semantic Formation path, State/Fact/Relation Formation, or a small-model fallback.
+
+#### Codex Compaction vs RC Raw-only
+
+Original run, five common valid cases:
+
+| Metric | Codex Compaction | RC Raw-only |
+| --- | ---: | ---: |
+| Gold retained | 16/19 | 15.5/19 |
+| Quality median | 4.25 | 3.75 |
+| Answer-stage input tokens | 208,354 | 122,407 |
+| Stale resurrection cases | 0/5 | 0/5 |
+| Negative-transfer cases | 0/5 | 1/5 |
+
+In this bounded run, RC retained **96.875%** of the Codex Gold score while using about **41.3% fewer
+answer-stage input tokens**. Its quality median was 0.5 lower, and one negative-transfer case remained.
+
+#### Pi Native vs RC Raw-only
+
+Later post-hoc Pi Native supplement, five common valid cases:
+
+| Metric | RC Raw-only | Pi Native |
+| --- | ---: | ---: |
+| Valid answers | 5/5 | 5/5 |
+| Supplemental blind-review Gold | 14/19 | 15.5/19 |
+| Quality median | 3.25 | 3.25 |
+| Critical-false cases | 2/5 | 5/5 |
+| Stale-resurrection cases | 0/5 | 4/5 |
+| Negative-transfer cases | 1/5 | 3/5 |
+| Answer-stage input tokens | 122,407 | 2,723,763 |
+| Longest case (C06) | completed | context overflow |
+
+RC used about **95.5% fewer answer-stage input tokens** in the five common cases. Pi Native covered more
+Gold in the supplemental blind review, but also brought back more contradictory or stale material. In
+the longest case, RC completed while Pi Native's answer request and overflow-compaction recovery both
+exceeded capacity.
+
+These results are promising but deliberately narrow:
+
+- the Pi run was a later, post-hoc development supplement with temporal-drift risk;
+- the supplement was not Independent QA, a hidden holdout, or final qualification;
+- the Pi result was classified `PARTIAL`;
+- Codex compaction-generation usage was not observable, so the 41.3% result is answer-stage input, not
+  a strict end-to-end cost comparison;
+- Pi token values were observed at Pi's provider boundary, not from the exact provider HTTP payload;
+- five common cases cannot establish robustness, generalization, or a cross-Host final-input claim.
+
+## How we approach the problem
+
+Instead of treating every remembered fragment as equally current, RippleContext follows the lifecycle
+of an event:
+
+```text
+Something happens
+      ↓
+Raw Event
+retain the original source
+      ↓
+Fact / State
+represent what it means for the present
+      ↓
+Lifecycle
+later evidence may update, resolve, reject, or supersede it
+      ↓
+Action → Outcome → Feedback
+research data for possible Experience
+      ↓
+Context Compilation
+select bounded, current, traceable context for this task
+      ↓
+Agent / Host
+```
+
+Several principles guide the implementation:
+
+- **History is not current truth.**
+- **Relevant does not necessarily mean valid now.**
+- **A summary is not an authority boundary.**
+- **Derived State should remain connected to original evidence.**
+- **An external extractor may propose a State Delta, but deterministic Core code validates and applies
+  the transition.**
+- **Foreground suppression or compaction must not delete authoritative Raw history.**
+- **Experience is more than a conversation summary; it is a research hypothesis about reusable
+  Action–Outcome–Feedback structure.**
+
+Raw history, typed State, lifecycle, provenance, snapshots, deterministic compilation, and the
+append-only Experience Ledger data plane exist today. Automatic Experience Formation, promotion, and
+learned behavior do not.
+
+## What we plan to explore next
+
+Near-term directions include:
+
+- simpler local installation and setup;
+- faster, bounded onboarding for different Agents and Hosts;
+- a `Pi + RC Semantic` pilot that tests whether broader coverage can be retained without Pi Native's
+  stale resurrection, negative transfer, and capacity cost;
+- Experience Formation and promotion experiments over real Action–Outcome–Feedback records;
+- stronger cross-Session and cross-Host continuity;
+- local diagnostics and a simpler UI;
+- more real long-running dogfood and an auditable quality–token frontier;
+- eventually, privacy-preserving cross-device and cross-source organization.
+
+These are directions, not shipped features or release commitments. The long-term goal is for users not
+to have to manage a memory database manually; the context layer should gradually recede into the
+background.
 
 ## 5-minute quickstart
 
@@ -172,11 +260,11 @@ EOF
 
 The `compile.result.context.rendered_context` field should include the ingested sentence under
 `Recent Conversation`. This demonstrates local event storage and bounded compilation; it does not
-perform automatic state extraction.
+perform automatic State extraction.
 
 ### Generic stdio MCP configuration
 
-MCP configuration syntax differs by host, but the process definition is:
+MCP configuration syntax differs by Host, but the process definition is:
 
 ```json
 {
@@ -208,58 +296,55 @@ The server exposes exactly these tools:
 ## Current limitations
 
 - RippleContext is experimental, incomplete, and not production ready.
-- No Host currently has a formally validated compiler mode from this repository. Host adapters and
-  deployment behavior live outside the Core.
+- No Host currently has a formally validated compiler mode from this Core repository. Host adapters
+  and deployment behavior live elsewhere.
 - Append or context injection is not history replacement. `SHORT_REPLACE` and `LONG_REPLACE` are
-  provider-neutral router suggestions, not proof that a Host replaced its native history.
-- The Core does not own the final provider request. The project has **not** demonstrated cross-host
+  provider-neutral router suggestions, not proof that a Host replaced native history.
+- The Core does not own the final provider request. The project has **not** demonstrated cross-Host
   reduction of final model-input tokens.
 - `compile_context` and `ingest_event` do not implicitly call an extractor, model, provider, or
   network, and they do not implicitly evolve State.
 - Dense retrieval requires caller-supplied vectors with complete compatible coverage. Its semantic
-  benefit, broader context benefit, and Experience Formation benefit remain unvalidated.
+  benefit, broader Context benefit, and Experience Formation benefit remain unvalidated.
 - Automatic headline generation is not implemented.
-- The offline evaluator and current dogfood records are diagnostic evidence only. They do not prove
-  that D2 is better than D1, robust, generalizable, or superior to another system.
+- The private-history evaluation above is development evidence, not a public reproducible benchmark.
+  The source records cannot be published without exposing private conversations.
 - Legacy `CompiledContext` and canonical `ContextSnapshot` are separate library surfaces.
-  `CompiledContext` must not be treated as if it carries the canonical snapshot's exact
+  `CompiledContext` must not be treated as if it carries the canonical Snapshot's exact
   revision/evidence/attempt/authority guarantees.
 - Windows and an exact Node.js 24 runtime have not been separately verified.
 
 ## Architecture
 
-Once the basic problem is clear, the main internal concepts are:
-
 | Concept | Role |
 | --- | --- |
-| **Raw Event** | Append-only source history. It remains available for replay and evidence recovery. |
-| **State** | Typed claims about what is currently active, such as goals, constraints, decisions, and open questions. |
+| **Raw Event** | Append-only source history for replay and evidence recovery. |
+| **State** | Typed claims about what is currently active, such as Goals, Constraints, Decisions, and Open Questions. |
 | **Lifecycle** | Explicit transitions such as supersede, resolve, and reject; code owns and validates them. |
-| **Provenance** | Links from derived state or context back to source evidence and revision identity. |
-| **Experience** | Append-only research records for Action, Outcome, Feedback, and candidate experience; automatic formation is future research. |
-| **CompiledContext** | The compatibility-oriented bounded context output used by the current compiler and public MCP projection. |
+| **Provenance** | Links from derived State or Context back to source evidence and revision identity. |
+| **Experience** | Append-only Action, Outcome, Feedback, and candidate-experience records; automatic formation is future research. |
+| **CompiledContext** | The compatibility-oriented bounded output used by the current compiler and public MCP projection. |
 | **ContextSnapshot** | A separate canonical library contract for immutable scope/as-of/manifest/attempt evidence and exact replay. It is not an MCP tool or proof of Host consumption. |
-| **Deterministic authority boundary** | An external extractor may propose a State Delta; Core code strictly validates and atomically applies the transition. |
+| **Deterministic authority boundary** | An external extractor may propose a State Delta; Core code strictly validates and atomically applies it. |
 
-Start with the [architecture overview](docs/ARCHITECTURE.md). The canonical snapshot boundary is
+Start with the [architecture overview](docs/ARCHITECTURE.md). The canonical Snapshot boundary is
 specified separately in the
 [ContextSnapshot contract](docs/architecture/WO-05-context-snapshot-contract.md). Current accepted
 scope and unresolved gaps are recorded in [PROJECT_STATE](docs/PROJECT_STATE.md).
 
 ## Research, QA, and design history
 
-This repository intentionally retains the evidence of how the design evolved:
+This repository intentionally retains evidence of how the design evolved:
 
 - [Work Orders](docs/work-orders/) record bounded implementation and research scopes.
 - [QA findings](docs/qa/) include accepted results, returns, and reproduced counterexamples.
 - [Adversarial reviews](docs/adversarial-reviews/) challenge assumptions and investment order.
-- [Evaluation artifacts](evaluation/) preserve fixtures, diagnostics, and their interpretation limits.
+- [Evaluation artifacts](evaluation/) preserve public fixtures, diagnostics, and interpretation limits.
 - [Decisions](docs/DECISIONS.md) and the [Roadmap](docs/ROADMAP.md) identify current and historical
   boundaries.
 
-Some earlier designs were revised after experiments or QA counterexamples. These records are useful
-research provenance, but not every historical document is current authority. Most developers can
-start with this README, the architecture overview, and PROJECT_STATE without reading the full archive.
+Some earlier designs were revised after experiments or QA counterexamples. These records are valuable
+research provenance, but not every historical document is current authority.
 
 ## License
 
