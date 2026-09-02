@@ -1,184 +1,266 @@
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 # RippleContext
 
+**Local-first context and experience infrastructure for long-running AI agents.**
+
+RippleContext does more than store what happened. It provides a model-independent core for tracking
+what is still true, how that state changed, and which raw evidence supports it. The repository includes
+a local SQLite data plane, a TypeScript/JavaScript library, and a stdio MCP server.
+
 > [!WARNING]
-> **Experimental Research Preview — Not Production Ready.** 本仓库公开的是当前真实、可运行但仍未完成的研究实现，不是生产级产品、安全边界或已验证的跨宿主方案。
+> **Experimental Research Preview — Not Production Ready.** This is a working but incomplete research
+> implementation. It is not a production memory service, a proven security boundary, or a validated
+> cross-host context-reduction solution.
 
-RippleContext 研究长期运行 Agent 中的 Experience、State、lifecycle、provenance、context compilation 与 Host integration。当前方向是：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 保存可回放的研究数据；长期目标是 Experience Formation。本包只负责“够用即可”的 Core 与数据面，不以证明自身优于 PACE、mem0 等方案为目标。
+The public project name is **RippleContext**. The package, executable, MCP server, and repository retain
+the compatibility name **`context-compiler-mcp`**.
 
-当前技术兼容身份仍为 `context-compiler-mcp`：npm package、stdio executable、MCP server identity、九个工具、`CONTEXT_COMPILER_DB_PATH` 与 `DSH_HOME` fallback 均不因项目品牌改名而变化。官方 Harness/Host 适配器属于独立的 `RippleContext-adapter` 仓库，本 Core 不引入宿主依赖。
+## The problem
 
-## Research preview status
+Long-running agents accumulate more history than is useful in every model call:
 
-当前仓库已经实现并测试的主要能力包括：append-only SQLite Raw Event、typed State 与显式 prepare/apply 更新、确定性有界 Context 组装、exact/keyword recall、版本化离线 evaluator、canonical authority/revision/provenance primitives、ContextSnapshot，以及本地 stdio MCP 的精确九工具接口。下文和 [`PROJECT_STATE`](docs/PROJECT_STATE.md) 给出更窄的实际合同；这些实现状态不等于生产部署或研究收益已经成立。
+- conversations and tool results keep growing;
+- an old decision can reappear after it has been superseded;
+- information can remain easy to retrieve even after it is no longer valid;
+- “relevant in the past” is not the same as “authoritative now”;
+- adding more history or another summary does not by itself establish current truth.
 
-## Host capability boundary
+A basic memory search might find both an original decision and the later evidence that replaced it.
+The difficult part is not only finding related text. It is preserving the lifecycle of the decision,
+identifying which version is current, and retaining a path back to the evidence.
 
-- **Append**：Core 可以追加自己的 Raw Event、Ledger 与 telemetry；这不表示它能向任意 Host 的最终消息列表追加内容。
-- **Injection**：只有具体 Host adapter 获得对应 seam 时才能注入 compiled context；看到注入内容不证明原生历史已被移除。
-- **Replacement**：`SHORT_REPLACE` / `LONG_REPLACE` 是 provider-neutral router 的动作建议，不是本 Core 已执行的 Host replacement，也不是跨 Host 保证。
-- **Final-input control**：本仓库不拥有 Host/provider 的最终模型请求。只有具体集成同时控制 replacement seam 并审计实际 provider request，才能对该 Host 的单次最终输入作出限定结论。
+## What RippleContext does
 
-因此，本项目**没有证明跨 Host 的最终模型输入压缩收益**，也不把 append、injection 或 action suggestion 宣称为 final-input replacement/control。
+```text
+Raw history (append-only and traceable)
+                 ↓
+       explicit state updates
+                 ↓
+current state + lifecycle + provenance
+                 ↓
+ bounded context compilation and recall
+                 ↓
+          host / agent
+```
 
-## Known limitations
+RippleContext separates traceable history from current working state:
 
-- 尚无任何 Host 的正式 compiler mode；Host adapters、部署状态与 provider 行为不由本仓库证明。
-- 当前离线 evaluator 与少量 dogfood 只提供诊断证据，不证明 D2 优于 D1、稳健性、一般化或跨 Host 收益；已记录的一次 dogfood 中，D2 比 D0 少约 50.6%，但比 D1 多约 112.8%。
-- `compile_context` 不隐式调用 extractor/model/provider/network，也不隐式演进 State；自动 headline generation 尚未实现。
-- Dense retrieval、Context 语义收益与 Experience Formation 效果仍未完成评估；部分实验参数只是可配置研究值，不是理论结论。
-- Windows 与精确 Node.js 24 环境尚未单独验证。
-- 仓库有意保留设计演进、QA return、失败实验和反例修正；旧设计被实验反例修正是公开研究记录的一部分，不表示每份历史文档仍是当前 Authority。
+- raw events remain append-only and can be recovered as evidence;
+- typed state can change through explicit, validated lifecycle transitions;
+- derived state remains linked to source evidence; Core/library compilation retains internal
+  provenance diagnostics, while the public MCP result is intentionally narrower;
+- context compilation combines current input, active state, recent raw events, and bounded recall;
+- host integration remains a separate responsibility, so actual delivery to a model depends on the host.
 
-The current server exposes exactly nine tools:
+The long-term research direction includes learning from Action, Outcome, and Feedback records. The
+repository already provides an append-only Experience Ledger data plane, but automatic Experience
+Formation, promotion, and learned behavior are not implemented.
 
-- `health`
-- `ingest_event`
-- `compile_context`
-- `get_state`
-- `prepare_state_update`
-- `apply_state_delta`
-- `create_headline`
-- `recall_exact`
-- `recall_keyword`
+## Why this is different from a basic memory store
 
-`ingest_event.created_at` 是可选的独立 source/event time，不是 append cursor。提供时必须是 RFC 3339
-date-time（秒级或 1–3 位小数，`Z`/numeric offset），writer 会持久化并返回 UTC millisecond canonical
-form；同 session 的 durable 顺序始终由 `seq` 表达，所以合法时间可以倒序、相等、迟到或 future-skew。
-UTC 月末 RFC 3339 leap second（`:60`）保持为独立 instant，不会折叠到下一分钟。
-历史 append-only Raw 中可解析的 RFC 3339 秒级/任意小数精度 timestamp bytes 在 read/replay 时保持
-原样，不会 backfill 或改写；其精确 instant（包括 sub-millisecond digits）继续参与 source-event 幂等冲突判断。
+> Basic memory retrieval asks: **What from the past is relevant?**
+>
+> RippleContext additionally asks: **Is it still valid now, what superseded it, and what evidence
+> supports it?**
 
-公开 stdio `compile_context` 成功结果使用 closed-world allowlist：`context` 只返回
-`session_id`、最终 `rendered_context`、`budget_exceeded`、`budget_overage`，另返回有限数值
-`metrics`。候选列表、ranking/score、debug/manifest、trace/telemetry identity 与内部 raw/state/path
-清单不属于普通 MCP 用户结果。Library/Core 调用仍可保留完整内部诊断结果；未来新增内部字段不会自动
-穿透公开 MCP 边界。
+This does not make ordinary history, summaries, or retrieval unnecessary. RippleContext treats them as
+different layers: raw history is evidence, retrieval finds candidates, and explicit state/lifecycle
+rules determine what can be treated as current.
 
-`compile_context` 不调用模型、extractor、provider 或网络，也不修改 raw/state。session 建立可信 compile telemetry baseline 之前，缺少 `operation_id` 仍保持历史 read-only；一旦首次带 id 的 trace 成功提交，后续该 session 缺 id compile 会以 `INVALID_INPUT` 拒绝，不能混用可观测与不可观测请求。带 id 时只把去正文、exact-shape 的 `CONTEXT_COMPILE` 与 `RETRIEVAL_HIT` trace 原子、幂等地追加到后台 ledger。State 演进仍是显式两步操作：`prepare_state_update` 返回带 fingerprint 的有界快照，外部调用方取得候选 State Delta 后交给 `apply_state_delta` 严格校验并按 revision 原子应用。
+## What works today
 
-Library 与同名 MCP 输入可选接收 provider-neutral
-`ripplecontext-session-scope/v1`。Scope 按祖先到当前 leaf 排序：祖先必须带
-Raw/State frozen frontier，leaf 必须是 `CURRENT` 且等于 `session_id`。
-Raw 在 SQLite 查询中先按 `(session_id, seq)` 和 frontier 过滤，再作为一个
-候选集合统一编译/排序；来源 Session 与原始 seq 在结果中恢复。State 的
-显式 `metadata.ripplecontext_scope_key` 按 precedence overlay，原 provenance
-不改写。缺失的 frozen State snapshot、越界 frontier、重复/动态祖先或非
-`authority` namespace 一律 fail-closed；后者避免当前无 namespace 列的
-SQLite authority plane 静默别名。旧单 Session 输入及公开 MCP 的窄输出
-保持不变。正式 library 查询入口 `CoreReadQuery` 同时提供 scoped Raw、
-State 与统一 keyword Top-K。
+The current repository implements and tests:
 
-## `CompiledContext` 与 `ContextSnapshot` 的边界
+- **Local append-only history:** SQLite raw-event storage with per-session ordering and source-event
+  idempotency.
+- **Explicit current state:** typed Goals, Constraints, Decisions, Open Questions, and Rejected
+  Alternatives with deterministic lifecycle and relation updates.
+- **Safe state-update boundaries:** immutable preparation snapshots and strict, atomic application of
+  externally produced State Deltas.
+- **Bounded context compilation:** current input, active state, dependency closure, recent complete
+  user turns, bounded BM25 recall, and optional caller-supplied Dense vectors.
+- **Traceable evidence recall:** exact recovery by event, range, or headline, plus literal keyword
+  search over stored headlines.
+- **Canonical authority primitives:** revisioned Raw, State, Fact, Relation, provenance, replay, and a
+  separate library-only canonical `ContextSnapshot` contract.
+- **Local MCP access:** a stdio server with exactly nine tools and sanitized public results.
+- **Offline research evaluation:** versioned, provider-neutral D0/D1/D2 fixtures and deterministic
+  measurement. These are research diagnostics, not proof of general effectiveness.
 
-这两个名称对应不同的 package-root library surface，不可互换；本节不新增 MCP 工具或 API。
+The Core does not select a model provider and makes no network request. An optional library transport
+can call a local extractor subprocess, but that process owns its provider, network, and credentials.
 
-| 类型 | 公开入口与保证 | `NOT_PROVEN` / 禁止外推 |
-| --- | --- | --- |
-| legacy `CompiledContext` | [`assembleContext`、`renderCompiledContext` 与 `CompiledContext`](src/index.ts) 是兼容保留的有界上下文组装入口；`ContextCompilerCore.call("compile_context", …)` 返回完整 library 结果。它按 [legacy assembler contract](src/assembler.ts) 组合当前输入、选中的 active State、依赖闭包、recent Raw 与可选 retrieval，并报告确定性的预算/metrics。stdio MCP 只公开上文所列的 closed-world 投影。 | 它不是 canonical `ContextSnapshot`，也不证明完整 revision vector、exact evidence/as-of、immutable manifest、AttemptStarted receipt 或 Authority closure。调用方不得把它序列化、宣传或消费为具有这些 Snapshot 语义的对象；`debug_manifest`、event/state 列表或 `rendered_context` 也不能补足该证明。MCP 的更窄结果边界见 [`WO-PUB-01`](docs/work-orders/WO-PUB-01-public-mcp-result-boundary.md)。 |
-| canonical `ContextSnapshot` | package root 导出的 [`ContextSnapshot` 类型与 policy constants](src/index.ts)，以及 `ContextCompilerCore.freezeContextSnapshot`、`readContextSnapshot`、`readContextAttemptStarted`，是独立的 library 入口。其冻结保证来自 [`ContextSnapshot` contract](docs/architecture/WO-05-context-snapshot-contract.md) 与 [stored implementation boundary](src/context-snapshot.ts)：显式 scope、exact five-axis as-of、Current Authority + Frontier-bound Hot Raw、immutable manifest/hash、同事务 AttemptStarted receipt、exact replay 与 fail-closed validation。 | 该 contract 不会反向提升 legacy `CompiledContext`，也不证明 Host 已消费、部署已激活、MCP 已公开 Snapshot、provider/model 已选择或某次 release 已接线。当前 repository authority 与这些非目标见 [`PROJECT_STATE`](docs/PROJECT_STATE.md) 和 [`ROADMAP`](docs/ROADMAP.md)。 |
+## 5-minute quickstart
 
-因此，兼容代码可以继续使用 `CompiledContext` 作为有界上下文输出；需要 revision/evidence/attempt/authority
-语义的代码必须通过 canonical `ContextSnapshot` 入口取得并验证对应对象，不能从 legacy 输出推断或补造。
-`ContextAssemblerInput`、`OperationalContextInput` 与 `compile_context` 可显式传
-`include_current_input:false` 取得 history-only `rendered_context`；默认值仍为 `true`。
-history-only 只取消 `Current User Input` 章节，`current_input` 仍参与检索、排序、预算和
-operation identity，完整 library 结果也继续保留该字段。
+### Requirements
 
-Operational compile 固定以下小边界：
+- Node.js 24 or newer
+- npm
 
-- `recent_raw_window_turns=N` 始终保留最近 N 个完整用户轮次原文，不排名、不摘要、不压缩；
-- 窗口外只在最近 `N × multiplier` 个用户轮次内用可复算 BM25 召回；调用方可为 raw event 与 query 提供同一 `vector_space_id` 的 Dense 向量，只有全候选覆盖、同 space、同维度且 norm 可算时才整批进入 hybrid，否则整条 Dense leg 降级为 BM25-only；
-- `candidate_turn_multiplier=5`、targeted recovery multiplier `=8`、dormancy multiplier `=15` 等只是严格有界、可配置的实验参数，不是理论规则；
-- recovery 只接受同 session 已存在的 `event_type="verified_failure"` reference；默认仍使用较小上下文；
-- dormant/cold 只是前台 placement，不改 authoritative lifecycle。ACTIVE Constraint 永不 dormant，dependency closure 可救援 target；旧库、缺 provenance、缺 operation-id baseline 或 telemetry 不完整时一律 fail-open；
-- foreground suppress/compact 永不更新或删除 `raw_events` / `experience_ledger`。
-
-Library ledger 的公开 `append` 只接收未来研究记录 `ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE`。`EVENT` 只由 raw ingest/migration 原子镜像，`CONTEXT_COMPILE / RETRIEVAL_HIT` 只由内部 compile batch 生成；相应 source-key namespace 也被保留。严格 JSON 会把 `__proto__`、`constructor`、`prototype` 当作普通数据键无损保存，不把合法旧 raw metadata 当作控制字段。
-
-`ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy`、`operation_id` 与 `include_current_input`。MCP 工具仍精确为九个。
-
-## Context Pressure Router library
-
-The package-root `routeContextPressure` export is the provider-neutral,
-side-effect-free PI-001-D state machine. Callers provide exact
-Host/session/generation/lineage identity, trusted request/window/reserve
-measurements, C SHORT readiness, E promotion status, and explicit LONG
-Binding/receipt/coverage/frontier/causal/semantic/budget gates. The result is a
-deterministic `SHORT_ACTIVE / PROMOTING / LONG_ACTIVE / FALLBACK` decision and
-`NATIVE / SHORT_REPLACE / LONG_REPLACE / SHADOW_ONLY` action suggestion.
-
-Policy v1 fixes the normal Semantic Spine at 30 user-visible interactions,
-starts real shadow/promotion governance at 50% usable-window pressure, marks
-80% as high pressure, and requires at least 20% savings on the same complete
-provider request before LONG. A trusted versioned conservative reserve/safety
-baseline may fill those two boundaries; current request tokens and model
-window still require credible sources. The function never compiles, ingests,
-persists, calls a model/provider, or deletes history.
-
-## Requirements and setup
-
-Node.js 24 or newer is required.
+### Clone and build
 
 ```sh
+git clone https://github.com/MingchaoLi/context-compiler-mcp.git
+cd context-compiler-mcp
 npm install --no-audit --no-fund
-npm test
 npm run build
 ```
 
-Start the stdio server with an explicit local database path:
+### Ingest one event and compile context
+
+The following smoke path uses the MCP client already installed as a project dependency. It starts the
+stdio server, writes one local event, compiles context for a follow-up question, and prints the public
+results.
 
 ```sh
-CONTEXT_COMPILER_DB_PATH=/absolute/path/context-compiler.db npm start
-```
+mkdir -p .ripplecontext-local
 
-For compatibility with the originally approved adapter, `DSH_HOME` remains a legacy fallback and resolves to `DSH_HOME/sessions/context-compiler.db`. New integrations should set `CONTEXT_COMPILER_DB_PATH`; it always takes precedence.
+node --input-type=module <<'EOF'
+import { resolve } from "node:path";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-The package can also be used as a TypeScript/JavaScript library through `dist/index.js` after building. It has no network or model-provider dependency.
-
-## Offline evaluation
-
-The provider-neutral evaluation runner compares a versioned JSON fixture across D0 full raw context, D1 recent context, and D2 compiled context. Version 1 remains available for exact historical reproduction. Version 2 requires provenance-bound Probe objects, represents empty denominators as `not_evaluable`, measures historical continuity without treating `current_input` as retained history, and reports raw D2-vs-D1 token delta/ratio alongside the existing D2-vs-D0 reduction. Probe matching still uses Unicode NFKC plus collapsed whitespace and exact containment; it is not a semantic model judgment or a remote-model call.
-
-```sh
-npm run evaluate -- /absolute/path/evaluation-suite.json
-```
-
-The CLI dispatches version 1 or version 2 from the root `version` field and writes the matching JSON report to stdout. Exit `0` means all aggregate thresholds passed, `2` means evaluation completed but a threshold failed or a required v2 metric was wholly `not_evaluable`, `3` means invalid input, and `4` means a sanitized runtime failure. Evaluation creates isolated temporary SQLite databases only for loading fixture evidence and exercising the existing headline recall implementation; it performs no model or network call and does not alter the nine-tool MCP protocol. The deterministic v2 ruler calibration fixture is `test/fixtures/evaluation-v2-calibration.json`; it is not Context Compiler effectiveness evidence.
-
-## Optional local extractor runtime
-
-Library callers may explicitly compose the accepted state-update pipeline with a local provider adapter process. The core starts the executable directly with `shell: false`, sends one `{ "version": 1, "prompt": string }` request, and accepts one `{ "version": 1, "delta": object }` response. The child owns any model SDK, network use, and credentials; none are selected or configured by this package.
-
-```js
-import {
-  JsonSubprocessExtractorTransport,
-  RuntimeStateUpdater,
-  SqliteContextStateStore,
-} from "context-compiler-mcp";
-
-const store = new SqliteContextStateStore("/absolute/path/context-compiler.db");
-const transport = new JsonSubprocessExtractorTransport({
-  executable: "/absolute/path/provider-adapter",
-  args: ["--stdio-once"],
+const transport = new StdioClientTransport({
+  command: process.execPath,
+  args: [resolve("dist/mcp-server.js")],
+  env: {
+    ...process.env,
+    CONTEXT_COMPILER_DB_PATH: resolve(".ripplecontext-local/quickstart.db"),
+  },
+  stderr: "inherit",
 });
-const updater = new RuntimeStateUpdater(store, transport);
-const result = await updater.updateState({
-  session_id: "session-id",
-  newest_event_ids: ["ordered-current-suffix-event-id"],
+
+const client = new Client({
+  name: "ripplecontext-quickstart",
+  version: "1.0.0",
 });
-await transport.close();
-store.close();
+
+await client.connect(transport);
+
+try {
+  const ingest = await client.callTool({
+    name: "ingest_event",
+    arguments: {
+      session_id: "readme-quickstart",
+      role: "user",
+      content: "The deployment target is a local research environment.",
+      source_event_id: "quickstart-1",
+    },
+  });
+
+  const compile = await client.callTool({
+    name: "compile_context",
+    arguments: {
+      session_id: "readme-quickstart",
+      current_input: "What is the deployment target?",
+    },
+  });
+
+  const read = (result) =>
+    result.structuredContent ?? JSON.parse(result.content[0].text);
+
+  console.log(JSON.stringify({
+    ingest: read(ingest),
+    compile: read(compile),
+  }, null, 2));
+} finally {
+  await client.close();
+}
+EOF
 ```
 
-The runtime updater performs explicit prepare → strict extract → atomic apply. It is never invoked implicitly, and the MCP server remains exactly nine tools.
+The `compile.result.context.rendered_context` field should include the ingested sentence under
+`Recent Conversation`. This demonstrates local event storage and bounded compilation; it does not
+perform automatic state extraction.
 
-## Project facts
+### Generic stdio MCP configuration
 
-- [Current state](docs/PROJECT_STATE.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Decisions](docs/DECISIONS.md)
-- [Roadmap](docs/ROADMAP.md)
-- [v0 requirements index](docs/REQUIREMENTS_V0.md)
-- [Migration provenance](docs/MIGRATION.md)
+MCP configuration syntax differs by host, but the process definition is:
 
-The archived original brief is intentionally not part of the normal agent reading path; use the concise requirements index first.
+```json
+{
+  "mcpServers": {
+    "ripplecontext": {
+      "command": "node",
+      "args": ["/absolute/path/to/context-compiler-mcp/dist/mcp-server.js"],
+      "env": {
+        "CONTEXT_COMPILER_DB_PATH": "/absolute/path/to/ripplecontext.db"
+      }
+    }
+  }
+}
+```
+
+Use `CONTEXT_COMPILER_DB_PATH` for new integrations. `DSH_HOME/sessions/context-compiler.db` remains
+a legacy fallback.
+
+The server exposes exactly these tools:
+
+| Purpose | MCP tools |
+| --- | --- |
+| Readiness | `health` |
+| Raw history | `ingest_event` |
+| Context | `compile_context` |
+| State | `get_state`, `prepare_state_update`, `apply_state_delta` |
+| Evidence recall | `create_headline`, `recall_exact`, `recall_keyword` |
+
+## Current limitations
+
+- RippleContext is experimental, incomplete, and not production ready.
+- No Host currently has a formally validated compiler mode from this repository. Host adapters and
+  deployment behavior live outside the Core.
+- Append or context injection is not history replacement. `SHORT_REPLACE` and `LONG_REPLACE` are
+  provider-neutral router suggestions, not proof that a Host replaced its native history.
+- The Core does not own the final provider request. The project has **not** demonstrated cross-host
+  reduction of final model-input tokens.
+- `compile_context` and `ingest_event` do not implicitly call an extractor, model, provider, or
+  network, and they do not implicitly evolve State.
+- Dense retrieval requires caller-supplied vectors with complete compatible coverage. Its semantic
+  benefit, broader context benefit, and Experience Formation benefit remain unvalidated.
+- Automatic headline generation is not implemented.
+- The offline evaluator and current dogfood records are diagnostic evidence only. They do not prove
+  that D2 is better than D1, robust, generalizable, or superior to another system.
+- Legacy `CompiledContext` and canonical `ContextSnapshot` are separate library surfaces.
+  `CompiledContext` must not be treated as if it carries the canonical snapshot's exact
+  revision/evidence/attempt/authority guarantees.
+- Windows and an exact Node.js 24 runtime have not been separately verified.
+
+## Architecture
+
+Once the basic problem is clear, the main internal concepts are:
+
+| Concept | Role |
+| --- | --- |
+| **Raw Event** | Append-only source history. It remains available for replay and evidence recovery. |
+| **State** | Typed claims about what is currently active, such as goals, constraints, decisions, and open questions. |
+| **Lifecycle** | Explicit transitions such as supersede, resolve, and reject; code owns and validates them. |
+| **Provenance** | Links from derived state or context back to source evidence and revision identity. |
+| **Experience** | Append-only research records for Action, Outcome, Feedback, and candidate experience; automatic formation is future research. |
+| **CompiledContext** | The compatibility-oriented bounded context output used by the current compiler and public MCP projection. |
+| **ContextSnapshot** | A separate canonical library contract for immutable scope/as-of/manifest/attempt evidence and exact replay. It is not an MCP tool or proof of Host consumption. |
+| **Deterministic authority boundary** | An external extractor may propose a State Delta; Core code strictly validates and atomically applies the transition. |
+
+Start with the [architecture overview](docs/ARCHITECTURE.md). The canonical snapshot boundary is
+specified separately in the
+[ContextSnapshot contract](docs/architecture/WO-05-context-snapshot-contract.md). Current accepted
+scope and unresolved gaps are recorded in [PROJECT_STATE](docs/PROJECT_STATE.md).
+
+## Research, QA, and design history
+
+This repository intentionally retains the evidence of how the design evolved:
+
+- [Work Orders](docs/work-orders/) record bounded implementation and research scopes.
+- [QA findings](docs/qa/) include accepted results, returns, and reproduced counterexamples.
+- [Adversarial reviews](docs/adversarial-reviews/) challenge assumptions and investment order.
+- [Evaluation artifacts](evaluation/) preserve fixtures, diagnostics, and their interpretation limits.
+- [Decisions](docs/DECISIONS.md) and the [Roadmap](docs/ROADMAP.md) identify current and historical
+  boundaries.
+
+Some earlier designs were revised after experiments or QA counterexamples. These records are useful
+research provenance, but not every historical document is current authority. Most developers can
+start with this README, the architecture overview, and PROJECT_STATE without reading the full archive.
+
+## License
+
+[Apache License 2.0](LICENSE)
