@@ -119,6 +119,11 @@ These results are promising but deliberately narrow:
 - Pi token values were observed at Pi's provider boundary, not from the exact provider HTTP payload;
 - five common cases cannot establish robustness, generalization, or a cross-Host final-input claim.
 
+Public evidence notes:
+
+- [Sanitized evaluation protocol](docs/qa/WO-DG-02-private-history-evaluation-protocol.md)
+- [Sanitized aggregate results](docs/qa/WO-DG-02-private-history-evaluation-results.md)
+
 ## How we approach the problem
 
 Instead of treating every remembered fragment as equally current, RippleContext follows the lifecycle

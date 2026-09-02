@@ -111,6 +111,11 @@ overflow-compaction recovery 都超过了容量。
 - Pi token 在 Pi provider boundary 观察，不是精确 provider HTTP payload；
 - 五个共同 Case 不能证明稳健性、一般化或跨 Host final-input 收益。
 
+公开证据说明：
+
+- [脱敏评测方案](docs/qa/WO-DG-02-private-history-evaluation-protocol.md)
+- [脱敏聚合结果](docs/qa/WO-DG-02-private-history-evaluation-results.md)
+
 ## 我们怎么理解和实现这个问题
 
 RippleContext 不把每一段被记住的内容都视为同样有效，而是关注一个事件的 lifecycle：
