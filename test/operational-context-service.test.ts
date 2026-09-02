@@ -111,6 +111,7 @@ describe("operational compile MCP integration", () => {
 
     const request = {
       session_id: "trace", current_input: "PRIVATE_CURRENT_TEXT_91 needle",
+      include_current_input: false,
       recent_raw_window_turns: 1, operation_id: "compile-op-1",
       context_policy: { candidate_turn_multiplier: 8, retrieval_limit: 2 },
     };
@@ -119,6 +120,10 @@ describe("operational compile MCP integration", () => {
     const trace = afterFirst.find((record) => record.kind === "CONTEXT_COMPILE")!;
     expect(first.context.operational_debug.compile_trace_id).toBe(trace.id);
     expect(first.context.retrieved_history.map(({ id }: { id: string }) => id)).toEqual([beforeRaw[0]!.id]);
+    expect(first.context.include_current_input).toBe(false);
+    expect(first.context.current_input).toBe(request.current_input);
+    expect(first.context.rendered_context).not.toContain("## Current User Input");
+    expect(first.context.rendered_context).not.toContain("PRIVATE_CURRENT_TEXT_91");
     expect(afterFirst.filter((record) => record.kind === "RETRIEVAL_HIT")).toHaveLength(1);
     expect(JSON.stringify(trace.payload)).not.toContain("PRIVATE_CURRENT_TEXT_91");
     expect(Object.keys(trace.payload).sort()).toEqual([

@@ -337,6 +337,7 @@ const TOOLS: Tool[] = [
   tool("compile_context", "Compile a bounded context snapshot; operation_id enables append-only trace", objectSchema({
     session_id: sessionId,
     current_input: nonBlank,
+    include_current_input: { type: "boolean" },
     token_budget: { type: "integer", minimum: 0 },
     recent_raw_window_turns: { type: "integer", minimum: 1, maximum: 100 },
     operation_id: identifier,

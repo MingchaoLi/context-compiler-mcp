@@ -814,7 +814,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
   private compile(value: unknown): CompileContextResult {
     const input = readObject(value, ["session_id", "current_input"], [
       "token_budget", "recent_raw_window_turns", "operation_id", "dense_query", "context_policy",
-      "session_scope",
+      "session_scope", "include_current_input",
     ]);
     const sessionId = requireNonEmptyString(input.session_id);
     const explicitSessionScope = input.session_scope !== undefined;
@@ -829,6 +829,7 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
     }
     if (sessionScope.write_session.session_id !== sessionId) invalid();
     const currentInput = requireNonBlankString(input.current_input);
+    optionalBoolean(input.include_current_input);
     optionalIntegerInRange(input.token_budget, 0, Number.MAX_SAFE_INTEGER);
     optionalIntegerInRange(input.recent_raw_window_turns, 1, 100);
     optionalNonBlankString(input.operation_id);
@@ -881,6 +882,9 @@ export class ContextCompilerCore implements ContextCompilerCommandPort, RawRecei
           state_relations: relations,
           raw_events: rawEvents,
           current_input: currentInput,
+          ...(input.include_current_input === undefined
+            ? {}
+            : { include_current_input: input.include_current_input as boolean }),
           state_revision: this.stateStore.getRevision(sessionId),
           ...(input.token_budget === undefined ? {} : { token_budget: input.token_budget as number }),
           ...(input.recent_raw_window_turns === undefined
@@ -1247,6 +1251,10 @@ function optionalNonBlankString(value: unknown): void {
       (typeof value !== "string" || value.trim().length === 0 || value.length > 500)) {
     invalid();
   }
+}
+
+function optionalBoolean(value: unknown): void {
+  if (value !== undefined && typeof value !== "boolean") invalid();
 }
 
 function optionalNonNegativeSafeInteger(value: unknown): void {

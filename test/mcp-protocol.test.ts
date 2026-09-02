@@ -506,6 +506,62 @@ describe("Context Compiler stdio MCP protocol", () => {
     audit.close();
   });
 
+  it("accepts the history-only compile option without adding a tool or widening the public result", async () => {
+    const database = join(temporaryRoot, "history-only-protocol.db");
+    const connection = await connect(serverEntry, database);
+    const sessionId = "history-only-protocol";
+    const currentInput = "CURRENT_PROTOCOL_QUERY_779 needle";
+    try {
+      const listed = await connection.client.listTools();
+      expect(listed.tools.filter(({ name }) => name === "compile_context")).toHaveLength(1);
+      expect((listed.tools.find(({ name }) => name === "compile_context")?.inputSchema as any)
+        .properties.include_current_input).toEqual({ type: "boolean" });
+
+      for (const [index, content] of ["old needle evidence", "middle turn", "recent turn"].entries()) {
+        expect(parse(await connection.client.callTool({
+          name: "ingest_event",
+          arguments: {
+            session_id: sessionId,
+            role: "user",
+            content,
+            source_event_id: `history-only-source-${index}`,
+          },
+        }))).toMatchObject({ ok: true });
+      }
+
+      const compiled = parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: {
+          session_id: sessionId,
+          current_input: currentInput,
+          include_current_input: false,
+          recent_raw_window_turns: 1,
+          operation_id: "history-only-protocol-operation",
+        },
+      })) as any;
+      expect(compiled.ok).toBe(true);
+      expect(Object.keys(compiled.result.context)).toEqual([
+        "session_id", "rendered_context", "budget_exceeded", "budget_overage",
+      ]);
+      expect(compiled.result.context.rendered_context).toContain("old needle evidence");
+      expect(compiled.result.context.rendered_context).not.toContain("## Current User Input");
+      expect(compiled.result.context.rendered_context).not.toContain(currentInput);
+
+      expect(parse(await connection.client.callTool({
+        name: "compile_context",
+        arguments: {
+          session_id: sessionId,
+          current_input: "different query",
+          include_current_input: false,
+          recent_raw_window_turns: 1,
+          operation_id: "history-only-protocol-operation",
+        },
+      }))).toEqual({ ok: false, error: { code: "CONFLICT" } });
+    } finally {
+      await close(connection);
+    }
+  });
+
   it("projects future scoped fields away and fails closed on malformed scoped success", async () => {
     const raw = {
       id: "fake-event",

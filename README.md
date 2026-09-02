@@ -54,6 +54,10 @@ State 与统一 keyword Top-K。
 
 因此，兼容代码可以继续使用 `CompiledContext` 作为有界上下文输出；需要 revision/evidence/attempt/authority
 语义的代码必须通过 canonical `ContextSnapshot` 入口取得并验证对应对象，不能从 legacy 输出推断或补造。
+`ContextAssemblerInput`、`OperationalContextInput` 与 `compile_context` 可显式传
+`include_current_input:false` 取得 history-only `rendered_context`；默认值仍为 `true`。
+history-only 只取消 `Current User Input` 章节，`current_input` 仍参与检索、排序、预算和
+operation identity，完整 library 结果也继续保留该字段。
 
 Operational compile 固定以下小边界：
 
@@ -66,7 +70,7 @@ Operational compile 固定以下小边界：
 
 Library ledger 的公开 `append` 只接收未来研究记录 `ACTION / OUTCOME / FEEDBACK / CANDIDATE_EXPERIENCE`。`EVENT` 只由 raw ingest/migration 原子镜像，`CONTEXT_COMPILE / RETRIEVAL_HIT` 只由内部 compile batch 生成；相应 source-key namespace 也被保留。严格 JSON 会把 `__proto__`、`constructor`、`prototype` 当作普通数据键无损保存，不把合法旧 raw metadata 当作控制字段。
 
-`ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy` 与 `operation_id`。MCP 工具仍精确为九个。
+`ingest_event` 可选接收调用方生成的 `dense_embedding: { vector_space_id, values }`；core 不生成 embedding、不选择 provider。`compile_context` 相应可选接收 `dense_query`、`context_policy`、`operation_id` 与 `include_current_input`。MCP 工具仍精确为九个。
 
 ## Context Pressure Router library
 

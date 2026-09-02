@@ -91,6 +91,7 @@ export interface OperationalContextInput {
   state_relations: StateRelation[];
   raw_events: RawEvent[];
   current_input: string;
+  include_current_input?: boolean;
   state_revision: number;
   token_budget?: number;
   recent_raw_window_turns?: number;
@@ -169,6 +170,9 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
     state_relations: input.state_relations,
     raw_events: rawEvents,
     current_input: input.current_input,
+    ...(input.include_current_input === undefined
+      ? {}
+      : { include_current_input: input.include_current_input }),
     ...(input.token_budget === undefined ? {} : { token_budget: input.token_budget }),
     recent_raw_window_turns: recentTurns,
     operational: {
@@ -247,6 +251,7 @@ export function compileOperationalContext(input: OperationalContextInput): Opera
   const rawBoundary = rawEvents.at(-1)?.seq ?? 0;
   const normalizedInputFingerprint = sha256(stableJson({
     current_input: input.current_input,
+    include_current_input: input.include_current_input ?? true,
     recent_raw_window_turns: recentTurns,
     token_budget: input.token_budget ?? null,
     context_policy: policyJson,

@@ -407,9 +407,37 @@ describe("deterministic Context Assembler", () => {
     expect(Number.isFinite(compiled.metrics.d2_reduction_ratio)).toBe(true);
   });
 
+  it("renders an explicit history-only packet while retaining current input in the typed result and budget", () => {
+    const currentInput = "CURRENT_INPUT_BUDGET_CANARY_".repeat(12);
+    const historyOnly = assembleContext(input({
+      current_input: currentInput,
+      include_current_input: false,
+    }));
+
+    expect(historyOnly.include_current_input).toBe(false);
+    expect(historyOnly.current_input).toBe(currentInput);
+    expect(historyOnly.rendered_context).not.toContain("## Current User Input");
+    expect(historyOnly.rendered_context).not.toContain(currentInput);
+    expect(renderCompiledContext(historyOnly)).toBe(historyOnly.rendered_context);
+
+    const packetOnlyTokens = estimateTokens(historyOnly.rendered_context);
+    const budgeted = assembleContext(input({
+      current_input: currentInput,
+      include_current_input: false,
+      token_budget: packetOnlyTokens,
+    }));
+    expect(budgeted.metrics.d2_compiled_tokens).toBe(packetOnlyTokens);
+    expect(budgeted.debug_manifest.token_budget_used).toBeGreaterThan(packetOnlyTokens);
+    expect(budgeted.budget_exceeded).toBe(true);
+    expect(budgeted.budget_overage).toBe(
+      budgeted.debug_manifest.token_budget_used - packetOnlyTokens,
+    );
+  });
+
   it.each([
     ["blank session", { session_id: " " }],
     ["blank current input", { current_input: "\n" }],
+    ["non-boolean current input rendering flag", { include_current_input: "false" }],
     ["negative budget", { token_budget: -1 }],
     ["fractional budget", { token_budget: 1.5 }],
     ["zero turn window", { recent_raw_window_turns: 0 }],

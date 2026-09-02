@@ -35,6 +35,8 @@ export interface ContextAssemblerInput {
   state_relations: StateRelation[];
   raw_events: RawEvent[];
   current_input: string;
+  /** Defaults to true. False renders history/state only while retaining current_input for assembly semantics. */
+  include_current_input?: boolean;
   token_budget?: number;
   recent_raw_window_turns?: number;
   operational?: OperationalAssemblyInput;
@@ -94,6 +96,7 @@ export interface CompiledContext {
   /** Present when the caller selected an explicit provider-neutral read Scope. */
   session_scope?: SessionScope;
   current_input: string;
+  include_current_input: boolean;
   active_goals: ContextItem[];
   active_constraints: ContextItem[];
   active_decisions: ContextItem[];
@@ -128,6 +131,7 @@ interface ValidatedInput {
   relations: StateRelation[];
   rawEvents: RawEvent[];
   currentInput: string;
+  includeCurrentInput: boolean;
   tokenBudget: number | undefined;
   recentTurns: number;
   operational: {
@@ -177,6 +181,7 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     retrievedHistory,
     operational: validated.operational !== undefined,
     currentInput: validated.currentInput,
+    includeCurrentInput: validated.includeCurrentInput,
   };
   const optionalCandidates = validated.items
     .filter(
@@ -198,6 +203,7 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
   } else {
     historicalNotes = [];
     const mandatoryRendered = renderSections(mandatory);
+    const mandatoryBudgetRendered = renderSections({ ...mandatory, includeCurrentInput: true });
     let historicalBodyLength = 0;
     for (const item of optionalCandidates) {
       const note = toHistoricalNote(item);
@@ -208,7 +214,7 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
       // selected newline-delimited body. The shared estimator only depends on
       // total character length, so this is exactly equivalent to rendering the
       // whole context for every candidate without the resulting O(n²) copies.
-      const candidateRenderedLength = mandatoryRendered.length - "[none]".length + candidateBodyLength;
+      const candidateRenderedLength = mandatoryBudgetRendered.length - "[none]".length + candidateBodyLength;
       if (estimateTokensForLength(candidateRenderedLength) <= validated.tokenBudget) {
         historicalNotes.push(note);
         historicalBodyLength = candidateBodyLength;
@@ -234,14 +240,21 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
     .filter((id) => !keptSet.has(id))
     .sort(compareText);
   const d2Tokens = estimateTokens(rendered);
+  // token_budget continues to cover the native current input even when the
+  // caller requests a history-only packet and will carry that input outside
+  // rendered_context (for example, as the provider's original user message).
+  const budgetTokens = validated.tokenBudget === undefined
+    ? d2Tokens
+    : estimateTokens(renderSections({ ...mandatory, historicalNotes, includeCurrentInput: true }));
   const budgetOverage =
-    validated.tokenBudget === undefined ? 0 : Math.max(0, d2Tokens - validated.tokenBudget);
+    validated.tokenBudget === undefined ? 0 : Math.max(0, budgetTokens - validated.tokenBudget);
   const d0Tokens = estimateTokens(renderTranscript(validated.rawEvents, validated.currentInput));
   const d1Tokens = estimateTokens(renderTranscript(recentConversation, validated.currentInput));
 
   return {
     session_id: validated.sessionId,
     current_input: validated.currentInput,
+    include_current_input: validated.includeCurrentInput,
     active_goals: cloneItems(activeGoals),
     active_constraints: cloneItems(activeConstraints),
     active_decisions: cloneItems(activeDecisions),
@@ -272,7 +285,7 @@ export function assembleContext(input: ContextAssemblerInput): CompiledContext {
               end: recentConversation[recentConversation.length - 1]!.seq,
             },
       token_budget: validated.tokenBudget ?? null,
-      token_budget_used: d2Tokens,
+      token_budget_used: budgetTokens,
       budget_exceeded: budgetOverage > 0,
       budget_overage: budgetOverage,
       token_estimator: "character_count_divided_by_four",
@@ -306,6 +319,7 @@ interface RenderableContext {
   retrievedHistory: RawEvent[];
   operational: boolean;
   currentInput: string;
+  includeCurrentInput: boolean;
 }
 
 export function renderCompiledContext(context: CompiledContext): string {
@@ -320,6 +334,7 @@ export function renderCompiledContext(context: CompiledContext): string {
     retrievedHistory: context.retrieved_history ?? [],
     operational: context.retrieved_history !== undefined,
     currentInput: context.current_input,
+    includeCurrentInput: context.include_current_input !== false,
   });
 }
 
@@ -333,7 +348,7 @@ function renderSections(context: RenderableContext): string {
     renderNoteSection(context.historicalNotes),
     ...(context.operational ? [renderRetrievedHistory(context.retrievedHistory)] : []),
     renderConversation(context.recentConversation),
-    `## Current User Input\n${context.currentInput}`,
+    ...(context.includeCurrentInput ? [`## Current User Input\n${context.currentInput}`] : []),
   ];
   return sections.join("\n\n");
 }
@@ -501,12 +516,14 @@ function validateInput(input: ContextAssemblerInput): ValidatedInput {
     "state_relations",
     "raw_events",
     "current_input",
+    "include_current_input",
     "token_budget",
     "recent_raw_window_turns",
     "operational",
   ], "input");
   const sessionId = nonBlankString(input.session_id, "session_id");
   const currentInput = nonBlankString(input.current_input, "current_input");
+  const includeCurrentInput = optionalBoolean(input.include_current_input, "include_current_input") ?? true;
   const tokenBudget = optionalSafeInteger(input.token_budget, 0, Number.MAX_SAFE_INTEGER, "token_budget");
   const recentTurns = optionalSafeInteger(
     input.recent_raw_window_turns,
@@ -546,7 +563,17 @@ function validateInput(input: ContextAssemblerInput): ValidatedInput {
   const operational = input.operational === undefined
     ? undefined
     : validateOperational(input.operational, itemIds, rawIds, items);
-  return { sessionId, items, relations, rawEvents, currentInput, tokenBudget, recentTurns, operational };
+  return {
+    sessionId,
+    items,
+    relations,
+    rawEvents,
+    currentInput,
+    includeCurrentInput,
+    tokenBudget,
+    recentTurns,
+    operational,
+  };
 }
 
 function validateOperational(
@@ -733,6 +760,12 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 function nonBlankString(value: unknown, path: string): string {
   if (typeof value !== "string" || value.trim().length === 0) invalid(`${path} must be a non-blank string`);
+  return value;
+}
+
+function optionalBoolean(value: unknown, path: string): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") invalid(`${path} must be a boolean`);
   return value;
 }
 
