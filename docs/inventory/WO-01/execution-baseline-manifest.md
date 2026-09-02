@@ -3,7 +3,7 @@
 Status: FROZEN FOR BUILDER INVENTORY
 
 ```text
-repository_path: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository_path: /path/to/context-compiler-mcp
 branch: main
 source_baseline_HEAD: f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52
 expected_parent: b27b5300f3a6acba84d09f55e43fc93feeaf80f0

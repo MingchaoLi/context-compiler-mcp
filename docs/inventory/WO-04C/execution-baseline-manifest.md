@@ -3,7 +3,7 @@
 Status: FROZEN FOR TRANSACTION COMPOSITION GATE / BUILDER
 
 ```text
-repository_path: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository_path: /path/to/context-compiler-mcp
 branch: main
 source_baseline_HEAD: c3a184f9c067d529e8f2908080ab72650fb59cbc
 planning_authority_commit: c3a184f9c067d529e8f2908080ab72650fb59cbc

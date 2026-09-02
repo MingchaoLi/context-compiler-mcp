@@ -3,7 +3,7 @@
 Result: **REJECTED**
 
 - QA date: 2026-08-24
-- Repository: `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp`
+- Repository: `/path/to/context-compiler-mcp`
 - Branch at handoff: `main`
 - Source baseline HEAD: `f618ed4af4b40bc51b5b3eb8fc19bf1e61c51f52`
 - Source baseline parent: `b27b5300f3a6acba84d09f55e43fc93feeaf80f0`

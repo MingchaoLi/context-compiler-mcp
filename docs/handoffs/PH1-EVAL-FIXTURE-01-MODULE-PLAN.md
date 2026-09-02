@@ -4,7 +4,7 @@ Status: `READY FOR PLANNING GATE REVIEW / BUILDER NOT STARTED`
 
 ## Exact lineage
 
-- Worktree: `/Users/lmc/Documents/agent长期记忆/.worktrees/ph1-eval-fixture-01`
+- Worktree: `/path/to/ripplecontext-workspace/.worktrees/ph1-eval-fixture-01`
 - Branch: `codex/ph1-eval-fixture-01`
 - Gate parent / Core planning baseline: `f07257044e458d2edaad7821a95e3f9b9d18d63b`
 - Product authority: `RippleContext-governance@7129e453fbb08648250bfbd15da93596c635ddbe`

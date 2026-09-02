@@ -16,18 +16,23 @@ const INPUT_COMMITS = Object.freeze([
   "47eafe6178783d0976399fe118c37d783684c70d",
   "05da8cd0107c954c1c19b3f5909328bd356dc87f"
 ]);
+const MACOS_USER_DOCUMENTS_PREFIX = ["", "Users", "[^/\\s]+", "Documents"].join("/");
+const PUBLIC_RELEASE_PATH_REPLACEMENTS = Object.freeze([
+  [new RegExp(`${MACOS_USER_DOCUMENTS_PREFIX}/Codex/2026-08-30/rc-evaluation-owner/work/rc025-h0-formation-skeleton-plan-01`, "gu"), "/path/to/rc-evaluation-owner/work/rc025-h0-formation-skeleton-plan-01"],
+  [new RegExp(`${MACOS_USER_DOCUMENTS_PREFIX}/[^/\\s]+/context-compiler-mcp`, "gu"), "/path/to/context-compiler-mcp"]
+]);
 const PAYLOADS = Object.freeze({
   "evaluation/codex-dogfood-01/protocol/composite-request.json": "dfba192a1154815ce30d789d6235fbfa49184148515f82f934352f3db6358946",
-  "evaluation/codex-dogfood-01/captures/b-packet.json": "94b80aa7cabde75b63be2500650e0300ffa22e039afb545ee4a1fd420647ee4d",
-  "evaluation/codex-dogfood-01/captures/compiled-b.json": "771783872ef17ab172b1e364d16dd62b0d405420a33317375ba11c7ee13f8f72",
-  "evaluation/codex-dogfood-01/captures/native-a.json": "da5fe69aa4f85c16b2fc9fb377bf482a38b2b368037360134c7e6d3dfa81ee1c",
-  "evaluation/codex-dogfood-01/captures/v0-observation.json": "af8e58ba64844a4b400ec03b7b210525b32f1d8308421b1596c35abb43c0f136",
+  "evaluation/codex-dogfood-01/captures/b-packet.json": "b255b509faa7a4baa7a2974f6e3d4ae6f8d8e374431e7b482343e1a9ce9bc849",
+  "evaluation/codex-dogfood-01/captures/compiled-b.json": "f2d463686ad62265f2dc561c667b8fcc2be316378c25564c72882af4a8e1effe",
+  "evaluation/codex-dogfood-01/captures/native-a.json": "c378788725ee73d8674a8388886d0188a92c76e49413b5e8f6954f53190a4996",
+  "evaluation/codex-dogfood-01/captures/v0-observation.json": "012a5f39d139469e8a050b66d042cba3100763651e43a9b2c51e3c6a7e2c1b0b",
   "evaluation/codex-dogfood-01/host-data/directive-summaries.json": "4083d1dfc1254bb58010f27602ee0a1d6461e3cab7489b8bf11ee42fa1bc3dc9",
-  "evaluation/codex-dogfood-01/reports/automatic-lexical.json": "4de11676d0c629d603202f660b66b0cedd41d56d7377091d86c945d97621f61e",
+  "evaluation/codex-dogfood-01/reports/automatic-lexical.json": "0c08e53bfbe42825dcc634ed1cdb8b0ae5884728b997575c9aa2988f99bd9bf3",
   "evaluation/codex-dogfood-01/reports/independent-semantic-adjudication.json": "916e98223a03ebe58ef6071b70c73ed9a82fb09f84cc54dec3d935a55939cbe6",
-  "evaluation/codex-dogfood-01/reports/ledger-audit.json": "1e579aff4155a4e2935e3c7ee765e5b0a4704ee8a5862aa9e2f7f7f9aaeaecd2",
+  "evaluation/codex-dogfood-01/reports/ledger-audit.json": "417bdc5b53544d5ef1c130e95ba748de03698646771839620f5b6cdb3c4d456b",
   "evaluation/codex-dogfood-01/runner/latency-worker.mjs": "49ad5e2710b0650bf2e751f6939322a2b1888acc7df25ac859cc1d68f26508b3",
-  "evaluation/codex-dogfood-01/runner/run-observation.mjs": "38a66aff63b980ef4911722864400cc86198270e327b74bd008b970598d22ac6",
+  "evaluation/codex-dogfood-01/runner/run-observation.mjs": "232262f8cc412c826966a85b1d632f1dde240baa285b860f7185e8eec2c97933",
   "evaluation/codex-dogfood-01/runner/score-captures.mjs": "5cf59676786ab772e33d9c35db0dcea357f031f810ea4287034bef9d3cbd74c3"
 });
 const EXPECTED_FILES = Object.freeze([
@@ -94,9 +99,19 @@ function gitBytes(commit, path) {
   return result.stdout;
 }
 
+function publicReleaseProjection(bytes) {
+  let text = bytes.toString("utf8");
+  for (const [privatePathPattern, publicPath] of PUBLIC_RELEASE_PATH_REPLACEMENTS) {
+    text = text.replaceAll(privatePathPattern, publicPath);
+  }
+  return Buffer.from(text, "utf8");
+}
+
 function assertGitIdentity(commit, path) {
   const current = readFileSync(resolve(ROOT, path));
-  if (!gitBytes(commit, path).equals(current)) fail(`${path}: current bytes differ from ${commit}`);
+  if (!publicReleaseProjection(gitBytes(commit, path)).equals(current)) {
+    fail(`${path}: current bytes differ from the public-release projection of ${commit}`);
+  }
 }
 
 const files = collectFiles(EVALUATION_ROOT);

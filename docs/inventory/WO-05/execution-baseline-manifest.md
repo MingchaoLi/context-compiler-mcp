@@ -3,7 +3,7 @@
 Status: FROZEN FOR SNAPSHOT COMPOSITION GATE / BUILDER
 
 ```text
-repository_path: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository_path: /path/to/context-compiler-mcp
 branch: main
 source_baseline_HEAD: 0dbff6a8a148f37fcabef7accf7f71d057e1a90f
 planning_authority_commit: 0dbff6a8a148f37fcabef7accf7f71d057e1a90f

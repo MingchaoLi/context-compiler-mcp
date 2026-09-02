@@ -1,8 +1,33 @@
 # RippleContext
 
-RippleContext 是一个本地、模型无关、宿主独立的长期运行基础设施：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 完整保存可回放的研究数据。项目的长期研究目标是 Experience Formation；本包只负责“够用即可”的前台上下文与可信 Event–Action–Outcome / Feedback 数据面，不以证明自身优于 PACE、mem0 等方案为目标。
+> [!WARNING]
+> **Experimental Research Preview — Not Production Ready.** 本仓库公开的是当前真实、可运行但仍未完成的研究实现，不是生产级产品、安全边界或已验证的跨宿主方案。
+
+RippleContext 研究长期运行 Agent 中的 Experience、State、lifecycle、provenance、context compilation 与 Host integration。当前方向是：前台用有界 Context / State 保持任务连续性，后台用 append-only Raw Event / Experience Ledger 保存可回放的研究数据；长期目标是 Experience Formation。本包只负责“够用即可”的 Core 与数据面，不以证明自身优于 PACE、mem0 等方案为目标。
 
 当前技术兼容身份仍为 `context-compiler-mcp`：npm package、stdio executable、MCP server identity、九个工具、`CONTEXT_COMPILER_DB_PATH` 与 `DSH_HOME` fallback 均不因项目品牌改名而变化。官方 Harness/Host 适配器属于独立的 `RippleContext-adapter` 仓库，本 Core 不引入宿主依赖。
+
+## Research preview status
+
+当前仓库已经实现并测试的主要能力包括：append-only SQLite Raw Event、typed State 与显式 prepare/apply 更新、确定性有界 Context 组装、exact/keyword recall、版本化离线 evaluator、canonical authority/revision/provenance primitives、ContextSnapshot，以及本地 stdio MCP 的精确九工具接口。下文和 [`PROJECT_STATE`](docs/PROJECT_STATE.md) 给出更窄的实际合同；这些实现状态不等于生产部署或研究收益已经成立。
+
+## Host capability boundary
+
+- **Append**：Core 可以追加自己的 Raw Event、Ledger 与 telemetry；这不表示它能向任意 Host 的最终消息列表追加内容。
+- **Injection**：只有具体 Host adapter 获得对应 seam 时才能注入 compiled context；看到注入内容不证明原生历史已被移除。
+- **Replacement**：`SHORT_REPLACE` / `LONG_REPLACE` 是 provider-neutral router 的动作建议，不是本 Core 已执行的 Host replacement，也不是跨 Host 保证。
+- **Final-input control**：本仓库不拥有 Host/provider 的最终模型请求。只有具体集成同时控制 replacement seam 并审计实际 provider request，才能对该 Host 的单次最终输入作出限定结论。
+
+因此，本项目**没有证明跨 Host 的最终模型输入压缩收益**，也不把 append、injection 或 action suggestion 宣称为 final-input replacement/control。
+
+## Known limitations
+
+- 尚无任何 Host 的正式 compiler mode；Host adapters、部署状态与 provider 行为不由本仓库证明。
+- 当前离线 evaluator 与少量 dogfood 只提供诊断证据，不证明 D2 优于 D1、稳健性、一般化或跨 Host 收益；已记录的一次 dogfood 中，D2 比 D0 少约 50.6%，但比 D1 多约 112.8%。
+- `compile_context` 不隐式调用 extractor/model/provider/network，也不隐式演进 State；自动 headline generation 尚未实现。
+- Dense retrieval、Context 语义收益与 Experience Formation 效果仍未完成评估；部分实验参数只是可配置研究值，不是理论结论。
+- Windows 与精确 Node.js 24 环境尚未单独验证。
+- 仓库有意保留设计演进、QA return、失败实验和反例修正；旧设计被实验反例修正是公开研究记录的一部分，不表示每份历史文档仍是当前 Authority。
 
 The current server exposes exactly nine tools:
 

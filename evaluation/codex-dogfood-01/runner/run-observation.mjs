@@ -131,7 +131,7 @@ function seedSession(service, sessionId, commits, directiveData) {
     ...emptyDelta(),
     new_constraints: [
       {
-        content: "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+        content: "Only /path/to/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
         source_refs: [directiveIds.D18, directiveIds.D20]
       },
       {

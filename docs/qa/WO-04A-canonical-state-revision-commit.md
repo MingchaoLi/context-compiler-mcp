@@ -29,7 +29,7 @@ stable `CONFLICT`.
 ## 1. Pinned repository facts
 
 - Repository and command workdir were
-  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp`.
+  `/path/to/context-compiler-mcp`.
 - Before the QA write, branch was `main`, `HEAD` was exactly the Builder
   candidate, `HEAD^` was exactly the planning authority, the planning authority
   parent was exactly the accepted WO-03B QA commit, and the worktree was clean.

@@ -3,7 +3,7 @@
 Status: FROZEN FOR BOUNDED PROJECTION-RECEIPT GATE ADDENDUM / APPEND-ONLY REPAIR
 
 ```text
-repository_path: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository_path: /path/to/context-compiler-mcp
 branch: main
 repair_source_baseline_HEAD: 32e2e13248f72eecfbac54ecfd91db29e7d7111b
 gate_reopen_planning_authority: 32e2e13248f72eecfbac54ecfd91db29e7d7111b

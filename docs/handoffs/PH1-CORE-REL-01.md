@@ -69,7 +69,7 @@ All databases and artifacts used by the Builder were fresh and disposable.
   `node_modules` symlink as a symlink; its offline prune removed the non-directory and attempted an unavailable
   cache read for an already-present dependency. No product assertion failed.
 - The existing dependency tree from
-  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules` was then materialized locally without
+  `/path/to/context-compiler-mcp/node_modules` was then materialized locally without
   install or network, and `npx vitest run test/mcp-protocol.test.ts` passed **17/17**. The local dependency copy is
   not in Git and is removed before delivery.
 - The other five focused compatibility files passed **97/97** in the first run: evaluation 32, MCP service 7,
@@ -232,7 +232,7 @@ All databases, consumer fixtures, extracted packages and artifacts were syntheti
 - Runtime: Node.js `v25.6.1`, npm `11.9.0`; exact Node.js 24 was not separately run.
 - The first build attempt stopped before assertions because this QA worktree had no local dependency entry and
   `tsc` was unavailable. The permitted existing dependency tree at
-  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules` was first linked for targeted work, then
+  `/path/to/context-compiler-mcp/node_modules` was first linked for targeted work, then
   materialized as a real offline directory for the immutable package-runtime fixture. No install or network
   occurred.
 - An early in-worker TypeScript consumer probe first lacked its temporary Node type root. After that was supplied,

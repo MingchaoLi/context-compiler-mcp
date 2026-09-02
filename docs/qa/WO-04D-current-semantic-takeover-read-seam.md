@@ -5,7 +5,7 @@ Status: **ACCEPTED / PASS**
 ## Fixed candidate
 
 ```text
-repository: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository: /path/to/context-compiler-mcp
 branch: main
 candidate: 39334f94cb1c5ac37587cc261b261b427d2ba1b6
 parent / Execution Baseline: fcca8554d0bd6f0deeb0e4ab5d5f17676dcf8e39

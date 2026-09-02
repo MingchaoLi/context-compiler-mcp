@@ -6,7 +6,7 @@ Date: 2026-08-25
 
 ## Fixed identities
 
-- Repository: `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp`
+- Repository: `/path/to/context-compiler-mcp`
 - Branch: `main`
 - Execution baseline: `4efe35e47a0361c60940c7bcbf9f9d29ab7dbc17`
 - Pre-source Gate: `67d8b9088e8e9651d81def65c0cd174390785eb4`

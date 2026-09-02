@@ -15,7 +15,7 @@ identifiers. Passing repository tests do not exercise these counterexamples.
 
 ## 1. Pinned repository facts
 
-- Repository and workdir: `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp`.
+- Repository and workdir: `/path/to/context-compiler-mcp`.
 - Branch was `main`; `HEAD` was exactly
   `37765798c9be061d3dfe38adc7484d691a3f1ea8` before the QA write.
 - `HEAD^` was exactly

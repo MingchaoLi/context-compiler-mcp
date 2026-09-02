@@ -2,6 +2,7 @@
   "name": "context-compiler-mcp",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "description": "RippleContext: local, model-independent context state and recall service exposed over MCP",
   "main": "dist/index.js",

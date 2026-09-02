@@ -16,19 +16,19 @@
     },
     {
       "path": "evaluation/codex-dogfood-01/captures/b-packet.json",
-      "sha256": "94b80aa7cabde75b63be2500650e0300ffa22e039afb545ee4a1fd420647ee4d"
+      "sha256": "b255b509faa7a4baa7a2974f6e3d4ae6f8d8e374431e7b482343e1a9ce9bc849"
     },
     {
       "path": "evaluation/codex-dogfood-01/captures/compiled-b.json",
-      "sha256": "771783872ef17ab172b1e364d16dd62b0d405420a33317375ba11c7ee13f8f72"
+      "sha256": "f2d463686ad62265f2dc561c667b8fcc2be316378c25564c72882af4a8e1effe"
     },
     {
       "path": "evaluation/codex-dogfood-01/captures/native-a.json",
-      "sha256": "da5fe69aa4f85c16b2fc9fb377bf482a38b2b368037360134c7e6d3dfa81ee1c"
+      "sha256": "c378788725ee73d8674a8388886d0188a92c76e49413b5e8f6954f53190a4996"
     },
     {
       "path": "evaluation/codex-dogfood-01/captures/v0-observation.json",
-      "sha256": "af8e58ba64844a4b400ec03b7b210525b32f1d8308421b1596c35abb43c0f136"
+      "sha256": "012a5f39d139469e8a050b66d042cba3100763651e43a9b2c51e3c6a7e2c1b0b"
     },
     {
       "path": "evaluation/codex-dogfood-01/host-data/directive-summaries.json",
@@ -36,7 +36,7 @@
     },
     {
       "path": "evaluation/codex-dogfood-01/reports/automatic-lexical.json",
-      "sha256": "4de11676d0c629d603202f660b66b0cedd41d56d7377091d86c945d97621f61e"
+      "sha256": "0c08e53bfbe42825dcc634ed1cdb8b0ae5884728b997575c9aa2988f99bd9bf3"
     },
     {
       "path": "evaluation/codex-dogfood-01/reports/independent-semantic-adjudication.json",
@@ -44,7 +44,7 @@
     },
     {
       "path": "evaluation/codex-dogfood-01/reports/ledger-audit.json",
-      "sha256": "1e579aff4155a4e2935e3c7ee765e5b0a4704ee8a5862aa9e2f7f7f9aaeaecd2"
+      "sha256": "417bdc5b53544d5ef1c130e95ba748de03698646771839620f5b6cdb3c4d456b"
     },
     {
       "path": "evaluation/codex-dogfood-01/runner/latency-worker.mjs",
@@ -52,7 +52,7 @@
     },
     {
       "path": "evaluation/codex-dogfood-01/runner/run-observation.mjs",
-      "sha256": "38a66aff63b980ef4911722864400cc86198270e327b74bd008b970598d22ac6"
+      "sha256": "232262f8cc412c826966a85b1d632f1dde240baa285b860f7185e8eec2c97933"
     },
     {
       "path": "evaluation/codex-dogfood-01/runner/score-captures.mjs",

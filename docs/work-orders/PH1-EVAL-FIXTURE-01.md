@@ -20,7 +20,7 @@ Status: `FROZEN MODULE-OWNER PLANNING GATE / BUILDER NOT STARTED / NO DATA GENER
   `vector fairness, missingness, uncertainty and no forced scalar winner`. Its embedded historical
   `CANDIDATE` heading is recorded, not rewritten; acceptance comes from the exact later manifest binding.
 - Materialized cold-start capsule:
-  `/Users/lmc/Documents/agent长期记忆/.rc-control/governance-runtime/tasks/PH1-EVAL-FIXTURE-01-MODULE-PLAN.materialized.json`,
+  `/path/to/ripplecontext-workspace/.rc-control/governance-runtime/tasks/PH1-EVAL-FIXTURE-01-MODULE-PLAN.materialized.json`,
   schema/capsule version `1.0.0`.
 
 Repository files and Git objects above are the authority. Chat history, private evidence, QA-only evidence,
@@ -396,7 +396,7 @@ Status: `OFFLINE RECONSTRUCTION COMPLETE / NOT QA-ACCEPTED / NO MEASURED HOST RU
   37 files passed / 1 failed / 1 skipped and 593 tests passed / 1 failed / 1 skipped. No source changed. The exact
   ContextSnapshot file then passed 24/24, and the complete offline rerun passed 38 files / 1 skipped and 594 tests /
   1 skipped. This execution used Node `v25.6.1`, npm `11.9.0`, and the already-present dependency tree at
-  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules`; the worktree's ignored ordinary-directory
+  `/path/to/context-compiler-mcp/node_modules`; the worktree's ignored ordinary-directory
   copy had byte-equal Vitest and TypeScript entry/package files. Focused Vitest was invoked by that absolute local
   path, and npm checks ran with `npm_config_offline=true`.
 - The docs-only handoff commit is the direct child of the empty marker and changes only this append-only receipt plus

@@ -203,7 +203,7 @@ Status: `READY FOR FRESH EVALUATION MODULE RE-QA / BUILDER DOES NOT APPROVE`
 ### Process boundary and next owner
 
 This fresh execution used only Node `v25.6.1`, npm `11.9.0`, repository bytes, system temporary directories, and the
-already-present dependency tree at `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp/node_modules`. The
+already-present dependency tree at `/path/to/context-compiler-mcp/node_modules`. The
 worktree used an ignored ordinary-directory copy whose Vitest and TypeScript entry/package bytes matched that local
 source. Focused Vitest used the absolute local executable path; npm checks used `npm_config_offline=true`. There was no
 `npx`, network attempt, install, model/provider, real/private history, deployment, `ACTIVE`, measured Host run, or

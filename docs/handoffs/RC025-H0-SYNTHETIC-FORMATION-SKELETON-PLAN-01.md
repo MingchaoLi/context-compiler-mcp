@@ -6,7 +6,7 @@
 - Task capsule: `RC025-H0-SYNTHETIC-FORMATION-SKELETON-PLAN-01@1.0.0`
 - Capsule content SHA-256: `236d054b63e96f76e6195232dce25b584f86d526e6c918bd0cd8f624227828d4`
 - Exact parent: `9046ecaf4790dbe8bd985e2ee86c426096c60cf0`
-- Worktree: `/Users/lmc/Documents/Codex/2026-08-30/rc-evaluation-owner/work/rc025-h0-formation-skeleton-plan-01`
+- Worktree: `/path/to/rc-evaluation-owner/work/rc025-h0-formation-skeleton-plan-01`
 - Architecture issuer/return thread: `01a05126-4b8e-75b3-b6bc-a866a635bad5`
 - Builder activation: `false`
 - Claim ceiling: `SYNTHETIC_OFFLINE_FORMATION_SKELETON_ONLY`

@@ -107,7 +107,7 @@
         "id": "380249c7-8770-4222-bfa6-35e56b5b4470",
         "type": "CONSTRAINT",
         "status": "ACTIVE",
-        "content": "Only /Users/lmc/Documents/agent长期记忆/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
+        "content": "Only /path/to/context-compiler-mcp may be read or written; the core must not import sibling host repositories.",
         "source_refs": [
           "3b4a1a43-86c8-4c6e-804f-d564d713e5a3",
           "48cea42f-83fc-4fe0-93e2-45e7f5e9547e"

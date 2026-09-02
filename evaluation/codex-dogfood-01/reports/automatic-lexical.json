@@ -24,7 +24,7 @@
         {
           "probe_id": "P01",
           "critical": true,
-          "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
+          "answer": "唯一允许读写的项目目录是 /path/to/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
           "required_groups": [
             {
               "group_id": "P01-G01",
@@ -297,7 +297,7 @@
         {
           "probe_id": "P01",
           "critical": true,
-          "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；禁止核心重新导入任何 sibling host repositories（同级宿主仓库）依赖。",
+          "answer": "唯一允许读写的项目目录是 /path/to/context-compiler-mcp；禁止核心重新导入任何 sibling host repositories（同级宿主仓库）依赖。",
           "required_groups": [
             {
               "group_id": "P01-G01",

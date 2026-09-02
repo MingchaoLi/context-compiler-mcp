@@ -25,7 +25,7 @@
   "answers": [
     {
       "probe_id": "P01",
-      "answer": "唯一允许读写的项目目录是 /Users/lmc/Documents/agent长期记忆/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
+      "answer": "唯一允许读写的项目目录是 /path/to/context-compiler-mcp；不得读取或修改同级 deepseekAgent-Staff、团团 UI、Tauri 及 Harness/Cordis/ACP 宿主代码。核心包不得重新引入宿主依赖，未来宿主集成只能通过稳定适配接口。",
       "confidence": "high",
       "evidence_memory": "来自项目接管约束和独立核心迁移边界。"
     },

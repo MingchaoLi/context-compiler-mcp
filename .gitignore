@@ -14,3 +14,18 @@ coverage/
 .env.*
 !.env.example
 .DS_Store
+
+# Local credentials and private configuration
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local runtime/session data and temporary output
+.ripplecontext-local/
+.rc-control/
+sessions/
+runtime-data/
+tmp/
+*.tmp

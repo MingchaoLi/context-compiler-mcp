@@ -101,11 +101,11 @@ QA 在本次会话外部固定 `8d31cb6…` 只能证明所审候选当前字节
 
 ### P1 — 无参数 source-only CLI 的默认 repository root 错一层
 
-`runtime.ts:19` 从 `evaluation/state-replay-v0.1/st02/` 上溯 `../../../..`，实际得到项目父目录 `/Users/lmc/Documents/agent长期记忆`，而项目根应只上溯 `../../..`。`run-source-only.ts:6` 在无参数时直接采用这个默认值。
+`runtime.ts:19` 从 `evaluation/state-replay-v0.1/st02/` 上溯 `../../../..`，实际得到项目父目录 `/path/to/ripplecontext-workspace`，而项目根应只上溯 `../../..`。`run-source-only.ts:6` 在无参数时直接采用这个默认值。
 
 独立原样执行无参数 CLI 失败：
 
-`git -C /Users/lmc/Documents/agent长期记忆 rev-parse 79da83d…^{commit}` → `fatal: not a git repository`
+`git -C /path/to/ripplecontext-workspace rev-parse 79da83d…^{commit}` → `fatal: not a git repository`
 
 同一 CLI 显式传入项目根后成功生成 `STR-08/E1`，且 model/scoring 均为 0。这说明 replay 本身可用，但交付的默认入口不可用；Builder handoff 中的“source-only CLI 冒烟 PASS”无法按声明的默认用法复现。现有测试都显式传 `REPOSITORY_ROOT`，因此漏掉了该路径。
 

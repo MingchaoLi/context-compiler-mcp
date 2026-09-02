@@ -1,7 +1,7 @@
 # WO-04D Execution Baseline Manifest
 
 Frozen at: `2026-08-24T23:32:01Z`  
-Repository: `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp`  
+Repository: `/path/to/context-compiler-mcp`
 Branch: `main`
 
 ## Git authority
@@ -58,4 +58,3 @@ docs/ROADMAP.md
 
 Schema, migration, trigger, package/config, revision substrate, writer semantics, MCP, frozen v0,
 Host/provider and WO-05 source remain outside the authorized surface.
-

@@ -3,7 +3,7 @@
 Status: FROZEN FOR BUILDER IMPLEMENTATION
 
 ```text
-repository_path: /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+repository_path: /path/to/context-compiler-mcp
 branch: main
 source_baseline_HEAD: 4e7758ac459c879944c624eb27ffefcfb24a2aec
 planning_authority_commit: 4e7758ac459c879944c624eb27ffefcfb24a2aec

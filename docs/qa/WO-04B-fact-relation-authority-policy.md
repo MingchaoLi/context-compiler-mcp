@@ -29,7 +29,7 @@ required exact-revision Canonical State Item authority boundary.
 ## 1. Pinned repository facts
 
 - Repository and command workdir were
-  `/Users/lmc/Documents/agent长期记忆/context-compiler-mcp` for every shell
+  `/path/to/context-compiler-mcp` for every shell
   command.
 - Before the QA write, branch was `main`, `HEAD` was exactly the Builder
   candidate, `HEAD^` was exactly the pre-source commit, `HEAD^^` was exactly the

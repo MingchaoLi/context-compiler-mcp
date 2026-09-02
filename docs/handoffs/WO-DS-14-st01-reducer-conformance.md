@@ -71,7 +71,7 @@ strict delta 的新 item 没有调用方 ID；同一 delta 的其他 operation �
 - 手动只读重放：
 
 ```sh
-env NODE_NO_WARNINGS=1 npx vite-node --script evaluation/state-replay-v0.1/st01/run-conformance.ts /Users/lmc/Documents/agent长期记忆/context-compiler-mcp
+env NODE_NO_WARNINGS=1 npx vite-node --script evaluation/state-replay-v0.1/st01/run-conformance.ts /path/to/context-compiler-mcp
 ```
 
 ## Builder 自检

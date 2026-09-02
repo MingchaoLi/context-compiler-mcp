@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "observation_id": "codex-long-conversation-dogfood-01",
-  "source_observation_sha256": "af8e58ba64844a4b400ec03b7b210525b32f1d8308421b1596c35abb43c0f136",
+  "source_observation_sha256": "012a5f39d139469e8a050b66d042cba3100763651e43a9b2c51e3c6a7e2c1b0b",
   "database_committed": false,
   "query_scope": "aggregate counts only",
   "total_counts": {
