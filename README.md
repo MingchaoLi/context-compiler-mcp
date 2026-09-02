@@ -348,6 +348,36 @@ This repository intentionally retains evidence of how the design evolved:
 - [Decisions](docs/DECISIONS.md) and the [Roadmap](docs/ROADMAP.md) identify current and historical
   boundaries.
 
+### Selected QA evidence
+
+These records are useful entry points into the repository's validation history. They are not one
+cumulative benchmark: several reports rerun the same regression suites, so their test counts should
+not be added together.
+
+- **Long-conversation dogfood:** [WO-DG-01](docs/qa/WO-DG-01-codex-long-conversation-dogfood.md)
+  independently checks a sanitized real-use observation, targeted recovery, arithmetic, and reported
+  misses without promoting it into a general Host claim.
+- **Bounded private-history comparison:** [protocol](docs/qa/WO-DG-02-private-history-evaluation-protocol.md)
+  and [aggregate results](docs/qa/WO-DG-02-private-history-evaluation-results.md) document the Codex,
+  Pi Native, and RC Raw-only development comparison used above.
+- **Snapshot integrity:** the [returned omission attack](docs/qa/WO-05-context-snapshot-contract.md)
+  and [accepted fix](docs/qa/WO-05-context-snapshot-contract-fix.md) show how a coordinated provenance
+  failure was reproduced and then closed with an owner-bound projection receipt.
+- **Foundation freeze:** [WO-V0-15](docs/qa/WO-V0-15-experience-ready-foundation-freeze.md) preserves
+  multiple append-only FAIL → fix → re-QA cycles covering transactions, idempotency, replay, migration,
+  concurrency, telemetry completeness, and production packaging.
+- **Atomic State updates:** [WO-ST-01](docs/qa/WO-ST-01-state-update-pipeline.md) exercises strict
+  preparation, atomic apply, revision conflicts, rollback, retry behavior, and real stdio packaging.
+- **Public MCP privacy boundary:** the [initial return](docs/qa/WO-PUB-01-public-mcp-result-boundary.md)
+  and [accepted fix](docs/qa/WO-PUB-01-public-mcp-result-boundary-fix.md) verify the closed public result
+  allowlist while retaining internal diagnostics and telemetry.
+- **Evaluator validity:** [WO-EV-02](docs/qa/WO-EV-02-evaluator-validity-calibration.md) retains its
+  initial provenance/parser failures and the subsequent Independent re-QA that closed them, including
+  `not_evaluable` and current-input isolation checks.
+
+Failed reports remain public because they are part of the evidence. For paired records, follow the fix
+or final re-QA section for the current disposition.
+
 Some earlier designs were revised after experiments or QA counterexamples. These records are valuable
 research provenance, but not every historical document is current authority.
 

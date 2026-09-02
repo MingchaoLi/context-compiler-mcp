@@ -331,6 +331,34 @@ Server 精确提供以下九个工具：
 - [Evaluation artifacts](evaluation/) 保留公开 fixture、诊断结果及其解释边界。
 - [Decisions](docs/DECISIONS.md) 和 [Roadmap](docs/ROADMAP.md) 标明当前及历史边界。
 
+### 精选 QA 证据
+
+以下记录适合作为理解仓库验证历史的入口，但它们不是一个可以累加的总 benchmark：多份报告重复运行了
+同一套 regression suite，因此不能把测试数量简单相加。
+
+- **长期对话 dogfood：** [WO-DG-01](docs/qa/WO-DG-01-codex-long-conversation-dogfood.md)
+  独立核查了脱敏真实使用 observation、targeted recovery、算术和已报告 miss，没有把结果扩大成通用
+  Host claim。
+- **有界私有历史比较：** [评测方案](docs/qa/WO-DG-02-private-history-evaluation-protocol.md)和
+  [聚合结果](docs/qa/WO-DG-02-private-history-evaluation-results.md)记录了上文使用的 Codex、Pi Native
+  与 RC Raw-only development comparison。
+- **Snapshot 完整性：** [首次 omission attack](docs/qa/WO-05-context-snapshot-contract.md)与
+  [已接受修复](docs/qa/WO-05-context-snapshot-contract-fix.md)展示了如何复现 coordinated provenance
+  缺失，并通过 owner-bound projection receipt 将其关闭。
+- **Foundation freeze：** [WO-V0-15](docs/qa/WO-V0-15-experience-ready-foundation-freeze.md)以
+  append-only 方式保留多轮 FAIL → fix → re-QA，覆盖 transaction、幂等、replay、migration、并发、
+  telemetry completeness 和 production packaging。
+- **原子 State update：** [WO-ST-01](docs/qa/WO-ST-01-state-update-pipeline.md)验证严格 prepare、原子
+  apply、revision conflict、rollback、retry 和真实 stdio packaging。
+- **公开 MCP 隐私边界：** [首次 return](docs/qa/WO-PUB-01-public-mcp-result-boundary.md)与
+  [已接受修复](docs/qa/WO-PUB-01-public-mcp-result-boundary-fix.md)验证公开结果的 closed allowlist，
+  同时保留内部 diagnostic 与 telemetry。
+- **评测器有效性：** [WO-EV-02](docs/qa/WO-EV-02-evaluator-validity-calibration.md)保留最初的
+  provenance/parser failure 和随后关闭问题的 Independent re-QA，包括 `not_evaluable` 与
+  current-input isolation 检查。
+
+失败报告继续公开，因为它们本身就是证据。对于成对记录，应以 fix 或最终 re-QA 小节判断当前状态。
+
 部分早期设计在实验或 QA 反例后被修正。这些记录是有价值的研究 provenance，但并非每份历史文档都是
 当前 Authority。
 
